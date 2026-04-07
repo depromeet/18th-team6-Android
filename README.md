@@ -1,6 +1,6 @@
-# Side Project Claude Settings
+# Android Team Claude Settings
 
-사이드 프로젝트를 **아이디어 → 기획 → 디자인 → 개발 계획 → 이슈 관리 → 구현**까지 Claude Code와 함께 진행하기 위한 규칙 + 스킬 모음.
+안드로이드 팀 프로젝트를 **기획 → 개발 계획 → 이슈 관리 → 구현**까지 Claude Code와 함께 진행하기 위한 규칙 + 스킬 모음.
 
 `/init-project`로 새 프로젝트를 만들면 규칙/스킬이 자동 복사되고, **`product-blueprint.html`(마스터 문서)**이 생성됩니다. 각 스킬이 완료될 때마다 마스터 문서가 자동 업데이트되어 프로젝트 전체 상태를 한 곳에서 확인할 수 있습니다.
 
@@ -20,17 +20,18 @@
 
 ---
 
-## 사람과 AI의 역할 분담
+## 팀과 AI의 역할 분담
 
 <img src="docs/diagrams/workflow-example.png" alt="작업 흐름 예시" width="100%">
 
-| 단계 | 사람 | Claude Code |
+| 단계 | 팀원 | Claude Code |
 |------|------|-------------|
 | **시작** | `/init-project` 실행 | Git/GitHub 초기화, 규칙/스킬 복사, develop 브랜치, 라벨 생성 |
-| **기획** | 아이디어 설명, 결과 판단 | 에이전트 토론, MVP 범위, PRD 작성 |
-| **디자인** | 리뷰, 수정 요청 | 디자인 토큰, 컴포넌트, 화면별 HTML |
+| **기획** | 요구사항 설명, 결과 판단 | 에이전트 토론, MVP 범위, PRD 작성 |
+| **디자인** | 디자이너가 Figma에서 작업 | (선택) 디자인 토큰, 컴포넌트, 화면별 HTML |
 | **개발 계획** | 아키텍처 리뷰 | 기술 설계, 플랫폼 스킬 자동 설치 |
-| **구현** | human-task 수행, 코드 리뷰 | claude-task 독립 수행, 테스트, 버그 수정 |
+| **구현** | human-task 수행, PR 리뷰 | claude-task 독립 수행, 테스트, 버그 수정 |
+| **이슈 관리** | 진행하면서 필요할 때 이슈 생성 | 이슈 작성 보조, 로드맵 동기화 |
 | **세션 관리** | `/handoff` 요청 | 핸드오프 문서 → `/resume`으로 복구 |
 
 ---
@@ -43,11 +44,16 @@
 |------|--------|------|
 | `/interview` | `interview-notes.md` | 점진적 질문으로 요구사항 구체화 (선택) |
 | `/app-plan` | PRD + 유저플로우 HTML | 에이전트 3인 토론 → MVP → 유저 플로우 |
-| `/design-system-to-figma` | `tokens.css` + `design-system.html` | 디자인 토큰 + 컴포넌트 (HTML 기본, Figma 선택) |
-| `/prd-to-figma` | `screen-*.html` | 화면별 디자인 HTML (tokens.css 선행 필요) |
 | `/dev-plan` | `dev-plan.md` + 아키텍처 HTML | 기술 아키텍처 + 플랫폼 스킬 자동 설치 |
 | `/dev-roadmap` | `deploy-roadmap.md` + 타임라인 HTML | M0~M3 마일스톤, claude-task/human-task 분류 |
-| `/create-issues` | GitHub Issues | 에픽 + 하위 작업 자동 생성 |
+
+### 선택 스킬 (필요 시 사용)
+
+| 스킬 | 산출물 | 설명 |
+|------|--------|------|
+| `/design-system-to-figma` | `tokens.css` + `design-system.html` | 디자인 토큰 + 컴포넌트 (디자이너 별도 시 불필요) |
+| `/prd-to-figma` | `screen-*.html` | 화면별 디자인 HTML (디자이너 별도 시 불필요) |
+| `/create-issues` | GitHub Issues | 진행 중 필요할 때 이슈 생성 |
 
 ### 세션 관리 스킬 (중간중간 사용)
 
@@ -60,11 +66,10 @@
 
 | 스킬 | 설명 |
 |------|------|
-| `/init-project` | 새 프로젝트 부트스트랩 (Git Flow + 규칙/스킬 복사) |
+| `/init-project` | 새 프로젝트 부트스트랩 (Git Flow + 규칙/스킬 복사 + 팀 라벨 생성) |
 | `/product-blueprint` | SSOT 통합 마스터 HTML (각 스킬 완료 시 자동 업데이트) |
 | `/sync-roadmap` | GitHub Issues 상태 기반 로드맵 최신화 |
 | `/sync` | Git pull + 충돌 해결 |
-| `/ideation` | 8개 에이전트로 앱 아이디어 발굴 |
 | `/clarify` | 모호한 이슈/요청을 인터뷰로 구체화 |
 
 ---
@@ -79,4 +84,4 @@
 | **history** | `/handoff`로 세션 정리, 10개 필수 섹션 |
 | **meta** | 규칙 변경 시 사용자 확인 필수 |
 | **source-citation** | 소스 등급제 (Tier 1/2/3), 낮은 등급은 교차검증 필수 |
-| **git-flow** | main + develop + feature/ + fix/, main은 PR로만 병합 |
+| **git-flow** | main + develop + release/ + feature/ + fix/ + hotfix/, PR 리뷰 필수 |

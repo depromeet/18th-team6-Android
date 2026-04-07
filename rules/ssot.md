@@ -25,18 +25,25 @@
 ## 스킬 파이프라인
 
 ```
-interview → app-plan → design-system-to-figma → prd-to-figma → dev-plan → dev-roadmap → create-issues
-(인터뷰)   (기획서)    (토큰+디자인시스템)      (화면별 디자인) (개발 계획)  (배포 로드맵)  (이슈 생성)
-                                                                    ↓
-                                              product-blueprint (SSOT 통합 마스터 문서, 언제든 실행 가능)
+interview → app-plan → dev-plan → dev-roadmap
+(인터뷰)   (기획서)    (개발 계획)  (배포 로드맵)
+                                      ↓
+                    product-blueprint (SSOT 통합 마스터 문서, 언제든 실행 가능)
 ```
 
-- `/interview`는 선택사항이다. 아이디어가 충분히 구체적이면 바로 `/app-plan`으로 시작 가능하다.
+### 선택 스킬 (필요 시 사용)
+
+```
+design-system-to-figma → prd-to-figma    (디자이너가 별도로 있으면 불필요)
+create-issues                             (진행 중 필요할 때 이슈 생성)
+```
+
+- `/interview`는 선택사항이다. 기획이 충분히 구체적이면 바로 `/app-plan`으로 시작 가능하다.
 - `/product-blueprint`는 파이프라인 어느 시점에서든 실행 가능하다. SSOT 문서가 추가/변경될 때마다 재실행 권장.
 - `/sync-roadmap`은 구현 단계에서 수시로 실행하여 로드맵 문서를 최신화한다.
+- `/create-issues`는 처음에 일괄 생성하지 않는다. 작업을 진행하면서 필요할 때 사용한다.
 
-- `design-system-to-figma`은 `docs/ssot/design/system/tokens.css`를 생성한다. `prd-to-figma`는 이 파일이 없으면 실행을 거부한다.
-- `design-system-to-figma`과 `prd-to-figma`는 `frontend-design:frontend-design` 스킬이 있으면 디자인 품질이 향상된다.
+- `design-system-to-figma`과 `prd-to-figma`는 디자이너가 별도로 있으면 사용하지 않아도 된다.
 - `dev-plan`은 기획서(`docs/ssot/prd/` 내 PRD)가 존재해야 실행 가능하다.
 - `dev-roadmap`은 `docs/ssot/dev/dev-plan.md`가 존재해야 실행 가능하다.
 - `create-issues`는 `docs/ssot/dev/deploy-roadmap.md`가 존재하고 GitHub 레포가 연결되어야 실행 가능하다.

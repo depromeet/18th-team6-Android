@@ -1,15 +1,15 @@
 ---
 name: init-project
 description: |
-  새 사이드 프로젝트를 부트스트랩하는 스킬. Git/GitHub 초기화, 규칙 7개 + 스킬 14개 복사, develop 브랜치 생성, 라벨 생성, product-blueprint 생성까지 한번에 수행한다.
-  이 스킬은 다음과 같은 요청에 반드시 사용한다: "새 프로젝트 시작", "프로젝트 초기화", "사이드 프로젝트 셋업", "/init-project", "프로젝트 만들어줘", "레포 생성해줘".
+  새 프로젝트를 부트스트랩하는 스킬. Git/GitHub 초기화, 규칙 7개 + 스킬 14개 복사, develop 브랜치 생성, 라벨 생성, product-blueprint 생성까지 한번에 수행한다.
+  이 스킬은 다음과 같은 요청에 반드시 사용한다: "새 프로젝트 시작", "프로젝트 초기화", "프로젝트 셋업", "/init-project", "프로젝트 만들어줘", "레포 생성해줘".
   새 프로젝트를 시작하거나 초기 환경을 세팅하는 맥락이면 이 스킬을 사용한다.
 user_invocable: true
 ---
 
 # Init Project (프로젝트 부트스트랩)
 
-새 사이드 프로젝트를 시작할 때 필요한 모든 초기 설정을 한번에 수행하는 스킬입니다.
+새 프로젝트를 시작할 때 필요한 모든 초기 설정을 한번에 수행하는 스킬입니다.
 
 ## 트리거 조건
 
@@ -73,7 +73,7 @@ cp "$SOURCE/rules/"*.md {프로젝트경로}/.claude/rules/
 
 # 스킬 복사 (init-project, skill-creator 제외 — 메타 레포 전용 스킬)
 mkdir -p {프로젝트경로}/.claude/skills
-for skill in app-plan design-system-to-figma prd-to-figma dev-plan dev-roadmap create-issues handoff resume product-blueprint interview ideation sync-roadmap clarify sync; do
+for skill in app-plan design-system-to-figma prd-to-figma dev-plan dev-roadmap create-issues handoff resume product-blueprint interview sync-roadmap clarify sync clear-with-lessons; do
   cp -r "$SOURCE/skills/$skill" {프로젝트경로}/.claude/skills/
 done
 
@@ -99,6 +99,7 @@ mkdir -p docs/ssot/dev
 mkdir -p docs/refs
 mkdir -p docs/handoff
 mkdir -p docs/lessons
+mkdir -p docs/insights
 mkdir -p docs/sessions
 
 # .gitkeep 추가 (빈 디렉토리 유지)
@@ -136,6 +137,10 @@ touch docs/sessions/.gitkeep
 gh label create "epic" --description "에픽 이슈" --color "6f42c1" 2>/dev/null || true
 gh label create "claude-task" --description "Claude Code가 독립 수행 가능한 작업" --color "0075ca" 2>/dev/null || true
 gh label create "human-task" --description "사람이 직접 수행해야 하는 작업" --color "e4e669" 2>/dev/null || true
+gh label create "android" --description "안드로이드 클라이언트 관련" --color "a4c639" 2>/dev/null || true
+gh label create "backend" --description "서버/API 관련" --color "d73a4a" 2>/dev/null || true
+gh label create "design" --description "디자인 관련" --color "f9d0c4" 2>/dev/null || true
+gh label create "infra" --description "인프라/CI/CD 관련" --color "c5def5" 2>/dev/null || true
 ```
 
 ### Step 6: 초기 커밋
@@ -150,122 +155,12 @@ git commit -m "Init: 프로젝트 초기 설정
 - develop 브랜치 생성
 - docs/ 디렉토리 구조 생성 (ssot/prd, ssot/design, ssot/dev, refs, handoff, lessons, sessions)
 - 초기 product-blueprint.html 생성 (5개 탭 placeholder)
-- GitHub 라벨 생성 (epic, claude-task, human-task)"
+- GitHub 라벨 생성 (epic, claude-task, human-task, android, backend, design, infra)"
 
 git push -u origin main
 ```
 
-### Step 7: 파이프라인 초기 이슈 생성
-
-**Actions:**
-
-프로젝트 파이프라인의 각 단계를 에픽 이슈로 미리 생성한다:
-
-```bash
-# 에픽 이슈 생성 (파이프라인 순서)
-gh issue create --title "[Epic] 기획서(PRD) 작성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/app-plan 스킬로 앱 기획서를 작성한다.
-
-## 할일
-- [ ] 아이디어 검증 (3인 에이전트 토론)
-- [ ] 핵심 가치 정의
-- [ ] MVP 범위 설정
-- [ ] 유저 플로우 정의
-- [ ] 기획서 저장 (docs/ssot/prd/YYYY-MM-DD-{앱이름}-기획서.md)
-
-## 검증 방법
-- [ ] docs/ssot/prd/ 에 기획서 파일 존재
-- [ ] MVP 기능, 기술 스택, 유저 플로우가 포함됨"
-
-gh issue create --title "[Epic] 디자인 시스템 생성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/design-system-to-figma 스킬로 디자인 토큰과 시스템을 생성한다.
-
-## 전제조건
-- 기획서(PRD) 완료
-
-## 할일
-- [ ] 디자인 토큰 생성 (tokens.css)
-- [ ] 디자인 시스템 HTML 생성
-- [ ] Figma 내보내기
-
-## 검증 방법
-- [ ] docs/ssot/design/system/tokens.css 존재
-- [ ] 디자인 시스템 HTML 렌더링 정상"
-
-gh issue create --title "[Epic] 화면별 디자인 생성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/prd-to-figma 스킬로 PRD 화면 정의를 HTML로 변환한다.
-
-## 전제조건
-- 기획서(PRD) 완료
-- tokens.css 존재
-
-## 할일
-- [ ] 화면별 HTML 생성
-- [ ] Figma 페이지 내보내기
-
-## 검증 방법
-- [ ] docs/ssot/design/screens/screen-*.html 파일 존재"
-
-gh issue create --title "[Epic] 개발 계획서 작성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/dev-plan 스킬로 기술 아키텍처와 개발 계획을 수립한다.
-
-## 전제조건
-- 기획서(PRD) 완료
-
-## 할일
-- [ ] 기술 아키텍처 설계
-- [ ] 디렉토리 구조 정의
-- [ ] 데이터 모델 설계
-- [ ] API 설계
-- [ ] 핵심 컴포넌트 정의
-
-## 검증 방법
-- [ ] docs/ssot/dev/dev-plan.md 존재"
-
-gh issue create --title "[Epic] 배포 로드맵 작성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/dev-roadmap 스킬로 마일스톤별 배포 로드맵을 생성한다.
-
-## 전제조건
-- docs/ssot/dev/dev-plan.md 완료
-
-## 할일
-- [ ] 마일스톤 분류 (M0~M3)
-- [ ] 에픽/하위 작업 정의
-- [ ] claude-task / human-task 분류
-- [ ] 의존성 순서 정의
-
-## 검증 방법
-- [ ] docs/ssot/dev/deploy-roadmap.md 존재"
-
-gh issue create --title "[Epic] 개발 이슈 생성" \
-  --label "epic,claude-task" \
-  --body "## 목표
-/create-issues 스킬로 로드맵 기반 GitHub Issues를 생성한다.
-
-## 전제조건
-- docs/ssot/dev/deploy-roadmap.md 완료
-
-## 할일
-- [ ] 사용자와 이슈 범위 합의
-- [ ] 에픽 이슈 생성
-- [ ] 하위 작업 이슈 생성 (claude-task / human-task 라벨)
-- [ ] 에픽 이슈에 하위 링크 업데이트
-
-## 검증 방법
-- [ ] 모든 로드맵 작업이 이슈로 생성됨"
-```
-
-### Step 8: 완료 안내
+### Step 7: 완료 안내
 
 **Actions:**
 
@@ -279,16 +174,16 @@ GitHub: https://github.com/{사용자}/{프로젝트이름}
 
 포함된 항목:
 - 규칙 7개 (ssot, workflow, history, github-issues, meta, source-citation, git-flow)
-- 스킬 14개 (app-plan, design-system-to-figma, prd-to-figma, dev-plan, dev-roadmap, create-issues, handoff, resume, product-blueprint, interview, ideation, sync-roadmap, clarify, sync)
+- 스킬 14개 (app-plan, design-system-to-figma, prd-to-figma, dev-plan, dev-roadmap, create-issues, handoff, resume, product-blueprint, interview, sync-roadmap, clarify, sync)
 - hooks (log-conversation: 대화 기록 자동 로깅)
-- Git Flow (main + develop 브랜치)
+- Git Flow (main + develop 브랜치, PR 리뷰 필수)
 - docs/ 디렉토리 구조 (ssot/prd, ssot/design, ssot/dev, refs/, handoff/, lessons/, sessions/)
 - 초기 product-blueprint.html (5개 탭 placeholder)
-- GitHub 라벨 (epic, claude-task, human-task)
-- 파이프라인 초기 이슈 6개 (에픽)
+- GitHub 라벨 (epic, claude-task, human-task, android, backend, design, infra)
 
 다음 단계:
-GitHub Issues 보드에서 첫 번째 이슈([Epic] 기획서 작성)부터 시작하세요.
+`/app-plan` 또는 `/interview`로 기획을 시작하세요.
+이슈는 작업을 진행하면서 필요할 때 생성합니다.
 ```
 
 ---
@@ -304,13 +199,13 @@ GitHub Issues 보드에서 첫 번째 이슈([Epic] 기획서 작성)부터 시�
 - [ ] Git 레포가 정상 초기화되었는가?
 - [ ] GitHub 레포가 생성/연결되었는가?
 - [ ] 모든 규칙이 `.claude/rules/`에 복사되었는가?
-- [ ] 모든 스킬이 `.claude/skills/`에 복사되었는가?
+- [ ] 13개 스킬이 `.claude/skills/`에 복사되었는가? (ideation 제외)
 - [ ] `hooks/log-conversation.sh`가 복사되고 실행 권한이 있는가?
 - [ ] `.claude/settings.json`에 UserPromptSubmit, PostToolUse hook이 설정되었는가?
 - [ ] `docs/ssot/prd/`, `docs/ssot/design/system/`, `docs/ssot/design/screens/`, `docs/ssot/dev/`, `docs/refs/`, `docs/handoff/`, `docs/lessons/`, `docs/sessions/` 디렉토리가 존재하는가?
 - [ ] `docs/ssot/product-blueprint.html`이 생성되었고, 5개 탭(기획/디자인 시스템/화면 디자인/개발 계획/로드맵)이 포함되어 있는가?
 - [ ] `product-blueprint.html`이 standalone HTML(인라인 CSS, 외부 의존성 없음)인가?
-- [ ] GitHub 라벨 3개(epic, claude-task, human-task)가 생성되었는가?
+- [ ] GitHub 라벨 7개(epic, claude-task, human-task, android, backend, design, infra)가 생성되었는가?
 - [ ] 초기 커밋이 push되었는가?
 
 ---

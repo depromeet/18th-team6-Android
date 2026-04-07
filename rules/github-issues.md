@@ -1,15 +1,32 @@
-# GitHub Issues 기반 작업 관리
+# GitHub Issues & Projects 기반 작업 관리
 
-진행상황은 **GitHub Issues**로 관리한다. `gh` CLI를 사용한다.
+진행상황은 **GitHub Projects + Issues**로 관리한다. `gh` CLI를 사용한다.
+
+## GitHub Projects
+
+- MVP가 나오면 GitHub Projects에 기능별로 Item을 등록한다
+- Item 등록 시 기능 명세를 적어놓고, 디자인/서버와 협의 필요 여부를 표시한다
+- Projects 보드에서 이슈를 발행하고 진행 상황을 관리한다
+
+## 이슈 생성 시점
+
+- 처음부터 이슈를 일괄 생성하지 않는다
+- **작업을 진행하면서 필요할 때** 이슈를 생성한다
+- 기능 개발 시작 시점에 이슈를 만든다
 
 ## 구조
 
 - **에픽 이슈**: 큰 단위의 마일스톤. `epic` 라벨 부여.
 - **하위 작업 이슈**: 에픽 아래 구체적 작업. 에픽 이슈 링크를 본문에 포함.
+- **담당자**: 모든 이슈에 assignee를 지정한다
 - **라벨**:
   - `claude-task`: Claude Code가 독립적으로 수행 가능한 작업
   - `human-task`: 사람이 직접 수행해야 하는 작업 (외부 서비스 설정, 결제 등)
   - `epic`: 에픽 이슈 표시
+  - `android`: 안드로이드 클라이언트 관련
+  - `backend`: 서버/API 관련
+  - `design`: 디자인 관련
+  - `infra`: 인프라/CI/CD 관련
 
 ## Claude 이슈 템플릿
 
