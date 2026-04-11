@@ -13,11 +13,8 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      # 보안: base 브랜치의 스크립트/룰 파일을 사용 (PR이 규칙 파일을 변조할 수 없게 함)
-      - name: Checkout base ref
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
