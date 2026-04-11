@@ -49,18 +49,18 @@ def pick_reviewers(author: str, count: int) -> list[str]:
 
 
 def assign_reviewers(repo: str, pr_number: str, reviewers: list[str]) -> None:
-    if not reviewers:
-        return
-    subprocess.run(
-        [
-            "gh", "api",
-            f"repos/{repo}/pulls/{pr_number}/requested_reviewers",
-            "--method", "POST",
-            "--input", "-",
-        ],
-        input=json.dumps({"reviewers": reviewers}),
-        text=True, check=True,
-    )
+    # 주의: 이 레포에서는 배열로 여러 명을 한 번에 요청하면
+    # 일부가 silent drop되는 API quirk가 있어 개별 호출로 처리한다.
+    for reviewer in reviewers:
+        subprocess.run(
+            [
+                "gh", "api",
+                f"repos/{repo}/pulls/{pr_number}/requested_reviewers",
+                "--method", "POST",
+                "-f", f"reviewers[]={reviewer}",
+            ],
+            check=True, text=True, capture_output=True,
+        )
 
 
 def assign_assignee(repo: str, pr_number: str, author: str) -> None:
