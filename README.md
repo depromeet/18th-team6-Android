@@ -53,13 +53,13 @@ Claude Code 규칙 + 스킬 모음. 프로젝트 시작 시 `/init-project`로 �
 
 | Prefix | 용도 | 예시 |
 |--------|------|------|
-| `feat/` | 새 기능 | `feat/1-홈-UI-생성` |
-| `fix/` | 버그 수정 | `fix/57-crash-on-startup` |
-| `chore/` | 설정/잡무 | `chore/12-gradle-업데이트` |
-| `refactor/` | 리팩토링 | `refactor/20-repository-패턴-적용` |
-| `docs/` | 문서 | `docs/8-README-작성` |
+| `feat/` | 새 기능 | `feat/#1-홈-UI-생성` |
+| `fix/` | 버그 수정 | `fix/#57-crash-on-startup` |
+| `chore/` | 설정/잡무 | `chore/#12-gradle-업데이트` |
+| `refactor/` | 리팩토링 | `refactor/#20-repository-패턴-적용` |
+| `docs/` | 문서 | `docs/#8-README-작성` |
 
-- 이슈 번호 필수 포함, 이슈 이름 = 브랜치 이름
+- 이슈 번호 필수 포함 (`#` 접두사), 이슈 이름 = 브랜치 이름
 - PR은 최소 1명 리뷰 승인 후 병합
 
 ## 사용법
