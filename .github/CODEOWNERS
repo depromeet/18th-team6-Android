@@ -1,0 +1,27 @@
+# CODEOWNERS
+# 아래 규칙은 마지막 매칭이 우선합니다. 중요 경로는 아래쪽에 둡니다.
+# 중요 경로가 변경된 PR은 일반 승인 1명 + 코드오너 승인 1명 = 2명이 필요합니다.
+
+# 기본: 팀 전체
+*                               @depromeet/18th_team6_android
+
+# 빌드 / 의존성
+*.gradle                        @depromeet/18th_team6_android
+*.gradle.kts                    @depromeet/18th_team6_android
+gradle/                         @depromeet/18th_team6_android
+gradle.properties               @depromeet/18th_team6_android
+settings.gradle*                @depromeet/18th_team6_android
+buildSrc/                       @depromeet/18th_team6_android
+gradle/libs.versions.toml       @depromeet/18th_team6_android
+**/proguard-rules.pro           @depromeet/18th_team6_android
+
+# 매니페스트 / 런타임 설정
+**/AndroidManifest.xml          @depromeet/18th_team6_android
+
+# CI / GitHub 설정
+.github/workflows/              @depromeet/18th_team6_android
+.github/CODEOWNERS              @depromeet/18th_team6_android
+
+# 코드 품질 설정
+.editorconfig                   @depromeet/18th_team6_android
+**/detekt.yml                   @depromeet/18th_team6_android
