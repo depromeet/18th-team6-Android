@@ -1,17 +1,36 @@
-name: Auto Assign
+name: Auto Assign Reviewers
 
 on:
   pull_request:
     types: [opened, ready_for_review]
 
 jobs:
-  add-reviewers:
+  assign:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      issues: write
     steps:
-      - name: Auto assign reviewers and author as assignee
-        uses: kentaro-m/auto-assign-action@v2.0.0
+      # 보안: base 브랜치의 스크립트/룰 파일을 사용 (PR이 규칙 파일을 변조할 수 없게 함)
+      - name: Checkout base ref
+        uses: actions/checkout@v4
         with:
-          configuration-path: .github/auto_assign.yml
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install pathspec
+        run: pip install --quiet pathspec
+
+      - name: Run auto-assign
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: python .github/scripts/auto-assign.py
