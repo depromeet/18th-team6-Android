@@ -1,10 +1,10 @@
 This is a Kotlin Multiplatform project targeting Android and iOS.
 
-* [/androidApp](./androidApp/src) contains the Android app entry point and Android-specific UI code.
-  It contains several subfolders:
-  - [commonMain](./androidApp/src/commonMain/kotlin) is for code that’s common for Android targets in this module.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, [androidMain](./androidApp/src/androidMain/kotlin) is the right place for Android-specific code.
+* [/android/app](./android/app/src) contains the Android app entry point and Android-specific UI code.
+  The main source set lives under [src/main](./android/app/src/main).
+
+* [/android/feature/sample](./android/feature/sample/src) is a sample Android feature module.
+  Use [src/main](./android/feature/sample/src/main) when you split Android-only UI and feature code out of the app shell.
 
 * [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
@@ -19,11 +19,11 @@ To build and run the development version of the Android app, use the run configu
 in your IDE’s toolbar or build it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :androidApp:assembleDebug
+  ./gradlew :android:app:assembleDebug
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :androidApp:assembleDebug
+  .\gradlew.bat :android:app:assembleDebug
   ```
 
 ### Build and Run iOS Application

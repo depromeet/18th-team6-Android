@@ -28,5 +28,6 @@ dependencyResolutionManagement {
     }
 }
 
-include(":androidApp")
+include(":android:app")
+include(":android:feature:sample")
 include(":shared")

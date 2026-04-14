@@ -3,7 +3,7 @@ package com.obrit.obrit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class ComposeAppAndroidUnitTest {
+class AndroidAppUnitTest {
 
     @Test
     fun example() {
