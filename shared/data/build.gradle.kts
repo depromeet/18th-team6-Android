@@ -14,6 +14,13 @@ kotlin {
 
     iosArm64()
     iosSimulatorArm64()
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+        }
+    }
 }
 
 android {
