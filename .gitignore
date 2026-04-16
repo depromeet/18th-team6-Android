@@ -1,0 +1,17 @@
+/.gradle/
+/build/
+/app/build/
+/local.properties
+/.idea/
+/docs/sessions/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.log
+*.hprof
+*.keystore
+*.jks
+.DS_Store
