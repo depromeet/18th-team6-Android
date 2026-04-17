@@ -27,7 +27,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             api(projects.shared.model)
-            api(projects.shared.network)
+            implementation(projects.shared.network)
             api(projects.shared.data)
         }
         commonTest.dependencies {

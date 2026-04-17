@@ -1,12 +1,15 @@
 package com.obrit.obrit.shared.network.config
 
-data class NetworkConfiguration(
+@ConsistentCopyVisibility
+internal data class NetworkConfiguration private constructor(
     val baseUrl: String,
     val enableLogging: Boolean = false,
 ) {
-    init {
-        require(baseUrl.isNotBlank()) {
-            "NetworkConfiguration.baseUrl must not be blank."
-        }
+
+    internal companion object {
+        val DEFAULT_NETWORK_CONFIGURATION = NetworkConfiguration(
+            baseUrl = "https://example.com/", // TODO local.properties
+            enableLogging = true,
+        )
     }
 }

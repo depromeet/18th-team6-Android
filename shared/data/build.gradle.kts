@@ -22,7 +22,13 @@ kotlin {
             implementation(projects.shared.model)
             implementation(projects.shared.network)
         }
-
+        androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+        }
+        iosMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+        }
     }
 }
 
