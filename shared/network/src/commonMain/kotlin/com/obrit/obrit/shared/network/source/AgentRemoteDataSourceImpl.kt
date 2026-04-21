@@ -19,7 +19,7 @@ internal class AgentRemoteDataSourceImpl(private val httpClient: HttpClient) : A
     }
 
     override suspend fun getAgents(): AgentsResponse {
-        return httpClient.get("api/v1/agetns").body()
+        return httpClient.get("api/v1/agents").body()
     }
 
     override suspend fun createAgent(request: CreateAgentRequest): AgentResponse {
