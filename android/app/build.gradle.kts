@@ -55,8 +55,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodelCompose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.koin.android)
-    implementation(projects.android.feature.login)
-    implementation(projects.android.feature.sample)
     implementation(projects.shared)
     testImplementation(libs.kotlin.test)
     debugImplementation(libs.androidx.compose.ui.tooling)
