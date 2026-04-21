@@ -23,9 +23,9 @@ internal class AgentRemoteDataSourceImpl(private val httpClient: HttpClient) : A
     }
 
     override suspend fun createAgent(request: CreateAgentRequest): AgentResponse {
-        httpClient.post("api/v1/agents") {
+        return httpClient.post("api/v1/agents") {
             setBody(request)
-        }
+        }.body()
     }
 
     override suspend fun deleteAgent(id: Int) {
@@ -33,6 +33,6 @@ internal class AgentRemoteDataSourceImpl(private val httpClient: HttpClient) : A
     }
 
     override suspend fun patchAgent(id: Int, request: PatchAgentRequest): AgentResponse {
-        httpClient.patch("api/v1/agents/$id")
+        return httpClient.patch("api/v1/agents/$id").body()
     }
 }

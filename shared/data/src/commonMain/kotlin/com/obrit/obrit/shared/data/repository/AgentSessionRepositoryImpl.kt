@@ -4,15 +4,15 @@ import com.obrit.obrit.shared.model.sessions.Session
 import com.obrit.obrit.shared.model.sessions.error.GetSessionsError
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.response.session.toSession
-import com.obrit.obrit.shared.network.source.SessionRemoteDataSource
+import com.obrit.obrit.shared.network.source.AgentSessionRemoteDataSource
 
-internal class SessionRepositoryImpl(
-    private val sessionRemoteDataSource: SessionRemoteDataSource,
-) : SessionRepository {
+internal class AgentSessionRepositoryImpl(
+    private val agentSessionRemoteDataSource: AgentSessionRemoteDataSource,
+) : AgentSessionRepository {
 
     override suspend fun getSessions(): Result<List<Session>> {
         return runCatchingWith(GetSessionsError()) {
-            sessionRemoteDataSource.getSessions().sessions.map { it.toSession() }
+            agentSessionRemoteDataSource.getSessions().sessions.map { it.toSession() }
         }
     }
 }

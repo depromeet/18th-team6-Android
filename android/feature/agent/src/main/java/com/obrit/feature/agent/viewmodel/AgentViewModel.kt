@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.AgentRepository
-import com.obrit.obrit.shared.data.repository.SessionRepository
+import com.obrit.obrit.shared.data.repository.AgentSessionRepository
 import com.obrit.obrit.shared.model.agents.Agent
 import com.obrit.obrit.shared.model.agents.AgentType
 import com.obrit.obrit.shared.model.agents.PatchAgentParams
@@ -15,7 +15,7 @@ import org.orbitmvi.orbit.viewmodel.container
 
 class AgentViewModel internal constructor(
     private val agentRepository: AgentRepository,
-    private val sessionRepository: SessionRepository
+    private val agentSessionRepository: AgentSessionRepository
 ) : BaseContainerHost<AgentUiState, AgentSideEffect>() {
 
     override val container = container<AgentUiState, AgentSideEffect>(AgentUiState.Loading) {
@@ -24,7 +24,7 @@ class AgentViewModel internal constructor(
         }
 
         val sessionsDeferred = vmAsync {
-            sessionRepository.getSessions()
+            agentSessionRepository.getSessions()
         }
 
         val agentsResult = agentsDeferred.await()

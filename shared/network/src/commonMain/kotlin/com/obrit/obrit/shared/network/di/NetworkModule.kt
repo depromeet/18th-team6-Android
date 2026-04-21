@@ -6,8 +6,8 @@ import com.obrit.obrit.shared.network.config.NetworkConfiguration
 import com.obrit.obrit.shared.network.config.NetworkConfiguration.Companion.DEFAULT_NETWORK_CONFIGURATION
 import com.obrit.obrit.shared.network.source.AgentRemoteDataSource
 import com.obrit.obrit.shared.network.source.AgentRemoteDataSourceImpl
-import com.obrit.obrit.shared.network.source.SessionRemoteDataSource
-import com.obrit.obrit.shared.network.source.SessionRemoteDataSourceImpl
+import com.obrit.obrit.shared.network.source.AgentSessionRemoteDataSource
+import com.obrit.obrit.shared.network.source.AgentSessionRemoteDataSourceImpl
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
@@ -17,5 +17,5 @@ val networkModule = module {
     single<Json> { createJson() }
     single<HttpClient> { createHttpClient(get(), get()) }
     single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
-    single<SessionRemoteDataSource> { SessionRemoteDataSourceImpl(get()) }
+    single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
 }
