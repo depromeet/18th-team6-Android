@@ -26,9 +26,8 @@ kotlin {
         commonMain.dependencies {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
-            api(projects.shared.model)
             implementation(projects.shared.network)
-            api(projects.shared.data)
+            implementation(projects.shared.data)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

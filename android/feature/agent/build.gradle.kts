@@ -52,7 +52,7 @@ dependencies {
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-    implementation(projects.shared)
+    implementation(projects.shared.data)
     implementation(projects.android.core.ui)
 
     implementation(libs.orbit.core)

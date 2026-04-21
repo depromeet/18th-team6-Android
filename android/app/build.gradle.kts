@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.koin.android)
     implementation(projects.shared)
+    implementation(projects.shared.data)
+    implementation(projects.shared.network)
     implementation(projects.android.feature.agent)
     testImplementation(libs.kotlin.test)
     debugImplementation(libs.androidx.compose.ui.tooling)
