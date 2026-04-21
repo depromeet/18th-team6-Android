@@ -16,10 +16,6 @@ kotlin {
     iosSimulatorArm64()
 }
 
-dependencies {
-    implementation(libs.kotlinx.serialization.json)
-}
-
 android {
     namespace = "com.obrit.obrit.shared.model"
     compileSdk = libs.versions.android.compileSdk.get().toInt()

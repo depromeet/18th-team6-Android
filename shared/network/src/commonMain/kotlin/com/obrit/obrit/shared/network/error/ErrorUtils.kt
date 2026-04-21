@@ -1,6 +1,6 @@
 package com.obrit.obrit.shared.network.error
 
-import com.obrit.obrit.shared.model.error.RootError
+import com.obrit.obrit.shared.model.RootError
 import kotlin.coroutines.cancellation.CancellationException
 
 inline fun <T : RootError, R> runCatchingWith(

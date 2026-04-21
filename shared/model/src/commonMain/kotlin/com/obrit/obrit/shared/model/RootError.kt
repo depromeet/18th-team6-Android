@@ -1,4 +1,4 @@
-package com.obrit.obrit.shared.model.error
+package com.obrit.obrit.shared.model
 
 abstract class RootError : Exception() {
     open val code: Int = 0
