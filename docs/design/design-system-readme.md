@@ -57,6 +57,24 @@
 
 ---
 
+## SSoT 범위 — Figma Local Variables만
+
+| 종류 | 위치 | SSoT 여부 |
+|---|---|---|
+| **Variables** (Color/Number/String/Boolean) | Figma 우측 패널 → **Local variables** | ✅ SSoT |
+| **Styles** (Text Style, Effect Style, Color Style 등) | Figma 우측 패널 → **Local styles** | ❌ 동기화 대상 아님 |
+
+**Variables만** 코드 토큰으로 옮긴다. Styles는 Figma 안에서만 사용되며 코드에는 반영하지 않는다.
+이유: Variables는 단일 값 + 모드 + 참조(alias)가 가능해 코드 토큰과 1:1 매핑이 깔끔하지만, Styles는 묶음 정의라 코드 모델과 어긋나고 raw 값으로 박히는 경우가 많아 자동 동기화 가치가 낮다.
+
+`get_variable_defs` MCP는 Variables와 Styles를 섞어서 반환하지만, 게이트키퍼는 Variables만 채택한다. 식별 기준:
+- 값이 hex 컬러(`#xxxxxx`), 숫자, 문자열, 불리언 → **Variable** (반영)
+- 값이 `Font(...)` 같은 묶음 형태 → **Style** (무시)
+
+Typography는 Variables의 atom 단위(`font-family`, `font-weight`, `font-size`, `line-height`)만 코드에 옮기고, 묶음 표현이 필요하면 컴포넌트가 직접 atom을 조합한다.
+
+---
+
 ## 토큰 구조 (Atom + Semantic 2단계)
 
 토큰은 **Atom → Semantic 두 층**으로만 구성한다.
@@ -134,6 +152,7 @@ iOS 컴포넌트는 같은 공용 토큰을 받아 SwiftUI로 자체 구현(본 
 
 ## 사용하지 않는 것들 (의도적 제외)
 
+- ❌ **Figma Local Styles** (Text Style, Effect Style, Color Style 등) — Variables-only SSoT 정책. Figma 안에서만 사용
 - ❌ **Tokens Studio for Figma 플러그인** — 자동화 도구 도입 안 함
 - ❌ **Style Dictionary / 별도 빌드 변환기** — 중간 산출물 두지 않음
 - ❌ **`tokens.json` 같은 중간 파일** — 게이트키퍼가 MCP로 직접 코드 갱신

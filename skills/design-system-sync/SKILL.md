@@ -16,6 +16,7 @@ Figma SSOT(디자이너 원본) → Dev 복제본 → 안드로이드 코드의 
 ## 전제
 
 - **이 스킬은 OBRit 레포 전용**이다. 다른 레포에서는 트리거하지 않는다.
+- **SSoT는 Figma의 Local Variables뿐**이다. Local Styles(Text Style, Effect Style 등)는 동기화 대상에서 제외한다. `get_variable_defs` 결과에 Style 항목이 섞여 와도 코드에 반영하지 않는다.
 - 디자이너가 SSOT의 변경 영역에 **Figma 코멘트로 변경 사항을 알린 상태**여야 한다.
 - 게이트키퍼(개발자 1명)가 **Dev 복제본에 미러링까지 마친 상태**여야 한다. 미러링 자체는 Figma UI에서 사람이 수행하는 작업이므로 이 스킬은 미러링 이후의 코드 반영을 자동화한다.
 - Figma MCP(`mcp__figma__*`) 가 활성화되어 있어야 한다.
@@ -41,6 +42,8 @@ Figma SSOT(디자이너 원본) → Dev 복제본 → 안드로이드 코드의 
 종류별 분기:
 
 - **token**: `mcp__figma__get_variable_defs(fileKey, nodeId)` 호출.
+  - 결과에서 **Variables만 채택**하고 **Styles는 무시**한다 (Variables-only SSoT 정책).
+  - 식별 기준: 값이 hex 컬러(`#xxxxxx`), 숫자, 문자열, 불리언 → **Variable**. 값이 `Font(...)` 형태 → **Text Style**(무시). 묶음 정의 형태도 Style이므로 무시.
 - **component**: `mcp__figma__get_design_context(fileKey, nodeId)` 호출. 필요 시 `mcp__figma__get_screenshot`로 시각 확인.
 - **asset**: `mcp__figma__get_design_context` 또는 사용자가 export한 SVG/PNG 경로 확인.
 
@@ -133,6 +136,7 @@ bash ./gradlew :shared:design-system:assemble :android:core:design-system:assemb
 
 ## 금지 사항
 
+- ❌ **Figma Local Styles는 코드에 반영 금지**. SSoT는 Variables뿐. Text Style, Effect Style, Color Style 등은 `get_variable_defs` 결과에 섞여 와도 무시한다.
 - ❌ `tokens.json`이나 중간 산출물 파일 생성하지 않는다.
 - ❌ Style Dictionary, Tokens Studio 같은 외부 변환 도구 도입하지 않는다.
 - ❌ Figma Code Connect 매핑 파일 생성하지 않는다.
