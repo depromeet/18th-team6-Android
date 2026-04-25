@@ -1,0 +1,12 @@
+naming:
+  FunctionNaming:
+    active: false
+  MatchingDeclarationName:
+    active: false
+
+style:
+  MaxLineLength:
+    active: false
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - Preview
