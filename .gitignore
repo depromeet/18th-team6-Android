@@ -2,6 +2,7 @@
 .kotlin
 .gradle
 **/build/
+/docs/sessions
 xcuserdata
 !src/**/build/
 local.properties
@@ -17,6 +18,4 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
-.claude/settings.json
-.claude/settings.local.json
-docs/sessions/
+/gradle/gradle-daemon-jvm.properties
