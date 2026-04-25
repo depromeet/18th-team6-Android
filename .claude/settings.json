@@ -1,24 +1,3 @@
 {
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/log-conversation.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/log-conversation.sh"
-          }
-        ]
-      }
-    ]
-  }
+  "permissions": {}
 }
