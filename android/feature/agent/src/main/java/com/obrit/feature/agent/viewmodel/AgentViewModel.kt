@@ -34,6 +34,7 @@ class AgentViewModel internal constructor(
                 reduce {
                     AgentUiState.LoadFailed
                 }
+                return@container
             }
 
             reduce {
