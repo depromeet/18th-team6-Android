@@ -1,0 +1,110 @@
+name: Epic
+description: 큰 단위의 마일스톤이나 여러 하위 작업을 묶는 이슈를 생성합니다.
+title: "[Epic] "
+labels:
+  - epic
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Epic 이슈는 여러 하위 작업을 묶는 큰 단위의 마일스톤입니다.
+        범위, 완료 기준, 하위 작업을 충분히 구체화해서 작성해주세요.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 작업 요약
+      description: 이 Epic에서 달성하려는 목표를 간단히 작성해주세요.
+      placeholder: |
+        예) 사용자 온보딩 플로우를 구현한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 배경 / 변경 이유
+      description: 왜 이 Epic이 필요한지, 어떤 문제를 해결하는지 작성해주세요.
+      placeholder: |
+        - 현재 문제
+        - 해결이 필요한 이유
+        - 관련 문서 또는 논의 링크
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 작업 범위
+      description: 포함되는 작업과 포함하지 않는 작업을 구분해주세요.
+      value: |
+        ### 포함
+        -
+
+        ### 제외
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: sub_tasks
+    attributes:
+      label: 하위 작업
+      description: Epic을 완료하기 위해 필요한 하위 이슈 또는 작업을 체크리스트로 작성해주세요.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: 완료 기준
+      description: 이 Epic이 완료되었다고 판단할 수 있는 기준을 작성해주세요.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact_scope
+    attributes:
+      label: 영향 범위
+      options:
+        - label: 일반 기능 변경
+        - label: UI 변경
+        - label: API 연동 변경
+        - label: 공통 컴포넌트 변경
+        - label: 시스템 영향 가능 (`lint`, `gradle`, `manifest`, build config 등)
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: 테스트 / 검증 계획
+      description: Epic 완료 후 어떤 방식으로 검증할지 작성해주세요.
+      value: |
+        - [ ] build 통과
+        - [ ] ktlint 통과
+        - [ ] detekt 통과
+        - [ ] unit test 통과
+        - [ ] 수동 테스트 완료
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고 자료
+      description: 관련 문서, 디자인, API 명세, 논의 링크가 있으면 첨부해주세요.
+      placeholder: |
+        - 디자인:
+        - API 명세:
+        - 관련 논의:
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 기타 메모
+      description: 리뷰어 또는 작업자가 알아야 할 추가 내용을 작성해주세요.

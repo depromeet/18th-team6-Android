@@ -1,0 +1,36 @@
+name: Issue
+description: Epic이 아닌 일반 작업 이슈를 간단히 생성합니다.
+title: ""
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 작업 내용
+      description: 해야 할 작업을 간단히 작성해주세요.
+      placeholder: |
+        예) 로그인 화면의 버튼 간격을 조정한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 맥락
+      description: 상위 Epic, 관련 문서, 참고 링크가 있으면 작성해주세요.
+      placeholder: |
+        - 상위 Epic: #
+        - 관련 문서:
+
+  - type: textarea
+    id: todo
+    attributes:
+      label: 할 일
+      value: |
+        - [ ] 
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: 완료 기준 / 검증
+      value: |
+        - [ ] 
