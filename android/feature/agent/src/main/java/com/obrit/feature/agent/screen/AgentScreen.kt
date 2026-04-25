@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.obrit.feature.agent.viewmodel.AgentSideEffect
 import com.obrit.feature.agent.viewmodel.AgentViewModel
+import com.obrit.obrit.shared.model.agents.Agent
+import com.obrit.obrit.shared.model.agents.AgentType
 import com.obrit.obrit.shared.model.agents.error.CreateAgentError
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
@@ -19,6 +21,15 @@ fun AgentScreen(
 
     AgentScreenContent(
         state = state,
+        action =
+            AgentScreenAction(
+                onCreateAgent = viewModel::createAgent,
+                onDeleteAgent = viewModel::deleteAgent,
+                onPatchAgent = viewModel::patchAgent,
+                onAgentClick = viewModel::onAgentClick,
+                onAgentLongClick = viewModel::onAgentLongClick,
+                onMenuClick = viewModel::onMenuClick,
+            ),
         modifier = modifier,
     )
 
@@ -42,3 +53,12 @@ fun AgentScreen(
         }
     }
 }
+
+internal data class AgentScreenAction(
+    val onCreateAgent: (String, String, AgentType) -> Unit,
+    val onDeleteAgent: (Int) -> Unit,
+    val onPatchAgent: (Int, String, String, AgentType) -> Unit,
+    val onAgentClick: (Agent) -> Unit,
+    val onAgentLongClick: (Agent) -> Unit,
+    val onMenuClick: () -> Unit,
+)

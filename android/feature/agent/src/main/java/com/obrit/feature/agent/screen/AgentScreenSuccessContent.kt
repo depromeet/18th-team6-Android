@@ -5,8 +5,10 @@ import androidx.compose.ui.Modifier
 import com.obrit.feature.agent.viewmodel.AgentUiState
 
 @Composable
+@Suppress("UnusedParameter")
 internal fun AgentScreenSuccessContent(
     state: AgentUiState.Success,
+    action: AgentScreenAction,
     modifier: Modifier = Modifier,
 ) {
     TODO("Success Screen")
