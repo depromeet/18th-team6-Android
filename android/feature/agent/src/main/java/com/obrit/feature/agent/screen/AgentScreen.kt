@@ -44,9 +44,10 @@ fun AgentScreen(
             is AgentSideEffect.OnError -> {
                 when (sideEffect.error) {
                     is CreateAgentError.InvalidAgentType -> {
-                        viewModel.showSnackbar(TODO("stringResource(...)"))
+                        viewModel.showSnackbar("Invalid agent type")
                     }
-                    TODO("Else errors") -> {
+                    else -> {
+                        viewModel.showSnackbar("Unknown error")
                     }
                 }
             }
