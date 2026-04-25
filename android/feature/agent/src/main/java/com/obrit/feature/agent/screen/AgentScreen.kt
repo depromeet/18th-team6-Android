@@ -15,16 +15,15 @@ fun AgentScreen(
     modifier: Modifier = Modifier,
     viewModel: AgentViewModel = koinViewModel(),
 ) {
-
     val state by viewModel.collectAsState()
 
     AgentScreenContent(
         state = state,
-        modifier = modifier
+        modifier = modifier,
     )
 
     viewModel.collectSideEffect { sideEffect ->
-        when(sideEffect) {
+        when (sideEffect) {
             is AgentSideEffect.OnAgentClick -> {}
             is AgentSideEffect.OnAgentLongClick -> {}
             is AgentSideEffect.OnMenuClick -> {}
@@ -32,12 +31,11 @@ fun AgentScreen(
                 // SnackbarHost.show(sideEffect.message)
             }
             is AgentSideEffect.OnError -> {
-                when(sideEffect.error) {
+                when (sideEffect.error) {
                     is CreateAgentError.InvalidAgentType -> {
                         viewModel.showSnackbar(TODO("stringResource(...)"))
                     }
                     TODO("Else errors") -> {
-
                     }
                 }
             }

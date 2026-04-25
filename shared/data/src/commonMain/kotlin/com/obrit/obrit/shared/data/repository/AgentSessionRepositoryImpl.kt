@@ -9,10 +9,8 @@ import com.obrit.obrit.shared.network.source.AgentSessionRemoteDataSource
 internal class AgentSessionRepositoryImpl(
     private val agentSessionRemoteDataSource: AgentSessionRemoteDataSource,
 ) : AgentSessionRepository {
-
-    override suspend fun getSessions(): Result<List<Session>> {
-        return runCatchingWith(GetSessionsError()) {
+    override suspend fun getSessions(): Result<List<Session>> =
+        runCatchingWith(GetSessionsError()) {
             agentSessionRemoteDataSource.getSessions().sessions.map { it.toSession() }
         }
-    }
 }

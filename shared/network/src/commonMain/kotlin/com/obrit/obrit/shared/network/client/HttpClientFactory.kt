@@ -23,19 +23,19 @@ import kotlinx.serialization.json.Json
 
 internal expect fun platformHttpClientEngineFactory(): HttpClientEngineFactory<*>
 
-internal fun createJson(): Json = Json {
-    ignoreUnknownKeys = true
-    explicitNulls = false
-}
+internal fun createJson(): Json =
+    Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+    }
 
 internal fun createHttpClient(
     json: Json,
     configuration: NetworkConfiguration,
-): HttpClient {
-    return HttpClient(platformHttpClientEngineFactory()) {
+): HttpClient =
+    HttpClient(platformHttpClientEngineFactory()) {
         configureObritHttpClient(json, configuration)
     }
-}
 
 internal fun HttpClientConfig<*>.configureObritHttpClient(
     json: Json,
@@ -54,16 +54,18 @@ internal fun HttpClientConfig<*>.configureObritHttpClient(
     }
 
     install(Logging) {
-        logger = object : Logger {
-            override fun log(message: String) {
-                println(message)
+        logger =
+            object : Logger {
+                override fun log(message: String) {
+                    println(message)
+                }
             }
-        }
-        level = if (configuration.enableLogging) {
-            LogLevel.BODY
-        } else {
-            LogLevel.NONE
-        }
+        level =
+            if (configuration.enableLogging) {
+                LogLevel.BODY
+            } else {
+                LogLevel.NONE
+            }
     }
 
     HttpResponseValidator {
@@ -75,23 +77,24 @@ internal fun HttpClientConfig<*>.configureObritHttpClient(
     }
 }
 
-private fun normalizeBaseUrl(baseUrl: String): String {
-    return if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
-}
+private fun normalizeBaseUrl(baseUrl: String): String = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
 
 private suspend fun HttpResponse.toRemoteError(json: Json): RemoteError {
     val rawErrorBody = bodyAsText()
-    val parsedError = rawErrorBody
-        .takeIf(String::isNotBlank)
-        ?.let { body ->
-            runCatching {
-                json.decodeFromString<NetworkErrorResponse>(body)
-            }.getOrNull()
-        }
+    val parsedError =
+        rawErrorBody
+            .takeIf(String::isNotBlank)
+            ?.let { body ->
+                runCatching {
+                    json.decodeFromString<NetworkErrorResponse>(body)
+                }.getOrNull()
+            }
 
-    val resolvedMessage = parsedError?.message
-        ?.takeIf(String::isNotBlank)
-        ?: status.description.ifBlank { "An unexpected network error occurred." }
+    val resolvedMessage =
+        parsedError
+            ?.message
+            ?.takeIf(String::isNotBlank)
+            ?: status.description.ifBlank { "An unexpected network error occurred." }
 
     return RemoteError(
         statusCode = status.value,

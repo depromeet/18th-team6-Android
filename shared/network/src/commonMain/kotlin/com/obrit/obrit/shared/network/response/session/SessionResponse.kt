@@ -10,7 +10,8 @@ data class SessionResponse(
     @SerialName("name") val name: String?,
 )
 
-fun SessionResponse.toSession() = Session(
-    id = id ?: -1,
-    name = name.orEmpty(),
-)
+fun SessionResponse.toSession() =
+    Session(
+        id = id ?: -1,
+        name = name.orEmpty(),
+    )

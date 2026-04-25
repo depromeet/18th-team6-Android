@@ -6,7 +6,6 @@ import com.obrit.obrit.shared.network.response.agent.AgentResponse
 import com.obrit.obrit.shared.network.response.agent.AgentsResponse
 
 interface AgentRemoteDataSource {
-
     suspend fun getAgent(id: Int): AgentResponse
 
     suspend fun getAgents(): AgentsResponse
@@ -15,5 +14,8 @@ interface AgentRemoteDataSource {
 
     suspend fun deleteAgent(id: Int)
 
-    suspend fun patchAgent(id: Int, request: PatchAgentRequest): AgentResponse
+    suspend fun patchAgent(
+        id: Int,
+        request: PatchAgentRequest,
+    ): AgentResponse
 }

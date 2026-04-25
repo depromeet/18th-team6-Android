@@ -7,14 +7,13 @@ import com.obrit.feature.agent.viewmodel.AgentUiState
 @Composable
 internal fun AgentScreenContent(
     state: AgentUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-
-    when(state) {
+    when (state) {
         is AgentUiState.Success -> {
             AgentScreenSuccessContent(
                 state = state,
-                modifier = modifier
+                modifier = modifier,
             )
         }
         is AgentUiState.Loading -> {

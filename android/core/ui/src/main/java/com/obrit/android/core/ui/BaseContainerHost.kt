@@ -7,11 +7,10 @@ import org.orbitmvi.orbit.syntax.IntentContext
 import org.orbitmvi.orbit.syntax.Syntax
 
 @OptIn(OrbitExperimental::class)
-abstract class BaseContainerHost<STATE: Any, SIDE_EFFECT: Any> : ContainerHost<STATE, SIDE_EFFECT>, ViewModel() {
-
-    suspend inline fun <reified S: STATE> Syntax<STATE, SIDE_EFFECT>.reduceOn(
-        noinline reducer: IntentContext<S>.() -> STATE
-    ) {
+abstract class BaseContainerHost<STATE : Any, SIDE_EFFECT : Any> :
+    ViewModel(),
+    ContainerHost<STATE, SIDE_EFFECT> {
+    suspend inline fun <reified S : STATE> Syntax<STATE, SIDE_EFFECT>.reduceOn(noinline reducer: IntentContext<S>.() -> STATE) {
         runOn<S> {
             reduce(reducer)
         }
