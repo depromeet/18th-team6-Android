@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>UnusedParameter:AgentScreenFailureContent.kt$modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:AgentScreenLoadingContent.kt$modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:AgentScreenSuccessContent.kt$modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:AgentScreenSuccessContent.kt$state: AgentUiState.Success</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:RemoteError.kt$400</ID>
+    <ID>MagicNumber:RemoteError.kt$401</ID>
+    <ID>MagicNumber:RemoteError.kt$403</ID>
+    <ID>MagicNumber:RemoteError.kt$404</ID>
+    <ID>MagicNumber:RemoteError.kt$500</ID>
+    <ID>MagicNumber:RemoteError.kt$600</ID>
+    <ID>TooGenericExceptionCaught:ErrorUtils.kt$exception: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>
