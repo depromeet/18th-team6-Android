@@ -8,8 +8,5 @@ import io.ktor.client.request.get
 internal class AgentSessionRemoteDataSourceImpl(
     private val httpClient: HttpClient,
 ) : AgentSessionRemoteDataSource {
-
-    override suspend fun getSessions(): SessionsResponse {
-        return httpClient.get("api/v1/sessions").body()
-    }
+    override suspend fun getSessions(): SessionsResponse = httpClient.get("api/v1/sessions").body()
 }

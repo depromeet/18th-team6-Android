@@ -6,6 +6,4 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 
-fun <T> ViewModel.vmAsync(block: suspend CoroutineScope.() -> T): Deferred<T> {
-    return viewModelScope.async(block = block)
-}
+fun <T> ViewModel.vmAsync(block: suspend CoroutineScope.() -> T): Deferred<T> = viewModelScope.async(block = block)

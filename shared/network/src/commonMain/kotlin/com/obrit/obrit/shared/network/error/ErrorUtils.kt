@@ -6,11 +6,12 @@ import kotlin.coroutines.cancellation.CancellationException
 inline fun <T : RootError, R> runCatchingWith(
     errorType: T,
     block: () -> R,
-): Result<R> {
-    return try {
+): Result<R> =
+    try {
         Result.success(block())
     } catch (exception: RemoteError) {
-        errorType.createErrorInstances()
+        errorType
+            .createErrorInstances()
             .find { definedError -> definedError.code == exception.errorCode }
             ?.let(Result.Companion::failure)
             ?: Result.failure(exception)
@@ -19,12 +20,9 @@ inline fun <T : RootError, R> runCatchingWith(
     } catch (exception: Throwable) {
         Result.failure(exception)
     }
-}
 
-inline fun <R> runCatchingWith(
-    block: () -> R,
-): Result<R> {
-    return try {
+inline fun <R> runCatchingWith(block: () -> R): Result<R> =
+    try {
         Result.success(block())
     } catch (exception: RemoteError) {
         Result.failure(exception)
@@ -33,4 +31,3 @@ inline fun <R> runCatchingWith(
     } catch (exception: Throwable) {
         Result.failure(exception)
     }
-}

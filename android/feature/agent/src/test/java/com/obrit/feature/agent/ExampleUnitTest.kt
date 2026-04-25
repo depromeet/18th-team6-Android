@@ -7,7 +7,7 @@ package com.obrit.feature.agent
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
+    fun additionIsCorrect() {
         assertEquals(4, 2 + 2)
     }
 }

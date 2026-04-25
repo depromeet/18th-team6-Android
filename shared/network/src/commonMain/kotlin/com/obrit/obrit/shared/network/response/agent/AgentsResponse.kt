@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AgentsResponse(
-    @SerialName("agents") val agents: List<AgentResponse>
+    @SerialName("agents") val agents: List<AgentResponse>,
 )

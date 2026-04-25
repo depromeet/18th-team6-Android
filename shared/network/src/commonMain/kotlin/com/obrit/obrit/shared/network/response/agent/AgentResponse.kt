@@ -12,18 +12,20 @@ data class AgentResponse(
     @SerialName("name") val name: String?,
     @SerialName("description") val description: String?,
     @SerialName("createdAt") val timestamp: Long?,
-    @SerialName("type") val type: String?
+    @SerialName("type") val type: String?,
 )
 
-fun AgentResponse.toAgent() = Agent(
-    id = id ?: -1,
-    name = name.orEmpty(),
-    description = description.orEmpty(),
-    timestamp = Instant.fromEpochMilliseconds(timestamp ?: 0),
-    type = when(type) {
-        "ANALYST" -> AgentType.ANALYST
-        "IMPLEMENTER" -> AgentType.IMPLEMENTER
-        "REVIEWER" -> AgentType.REVIEWER
-        else -> AgentType.UNKNOWN
-    }
-)
+fun AgentResponse.toAgent() =
+    Agent(
+        id = id ?: -1,
+        name = name.orEmpty(),
+        description = description.orEmpty(),
+        timestamp = Instant.fromEpochMilliseconds(timestamp ?: 0),
+        type =
+            when (type) {
+                "ANALYST" -> AgentType.ANALYST
+                "IMPLEMENTER" -> AgentType.IMPLEMENTER
+                "REVIEWER" -> AgentType.REVIEWER
+                else -> AgentType.UNKNOWN
+            },
+    )
