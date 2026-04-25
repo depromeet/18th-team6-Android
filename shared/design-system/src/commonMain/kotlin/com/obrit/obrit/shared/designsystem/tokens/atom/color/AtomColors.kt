@@ -5,6 +5,7 @@ object AtomColors {
         const val S1000: Long = 0xFF101213
         const val S00: Long = 0xFFFFFFFF
     }
+
     object CommonOpacity {
         object CommonBlack {
             const val S00_80: Long = 0xCC000000
@@ -12,6 +13,7 @@ object AtomColors {
             const val S00_40: Long = 0x66000000
             const val S00_20: Long = 0x33000000
         }
+
         object CommonWhite {
             const val S00_80: Long = 0xCCFFFFFF
             const val S00_60: Long = 0x99FFFFFF
@@ -19,6 +21,7 @@ object AtomColors {
             const val S00_20: Long = 0x33FFFFFF
         }
     }
+
     object Gray {
         const val S50: Long = 0xFFF5F5F5
         const val S100: Long = 0xFFE6E7E9
@@ -36,6 +39,7 @@ object AtomColors {
         const val S850: Long = 0xFF24242A
         const val S900: Long = 0xFF1D1B20
     }
+
     object GrayOpacity {
         const val S700: Long = 0xB2515355
         const val S750: Long = 0xB2393A3D
@@ -43,6 +47,7 @@ object AtomColors {
         const val S850: Long = 0xB224242A
         const val S900: Long = 0xB21D1B20
     }
+
     object Green {
         const val S50: Long = 0xFFD3FCF5
         const val S100: Long = 0xFFBEFBF0
@@ -60,6 +65,7 @@ object AtomColors {
         const val S850: Long = 0xFF1F3B3A
         const val S900: Long = 0xFF1E2628
     }
+
     object Red {
         const val S50: Long = 0xFFFFDED3
         const val S100: Long = 0xFFFFCDBD
@@ -77,6 +83,7 @@ object AtomColors {
         const val S850: Long = 0xFF4A2720
         const val S900: Long = 0xFF342120
     }
+
     object Yellow {
         const val S50: Long = 0xFFFFF5CC
         const val S100: Long = 0xFFFFF0B2
@@ -94,6 +101,7 @@ object AtomColors {
         const val S850: Long = 0xFF4A3E1A
         const val S900: Long = 0xFF342D1D
     }
+
     object Blue {
         const val S50: Long = 0xFFCCE7FF
         const val S100: Long = 0xFFB2DBFF

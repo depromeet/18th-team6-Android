@@ -32,5 +32,9 @@ internal class AgentRemoteDataSourceImpl(
     override suspend fun patchAgent(
         id: Int,
         request: PatchAgentRequest,
-    ): AgentResponse = httpClient.patch("api/v1/agents/$id").body()
+    ): AgentResponse =
+        httpClient
+            .patch("api/v1/agents/$id") {
+                setBody(request)
+            }.body()
 }

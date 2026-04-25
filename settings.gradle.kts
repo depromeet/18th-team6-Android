@@ -2,6 +2,8 @@ rootProject.name = "OBRit"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    includeBuild("build-logic")
+
     repositories {
         google {
             mavenContent {
@@ -28,8 +30,13 @@ dependencyResolutionManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
+}
+
 include(":android:app")
 include(":shared")
+include(":shared:design-system")
 include(":shared:model")
 include(":shared:data")
 include(":shared:network")

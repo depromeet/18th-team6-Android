@@ -3,6 +3,9 @@ agp = "8.11.2"
 android-compileSdk = "36"
 android-minSdk = "28"
 android-targetSdk = "36"
+app-applicationId = "com.obrit.obrit"
+app-versionCode = "1"
+app-versionName = "1.0"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.7.1"
 androidx-compose-bom = "2026.03.01"
@@ -22,6 +25,10 @@ material = "1.13.0"
 orbit = "11.0.0"
 
 [libraries]
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -75,3 +82,8 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+obrit-android-application = { id = "com.obrit.plugin.android.application" }
+obrit-android-library = { id = "com.obrit.plugin.android.library" }
+obrit-android-library-compose = { id = "com.obrit.plugin.android.library.compose" }
+obrit-kotlin-multiplatform = { id = "com.obrit.plugin.kotlin.multiplatform" }
+obrit-root = { id = "com.obrit.plugin.root" }
