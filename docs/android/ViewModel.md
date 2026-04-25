@@ -1,10 +1,10 @@
-# ViewModel Convention
+# Android ViewModel Convention
 
 Android ViewModel은 Orbit MVI 패턴을 따른다. 현재 공통 기반 클래스는 `android:core:ui`의 `BaseContainerHost`이다.
 
 ## 파일 배치
 
-- feature ViewModel은 feature 모듈의 `viewmodel` 패키지에 둔다.
+- 화면 ViewModel은 해당 Android 화면 모듈의 `viewmodel` 패키지에 둔다.
 - ViewModel과 가까운 state, side effect 타입은 같은 파일에 둔다.
 - 여러 화면에서 공유되는 UI 상태 타입만 별도 파일로 분리한다.
 

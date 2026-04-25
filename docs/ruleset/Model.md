@@ -1,6 +1,6 @@
 # Model Convention
 
-Model 계층은 `shared:model`에 둔다. 이 계층은 Android UI, Ktor DTO, persistence 구현을 알지 않는다.
+Model 계층은 `shared:model`에 둔다. 이 계층은 platform UI, Ktor DTO, persistence 구현을 알지 않는다.
 
 ## Domain Model
 
@@ -46,7 +46,6 @@ open class CreateAgentError : RootError() {
 
 ## 금지 사항
 
-- model에서 Android resource, Compose, Ktor response/request 타입을 참조하지 않는다.
+- model에서 platform resource, UI framework, Ktor response/request 타입을 참조하지 않는다.
 - model에서 DI module을 정의하지 않는다.
 - 서버 DTO의 nullable 구조를 domain model에 그대로 전파하지 않는다.
-

@@ -1,10 +1,10 @@
-# UI Convention
+# Android Compose Convention
 
 Android UI는 Compose 기반으로 작성하며 `android/*` 모듈에 둔다. shared 모듈은 Android Compose UI에 의존하지 않는다.
 
 ## 파일 배치
 
-- 화면 단위 코드는 feature 모듈의 `screen` 패키지에 둔다.
+- 화면 단위 코드는 화면 모듈의 `screen` 패키지에 둔다.
 - 진입점 컴포저블은 `FeatureScreen.kt` 형식을 사용한다.
 - 상태별 콘텐츠는 필요하면 `FeatureScreenContent.kt`, `FeatureScreenLoadingContent.kt`, `FeatureScreenFailureContent.kt`, `FeatureScreenSuccessContent.kt`처럼 분리한다.
 - 재사용 가능한 Android UI 유틸은 `android:core:ui`에 둔다.

@@ -1,6 +1,6 @@
 # Repository Convention
 
-Repository는 shared data 계층의 public API이다. UI와 ViewModel은 remote data source 대신 repository에 의존한다.
+Repository는 shared data 계층의 public API이다. Presentation layer는 remote data source 대신 repository에 의존한다.
 
 ## 파일 배치
 
@@ -49,8 +49,7 @@ internal class AgentRepositoryImpl(
 
 ## 책임 경계
 
-- Repository는 UI 문구, Android resource, Compose state를 알지 않는다.
+- Repository는 UI 문구, platform resource, presentation state를 알지 않는다.
 - Repository는 HTTP path를 직접 조합하지 않고 remote data source를 사용한다.
 - Repository는 domain model 기준으로 성공 값을 반환한다.
 - 캐시, 로컬 DB, pagination이 추가되면 repository가 조율하되 API는 domain 중심으로 유지한다.
-
