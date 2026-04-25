@@ -28,3 +28,14 @@ if ! "$GRADLE_SHELL" ./gradlew ktlintCheck; then
 fi
 
 echo "pre-commit: ktlintCheck passed."
+
+echo "pre-commit: running detekt..."
+
+if ! "$GRADLE_SHELL" ./gradlew detekt; then
+  echo
+  echo "pre-commit: detekt failed. Commit aborted."
+  echo "pre-commit: fix reported issues and try again."
+  exit 1
+fi
+
+echo "pre-commit: detekt passed."
