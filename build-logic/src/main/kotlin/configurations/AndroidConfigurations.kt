@@ -14,6 +14,7 @@ internal fun Project.configureAndroidApplication() {
         compileSdk = versionInt("android-compileSdk")
 
         defaultConfig {
+            applicationId = versionString("app-applicationId")
             minSdk = versionInt("android-minSdk")
             targetSdk = versionInt("android-targetSdk")
             versionCode = versionInt("app-versionCode")

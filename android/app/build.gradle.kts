@@ -2,12 +2,6 @@ plugins {
     alias(libs.plugins.obrit.android.application)
 }
 
-android {
-    defaultConfig {
-        applicationId = "com.obrit.obrit"
-    }
-}
-
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(project.dependencies.platform(libs.koin.bom))
