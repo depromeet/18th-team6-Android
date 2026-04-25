@@ -7,7 +7,7 @@ import com.obrit.feature.agent.viewmodel.AgentUiState
 @Composable
 internal fun AgentScreenSuccessContent(
     state: AgentUiState.Success,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     TODO("Success Screen")
 }

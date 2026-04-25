@@ -7,5 +7,5 @@ data class Agent(
     val name: String,
     val description: String,
     val timestamp: Instant,
-    val type: AgentType
+    val type: AgentType,
 )

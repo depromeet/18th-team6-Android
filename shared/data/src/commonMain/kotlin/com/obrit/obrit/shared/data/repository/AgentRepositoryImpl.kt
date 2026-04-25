@@ -15,48 +15,45 @@ import com.obrit.obrit.shared.network.response.agent.toAgent
 import com.obrit.obrit.shared.network.source.AgentRemoteDataSource
 
 internal class AgentRepositoryImpl(
-    private val agentRemoteDataSource: AgentRemoteDataSource
+    private val agentRemoteDataSource: AgentRemoteDataSource,
 ) : AgentRepository {
-
-    override suspend fun getAgent(id: Int): Result<Agent> {
-        return runCatchingWith(GetAgentError()) {
+    override suspend fun getAgent(id: Int): Result<Agent> =
+        runCatchingWith(GetAgentError()) {
             agentRemoteDataSource.getAgent(id).toAgent()
         }
-    }
 
-    override suspend fun getAgents(): Result<List<Agent>> {
-        return runCatchingWith(GetAgentsError()) {
+    override suspend fun getAgents(): Result<List<Agent>> =
+        runCatchingWith(GetAgentsError()) {
             agentRemoteDataSource.getAgents().agents.map { it.toAgent() }
         }
-    }
 
     override suspend fun createAgent(
         name: String,
         description: String,
-        type: AgentType
-    ) : Result<Agent> {
-        return runCatchingWith(CreateAgentError()) {
+        type: AgentType,
+    ): Result<Agent> =
+        runCatchingWith(CreateAgentError()) {
             agentRemoteDataSource
-                .createAgent(CreateAgentRequest(name, description, type.name)).toAgent()
+                .createAgent(CreateAgentRequest(name, description, type.name))
+                .toAgent()
         }
-    }
 
-    override suspend fun deleteAgent(id: Int) : Result<Unit>  {
-        return runCatchingWith(DeleteAgentError()) {
+    override suspend fun deleteAgent(id: Int): Result<Unit> =
+        runCatchingWith(DeleteAgentError()) {
             agentRemoteDataSource.deleteAgent(id)
         }
-    }
 
-    override suspend fun patchAgent(params: PatchAgentParams) : Result<Agent>  {
-        return runCatchingWith(PatchAgentError()) {
-            agentRemoteDataSource.patchAgent(
-                id = params.id,
-                request = PatchAgentRequest(
-                    name = params.name,
-                    description = params.description,
-                    type = params.type.name
-                )
-            ).toAgent()
+    override suspend fun patchAgent(params: PatchAgentParams): Result<Agent> =
+        runCatchingWith(PatchAgentError()) {
+            agentRemoteDataSource
+                .patchAgent(
+                    id = params.id,
+                    request =
+                        PatchAgentRequest(
+                            name = params.name,
+                            description = params.description,
+                            type = params.type.name,
+                        ),
+                ).toAgent()
         }
-    }
 }

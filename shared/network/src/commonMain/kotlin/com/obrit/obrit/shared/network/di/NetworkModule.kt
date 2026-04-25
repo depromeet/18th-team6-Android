@@ -12,10 +12,11 @@ import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
-val networkModule = module {
-    single<NetworkConfiguration> { DEFAULT_NETWORK_CONFIGURATION }
-    single<Json> { createJson() }
-    single<HttpClient> { createHttpClient(get(), get()) }
-    single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
-    single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
-}
+val networkModule =
+    module {
+        single<NetworkConfiguration> { DEFAULT_NETWORK_CONFIGURATION }
+        single<Json> { createJson() }
+        single<HttpClient> { createHttpClient(get(), get()) }
+        single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
+        single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
+    }
