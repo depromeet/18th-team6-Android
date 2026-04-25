@@ -15,6 +15,10 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+dependencies {
+    ktlintRuleset(libs.compose.rules.ktlint)
+}
+
 fun Project.configureDetekt() {
     extensions.configure<DetektExtension>("detekt") {
         baseline = file("detekt-baseline.xml")
@@ -34,6 +38,10 @@ configureDetekt()
 subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    dependencies {
+        add("ktlintRuleset", rootProject.libs.compose.rules.ktlint)
+    }
 
     configureDetekt()
 }

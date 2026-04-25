@@ -7,3 +7,6 @@ naming:
 style:
   MaxLineLength:
     active: false
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - Preview
