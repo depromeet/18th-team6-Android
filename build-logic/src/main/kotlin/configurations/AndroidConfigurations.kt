@@ -2,6 +2,7 @@ package configurations
 
 import extensions.androidApplication
 import extensions.androidLibrary
+import extensions.moduleNamespace
 import extensions.versionInt
 import extensions.versionString
 import org.gradle.api.JavaVersion
@@ -9,6 +10,7 @@ import org.gradle.api.Project
 
 internal fun Project.configureAndroidApplication() {
     androidApplication {
+        namespace = moduleNamespace
         compileSdk = versionInt("android-compileSdk")
 
         defaultConfig {
@@ -43,6 +45,7 @@ internal fun Project.configureAndroidApplication() {
 
 internal fun Project.configureAndroidLibrary(enableCompose: Boolean = false) {
     androidLibrary {
+        namespace = moduleNamespace
         compileSdk = versionInt("android-compileSdk")
 
         defaultConfig {
@@ -74,6 +77,7 @@ internal fun Project.configureAndroidLibrary(enableCompose: Boolean = false) {
 
 internal fun Project.configureAndroidMultiplatformLibrary() {
     androidLibrary {
+        namespace = moduleNamespace
         compileSdk = versionInt("android-compileSdk")
 
         defaultConfig {

@@ -3,8 +3,6 @@ plugins {
 }
 
 android {
-    namespace = "com.obrit.obrit"
-
     defaultConfig {
         applicationId = "com.obrit.obrit"
     }

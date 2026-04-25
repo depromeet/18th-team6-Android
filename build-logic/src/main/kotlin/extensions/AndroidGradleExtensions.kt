@@ -26,6 +26,9 @@ internal fun Project.versionString(alias: String): String =
         .get()
         .requiredVersion
 
+internal val Project.moduleNamespace: String
+    get() = "com.obrit." + path.removePrefix(":").replace(':', '.')
+
 internal fun Project.androidApplication(configure: ApplicationExtension.() -> Unit) {
     extensions.configure<ApplicationExtension>(configure)
 }

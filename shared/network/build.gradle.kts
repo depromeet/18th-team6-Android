@@ -25,7 +25,3 @@ kotlin {
         }
     }
 }
-
-android {
-    namespace = "com.obrit.obrit.shared.network"
-}

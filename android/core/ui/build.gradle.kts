@@ -2,10 +2,6 @@ plugins {
     alias(libs.plugins.obrit.android.library.compose)
 }
 
-android {
-    namespace = "com.obrit.android.core.ui"
-}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
