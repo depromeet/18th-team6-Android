@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 이 파일은 이 저장소에서 AI 코딩 에이전트가 따라야 할 기본 작업 가이드다. 현재 프로젝트 구조와 Gradle 설정을 기준으로 작성되었다.
 
@@ -6,14 +6,14 @@
 
 - OBRit은 Android Compose 앱과 iOS SwiftUI 호스트를 가진 Kotlin Multiplatform 프로젝트다.
 - 현재 활성 Gradle 모듈은 `settings.gradle.kts`에 선언되어 있다.
-    - `:android:app` - Android 애플리케이션 진입점, Compose 설정, Android Koin 부트스트랩
-    - `:android:feature:agent` - Koin과 Orbit MVI를 사용하는 Android Compose agent 기능
-    - `:android:core:ui` - Android feature 모듈에서 공유하는 UI/ViewModel 유틸리티
-    - `:shared` - KMP shared 모듈, iOS framework base name `Shared`, shared Koin 모듈 집계
-    - `:shared:model` - 공통 domain model과 typed error 클래스
-    - `:shared:network` - 공통 Ktor client, serialization DTO, remote data source, Android/iOS HTTP engine
-    - `:shared:data` - network 데이터를 model API로 매핑하는 repository 인터페이스와 구현체
-    - `:shared:design-system` - 공통 design system token
+  - `:android:app` - Android 애플리케이션 진입점, Compose 설정, Android Koin 부트스트랩
+  - `:android:feature:agent` - Koin과 Orbit MVI를 사용하는 Android Compose agent 기능
+  - `:android:core:ui` - Android feature 모듈에서 공유하는 UI/ViewModel 유틸리티
+  - `:shared` - KMP shared 모듈, iOS framework base name `Shared`, shared Koin 모듈 집계
+  - `:shared:model` - 공통 domain model과 typed error 클래스
+  - `:shared:network` - 공통 Ktor client, serialization DTO, remote data source, Android/iOS HTTP engine
+  - `:shared:data` - network 데이터를 model API로 매핑하는 repository 인터페이스와 구현체
+  - `:shared:design-system` - 공통 design system token
 - `android/core/design-system` 디렉터리는 존재하지만 현재 `settings.gradle.kts`에 include 되어 있지 않다. 의도적으로 연결하기 전까지는 빌드에 참여한다고 가정하지 않는다.
 - `build-logic/`에는 Gradle convention plugin이 있다. 임의로 모듈 설정을 늘리기보다 기존 plugin과 version catalog를 우선 사용한다.
 - `docs/`, `rules/`, `skills/`, `hooks/`는 문서 또는 workflow 자산이며 application module이 아니다.
@@ -40,8 +40,8 @@
 ## 기존 패턴
 
 - Dependency injection은 Koin module을 사용한다.
-    - shared module은 `shared/src/commonMain/.../di/SharedKoin.kt`에서 집계한다.
-    - Android feature module은 Android `Application`에서 추가한다.
+  - shared module은 `shared/src/commonMain/.../di/SharedKoin.kt`에서 집계한다.
+  - Android feature module은 Android `Application`에서 추가한다.
 - Android feature state 관리는 Orbit MVI를 사용하며 `BaseContainerHost`, `container`, `intent`, `reduce`, side effect 패턴을 따른다.
 - Network code는 `shared:network`의 Ktor를 사용하고, Android/iOS HTTP engine 선택은 `expect`/`actual`로 분리한다.
 - Remote error는 `RemoteError`, `RootError`, `runCatchingWith`를 통해 변환한다. 주변 패턴이 바뀌지 않는 한 repository API는 `Result<T>`를 반환한다.
