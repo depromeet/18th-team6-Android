@@ -36,6 +36,7 @@ plugins {
 
 include(":android:app")
 include(":shared")
+include(":shared:design-system")
 include(":shared:model")
 include(":shared:data")
 include(":shared:network")

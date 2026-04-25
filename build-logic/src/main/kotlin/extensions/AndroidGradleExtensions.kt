@@ -27,7 +27,12 @@ internal fun Project.versionString(alias: String): String =
         .requiredVersion
 
 internal val Project.moduleNamespace: String
-    get() = "com.obrit." + path.removePrefix(":").replace(':', '.')
+    get() =
+        "com.obrit." +
+            path
+                .removePrefix(":")
+                .split(":")
+                .joinToString(".") { segment -> segment.replace("-", "") }
 
 internal fun Project.androidApplication(configure: ApplicationExtension.() -> Unit) {
     extensions.configure<ApplicationExtension>(configure)
