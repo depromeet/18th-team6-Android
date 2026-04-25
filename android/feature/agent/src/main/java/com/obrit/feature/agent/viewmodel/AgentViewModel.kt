@@ -1,7 +1,6 @@
 package com.obrit.feature.agent.viewmodel
 
 import androidx.compose.runtime.Immutable
-import androidx.lifecycle.viewModelScope
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.AgentRepository
@@ -10,7 +9,6 @@ import com.obrit.obrit.shared.model.agents.Agent
 import com.obrit.obrit.shared.model.agents.AgentType
 import com.obrit.obrit.shared.model.agents.PatchAgentParams
 import com.obrit.obrit.shared.model.sessions.Session
-import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.viewmodel.container
 
 class AgentViewModel internal constructor(
@@ -51,32 +49,28 @@ class AgentViewModel internal constructor(
         description: String,
         type: AgentType,
     ) = intent {
-        viewModelScope.launch {
-            agentRepository
-                .createAgent(name, description, type)
-                .onSuccess {
-                    reduceOn<AgentUiState.Success> {
-                        state.copy(
-                            agents = state.agents + it,
-                        )
-                    }
-                }.onFailure { e ->
-                    postSideEffect(AgentSideEffect.OnError(e))
+        agentRepository
+            .createAgent(name, description, type)
+            .onSuccess {
+                reduceOn<AgentUiState.Success> {
+                    state.copy(
+                        agents = state.agents + it,
+                    )
                 }
-        }
+            }.onFailure { e ->
+                postSideEffect(AgentSideEffect.OnError(e))
+            }
     }
 
     fun deleteAgent(id: Int) =
         intent {
-            viewModelScope.launch {
-                agentRepository
-                    .deleteAgent(id)
-                    .onSuccess {
-                        // 성공에 대한 동작
-                    }.onFailure { e ->
-                        postSideEffect(AgentSideEffect.OnError(e))
-                    }
-            }
+            agentRepository
+                .deleteAgent(id)
+                .onSuccess {
+                    // 성공에 대한 동작
+                }.onFailure { e ->
+                    postSideEffect(AgentSideEffect.OnError(e))
+                }
         }
 
     fun patchAgent(
@@ -85,32 +79,30 @@ class AgentViewModel internal constructor(
         description: String,
         type: AgentType,
     ) = intent {
-        viewModelScope.launch {
-            agentRepository
-                .patchAgent(
-                    PatchAgentParams(
-                        id = id,
-                        name = name,
-                        description = description,
-                        type = type,
-                    ),
-                ).onSuccess { patchedAgent ->
-                    reduceOn<AgentUiState.Success> {
-                        state.copy(
-                            agents =
-                                state.agents.map { agent ->
-                                    if (agent.id == patchedAgent.id) {
-                                        patchedAgent
-                                    } else {
-                                        agent
-                                    }
-                                },
-                        )
-                    }
-                }.onFailure { e ->
-                    postSideEffect(AgentSideEffect.OnError(e))
+        agentRepository
+            .patchAgent(
+                PatchAgentParams(
+                    id = id,
+                    name = name,
+                    description = description,
+                    type = type,
+                ),
+            ).onSuccess { patchedAgent ->
+                reduceOn<AgentUiState.Success> {
+                    state.copy(
+                        agents =
+                            state.agents.map { agent ->
+                                if (agent.id == patchedAgent.id) {
+                                    patchedAgent
+                                } else {
+                                    agent
+                                }
+                            },
+                    )
                 }
-        }
+            }.onFailure { e ->
+                postSideEffect(AgentSideEffect.OnError(e))
+            }
     }
 
     fun onAgentClick(agent: Agent) =

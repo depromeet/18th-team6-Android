@@ -1,9 +1,12 @@
 package com.obrit.android.core.ui.extensions
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.obrit.android.core.ui.BaseContainerHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
-fun <T> ViewModel.vmAsync(block: suspend CoroutineScope.() -> T): Deferred<T> = viewModelScope.async(block = block)
+suspend fun <T> BaseContainerHost<*, *>.vmAsync(block: suspend CoroutineScope.() -> T): Deferred<T> =
+    coroutineScope {
+        async(block = block)
+    }

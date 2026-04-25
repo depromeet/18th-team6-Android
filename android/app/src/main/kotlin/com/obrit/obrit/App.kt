@@ -18,11 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-@Preview
-fun App() {
+internal fun App() {
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
