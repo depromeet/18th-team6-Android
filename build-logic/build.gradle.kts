@@ -39,5 +39,9 @@ gradlePlugin {
             id = "com.obrit.plugin.android.library.orbit"
             implementationClass = "plugins.AndroidLibraryOrbitPlugin"
         }
+        register("androidLibraryNavigation3Plugin") {
+            id = "com.obrit.plugin.android.library.navigation3"
+            implementationClass = "plugins.AndroidLibraryNavigation3Plugin"
+        }
     }
 }

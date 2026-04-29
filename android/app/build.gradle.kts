@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.obrit.android.application)
     alias(libs.plugins.obrit.android.compose)
     alias(libs.plugins.obrit.android.koin)
+    alias(libs.plugins.obrit.android.navigation3)
 }
 
 dependencies {
@@ -9,6 +10,8 @@ dependencies {
     implementation(projects.shared.data)
     implementation(projects.shared.network)
     implementation(projects.android.feature.agent)
+    implementation(projects.android.core.designsyetem)
+    implementation(projects.android.core.ui)
 
     testImplementation(libs.kotlin.test)
 }
