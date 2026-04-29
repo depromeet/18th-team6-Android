@@ -11,6 +11,14 @@ obrit:
     active: true
   ScreenContentVisibility:
     active: true
+  RemoteDataSourceImplementationVisibility:
+    active: true
+  RepositoryImplementationVisibility:
+    active: true
+  RepositoryReturnTypeContract:
+    active: true
+  RepositoryResultRunCatchingContract:
+    active: true
   NoTodoCallInMainSource:
     active: true
   NoBangBangInMainSource:

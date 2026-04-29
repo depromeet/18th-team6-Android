@@ -239,6 +239,119 @@ class ScreenContentVisibility(config: Config) : Rule(config) {
     }
 }
 
+class RemoteDataSourceImplementationVisibility(config: Config) : Rule(config) {
+    override val issue =
+        Issue(
+            id = javaClass.simpleName,
+            severity = Severity.Defect,
+            description = "RemoteDataSource implementations must be internal.",
+            debt = Debt.FIVE_MINS,
+        )
+
+    override fun visitClass(klass: KtClass) {
+        super.visitClass(klass)
+
+        val className = klass.name.orEmpty()
+        if (!klass.isRemoteDataSourceImplementation()) return
+        if (klass.hasModifier(KtTokens.INTERNAL_KEYWORD)) return
+
+        report(
+            CodeSmell(
+                issue = issue,
+                entity = Entity.from(klass),
+                message = "$className must be declared as 'internal class'.",
+            ),
+        )
+    }
+}
+
+class RepositoryImplementationVisibility(config: Config) : Rule(config) {
+    override val issue =
+        Issue(
+            id = javaClass.simpleName,
+            severity = Severity.Defect,
+            description = "Repository implementations must be internal.",
+            debt = Debt.FIVE_MINS,
+        )
+
+    override fun visitClass(klass: KtClass) {
+        super.visitClass(klass)
+
+        val className = klass.name.orEmpty()
+        if (!className.endsWith("RepositoryImpl")) return
+        if (klass.hasModifier(KtTokens.INTERNAL_KEYWORD)) return
+
+        report(
+            CodeSmell(
+                issue = issue,
+                entity = Entity.from(klass),
+                message = "$className must be declared as 'internal class'.",
+            ),
+        )
+    }
+}
+
+class RepositoryReturnTypeContract(config: Config) : Rule(config) {
+    override val issue =
+        Issue(
+            id = javaClass.simpleName,
+            severity = Severity.Defect,
+            description = "Repository functions must return Result or Flow.",
+            debt = Debt.FIVE_MINS,
+        )
+
+    override fun visitNamedFunction(function: KtNamedFunction) {
+        super.visitNamedFunction(function)
+
+        val containingClass = function.parentOfType<KtClass>() ?: return
+        val className = containingClass.name.orEmpty()
+        if (!className.isRepositoryTypeName()) return
+        if (!function.isPublicApi()) return
+
+        val returnType = function.returnTypeText()
+        if (returnType.isRepositoryReturnType()) return
+
+        report(
+            CodeSmell(
+                issue = issue,
+                entity = Entity.from(function),
+                message = "$className.${function.name} must explicitly return Result<T> or Flow<T>.",
+            ),
+        )
+    }
+}
+
+class RepositoryResultRunCatchingContract(config: Config) : Rule(config) {
+    override val issue =
+        Issue(
+            id = javaClass.simpleName,
+            severity = Severity.Defect,
+            description = "Repository functions that return Result must call runCatchingWith.",
+            debt = Debt.FIVE_MINS,
+        )
+
+    override fun visitNamedFunction(function: KtNamedFunction) {
+        super.visitNamedFunction(function)
+
+        val containingClass = function.parentOfType<KtClass>() ?: return
+        val className = containingClass.name.orEmpty()
+        if (!className.isRepositoryTypeName()) return
+        if (!function.isPublicApi()) return
+        if (!function.returnTypeText().isRepositoryResultReturnType()) return
+
+        val bodyExpression = function.bodyExpression ?: return
+        if (bodyExpression.containsCallNamed("runCatchingWith")) return
+
+        report(
+            CodeSmell(
+                issue = issue,
+                entity = Entity.from(function),
+                message = "$className.${function.name} must wrap Result<T> work with runCatchingWith.",
+            ),
+        )
+    }
+}
+
 class NoTodoCallInMainSource(config: Config) : Rule(config) {
     override val issue =
         Issue(
@@ -410,6 +523,51 @@ private fun KtParameter.isFunctionType(): Boolean = "->" in typeText()
 
 private fun KtNamedFunction.isComposable(): Boolean =
     annotationEntries.any { annotation -> annotation.shortName?.asString() == "Composable" }
+
+private fun KtNamedFunction.isPublicApi(): Boolean =
+    !hasModifier(KtTokens.PRIVATE_KEYWORD) &&
+        !hasModifier(KtTokens.PROTECTED_KEYWORD) &&
+        !hasModifier(KtTokens.INTERNAL_KEYWORD)
+
+private fun KtNamedFunction.returnTypeText(): String =
+    typeReference
+        ?.text
+        .orEmpty()
+        .replace(Regex("\\s+"), "")
+
+private fun String.isRepositoryTypeName(): Boolean =
+    endsWith("Repository") || endsWith("RepositoryImpl")
+
+private fun String.isRepositoryReturnType(): Boolean =
+    isRepositoryResultReturnType() ||
+        startsWith("Flow<") ||
+        startsWith("kotlinx.coroutines.flow.Flow<")
+
+private fun String.isRepositoryResultReturnType(): Boolean =
+    startsWith("Result<") ||
+        startsWith("kotlin.Result<")
+
+private fun KtClass.isRemoteDataSourceImplementation(): Boolean {
+    val className = name.orEmpty()
+
+    return className.endsWith("RemoteDataSourceImpl") ||
+        superTypeListEntries.any { superType -> superType.text.endsWith("RemoteDataSource") }
+}
+
+private fun PsiElement.containsCallNamed(name: String): Boolean {
+    val stack = ArrayDeque<PsiElement>()
+    stack.add(this)
+
+    while (stack.isNotEmpty()) {
+        val element = stack.removeFirst()
+        if (element is KtCallExpression && element.calleeName() == name) {
+            return true
+        }
+        element.children.forEach(stack::addLast)
+    }
+
+    return false
+}
 
 private fun String.isScreenComposableName(): Boolean =
     endsWith("Screen") || (contains("Screen") && endsWith("Content"))

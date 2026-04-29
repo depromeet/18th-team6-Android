@@ -11,7 +11,9 @@ Repository는 shared data 계층의 public API이다. Presentation layer는 remo
 
 ## API 규칙
 
+- repository 함수는 `Result<T>` 또는 `Flow<T>`를 반환한다.
 - suspend 함수는 실패 가능성을 `Result<T>`로 표현한다.
+- stream 또는 observe 성격의 함수는 `Flow<T>`로 표현한다.
 - 생성, 수정, 삭제 함수명은 현재 패턴처럼 `createX`, `patchX`, `deleteX`를 사용한다.
 - 조회 함수명은 단건 `getX`, 목록 `getXs`를 사용한다.
 - 복잡한 수정 파라미터는 `shared:model`의 params data class로 묶는다.
@@ -33,6 +35,7 @@ interface AgentRepository {
 - remote 호출은 remote data source에 위임한다.
 - DTO to domain 변환은 repository 구현에서 수행한다.
 - known remote error는 `runCatchingWith(FeatureError())`로 typed error에 매핑한다.
+- `Result<T>`를 반환하는 public repository 구현 함수는 반드시 `runCatchingWith`를 호출한다.
 - `CancellationException`은 삼키지 않는다. 기존 `runCatchingWith`가 이 규칙을 처리한다.
 - repository 구현체는 Koin module에서 인터페이스 타입으로 등록한다.
 
