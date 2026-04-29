@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.obrit.android.compose)
     alias(libs.plugins.obrit.android.koin)
     alias(libs.plugins.obrit.android.orbit)
-    alias(libs.plugins.obrit.android.navigation3)
 }
 
 dependencies {
