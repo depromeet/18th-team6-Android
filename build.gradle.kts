@@ -18,7 +18,9 @@ dependencies {
 }
 
 subprojects {
-    dependencies {
-        add("ktlintRuleset", rootProject.libs.compose.rules.ktlint)
+    if (!path.startsWith(":tools")) {
+        dependencies {
+            add("ktlintRuleset", rootProject.libs.compose.rules.ktlint)
+        }
     }
 }

@@ -29,8 +29,10 @@ class AgentViewModel internal constructor(
 
             val agentsResult = agentsDeferred.await()
             val sessionsResult = sessionsDeferred.await()
+            val agents = agentsResult.getOrNull()
+            val sessions = sessionsResult.getOrNull()
 
-            if (agentsResult.isFailure || sessionsResult.isFailure) {
+            if (agents == null || sessions == null) {
                 reduce {
                     AgentUiState.LoadFailed
                 }
@@ -39,8 +41,8 @@ class AgentViewModel internal constructor(
 
             reduce {
                 AgentUiState.Success(
-                    agents = agentsResult.getOrNull()!!,
-                    sessions = sessionsResult.getOrNull()!!,
+                    agents = agents,
+                    sessions = sessions,
                 )
             }
         }

@@ -1,6 +1,7 @@
 *.iml
 .kotlin
 .gradle
+.gradle-user-home/
 **/build/
 /docs/sessions
 xcuserdata
