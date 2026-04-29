@@ -13,7 +13,7 @@ class AndroidComposeLibraryPlugin : Plugin<Project> {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 
             configureKotlinAndroid()
-            configureAndroidLibrary(enableCompose = true)
+            configureAndroidLibrary()
         }
     }
 }
