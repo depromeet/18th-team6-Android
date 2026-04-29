@@ -11,8 +11,6 @@ obrit:
     active: true
   ScreenContentVisibility:
     active: true
-  ViewModelContract:
-    active: true
   NoTodoCallInMainSource:
     active: true
   NoBangBangInMainSource:

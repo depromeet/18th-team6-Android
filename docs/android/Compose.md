@@ -16,6 +16,7 @@ Android UI는 Compose 기반으로 작성하며 `android/*` 모듈에 둔다. sh
 - `ScreenContent`에는 상태와 action을 명시적으로 전달한다.
 - repository, remote data source, Ktor client를 UI에서 직접 주입하지 않는다.
 - `Modifier`는 기본 인자로 받고 최상위 레이아웃에 전달한다.
+- 모든 컴포저블은 `Modifier`를 반드시 매개변수로 받는다.
 
 ```kotlin
 @Composable
@@ -59,4 +60,5 @@ fun AgentScreen(
 - preview는 가능한 `ScreenContent` 대상으로 작성한다.
 - preview에서 ViewModel, Koin, 네트워크에 의존하지 않는다.
 - sample state와 fake action을 사용한다.
+- preview는 private 처리한다.
 

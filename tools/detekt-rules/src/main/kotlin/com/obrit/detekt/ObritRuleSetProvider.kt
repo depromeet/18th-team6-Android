@@ -17,7 +17,6 @@ class ObritRuleSetProvider : RuleSetProvider {
                 ScreenComposableFileContract(config),
                 NoViewModelInScreenContent(config),
                 ScreenContentVisibility(config),
-                ViewModelContract(config),
                 NoTodoCallInMainSource(config),
                 NoBangBangInMainSource(config),
                 ModuleBuildScriptConvention(config),

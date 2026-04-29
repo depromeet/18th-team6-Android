@@ -29,8 +29,8 @@
 - 작업 내용을 짧고 명확하게 표현한다.
 
 ```text
-feat/1-홈-ui-생성
-fix/57-crash-on-startup
+feat/#1-home-ui
+fix/#57-crash-on-startup
 ```
 
 ## 커밋 규칙

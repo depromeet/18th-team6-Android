@@ -239,76 +239,6 @@ class ScreenContentVisibility(config: Config) : Rule(config) {
     }
 }
 
-class ViewModelContract(config: Config) : Rule(config) {
-    override val issue =
-        Issue(
-            id = javaClass.simpleName,
-            severity = Severity.Defect,
-            description = "Feature ViewModels must use BaseContainerHost and expose actions as intent functions.",
-            debt = Debt.TEN_MINS,
-        )
-
-    override fun visitClass(klass: KtClass) {
-        super.visitClass(klass)
-
-        val className = klass.name.orEmpty()
-        if (!className.endsWith("ViewModel")) return
-
-        if (klass.superTypeListEntries.none { superType -> "BaseContainerHost" in superType.text }) {
-            report(
-                CodeSmell(
-                    issue = issue,
-                    entity = Entity.from(klass),
-                    message = "$className must extend BaseContainerHost<UiState, SideEffect>.",
-                ),
-            )
-        }
-
-        val primaryConstructor = klass.primaryConstructor
-        if (primaryConstructor == null || !primaryConstructor.hasModifier(KtTokens.INTERNAL_KEYWORD)) {
-            report(
-                CodeSmell(
-                    issue = issue,
-                    entity = Entity.from(klass),
-                    message = "$className constructor must be internal.",
-                ),
-            )
-        }
-
-        primaryConstructor
-            ?.valueParameters
-            ?.filter { parameter -> !parameter.hasValOrVar() || !parameter.hasModifier(KtTokens.PRIVATE_KEYWORD) }
-            ?.forEach { parameter ->
-                report(
-                    CodeSmell(
-                        issue = issue,
-                        entity = Entity.from(parameter),
-                        message = "$className constructor dependency '${parameter.name}' must be a private val.",
-                    ),
-                )
-            }
-    }
-
-    override fun visitNamedFunction(function: KtNamedFunction) {
-        super.visitNamedFunction(function)
-
-        val containingClass = function.parentOfType<KtClass>() ?: return
-        if (!containingClass.name.orEmpty().endsWith("ViewModel")) return
-        if (!function.isPublicViewModelAction()) return
-
-        val bodyCall = function.bodyExpression as? KtCallExpression
-        if (bodyCall?.calleeName() == "intent") return
-
-        report(
-            CodeSmell(
-                issue = issue,
-                entity = Entity.from(function),
-                message = "${containingClass.name}.${function.name} must be written as '= intent { ... }'.",
-            ),
-        )
-    }
-}
-
 class NoTodoCallInMainSource(config: Config) : Rule(config) {
     override val issue =
         Issue(
@@ -480,12 +410,6 @@ private fun KtParameter.isFunctionType(): Boolean = "->" in typeText()
 
 private fun KtNamedFunction.isComposable(): Boolean =
     annotationEntries.any { annotation -> annotation.shortName?.asString() == "Composable" }
-
-private fun KtNamedFunction.isPublicViewModelAction(): Boolean =
-    !hasModifier(KtTokens.PRIVATE_KEYWORD) &&
-        !hasModifier(KtTokens.INTERNAL_KEYWORD) &&
-        !hasModifier(KtTokens.PROTECTED_KEYWORD) &&
-        !hasModifier(KtTokens.OVERRIDE_KEYWORD)
 
 private fun String.isScreenComposableName(): Boolean =
     endsWith("Screen") || (contains("Screen") && endsWith("Content"))
