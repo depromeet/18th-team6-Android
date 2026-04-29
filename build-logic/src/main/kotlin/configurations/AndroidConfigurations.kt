@@ -44,7 +44,7 @@ internal fun Project.configureAndroidApplication() {
     }
 }
 
-internal fun Project.configureAndroidLibrary(enableCompose: Boolean = false) {
+internal fun Project.configureAndroidLibrary(enableCompose: Boolean = true) {
     androidLibrary {
         namespace = moduleNamespace
         compileSdk = versionInt("android-compileSdk")
