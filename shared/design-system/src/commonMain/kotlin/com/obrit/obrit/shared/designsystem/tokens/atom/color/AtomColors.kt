@@ -2,8 +2,8 @@ package com.obrit.obrit.shared.designsystem.tokens.atom.color
 
 object AtomColors {
     object Common {
-        const val S1000: Long = 0xFF101213
         const val S00: Long = 0xFFFFFFFF
+        const val S100: Long = 0xFF101213
     }
 
     object CommonOpacity {
@@ -29,22 +29,22 @@ object AtomColors {
         const val S200: Long = 0xFFCBCCCF
         const val S250: Long = 0xFFBFC0C2
         const val S300: Long = 0xFFB2B3B4
-        const val S400: Long = 0xFFA1A2A3
+        const val S400: Long = 0xFFA2A2A3
         const val S450: Long = 0xFF888A8E
         const val S500: Long = 0xFF76777A
         const val S600: Long = 0xFF67696B
-        const val S700: Long = 0xFF515355
+        const val S700: Long = 0xFF515356
         const val S750: Long = 0xFF393A3D
         const val S800: Long = 0xFF2E2F33
-        const val S850: Long = 0xFF24242A
+        const val S850: Long = 0xFF26272A
         const val S900: Long = 0xFF1D1B20
     }
 
     object GrayOpacity {
-        const val S700: Long = 0xB2515355
+        const val S700: Long = 0xB2515356
         const val S750: Long = 0xB2393A3D
         const val S800: Long = 0xB22E2F33
-        const val S850: Long = 0xB224242A
+        const val S850: Long = 0xB226272A
         const val S900: Long = 0xB21D1B20
     }
 
