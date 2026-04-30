@@ -1,8 +1,9 @@
-package com.obrit.android.core.designsyetem
+package com.obrit.android.core.designsyetem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -31,10 +32,13 @@ fun OBRitTheme(
             else -> LightColorScheme
         }
 
-    CompositionLocalProvider {
+    CompositionLocalProvider(
+        LocalOBRitColor provides OBRitColor(),
+        LocalOBRitTypography provides OBRitTypography(),
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = androidx.compose.material3.Typography(),
+            typography = Typography(),
             content = content,
         )
     }
