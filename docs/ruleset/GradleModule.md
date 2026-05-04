@@ -5,7 +5,6 @@ Gradle 설정은 루트 `settings.gradle.kts`, `gradle/libs.versions.toml`, `bui
 ## Module 등록
 
 - 새 Gradle module은 반드시 `settings.gradle.kts`에 include한다.
-- include되지 않은 디렉터리는 빌드 대상이 아니다.
 - type-safe project accessor인 `projects.*`를 사용한다.
 - dependency version은 `gradle/libs.versions.toml`에 추가한다.
 

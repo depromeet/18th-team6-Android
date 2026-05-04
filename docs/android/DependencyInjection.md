@@ -4,13 +4,13 @@ Android presentation layer는 Koin으로 ViewModel과 화면 모듈을 조립한
 
 ## App 조립
 
-- Android app 시작 시 `ObritApplication`에서 `initKoin`을 호출한다.
+- Android app 시작 시 `OBRitApplication`에서 `initKoin`을 호출한다.
 - Android context가 필요하면 `androidContext(...)`를 app declaration에서 등록한다.
 - Android 화면/예시 모듈은 app module에서 명시적으로 추가한다.
 
 ```kotlin
 initKoin {
-    androidContext(this@ObritApplication)
+    androidContext(this@OBRitApplication)
     modules(agentFeatureModule)
 }
 ```

@@ -11,7 +11,7 @@ import com.obrit.obrit.shared.model.agents.PatchAgentParams
 import com.obrit.obrit.shared.model.sessions.Session
 import org.orbitmvi.orbit.viewmodel.container
 
-class AgentViewModel internal constructor(
+class AgentViewModel(
     private val agentRepository: AgentRepository,
     private val agentSessionRepository: AgentSessionRepository,
 ) : BaseContainerHost<AgentUiState, AgentSideEffect>() {

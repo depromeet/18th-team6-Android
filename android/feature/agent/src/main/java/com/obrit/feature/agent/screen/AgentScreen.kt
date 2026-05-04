@@ -14,6 +14,7 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun AgentScreen(
+    onAgentClick: (Agent) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AgentViewModel = koinViewModel(),
 ) {
@@ -35,7 +36,7 @@ fun AgentScreen(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is AgentSideEffect.OnAgentClick -> {}
+            is AgentSideEffect.OnAgentClick -> onAgentClick(sideEffect.agent)
             is AgentSideEffect.OnAgentLongClick -> {}
             is AgentSideEffect.OnMenuClick -> {}
             is AgentSideEffect.ShowSnackbar -> {

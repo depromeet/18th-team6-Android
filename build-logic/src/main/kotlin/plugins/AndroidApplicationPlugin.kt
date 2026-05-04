@@ -2,8 +2,11 @@ package plugins
 
 import configurations.configureAndroidApplication
 import configurations.configureKotlinAndroid
+import extensions.catalog
+import extensions.implementation
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.dependencies
 
 class AndroidApplicationPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -14,6 +17,10 @@ class AndroidApplicationPlugin : Plugin<Project> {
 
             configureKotlinAndroid()
             configureAndroidApplication()
+
+            dependencies {
+                implementation(catalog.findLibrary("androidx-core-ktx").get())
+            }
         }
     }
 }

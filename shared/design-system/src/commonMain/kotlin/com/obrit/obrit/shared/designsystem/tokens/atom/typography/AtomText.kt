@@ -1,6 +1,8 @@
 package com.obrit.obrit.shared.designsystem.tokens.atom.typography
 
 object AtomText {
+    const val LetterSpacing = -3f
+
     object S2xs {
         const val FontSize: Float = 10f
         const val LineHeight: Float = 16f

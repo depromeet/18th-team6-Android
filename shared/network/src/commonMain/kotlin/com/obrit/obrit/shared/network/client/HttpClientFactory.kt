@@ -34,10 +34,10 @@ internal fun createHttpClient(
     configuration: NetworkConfiguration,
 ): HttpClient =
     HttpClient(platformHttpClientEngineFactory()) {
-        configureObritHttpClient(json, configuration)
+        configureOBRitHttpClient(json, configuration)
     }
 
-internal fun HttpClientConfig<*>.configureObritHttpClient(
+internal fun HttpClientConfig<*>.configureOBRitHttpClient(
     json: Json,
     configuration: NetworkConfiguration,
 ) {

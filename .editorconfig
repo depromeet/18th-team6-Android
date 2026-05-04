@@ -14,3 +14,6 @@ ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [shared/design-system/src/commonMain/kotlin/**/tokens/**/*.kt]
 ktlint_standard_property-naming = disabled
+
+[android/core/designsystem/src/main/java/**/*.kt]
+compose_allowed_composition_locals = LocalOBRitColor,LocalOBRitTypography

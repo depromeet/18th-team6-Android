@@ -13,7 +13,7 @@ gradlePlugin {
     plugins {
         register("obritRootPlugin") {
             id = "com.obrit.plugin.root"
-            implementationClass = "plugins.ObritRootPlugin"
+            implementationClass = "plugins.OBRitRootPlugin"
         }
         register("androidApplicationPlugin") {
             id = "com.obrit.plugin.android.application"
@@ -23,13 +23,25 @@ gradlePlugin {
             id = "com.obrit.plugin.android.library"
             implementationClass = "plugins.AndroidLibraryPlugin"
         }
-        register("androidComposeLibraryPlugin") {
+        register("androidLibraryComposePlugin") {
             id = "com.obrit.plugin.android.library.compose"
-            implementationClass = "plugins.AndroidComposeLibraryPlugin"
+            implementationClass = "plugins.AndroidLibraryComposePlugin"
         }
         register("kotlinMultiplatformPlugin") {
             id = "com.obrit.plugin.kotlin.multiplatform"
             implementationClass = "plugins.KotlinMultiplatformPlugin"
+        }
+        register("androidLibraryKoinPlugin") {
+            id = "com.obrit.plugin.android.library.koin"
+            implementationClass = "plugins.AndroidLibraryKoinPlugin"
+        }
+        register("androidLibraryOrbitPlugin") {
+            id = "com.obrit.plugin.android.library.orbit"
+            implementationClass = "plugins.AndroidLibraryOrbitPlugin"
+        }
+        register("androidLibraryNavigation3Plugin") {
+            id = "com.obrit.plugin.android.library.navigation3"
+            implementationClass = "plugins.AndroidLibraryNavigation3Plugin"
         }
     }
 }

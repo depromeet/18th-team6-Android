@@ -15,7 +15,7 @@ Android ViewModel은 Orbit MVI 패턴을 따른다. 현재 공통 기반 클래�
 - Android `Context`, `Activity`, `Composable` 타입을 ViewModel에 넣지 않는다.
 
 ```kotlin
-class AgentViewModel internal constructor(
+class AgentViewModel(
     private val agentRepository: AgentRepository,
     private val agentSessionRepository: AgentSessionRepository,
 ) : BaseContainerHost<AgentUiState, AgentSideEffect>() {

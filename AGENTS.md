@@ -4,17 +4,17 @@
 
 ## 프로젝트 개요
 
-- OBRit은 Android Compose 앱을 포함한 Kotlin Multiplatform 프로젝트다. iOS 구현 지침은 `docs/ios-AGENTS.md`를 따른다.
+- OBRit은 Android Compose 앱을 포함한 Kotlin Multiplatform 프로젝트다. iOS 구현 지침은 `ios-AGENTS.md`를 따른다.
 - 현재 활성 Gradle 모듈은 `settings.gradle.kts`에 선언되어 있다.
-  - `:android:app` - Android 애플리케이션 진입점, Compose 설정, Android Koin 부트스트랩
-  - `:android:feature:agent` - 실제 제품 기능이 아니라 Koin, Orbit MVI, Compose 구조를 보여주는 Android 예시 모듈
-  - `:android:core:ui` - Android 화면 모듈에서 공유하는 UI/ViewModel 유틸리티
-  - `:shared` - KMP shared 모듈과 shared Koin 모듈 집계
-  - `:shared:model` - 공통 domain model과 typed error 클래스
-  - `:shared:network` - 공통 Ktor client, serialization DTO, remote data source, platform HTTP engine
-  - `:shared:data` - network 데이터를 model API로 매핑하는 repository 인터페이스와 구현체
-  - `:shared:design-system` - 공통 design system token
-- `android/core/design-system` 디렉터리는 존재하지만 현재 `settings.gradle.kts`에 include 되어 있지 않다. 의도적으로 연결하기 전까지는 빌드에 참여한다고 가정하지 않는다.
+    - `:android:app` - Android 애플리케이션 진입점, Compose 설정, Android Koin 부트스트랩
+    - `:android:feature:agent` - Koin, Orbit MVI, Compose 구조를 보여주는 Android 예시 모듈
+    - `:android:core:ui` - Android 화면 모듈에서 공유하는 UI/ViewModel 유틸리티
+    - `:android:core:designsystem` - Android 디자인시스템
+    - `:shared` - KMP shared 모듈과 shared Koin 모듈 집계
+    - `:shared:model` - 공통 domain model과 typed error 클래스
+    - `:shared:network` - 공통 Ktor client, serialization DTO, remote data source, platform HTTP engine
+    - `:shared:data` - network 데이터를 model API로 매핑하는 repository 인터페이스와 구현체
+    - `:shared:design-system` - 공통 design system token
 - `build-logic/`에는 Gradle convention plugin이 있다. 임의로 모듈 설정을 늘리기보다 기존 plugin과 version catalog를 우선 사용한다.
 - `docs/`, `rules/`, `skills/`, `hooks/`는 문서 또는 workflow 자산이며 application module이 아니다.
 
@@ -27,37 +27,19 @@
 - 변경은 요청과 직접 관련된 범위로 작게 유지하고, 기존 module boundary를 따른다.
 - 관련 없는 formatting, generated file, TODO, comment를 고치지 않는다.
 - 사용자가 명시적으로 요청하지 않는 한 사용자 변경분을 되돌리지 않는다.
-- 별도 지시가 없으면 이 workspace에서는 Windows/PowerShell 명령을 사용한다.
 - secret과 로컬 머신 경로를 commit 대상 파일에 넣지 않는다. `local.properties`는 local-only 파일이다.
 
-## 구현 컨벤션
+## 아키텍쳐
 
-- Repository 구현은 [docs/ruleset/Repository.md](docs/ruleset/Repository.md)를 따른다.
-- Network, DTO, remote data source 구현은 [docs/ruleset/Network.md](docs/ruleset/Network.md)를 따른다.
-- Domain model, params, error type 구현은 [docs/ruleset/Model.md](docs/ruleset/Model.md)를 따른다.
-- Shared dependency injection 구현은 [docs/ruleset/DependencyInjection.md](docs/ruleset/DependencyInjection.md)를 따른다.
-- Gradle module, dependency, build logic 변경은 [docs/ruleset/GradleModule.md](docs/ruleset/GradleModule.md)를 따른다.
-- Git branch, commit, PR, issue 작업은 [docs/ruleset/Git.md](docs/ruleset/Git.md)를 따른다.
-- Android/iOS presentation layer 구현은 [docs/ruleset/README.md](docs/ruleset/README.md)의 플랫폼 문서 링크를 따라간다.
+- [docs/ruleset/README.md](docs/ruleset/README.md)를 참고하여 구현한다.
 
 ## 모듈 경계
 
 - cross-platform domain, repository contract, serialization과 독립적인 model, 재사용 가능한 data logic 또는 디자인시스템 토큰은 `shared/*` 아래에 둔다.
-- platform-specific KMP 구현은 알맞은 source set에 둔다. iOS source set 규칙은 `docs/ios-AGENTS.md`를 따른다.
+- platform-specific KMP 구현은 알맞은 source set에 둔다. iOS source set 규칙은 `ios-AGENTS.md`를 따른다.
 - Android UI, Android ViewModel, Android DI entry point, Compose screen은 `android/*` 아래에 둔다.
 - Gradle 모듈을 추가할 때는 `settings.gradle.kts`에 include하고, 가능하면 기존 convention plugin을 사용하며, `projects.*` type-safe project accessor를 우선한다.
 - convention plugin을 사용하는 Android module의 namespace는 build logic에서 Gradle path를 기준으로 생성된다.
-
-## 기존 패턴
-
-- Dependency injection은 Koin module을 사용한다.
-  - shared module은 `shared/src/commonMain/.../di/SharedKoin.kt`에서 집계한다.
-  - Android 화면/예시 모듈은 Android `Application`에서 추가한다.
-- Android 화면 state 관리는 Orbit MVI를 사용하며 `BaseContainerHost`, `container`, `intent`, `reduce`, side effect 패턴을 따른다.
-- Network code는 `shared:network`의 Ktor를 사용하고, platform HTTP engine 선택은 `expect`/`actual`로 분리한다.
-- Remote error는 `RemoteError`, `RootError`, `runCatchingWith`를 통해 변환한다. 주변 패턴이 바뀌지 않는 한 repository API는 `Result<T>`를 반환한다.
-- Network DTO는 `shared:network`에 두고, domain model은 `shared:model`에 둔다. DTO를 domain model로 바꾸는 mapping function을 사용한다.
-- Compose code는 현재 Material/Compose dependency 구성과 local screen/action/state naming을 따른다.
 
 ## 빌드와 검증
 
