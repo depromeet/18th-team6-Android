@@ -13,7 +13,7 @@ gradlePlugin {
     plugins {
         register("obritRootPlugin") {
             id = "com.obrit.plugin.root"
-            implementationClass = "plugins.ObritRootPlugin"
+            implementationClass = "plugins.OBRitRootPlugin"
         }
         register("androidApplicationPlugin") {
             id = "com.obrit.plugin.android.application"

@@ -36,7 +36,7 @@ interface AgentRemoteDataSource {
 
 ## HTTP Client
 
-- 공통 설정은 `configureObritHttpClient`에 둔다.
+- 공통 설정은 `configureOBRitHttpClient`에 둔다.
 - base URL, logging 여부는 `NetworkConfiguration`을 통해 주입한다.
 - `Json` 설정은 `createJson()`에서 관리한다.
 - 실패 응답은 `HttpResponseValidator`에서 `RemoteError`로 변환한다.

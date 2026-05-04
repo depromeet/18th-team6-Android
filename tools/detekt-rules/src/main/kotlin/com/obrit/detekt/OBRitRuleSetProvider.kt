@@ -4,7 +4,7 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 
-class ObritRuleSetProvider : RuleSetProvider {
+class OBRitRuleSetProvider : RuleSetProvider {
     override val ruleSetId: String = "obrit"
 
     override fun instance(config: Config): RuleSet =

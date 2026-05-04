@@ -5,12 +5,12 @@ import com.obrit.feature.agent.di.agentFeatureModule
 import com.obrit.obrit.di.initKoin
 import org.koin.android.ext.koin.androidContext
 
-class ObritApplication : Application() {
+class OBRitApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
         initKoin {
-            androidContext(this@ObritApplication)
+            androidContext(this@OBRitApplication)
             modules(agentFeatureModule)
         }
     }
