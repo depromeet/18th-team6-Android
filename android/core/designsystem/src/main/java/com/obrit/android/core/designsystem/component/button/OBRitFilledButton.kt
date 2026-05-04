@@ -1,4 +1,4 @@
-package com.obrit.android.core.designsyetem.component.button
+package com.obrit.android.core.designsystem.component.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,9 +17,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.obrit.android.core.designsyetem.theme.LocalOBRitColor
-import com.obrit.android.core.designsyetem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsyetem.theme.OBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
+import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 

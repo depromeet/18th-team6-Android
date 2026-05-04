@@ -1,4 +1,4 @@
-package com.obrit.android.core.designsyetem.theme
+package com.obrit.android.core.designsystem.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf

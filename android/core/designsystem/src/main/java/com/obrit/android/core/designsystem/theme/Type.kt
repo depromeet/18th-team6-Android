@@ -1,4 +1,4 @@
-package com.obrit.android.core.designsyetem.theme
+package com.obrit.android.core.designsystem.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.obrit.android.core.designsyetem.R
+import com.obrit.android.core.designsystem.R
 import com.obrit.obrit.shared.designsystem.tokens.atom.typography.AtomText
 
 val LocalOBRitTypography =

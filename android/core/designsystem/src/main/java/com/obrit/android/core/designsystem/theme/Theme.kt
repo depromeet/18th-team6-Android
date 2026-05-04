@@ -1,4 +1,4 @@
-package com.obrit.android.core.designsyetem.theme
+package com.obrit.android.core.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

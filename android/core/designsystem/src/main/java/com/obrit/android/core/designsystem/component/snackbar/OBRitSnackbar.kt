@@ -1,4 +1,4 @@
-package com.obrit.android.core.designsyetem.component.snackbar
+package com.obrit.android.core.designsystem.component.snackbar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
@@ -22,10 +22,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.obrit.android.core.designsyetem.R
-import com.obrit.android.core.designsyetem.theme.LocalOBRitColor
-import com.obrit.android.core.designsyetem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsyetem.theme.OBRitTheme
+import com.obrit.android.core.designsystem.R
+import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
+import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 

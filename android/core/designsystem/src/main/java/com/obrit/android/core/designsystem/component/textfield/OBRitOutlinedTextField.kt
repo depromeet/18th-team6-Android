@@ -1,6 +1,6 @@
 @file:Suppress("TooManyFunctions")
 
-package com.obrit.android.core.designsyetem.component.textfield
+package com.obrit.android.core.designsystem.component.textfield
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -38,11 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.obrit.android.core.designsyetem.R
-import com.obrit.android.core.designsyetem.theme.LocalOBRitColor
-import com.obrit.android.core.designsyetem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsyetem.theme.OBRitColor
-import com.obrit.android.core.designsyetem.theme.OBRitTheme
+import com.obrit.android.core.designsystem.R
+import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
+import com.obrit.android.core.designsystem.theme.OBRitColor
+import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
