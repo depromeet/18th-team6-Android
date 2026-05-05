@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.obrit.obrit.shared.designsystem.tokens.atom.color.AtomColors
+import com.obrit.obrit.shared.designsystem.tokens.semantic.SemanticColors
 
 val LocalOBRitColor =
     staticCompositionLocalOf {
@@ -14,6 +15,7 @@ val LocalOBRitColor =
 data class OBRitColor(
     val common00: Color = Color(AtomColors.Common.S00),
     val common100: Color = Color(AtomColors.Common.S100),
+    val backgroundDefaultDimDefault: Color = Color(SemanticColors.Background.Default.DimDefault),
     val gray50: Color = Color(AtomColors.Gray.S50),
     val gray100: Color = Color(AtomColors.Gray.S100),
     val gray150: Color = Color(AtomColors.Gray.S150),
