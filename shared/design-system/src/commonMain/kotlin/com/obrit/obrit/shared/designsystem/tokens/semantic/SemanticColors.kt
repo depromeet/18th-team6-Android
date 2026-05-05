@@ -18,7 +18,7 @@ object SemanticColors {
             const val MiddleGrayDefault: Long = AtomColors.Gray.S450
             const val MiddleGraySecondary: Long = AtomColors.Gray.S600
             const val MiddleGrayTertiary: Long = AtomColors.Gray.S700
-            const val DimDefault: Long = AtomColors.GrayOpacity.S900
+            const val DimDefault: Long = AtomColors.CommonOpacity.CommonBlack.S00_80
             const val DimSecondary: Long = AtomColors.GrayOpacity.S800
             const val DimTertiary: Long = AtomColors.GrayOpacity.S700
         }
