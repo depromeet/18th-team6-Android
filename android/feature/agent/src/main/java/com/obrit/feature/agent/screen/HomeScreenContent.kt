@@ -3,7 +3,6 @@
 package com.obrit.feature.agent.screen
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,8 +36,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
-import com.obrit.android.feature.agent.R
 import com.obrit.feature.agent.viewmodel.HomeConsumableUiModel
 import com.obrit.feature.agent.viewmodel.HomePreviewSort
 import com.obrit.feature.agent.viewmodel.HomeStatusFilter
@@ -59,6 +55,8 @@ internal fun HomeScreenContent(
     action: HomeScreenAction,
     modifier: Modifier = Modifier,
 ) {
+    DeviceTiltReporter(onTiltChange = action.onDeviceTiltChanged)
+
     Box(
         modifier =
             modifier
@@ -83,7 +81,11 @@ internal fun HomeScreenContent(
             Spacer(modifier = Modifier.height(28.dp))
             HomeTitle(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(28.dp))
-            HomeHealthSummary(modifier = Modifier.fillMaxWidth())
+            HomeHealthSummary(
+                state = state,
+                action = action,
+                modifier = Modifier.fillMaxWidth(),
+            )
             Spacer(modifier = Modifier.height(18.dp))
             HomeStatusMeter(modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(30.dp))
@@ -257,14 +259,18 @@ private fun SmallLegendText(
 }
 
 @Composable
-private fun HomeHealthSummary(modifier: Modifier = Modifier) {
+private fun HomeHealthSummary(
+    state: HomeUiState,
+    action: HomeScreenAction,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
             modifier
                 .height(224.dp),
     ) {
         HealthPercentLabel(
-            percent = "77%",
+            percent = "${state.normalPercent}%",
             label = "양호",
             color = HealthyMint,
             modifier =
@@ -272,14 +278,22 @@ private fun HomeHealthSummary(modifier: Modifier = Modifier) {
                     .align(Alignment.CenterStart)
                     .padding(start = 22.dp, bottom = 42.dp),
         )
-        HealthVisual(
+        GlassConsumableOrb(
+            orb = state.orb,
+            normalRatio = state.normalRatio,
+            warningRatio = state.warningRatio,
+            positiveColor = HealthyMint,
+            warningColor = WarningOrange,
+            shadowColor = CardBlack,
+            glassColor = Color.White,
+            onOrbDragged = action.onOrbDragged,
             modifier =
                 Modifier
                     .align(Alignment.Center)
                     .size(224.dp),
         )
         HealthPercentLabel(
-            percent = "23%",
+            percent = "${state.warningPercent}%",
             label = "경고",
             color = WarningOrange,
             modifier =
@@ -320,57 +334,6 @@ private fun HealthPercentLabel(
                     fontWeight = FontWeight.Bold,
                 ),
             maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun HealthVisual(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val ringInset = 7.dp.toPx()
-            val ringSize = size.width - ringInset * 2
-            val stroke = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
-
-            drawArc(
-                color = Color.White.copy(alpha = 0.12f),
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = Offset(ringInset, ringInset),
-                size = Size(ringSize, ringSize),
-                style = stroke,
-            )
-            drawArc(
-                brush =
-                    Brush.sweepGradient(
-                        colorStops =
-                            arrayOf(
-                                0.00f to WarningOrange,
-                                0.20f to WarningOrange,
-                                0.30f to WarmGold,
-                                0.42f to HealthyMint,
-                                0.86f to HealthyMint,
-                                1.00f to WarningOrange,
-                            ),
-                        center = center,
-                    ),
-                startAngle = -32f,
-                sweepAngle = 328f,
-                useCenter = false,
-                topLeft = Offset(ringInset, ringInset),
-                size = Size(ringSize, ringSize),
-                style = stroke,
-            )
-        }
-        Image(
-            painter = painterResource(id = R.drawable.img_home_parts_visual),
-            contentDescription = null,
-            modifier = Modifier.size(214.dp),
-            contentScale = ContentScale.Fit,
         )
     }
 }

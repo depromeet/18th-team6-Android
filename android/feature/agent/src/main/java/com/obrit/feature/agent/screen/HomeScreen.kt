@@ -3,6 +3,7 @@ package com.obrit.feature.agent.screen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.obrit.feature.agent.viewmodel.DeviceTilt
 import com.obrit.feature.agent.viewmodel.HomeConsumableUiModel
 import com.obrit.feature.agent.viewmodel.HomeSideEffect
 import com.obrit.feature.agent.viewmodel.HomeStatusFilter
@@ -36,6 +37,8 @@ fun HomeScreen(
                 onHomeTabClick = viewModel::onHomeTabClick,
                 onListTabClick = viewModel::onListTabClick,
                 onAddClick = viewModel::onAddClick,
+                onOrbDragged = viewModel::onOrbDragged,
+                onDeviceTiltChanged = viewModel::onDeviceTiltChanged,
             ),
         modifier = modifier,
     )
@@ -61,4 +64,6 @@ internal data class HomeScreenAction(
     val onHomeTabClick: () -> Unit,
     val onListTabClick: () -> Unit,
     val onAddClick: () -> Unit,
+    val onOrbDragged: (Float, Float, Float) -> Unit,
+    val onDeviceTiltChanged: (DeviceTilt) -> Unit,
 )
