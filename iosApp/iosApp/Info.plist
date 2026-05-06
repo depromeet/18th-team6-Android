@@ -4,5 +4,17 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>pretendard_black.ttf</string>
+		<string>pretendard_bold.ttf</string>
+		<string>pretendard_extrabold.ttf</string>
+		<string>pretendard_extralight.ttf</string>
+		<string>pretendard_light.ttf</string>
+		<string>pretendard_medium.ttf</string>
+		<string>pretendard_regular.ttf</string>
+		<string>pretendard_semibold.ttf</string>
+		<string>pretendard_thin.ttf</string>
+	</array>
 </dict>
 </plist>

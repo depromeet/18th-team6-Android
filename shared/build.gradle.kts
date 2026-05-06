@@ -9,6 +9,7 @@ kotlin {
         binaries.framework {
             baseName = "Shared"
             isStatic = true
+            export(projects.shared.designSystem)
         }
     }
 
@@ -17,6 +18,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
 
+            api(projects.shared.designSystem)
             implementation(projects.shared.network)
             implementation(projects.shared.data)
         }
