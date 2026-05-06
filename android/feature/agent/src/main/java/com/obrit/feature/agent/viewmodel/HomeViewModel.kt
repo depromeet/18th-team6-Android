@@ -57,7 +57,7 @@ class HomeViewModel : BaseContainerHost<HomeUiState, HomeSideEffect>() {
             }
         }
 
-    fun onOrbDragged(
+    fun onOrbDrag(
         deltaX: Float,
         deltaY: Float,
         maxDrag: Float,

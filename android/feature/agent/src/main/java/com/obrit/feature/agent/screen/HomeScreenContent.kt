@@ -32,7 +32,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -83,7 +82,7 @@ internal fun HomeScreenContent(
             Spacer(modifier = Modifier.height(28.dp))
             HomeHealthSummary(
                 state = state,
-                onOrbDragged = action.onOrbDragged,
+                onOrbDrag = action.onOrbDrag,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(18.dp))
@@ -261,7 +260,7 @@ private fun SmallLegendText(
 @Composable
 private fun HomeHealthSummary(
     state: HomeUiState,
-    onOrbDragged: (Float, Float, Float) -> Unit,
+    onOrbDrag: (Float, Float, Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -288,7 +287,7 @@ private fun HomeHealthSummary(
                     shadow = CardBlack,
                     glass = Color.White,
                 ),
-            onOrbDragged = onOrbDragged,
+            onOrbDrag = onOrbDrag,
             modifier =
                 Modifier
                     .align(Alignment.Center)

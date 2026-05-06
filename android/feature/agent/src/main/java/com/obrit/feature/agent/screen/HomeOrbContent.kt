@@ -41,12 +41,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.obrit.feature.agent.viewmodel.DeviceTilt
-import com.obrit.feature.agent.viewmodel.OrbRoll
 import com.obrit.feature.agent.viewmodel.OrbUiState
 
 @Composable
@@ -138,7 +137,7 @@ internal fun GlassConsumableOrb(
     orb: OrbUiState,
     ratios: GlassOrbRatios,
     colors: GlassOrbColors,
-    onOrbDragged: (Float, Float, Float) -> Unit,
+    onOrbDrag: (Float, Float, Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -171,12 +170,11 @@ internal fun GlassConsumableOrb(
                 .pointerInput(maxDrag) {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
-                        onOrbDragged(dragAmount.x, dragAmount.y, maxDrag)
+                        onOrbDrag(dragAmount.x, dragAmount.y, maxDrag)
                     }
                 },
         contentAlignment = Alignment.Center,
     ) {
-
         OrbAmbientBackground(
             positiveColor = colors.positive,
             warningColor = colors.warning,

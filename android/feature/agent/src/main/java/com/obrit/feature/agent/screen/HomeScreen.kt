@@ -37,7 +37,7 @@ fun HomeScreen(
                 onHomeTabClick = viewModel::onHomeTabClick,
                 onListTabClick = viewModel::onListTabClick,
                 onAddClick = viewModel::onAddClick,
-                onOrbDragged = viewModel::onOrbDragged,
+                onOrbDrag = viewModel::onOrbDrag,
                 onDeviceTiltChanged = viewModel::onDeviceTiltChanged,
             ),
         modifier = modifier,
@@ -64,6 +64,6 @@ internal data class HomeScreenAction(
     val onHomeTabClick: () -> Unit,
     val onListTabClick: () -> Unit,
     val onAddClick: () -> Unit,
-    val onOrbDragged: (Float, Float, Float) -> Unit,
+    val onOrbDrag: (Float, Float, Float) -> Unit,
     val onDeviceTiltChanged: (DeviceTilt) -> Unit,
 )
