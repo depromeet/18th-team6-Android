@@ -74,8 +74,8 @@ public enum OBRitTypography {
         }
     }
 
-    public static var letterSpacing: CGFloat {
-        CGFloat(AtomText.shared.LetterSpacing)
+    public static func letterSpacing(for token: TextToken) -> CGFloat {
+        token.size * CGFloat(AtomText.shared.LetterSpacing) / 100
     }
 }
 
@@ -87,7 +87,7 @@ public struct OBRitTextStyle: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .font(OBRitTypography.font(token, weight: weight))
-            .tracking(OBRitTypography.letterSpacing)
+            .tracking(OBRitTypography.letterSpacing(for: token))
             .lineSpacing(max(0, token.lineHeight - token.size))
             .foregroundStyle(color)
     }
