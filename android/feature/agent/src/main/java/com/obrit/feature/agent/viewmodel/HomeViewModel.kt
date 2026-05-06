@@ -6,6 +6,18 @@ import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
+private const val MIN_DRAG_DISTANCE = 1f
+private const val MIN_RATIO = 0f
+private const val MAX_RATIO = 1f
+private const val DEFAULT_NORMAL_RATIO = 0.77f
+private const val DEFAULT_WARNING_RATIO = 0.23f
+private const val PERCENT_MULTIPLIER = 100f
+private const val ORB_ROTATION_DRAG_MULTIPLIER = 0.45f
+private const val ORB_DRAG_ROLL_WEIGHT = 0.75f
+private const val MAX_COMBINED_ROLL = 1.4f
+private const val FULL_CIRCLE_DEGREES = 360f
+private const val HALF_CIRCLE_DEGREES = 180f
+
 class HomeViewModel : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container = container<HomeUiState, HomeSideEffect>(HomeUiState())
 
@@ -50,7 +62,7 @@ class HomeViewModel : BaseContainerHost<HomeUiState, HomeSideEffect>() {
         deltaY: Float,
         maxDrag: Float,
     ) = intent {
-        val safeMaxDrag = maxDrag.coerceAtLeast(1f)
+        val safeMaxDrag = maxDrag.coerceAtLeast(MIN_DRAG_DISTANCE)
 
         reduce {
             state.copy(
@@ -58,8 +70,8 @@ class HomeViewModel : BaseContainerHost<HomeUiState, HomeSideEffect>() {
                     state.orb.copy(
                         dragX = (state.orb.dragX + deltaX).coerceIn(-safeMaxDrag, safeMaxDrag),
                         dragY = (state.orb.dragY + deltaY).coerceIn(-safeMaxDrag, safeMaxDrag),
-                        sphereYaw = (state.orb.sphereYaw + deltaX * 0.45f).normalizeDegrees(),
-                        spherePitch = (state.orb.spherePitch + deltaY * 0.45f).normalizeDegrees(),
+                        sphereYaw = (state.orb.sphereYaw + deltaX * ORB_ROTATION_DRAG_MULTIPLIER).normalizeDegrees(),
+                        spherePitch = (state.orb.spherePitch + deltaY * ORB_ROTATION_DRAG_MULTIPLIER).normalizeDegrees(),
                     ),
             )
         }
@@ -103,18 +115,18 @@ data class HomeUiState(
     val selectedStatusFilter: HomeStatusFilter = HomeStatusFilter.ReplacementDanger,
     val previewSort: HomePreviewSort = HomePreviewSort.NearReplacement,
     val isPreviewExpanded: Boolean = false,
-    val normalRatio: Float = 0.77f,
-    val warningRatio: Float = 0.23f,
+    val normalRatio: Float = DEFAULT_NORMAL_RATIO,
+    val warningRatio: Float = DEFAULT_WARNING_RATIO,
     val orb: OrbUiState = OrbUiState(),
     val urgentConsumables: List<HomeConsumableUiModel> = ConsumableMemoryStore.urgentConsumables,
     val previewConsumables: List<HomeConsumableUiModel> = ConsumableMemoryStore.previewConsumables,
     val usageItems: List<HomeUsageUiModel> = ConsumableMemoryStore.usageItems,
 ) {
     val normalPercent: Int
-        get() = (normalRatio.coerceIn(0f, 1f) * 100f).toInt()
+        get() = (normalRatio.coerceIn(MIN_RATIO, MAX_RATIO) * PERCENT_MULTIPLIER).toInt()
 
     val warningPercent: Int
-        get() = (warningRatio.coerceIn(0f, 1f) * 100f).toInt()
+        get() = (warningRatio.coerceIn(MIN_RATIO, MAX_RATIO) * PERCENT_MULTIPLIER).toInt()
 }
 
 @Immutable
@@ -132,19 +144,19 @@ data class OrbUiState(
     val sphereYaw: Float = 0f,
 ) {
     private val rollX: Float
-        get() = tilt.x.coerceIn(-1f, 1f)
+        get() = tilt.x.coerceIn(-MAX_RATIO, MAX_RATIO)
 
     private val rollY: Float
-        get() = tilt.y.coerceIn(-1f, 1f)
+        get() = tilt.y.coerceIn(-MAX_RATIO, MAX_RATIO)
 
     fun combinedRoll(maxDrag: Float): OrbRoll {
-        val safeMaxDrag = maxDrag.coerceAtLeast(1f)
-        val dragRollX = (dragX / safeMaxDrag).coerceIn(-1f, 1f)
-        val dragRollY = (dragY / safeMaxDrag).coerceIn(-1f, 1f)
+        val safeMaxDrag = maxDrag.coerceAtLeast(MIN_DRAG_DISTANCE)
+        val dragRollX = (dragX / safeMaxDrag).coerceIn(-MAX_RATIO, MAX_RATIO)
+        val dragRollY = (dragY / safeMaxDrag).coerceIn(-MAX_RATIO, MAX_RATIO)
 
         return OrbRoll(
-            x = (rollX + dragRollX * 0.75f).coerceIn(-1.4f, 1.4f),
-            y = (rollY + dragRollY * 0.75f).coerceIn(-1.4f, 1.4f),
+            x = (rollX + dragRollX * ORB_DRAG_ROLL_WEIGHT).coerceIn(-MAX_COMBINED_ROLL, MAX_COMBINED_ROLL),
+            y = (rollY + dragRollY * ORB_DRAG_ROLL_WEIGHT).coerceIn(-MAX_COMBINED_ROLL, MAX_COMBINED_ROLL),
         )
     }
 }
@@ -199,10 +211,10 @@ data class HomeUsageUiModel(
 )
 
 private fun Float.normalizeDegrees(): Float {
-    val value = this % 360f
+    val value = this % FULL_CIRCLE_DEGREES
     return when {
-        value < -180f -> value + 360f
-        value > 180f -> value - 360f
+        value < -HALF_CIRCLE_DEGREES -> value + FULL_CIRCLE_DEGREES
+        value > HALF_CIRCLE_DEGREES -> value - FULL_CIRCLE_DEGREES
         else -> value
     }
 }

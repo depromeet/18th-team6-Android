@@ -101,23 +101,51 @@ internal fun DeviceTiltReporter(onTiltChange: (DeviceTilt) -> Unit) {
     }
 }
 
+internal data class GlassOrbRatios(
+    val normal: Float,
+    val warning: Float,
+)
+
+internal data class GlassOrbColors(
+    val positive: Color,
+    val warning: Color,
+    val shadow: Color,
+    val glass: Color,
+)
+
+private data class StatusRingSpec(
+    val center: Offset,
+    val radius: Float,
+    val ringWidth: Float,
+    val normalRatio: Float,
+    val warningRatio: Float,
+    val positiveColor: Color,
+    val warningColor: Color,
+)
+
+private data class TransitionArcSpec(
+    val box: Offset,
+    val ringSize: Size,
+    val ringWidth: Float,
+    val startAngle: Float,
+    val sweepAngle: Float,
+    val from: Color,
+    val to: Color,
+)
+
 @Composable
 internal fun GlassConsumableOrb(
     orb: OrbUiState,
-    normalRatio: Float,
-    warningRatio: Float,
-    positiveColor: Color,
-    warningColor: Color,
-    shadowColor: Color,
-    glassColor: Color,
+    ratios: GlassOrbRatios,
+    colors: GlassOrbColors,
     onOrbDragged: (Float, Float, Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
     val maxDrag = with(density) { 28.dp.toPx() }
     val roll = orb.combinedRoll(maxDrag)
-    val warningGlow = warningRatio.coerceIn(0f, 1f)
-    val normalGlow = normalRatio.coerceIn(0f, 1f)
+    val warningGlow = ratios.warning.coerceIn(0f, 1f)
+    val normalGlow = ratios.normal.coerceIn(0f, 1f)
     val internalRollX by animateFloatAsState(
         targetValue = -roll.x,
         animationSpec =
@@ -150,9 +178,9 @@ internal fun GlassConsumableOrb(
     ) {
 
         OrbAmbientBackground(
-            positiveColor = positiveColor,
-            warningColor = warningColor,
-            shadowColor = shadowColor,
+            positiveColor = colors.positive,
+            warningColor = colors.warning,
+            shadowColor = colors.shadow,
             warningGlowAlpha = 0.14f + warningGlow * 0.58f,
             modifier = Modifier.matchParentSize(),
         )
@@ -168,10 +196,9 @@ internal fun GlassConsumableOrb(
             ) {
                 drawGlassBody(
                     radius = size.minDimension / 2f,
-                    roll = roll,
                     warningGlow = warningGlow,
-                    warningColor = warningColor,
-                    shadowColor = shadowColor,
+                    warningColor = colors.warning,
+                    shadowColor = colors.shadow,
                 )
             }
             OrbBottomBlurLayer(
@@ -181,8 +208,8 @@ internal fun GlassConsumableOrb(
                         .clip(CircleShape),
             )
             OrbPlanetBackdropLayer(
-                positiveColor = positiveColor,
-                warningColor = warningColor,
+                positiveColor = colors.positive,
+                warningColor = colors.warning,
                 modifier =
                     Modifier
                         .matchParentSize()
@@ -207,20 +234,21 @@ internal fun GlassConsumableOrb(
                 val center = Offset(size.width / 2f, size.height / 2f)
 
                 drawStatusRing(
-                    center = center,
-                    radius = radius - 6.dp.toPx(),
-                    ringWidth = 6.dp.toPx(),
-                    normalRatio = normalGlow,
-                    warningRatio = warningGlow,
-                    positiveColor = positiveColor,
-                    warningColor = warningColor,
-                    highlightColor = glassColor,
-                    drawHighlight = false,
+                    spec =
+                        StatusRingSpec(
+                            center = center,
+                            radius = radius - 6.dp.toPx(),
+                            ringWidth = 6.dp.toPx(),
+                            normalRatio = normalGlow,
+                            warningRatio = warningGlow,
+                            positiveColor = colors.positive,
+                            warningColor = colors.warning,
+                        ),
                 )
                 drawGlassSurfaceArc(
                     center = center,
                     radius = radius - 22.dp.toPx(),
-                    glassColor = glassColor,
+                    glassColor = colors.glass,
                 )
             }
         }
@@ -290,7 +318,6 @@ private fun OrbAmbientBackground(
 
 private fun DrawScope.drawGlassBody(
     radius: Float,
-    roll: OrbRoll,
     warningGlow: Float,
     warningColor: Color,
     shadowColor: Color,
@@ -333,84 +360,68 @@ private fun DrawScope.drawGlassBody(
     }
 }
 
-private fun DrawScope.drawStatusRing(
-    center: Offset,
-    radius: Float,
-    ringWidth: Float,
-    normalRatio: Float,
-    warningRatio: Float,
-    positiveColor: Color,
-    warningColor: Color,
-    highlightColor: Color,
-    drawHighlight: Boolean,
-) {
-    val normal = normalRatio.coerceIn(0f, 1f)
-    val warning = warningRatio.coerceIn(0f, 1f)
+private fun DrawScope.drawStatusRing(spec: StatusRingSpec) {
+    val normal = spec.normalRatio.coerceIn(0f, 1f)
+    val warning = spec.warningRatio.coerceIn(0f, 1f)
     val total = (normal + warning).coerceAtLeast(0.0001f)
     val positiveSweep = (normal / total) * 360f
     val warningSweep = (warning / total) * 360f
     val transitionDeg = if (positiveSweep > 0.5f && warningSweep > 0.5f) 22f else 0f
     val positiveStart = 180f - positiveSweep / 2f
     val warningStart = -warningSweep / 2f
-    val box = Offset(center.x - radius, center.y - radius)
-    val ringSize = Size(radius * 2f, radius * 2f)
+    val box = Offset(spec.center.x - spec.radius, spec.center.y - spec.radius)
+    val ringSize = Size(spec.radius * 2f, spec.radius * 2f)
 
     val positiveBodySweep = (positiveSweep - transitionDeg).coerceAtLeast(0f)
     if (positiveBodySweep > 0f) {
         drawArc(
-            color = positiveColor,
+            color = spec.positiveColor,
             startAngle = positiveStart + transitionDeg / 2f,
             sweepAngle = positiveBodySweep,
             useCenter = false,
             topLeft = box,
             size = ringSize,
-            style = Stroke(width = ringWidth),
+            style = Stroke(width = spec.ringWidth),
         )
     }
 
     val warningBodySweep = (warningSweep - transitionDeg).coerceAtLeast(0f)
     if (warningBodySweep > 0f) {
         drawArc(
-            color = warningColor,
+            color = spec.warningColor,
             startAngle = warningStart + transitionDeg / 2f,
             sweepAngle = warningBodySweep,
             useCenter = false,
             topLeft = box,
             size = ringSize,
-            style = Stroke(width = ringWidth),
+            style = Stroke(width = spec.ringWidth),
         )
     }
 
     if (transitionDeg > 0f) {
         drawTransitionArc(
-            box = box,
-            ringSize = ringSize,
-            ringWidth = ringWidth,
-            startAngle = positiveStart + positiveSweep - transitionDeg / 2f,
-            sweepAngle = transitionDeg,
-            from = positiveColor,
-            to = warningColor,
+            spec =
+                TransitionArcSpec(
+                    box = box,
+                    ringSize = ringSize,
+                    ringWidth = spec.ringWidth,
+                    startAngle = positiveStart + positiveSweep - transitionDeg / 2f,
+                    sweepAngle = transitionDeg,
+                    from = spec.positiveColor,
+                    to = spec.warningColor,
+                ),
         )
         drawTransitionArc(
-            box = box,
-            ringSize = ringSize,
-            ringWidth = ringWidth,
-            startAngle = warningStart + warningSweep - transitionDeg / 2f,
-            sweepAngle = transitionDeg,
-            from = warningColor,
-            to = positiveColor,
-        )
-    }
-
-    if (drawHighlight) {
-        drawArc(
-            color = highlightColor.copy(alpha = 0.45f),
-            startAngle = 200f,
-            sweepAngle = 38f,
-            useCenter = false,
-            topLeft = Offset(center.x - radius + 6.dp.toPx(), center.y - radius + 6.dp.toPx()),
-            size = Size((radius - 6.dp.toPx()) * 2f, (radius - 6.dp.toPx()) * 2f),
-            style = Stroke(width = 2.dp.toPx()),
+            spec =
+                TransitionArcSpec(
+                    box = box,
+                    ringSize = ringSize,
+                    ringWidth = spec.ringWidth,
+                    startAngle = warningStart + warningSweep - transitionDeg / 2f,
+                    sweepAngle = transitionDeg,
+                    from = spec.warningColor,
+                    to = spec.positiveColor,
+                ),
         )
     }
 }
@@ -470,44 +481,38 @@ private fun DrawScope.drawGlassSurfaceArc(
     drawContext.canvas.restore()
 }
 
-private fun DrawScope.drawTransitionArc(
-    box: Offset,
-    ringSize: Size,
-    ringWidth: Float,
-    startAngle: Float,
-    sweepAngle: Float,
-    from: Color,
-    to: Color,
-) {
+private fun DrawScope.drawTransitionArc(spec: TransitionArcSpec) {
     val steps = 16
-    val stepSweep = sweepAngle / steps
+    val stepSweep = spec.sweepAngle / steps
 
     repeat(steps) { index ->
         val t = (index + 0.5f) / steps
         drawArc(
-            color = lerp(from, to, t),
-            startAngle = startAngle + stepSweep * index,
+            color = lerp(spec.from, spec.to, t),
+            startAngle = spec.startAngle + stepSweep * index,
             sweepAngle = stepSweep + 0.6f,
             useCenter = false,
-            topLeft = box,
-            size = ringSize,
-            style = Stroke(width = ringWidth),
+            topLeft = spec.box,
+            size = spec.ringSize,
+            style = Stroke(width = spec.ringWidth),
         )
     }
 }
 
 private fun Offset.softLimited(maxDistance: Float): Offset {
     val distance = getDistance()
-    if (distance <= 0f) return Offset.Zero
-
     val threshold = maxDistance * 0.62f
-    if (distance <= threshold) return this
-
-    val overflow = distance - threshold
-    val remaining = maxDistance - threshold
-    val easedDistance = threshold + remaining * (overflow / (overflow + remaining))
-    val scale = easedDistance / distance
-    return Offset(x * scale, y * scale)
+    return when {
+        distance <= 0f -> Offset.Zero
+        distance <= threshold -> this
+        else -> {
+            val overflow = distance - threshold
+            val remaining = maxDistance - threshold
+            val easedDistance = threshold + remaining * (overflow / (overflow + remaining))
+            val scale = easedDistance / distance
+            Offset(x * scale, y * scale)
+        }
+    }
 }
 
 @Composable

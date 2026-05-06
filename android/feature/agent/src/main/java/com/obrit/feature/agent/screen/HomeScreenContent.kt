@@ -83,7 +83,7 @@ internal fun HomeScreenContent(
             Spacer(modifier = Modifier.height(28.dp))
             HomeHealthSummary(
                 state = state,
-                action = action,
+                onOrbDragged = action.onOrbDragged,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(18.dp))
@@ -261,7 +261,7 @@ private fun SmallLegendText(
 @Composable
 private fun HomeHealthSummary(
     state: HomeUiState,
-    action: HomeScreenAction,
+    onOrbDragged: (Float, Float, Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -280,13 +280,15 @@ private fun HomeHealthSummary(
         )
         GlassConsumableOrb(
             orb = state.orb,
-            normalRatio = state.normalRatio,
-            warningRatio = state.warningRatio,
-            positiveColor = HealthyMint,
-            warningColor = WarningOrange,
-            shadowColor = CardBlack,
-            glassColor = Color.White,
-            onOrbDragged = action.onOrbDragged,
+            ratios = GlassOrbRatios(normal = state.normalRatio, warning = state.warningRatio),
+            colors =
+                GlassOrbColors(
+                    positive = HealthyMint,
+                    warning = WarningOrange,
+                    shadow = CardBlack,
+                    glass = Color.White,
+                ),
+            onOrbDragged = onOrbDragged,
             modifier =
                 Modifier
                     .align(Alignment.Center)
