@@ -92,21 +92,6 @@ fun OBRitBottomSheet(
     }
 }
 
-private val OBRitBottomSheetHeaderPadding = AtomSpacing.S4.dp
-private val OBRitBottomSheetHeaderGap = AtomSpacing.S2_5.dp
-private val OBRitBottomSheetHorizontalPadding = AtomSpacing.S5.dp
-private val OBRitBottomSheetBottomPadding = AtomSpacing.S5.dp
-private val OBRitBottomSheetHandleWidth = AtomSpacing.S8.dp
-private val OBRitBottomSheetHandleHeight = AtomSpacing.S1.dp
-private val OBRitBottomSheetShape =
-    RoundedCornerShape(
-        topStart = AtomRadius.BottomSheet.dp,
-        topEnd = AtomRadius.BottomSheet.dp,
-    )
-private val OBRitBottomSheetHandleShape = RoundedCornerShape(AtomSpacing.S0_5.dp)
-private val OBRitBottomSheetScrimColor = Color(AtomColors.CommonOpacity.CommonBlack.S00_60)
-private const val OBRitBottomSheetHandleAlpha = 0.4f
-
 @Preview(
     name = "OBRitBottomSheet",
     showBackground = true,
@@ -133,3 +118,18 @@ private fun OBRitBottomSheetPreviewContainer(content: @Composable () -> Unit) {
         }
     }
 }
+
+private val OBRitBottomSheetHeaderPadding = AtomSpacing.S4.dp
+private val OBRitBottomSheetHeaderGap = AtomSpacing.S2_5.dp
+private val OBRitBottomSheetHorizontalPadding = AtomSpacing.S5.dp
+private val OBRitBottomSheetBottomPadding = AtomSpacing.S5.dp
+private val OBRitBottomSheetHandleWidth = AtomSpacing.S8.dp
+private val OBRitBottomSheetHandleHeight = AtomSpacing.S1.dp
+private val OBRitBottomSheetShape =
+    RoundedCornerShape(
+        topStart = AtomRadius.BottomSheet.dp,
+        topEnd = AtomRadius.BottomSheet.dp,
+    )
+private val OBRitBottomSheetHandleShape = RoundedCornerShape(AtomSpacing.S0_5.dp)
+private val OBRitBottomSheetScrimColor = Color(AtomColors.CommonOpacity.CommonBlack.S00_60)
+private const val OBRitBottomSheetHandleAlpha = 0.4f
