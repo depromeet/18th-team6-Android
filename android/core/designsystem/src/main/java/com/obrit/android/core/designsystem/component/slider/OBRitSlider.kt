@@ -64,13 +64,14 @@ fun OBRitSlider(
 @Composable
 private fun OBRitSliderThumb(colors: OBRitColor) {
     Box(
-        modifier = Modifier
-            .size(OBRitSliderThumbSize)
-            .clip(CircleShape)
-            .background(colors.common00)
-            .padding(OBRitSliderThumbBorderWidth)
-            .clip(CircleShape)
-            .background(colors.green300),
+        modifier =
+            Modifier
+                .size(OBRitSliderThumbSize)
+                .clip(CircleShape)
+                .background(colors.common00)
+                .padding(OBRitSliderThumbBorderWidth)
+                .clip(CircleShape)
+                .background(colors.green300),
     )
 }
 
@@ -81,26 +82,30 @@ private fun OBRitSliderTrack(
     valueRange: ClosedFloatingPointRange<Float>,
     colors: OBRitColor,
 ) {
-    val fraction = ((sliderState.value - valueRange.start) / (valueRange.endInclusive - valueRange.start))
-        .coerceIn(0f, 1f)
+    val fraction =
+        ((sliderState.value - valueRange.start) / (valueRange.endInclusive - valueRange.start))
+            .coerceIn(0f, 1f)
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(OBRitSliderTrackHeight),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(OBRitSliderTrackHeight),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(OBRitSliderTrackRadius))
-                .background(colors.gray800),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(OBRitSliderTrackRadius))
+                    .background(colors.gray800),
         )
         Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(fraction)
-                .clip(RoundedCornerShape(OBRitSliderTrackRadius))
-                .background(colors.green300),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(fraction)
+                    .clip(RoundedCornerShape(OBRitSliderTrackRadius))
+                    .background(colors.green300),
         )
     }
 }
@@ -126,9 +131,10 @@ private fun OBRitSliderPreviewContainer(content: @Composable () -> Unit) {
     OBRitTheme(dynamicColor = false) {
         val colors = LocalOBRitColor.current
         Box(
-            modifier = Modifier
-                .background(colors.gray900)
-                .padding(AtomSpacing.S5.dp),
+            modifier =
+                Modifier
+                    .background(colors.gray900)
+                    .padding(AtomSpacing.S5.dp),
         ) {
             content()
         }
