@@ -21,3 +21,4 @@ captures
 node_modules/
 /gradle/gradle-daemon-jvm.properties
 /docs/design
+.claude/settings.local.json
