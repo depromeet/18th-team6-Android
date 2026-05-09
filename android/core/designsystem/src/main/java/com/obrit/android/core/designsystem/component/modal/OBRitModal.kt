@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -27,13 +28,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
+import com.obrit.android.core.designsystem.component.button.FilledButtonColor
 import com.obrit.android.core.designsystem.component.button.OBRitMiddleFilledTextButton
 import com.obrit.android.core.designsystem.component.dim.OBRitDim
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+
+enum class OBRitModalAppearance {
+    Light,
+    Dark,
+}
 
 @Composable
 @Suppress("LongParameterList")
@@ -43,19 +51,21 @@ fun OBRitModal(
     primaryButtonText: String,
     onPrimaryButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
+    appearance: OBRitModalAppearance = OBRitModalAppearance.Light,
     showImage: Boolean = true,
     secondaryButtonText: String? = null,
     onSecondaryButtonClick: (() -> Unit)? = null,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+    val colorScheme = obritModalColorScheme(colors = colors, appearance = appearance)
 
     Column(
         modifier =
             modifier
                 .width(OBRitModalWidth)
                 .clip(OBRitModalShape)
-                .background(colors.common00)
+                .background(colorScheme.containerColor)
                 .padding(
                     horizontal = OBRitModalHorizontalPadding,
                     vertical = OBRitModalVerticalPadding,
@@ -82,7 +92,7 @@ fun OBRitModal(
                     modifier = Modifier.fillMaxWidth(),
                     style =
                         typography.xl3.copy(
-                            color = colors.gray900,
+                            color = colorScheme.titleColor,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         ),
@@ -94,7 +104,7 @@ fun OBRitModal(
                     modifier = Modifier.fillMaxWidth(),
                     style =
                         typography.base.copy(
-                            color = colors.gray600,
+                            color = colorScheme.descriptionColor,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
                         ),
@@ -112,12 +122,14 @@ fun OBRitModal(
                     OBRitModalGrayFilledTextButton(
                         text = secondaryButtonText,
                         onClick = onSecondaryButtonClick,
+                        appearance = appearance,
                         modifier = Modifier.width(OBRitModalSecondaryButtonWidth),
                     )
                 }
                 OBRitMiddleFilledTextButton(
                     text = primaryButtonText,
                     onClick = onPrimaryButtonClick,
+                    color = colorScheme.primaryButtonColor,
                     modifier =
                         if (secondaryButtonText != null && onSecondaryButtonClick != null) {
                             Modifier.weight(1f)
@@ -134,16 +146,18 @@ fun OBRitModal(
 private fun OBRitModalGrayFilledTextButton(
     text: String,
     onClick: () -> Unit,
+    appearance: OBRitModalAppearance,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+    val colorScheme = obritModalColorScheme(colors = colors, appearance = appearance)
 
     Box(
         modifier =
             modifier
                 .clip(OBRitModalButtonShape)
-                .background(colors.gray100)
+                .background(colorScheme.secondaryButtonContainerColor)
                 .clickable(
                     role = Role.Button,
                     onClick = onClick,
@@ -158,7 +172,7 @@ private fun OBRitModalGrayFilledTextButton(
             text = text,
             style =
                 typography.xl.copy(
-                    color = colors.gray700,
+                    color = colorScheme.secondaryButtonTextColor,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 ),
@@ -199,6 +213,23 @@ private fun OBRitModalPreview() {
 }
 
 @Preview(
+    name = "OBRitModal Light One Button",
+    showBackground = true,
+)
+@Composable
+private fun OBRitModalSingleButtonPreview() {
+    OBRitModalPreviewContainer {
+        OBRitModal(
+            title = "Title Text\n최대 두 줄까지 작성 가능합니다.",
+            description = "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+            primaryButtonText = "CTA",
+            onPrimaryButtonClick = {},
+            showImage = true,
+        )
+    }
+}
+
+@Preview(
     name = "OBRitModal Light No Image",
     showBackground = true,
 )
@@ -218,18 +249,59 @@ private fun OBRitModalWithoutImagePreview() {
 }
 
 @Preview(
-    name = "OBRitModal Light One Button",
+    name = "OBRitModal Dark Small Image",
     showBackground = true,
 )
 @Composable
-private fun OBRitModalSingleButtonPreview() {
+private fun OBRitModalDarkPreview() {
     OBRitModalPreviewContainer {
         OBRitModal(
             title = "Title Text\n최대 두 줄까지 작성 가능합니다.",
             description = "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
             primaryButtonText = "CTA",
             onPrimaryButtonClick = {},
+            appearance = OBRitModalAppearance.Dark,
             showImage = true,
+            secondaryButtonText = "CTA",
+            onSecondaryButtonClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "OBRitModal Dark One Button",
+    showBackground = true,
+)
+@Composable
+private fun OBRitModalDarkSingleButtonPreview() {
+    OBRitModalPreviewContainer {
+        OBRitModal(
+            title = "Title Text\n최대 두 줄까지 작성 가능합니다.",
+            description = "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+            primaryButtonText = "CTA",
+            onPrimaryButtonClick = {},
+            appearance = OBRitModalAppearance.Dark,
+            showImage = true,
+        )
+    }
+}
+
+@Preview(
+    name = "OBRitModal Dark No Image Two Buttons",
+    showBackground = true,
+)
+@Composable
+private fun OBRitModalDarkWithoutImagePreview() {
+    OBRitModalPreviewContainer {
+        OBRitModal(
+            title = "Title Text\n최대 두 줄까지 작성 가능합니다.",
+            description = "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+            primaryButtonText = "CTA",
+            onPrimaryButtonClick = {},
+            appearance = OBRitModalAppearance.Dark,
+            showImage = false,
+            secondaryButtonText = "CTA",
+            onSecondaryButtonClick = {},
         )
     }
 }
@@ -247,6 +319,31 @@ private fun OBRitModalPreviewContainer(content: @Composable () -> Unit) {
     }
 }
 
+private fun obritModalColorScheme(
+    colors: OBRitColor,
+    appearance: OBRitModalAppearance,
+): OBRitModalColorScheme =
+    when (appearance) {
+        OBRitModalAppearance.Light ->
+            OBRitModalColorScheme(
+                containerColor = colors.common00,
+                titleColor = colors.gray900,
+                descriptionColor = colors.gray600,
+                secondaryButtonContainerColor = colors.gray100,
+                secondaryButtonTextColor = colors.gray700,
+                primaryButtonColor = FilledButtonColor.Green,
+            )
+        OBRitModalAppearance.Dark ->
+            OBRitModalColorScheme(
+                containerColor = colors.gray800,
+                titleColor = colors.common00,
+                descriptionColor = colors.gray300,
+                secondaryButtonContainerColor = colors.gray750,
+                secondaryButtonTextColor = colors.gray300,
+                primaryButtonColor = FilledButtonColor.Green,
+            )
+    }
+
 private val OBRitModalWidth = 370.dp
 private val OBRitModalShape = RoundedCornerShape(AtomRadius.ExtraLarge.dp)
 private val OBRitModalHorizontalPadding = 28.dp
@@ -261,3 +358,12 @@ private val OBRitModalSecondaryButtonHorizontalPadding = 20.dp
 private val OBRitModalSecondaryButtonVerticalPadding = 12.dp
 private val OBRitModalImageSize = 68.dp
 private const val OBRitModalTextMaxLines = 2
+
+private data class OBRitModalColorScheme(
+    val containerColor: Color,
+    val titleColor: Color,
+    val descriptionColor: Color,
+    val secondaryButtonContainerColor: Color,
+    val secondaryButtonTextColor: Color,
+    val primaryButtonColor: FilledButtonColor,
+)
