@@ -59,16 +59,12 @@ fun OBRitGnb(
             icon = R.drawable.ic_gnb_home,
             iconSize = OBRitGnbHomeIconSize,
             isSelected = selectedTab == OBRitGnbTab.Home,
-            selectedIconColor = colors.common100,
-            unselectedIconColor = colors.common00,
             onClick = { onTabSelect(OBRitGnbTab.Home) },
         )
         OBRitGnbTabItem(
             icon = R.drawable.ic_gnb_list,
             iconSize = OBRitGnbListIconSize,
             isSelected = selectedTab == OBRitGnbTab.List,
-            selectedIconColor = colors.common100,
-            unselectedIconColor = colors.common00,
             onClick = { onTabSelect(OBRitGnbTab.List) },
         )
     }
@@ -79,10 +75,9 @@ private fun OBRitGnbTabItem(
     @DrawableRes icon: Int,
     iconSize: Dp,
     isSelected: Boolean,
-    selectedIconColor: Color,
-    unselectedIconColor: Color,
     onClick: () -> Unit,
 ) {
+    val colors = LocalOBRitColor.current
     Box(
         modifier =
             Modifier
@@ -96,7 +91,7 @@ private fun OBRitGnbTabItem(
             painter = painterResource(id = icon),
             contentDescription = null,
             modifier = Modifier.size(iconSize),
-            tint = if (isSelected) selectedIconColor else unselectedIconColor,
+            tint = if (isSelected) colors.common100 else colors.common00,
         )
     }
 }
@@ -193,5 +188,4 @@ private val OBRitGnbHomeIconSize = 20.dp
 private val OBRitGnbListIconSize = 24.dp
 private val OBRitGnbShadowBlur = 24.dp
 private val OBRitGnbShadowOffsetY = 16.dp
-private const val OBRIT_GNB_CONTAINER_ALPHA = 0.4f
 private const val OBRIT_GNB_SHADOW_ALPHA = 0.24f

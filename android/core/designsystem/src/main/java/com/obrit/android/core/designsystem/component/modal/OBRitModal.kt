@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.obrit.android.core.designsystem.component.modal
 
 import androidx.compose.foundation.Image
@@ -57,7 +59,6 @@ fun OBRitModal(
     onSecondaryButtonClick: (() -> Unit)? = null,
 ) {
     val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
     val colorScheme = obritModalColorScheme(colors = colors, appearance = appearance)
 
     Column(
@@ -76,69 +77,98 @@ fun OBRitModal(
         if (showImage) {
             OBRitModalSmallImage()
         }
-
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(OBRitModalTextAndActionGap),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(OBRitModalTextGap),
-            ) {
-                Text(
-                    text = title,
-                    modifier = Modifier.fillMaxWidth(),
-                    style =
-                        typography.xl3.copy(
-                            color = colorScheme.titleColor,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                        ),
-                    maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = description,
-                    modifier = Modifier.fillMaxWidth(),
-                    style =
-                        typography.base.copy(
-                            color = colorScheme.descriptionColor,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                        ),
-                    maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(OBRitModalButtonGap),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (secondaryButtonText != null && onSecondaryButtonClick != null) {
-                    OBRitModalGrayFilledTextButton(
-                        text = secondaryButtonText,
-                        onClick = onSecondaryButtonClick,
-                        appearance = appearance,
-                        modifier = Modifier.width(OBRitModalSecondaryButtonWidth),
-                    )
-                }
-                OBRitMiddleFilledTextButton(
-                    text = primaryButtonText,
-                    onClick = onPrimaryButtonClick,
-                    color = colorScheme.primaryButtonColor,
-                    modifier =
-                        if (secondaryButtonText != null && onSecondaryButtonClick != null) {
-                            Modifier.weight(1f)
-                        } else {
-                            Modifier.fillMaxWidth()
-                        },
-                )
-            }
+            OBRitModalTextSection(
+                title = title,
+                description = description,
+                colorScheme = colorScheme,
+            )
+            OBRitModalButtonRow(
+                primaryButtonText = primaryButtonText,
+                onPrimaryButtonClick = onPrimaryButtonClick,
+                colorScheme = colorScheme,
+                secondaryButtonText = secondaryButtonText,
+                onSecondaryButtonClick = onSecondaryButtonClick,
+            )
         }
+    }
+}
+
+@Composable
+private fun OBRitModalTextSection(
+    title: String,
+    description: String,
+    colorScheme: OBRitModalColorScheme,
+) {
+    val typography = LocalOBRitTypography.current
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(OBRitModalTextGap),
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.fillMaxWidth(),
+            style =
+                typography.xl3.copy(
+                    color = colorScheme.titleColor,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                ),
+            maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = description,
+            modifier = Modifier.fillMaxWidth(),
+            style =
+                typography.base.copy(
+                    color = colorScheme.descriptionColor,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                ),
+            maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun OBRitModalButtonRow(
+    primaryButtonText: String,
+    onPrimaryButtonClick: () -> Unit,
+    colorScheme: OBRitModalColorScheme,
+    secondaryButtonText: String?,
+    onSecondaryButtonClick: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(OBRitModalButtonGap),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (secondaryButtonText != null && onSecondaryButtonClick != null) {
+            OBRitModalGrayFilledTextButton(
+                text = secondaryButtonText,
+                onClick = onSecondaryButtonClick,
+                colorScheme = colorScheme,
+                modifier = Modifier.width(OBRitModalSecondaryButtonWidth),
+            )
+        }
+        OBRitMiddleFilledTextButton(
+            text = primaryButtonText,
+            onClick = onPrimaryButtonClick,
+            color = colorScheme.primaryButtonColor,
+            modifier =
+                if (secondaryButtonText != null && onSecondaryButtonClick != null) {
+                    Modifier.weight(1f)
+                } else {
+                    Modifier.fillMaxWidth()
+                },
+        )
     }
 }
 
@@ -146,13 +176,10 @@ fun OBRitModal(
 private fun OBRitModalGrayFilledTextButton(
     text: String,
     onClick: () -> Unit,
-    appearance: OBRitModalAppearance,
+    colorScheme: OBRitModalColorScheme,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
-    val colorScheme = obritModalColorScheme(colors = colors, appearance = appearance)
-
     Box(
         modifier =
             modifier
@@ -185,17 +212,12 @@ private fun OBRitModalSmallImage(modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(id = R.drawable.ic_sample_img),
         contentDescription = null,
-        modifier =
-            modifier
-                .size(OBRitModalImageSize),
+        modifier = modifier.size(OBRitModalImageSize),
         contentScale = ContentScale.Fit,
     )
 }
 
-@Preview(
-    name = "OBRitModal Light Small Image",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Light Small Image", showBackground = true)
 @Composable
 private fun OBRitModalPreview() {
     OBRitModalPreviewContainer {
@@ -211,10 +233,7 @@ private fun OBRitModalPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitModal Light One Button",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Light One Button", showBackground = true)
 @Composable
 private fun OBRitModalSingleButtonPreview() {
     OBRitModalPreviewContainer {
@@ -228,10 +247,7 @@ private fun OBRitModalSingleButtonPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitModal Light No Image",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Light No Image", showBackground = true)
 @Composable
 private fun OBRitModalWithoutImagePreview() {
     OBRitModalPreviewContainer {
@@ -247,10 +263,7 @@ private fun OBRitModalWithoutImagePreview() {
     }
 }
 
-@Preview(
-    name = "OBRitModal Dark Small Image",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Dark Small Image", showBackground = true)
 @Composable
 private fun OBRitModalDarkPreview() {
     OBRitModalPreviewContainer {
@@ -267,10 +280,7 @@ private fun OBRitModalDarkPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitModal Dark One Button",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Dark One Button", showBackground = true)
 @Composable
 private fun OBRitModalDarkSingleButtonPreview() {
     OBRitModalPreviewContainer {
@@ -285,10 +295,7 @@ private fun OBRitModalDarkSingleButtonPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitModal Dark No Image Two Buttons",
-    showBackground = true,
-)
+@Preview(name = "OBRitModal Dark No Image Two Buttons", showBackground = true)
 @Composable
 private fun OBRitModalDarkWithoutImagePreview() {
     OBRitModalPreviewContainer {

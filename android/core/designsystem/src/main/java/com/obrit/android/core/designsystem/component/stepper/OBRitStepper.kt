@@ -31,11 +31,6 @@ import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
-enum class OBRitStepperState {
-    Default,
-    Min,
-}
-
 @Composable
 fun OBRitStepper(
     onValueChange: (Int) -> Unit,
@@ -43,14 +38,7 @@ fun OBRitStepper(
     value: Int = OBRIT_STEPPER_MIN_VALUE,
 ) {
     val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-    val state =
-        if (value > OBRIT_STEPPER_MIN_VALUE) {
-            OBRitStepperState.Default
-        } else {
-            OBRitStepperState.Min
-        }
-    val isDecrementEnabled = state == OBRitStepperState.Default
+    val isDecrementEnabled = value > OBRIT_STEPPER_MIN_VALUE
     val isIncrementEnabled = value < OBRIT_STEPPER_MAX_VALUE
 
     Row(
@@ -72,26 +60,7 @@ fun OBRitStepper(
                 tint = contentColor,
             )
         }
-        Box(
-            modifier =
-                Modifier
-                    .clip(OBRitStepperShape)
-                    .background(colors.gray600)
-                    .defaultMinSize(
-                        minWidth = OBRitStepperValueMinWidth,
-                        minHeight = OBRitStepperValueHeight,
-                    ).padding(horizontal = OBRitStepperValueHorizontalPadding),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = value.toString(),
-                style =
-                    typography.base.copy(
-                        color = colors.common00,
-                        fontWeight = FontWeight.Medium,
-                    ),
-            )
-        }
+        OBRitStepperValueDisplay(value = value)
         OBRitStepperAction(
             enabled = isIncrementEnabled,
             onClick = { onValueChange((value + 1).coerceAtMost(OBRIT_STEPPER_MAX_VALUE)) },
@@ -102,6 +71,33 @@ fun OBRitStepper(
                 tint = contentColor,
             )
         }
+    }
+}
+
+@Composable
+private fun OBRitStepperValueDisplay(value: Int) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    Box(
+        modifier =
+            Modifier
+                .clip(OBRitStepperShape)
+                .background(colors.gray600)
+                .defaultMinSize(
+                    minWidth = OBRitStepperValueMinWidth,
+                    minHeight = OBRitStepperValueHeight,
+                )
+                .padding(horizontal = OBRitStepperValueHorizontalPadding),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = value.toString(),
+            style =
+                typography.base.copy(
+                    color = colors.common00,
+                    fontWeight = FontWeight.Medium,
+                ),
+        )
     }
 }
 
@@ -126,7 +122,8 @@ private fun OBRitStepperAction(
                 .defaultMinSize(
                     minWidth = OBRitStepperActionWidth,
                     minHeight = OBRitStepperContainerHeight,
-                ).clickable(
+                )
+                .clickable(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,

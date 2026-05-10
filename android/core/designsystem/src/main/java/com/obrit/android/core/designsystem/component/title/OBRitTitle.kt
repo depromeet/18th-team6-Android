@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.obrit.android.core.designsystem.component.title
 
 import androidx.compose.foundation.background
@@ -47,71 +49,103 @@ fun OBRitTitle(
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+
+    when (type) {
+        OBRitTitleType.Default -> OBRitTitleDefaultContent(
+            title = title,
+            description = description,
+            size = size,
+            modifier = modifier,
+        )
+        OBRitTitleType.WithTag -> OBRitTitleWithTagContent(
+            title = title,
+            description = description,
+            tagText = tagText,
+            size = size,
+            modifier = modifier,
+        )
+        OBRitTitleType.TextOnly -> Text(
+            text = title,
+            modifier = modifier,
+            style = obritTitleTextStyle(typography = typography, size = size).copy(color = colors.common00),
+            maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun OBRitTitleDefaultContent(
+    title: String,
+    description: String?,
+    size: OBRitTitleSize,
+    modifier: Modifier,
+) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
     val titleStyle = obritTitleTextStyle(typography = typography, size = size)
     val descriptionStyle = obritTitleDescriptionStyle(typography = typography, size = size)
 
-    when (type) {
-        OBRitTitleType.Default -> {
-            Column(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(obritTitleContentGap(size = size)),
-            ) {
-                Text(
-                    text = title,
-                    style = titleStyle.copy(color = colors.common00),
-                    maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (!description.isNullOrBlank()) {
-                    Text(
-                        text = description,
-                        style = descriptionStyle.copy(color = colors.gray300),
-                        maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-
-        OBRitTitleType.WithTag -> {
-            Column(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(obritTitleContentGap(size = size)),
-            ) {
-                Text(
-                    text = title,
-                    style = titleStyle.copy(color = colors.common00),
-                    maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(obritTitleTagGap(size = size)),
-                ) {
-                    OBRitTitleTag(
-                        text = tagText.orEmpty(),
-                        size = size,
-                    )
-                    if (!description.isNullOrBlank()) {
-                        Text(
-                            text = description,
-                            style = descriptionStyle.copy(color = colors.gray300),
-                            maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-        }
-
-        OBRitTitleType.TextOnly -> {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(obritTitleContentGap(size = size)),
+    ) {
+        Text(
+            text = title,
+            style = titleStyle.copy(color = colors.common00),
+            maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (!description.isNullOrBlank()) {
             Text(
-                text = title,
-                modifier = modifier,
-                style = titleStyle.copy(color = colors.common00),
-                maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
+                text = description,
+                style = descriptionStyle.copy(color = colors.gray300),
+                maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+@Composable
+private fun OBRitTitleWithTagContent(
+    title: String,
+    description: String?,
+    tagText: String?,
+    size: OBRitTitleSize,
+    modifier: Modifier,
+) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    val titleStyle = obritTitleTextStyle(typography = typography, size = size)
+    val descriptionStyle = obritTitleDescriptionStyle(typography = typography, size = size)
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(obritTitleContentGap(size = size)),
+    ) {
+        Text(
+            text = title,
+            style = titleStyle.copy(color = colors.common00),
+            maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(obritTitleTagGap(size = size)),
+        ) {
+            OBRitTitleTag(
+                text = tagText.orEmpty(),
+                size = size,
+            )
+            if (!description.isNullOrBlank()) {
+                Text(
+                    text = description,
+                    style = descriptionStyle.copy(color = colors.gray300),
+                    maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -169,10 +203,21 @@ private fun obritTitleDescriptionStyle(
     OBRitTitleSize.Small -> typography.xs
 }.copy(fontWeight = FontWeight.Medium)
 
-@Preview(
-    name = "OBRitTitle Large Default",
-    showBackground = true,
-)
+private fun obritTitleContentGap(size: OBRitTitleSize) =
+    when (size) {
+        OBRitTitleSize.Large -> AtomSpacing.S3.dp
+        OBRitTitleSize.Medium -> AtomSpacing.S3.dp
+        OBRitTitleSize.Small -> AtomSpacing.S1.dp
+    }
+
+private fun obritTitleTagGap(size: OBRitTitleSize) =
+    when (size) {
+        OBRitTitleSize.Large -> AtomSpacing.S2.dp
+        OBRitTitleSize.Medium -> AtomSpacing.S1_5.dp
+        OBRitTitleSize.Small -> AtomSpacing.S1.dp
+    }
+
+@Preview(name = "OBRitTitle Large Default", showBackground = true)
 @Composable
 private fun OBRitTitleLargeDefaultPreview() {
     OBRitTitlePreviewContainer {
@@ -185,10 +230,7 @@ private fun OBRitTitleLargeDefaultPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Medium Default",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Medium Default", showBackground = true)
 @Composable
 private fun OBRitTitleMediumDefaultPreview() {
     OBRitTitlePreviewContainer {
@@ -201,10 +243,7 @@ private fun OBRitTitleMediumDefaultPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Small Default",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Small Default", showBackground = true)
 @Composable
 private fun OBRitTitleSmallDefaultPreview() {
     OBRitTitlePreviewContainer {
@@ -217,10 +256,7 @@ private fun OBRitTitleSmallDefaultPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Large WithTag",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Large WithTag", showBackground = true)
 @Composable
 private fun OBRitTitleLargeWithTagPreview() {
     OBRitTitlePreviewContainer {
@@ -234,10 +270,7 @@ private fun OBRitTitleLargeWithTagPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Medium WithTag",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Medium WithTag", showBackground = true)
 @Composable
 private fun OBRitTitleMediumWithTagPreview() {
     OBRitTitlePreviewContainer {
@@ -251,10 +284,7 @@ private fun OBRitTitleMediumWithTagPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Small WithTag",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Small WithTag", showBackground = true)
 @Composable
 private fun OBRitTitleSmallWithTagPreview() {
     OBRitTitlePreviewContainer {
@@ -268,10 +298,7 @@ private fun OBRitTitleSmallWithTagPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Large TextOnly",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Large TextOnly", showBackground = true)
 @Composable
 private fun OBRitTitleLargeTextOnlyPreview() {
     OBRitTitlePreviewContainer {
@@ -283,10 +310,7 @@ private fun OBRitTitleLargeTextOnlyPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Medium TextOnly",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Medium TextOnly", showBackground = true)
 @Composable
 private fun OBRitTitleMediumTextOnlyPreview() {
     OBRitTitlePreviewContainer {
@@ -298,10 +322,7 @@ private fun OBRitTitleMediumTextOnlyPreview() {
     }
 }
 
-@Preview(
-    name = "OBRitTitle Small TextOnly",
-    showBackground = true,
-)
+@Preview(name = "OBRitTitle Small TextOnly", showBackground = true)
 @Composable
 private fun OBRitTitleSmallTextOnlyPreview() {
     OBRitTitlePreviewContainer {
@@ -327,20 +348,6 @@ private fun OBRitTitlePreviewContainer(content: @Composable () -> Unit) {
         }
     }
 }
-
-private fun obritTitleContentGap(size: OBRitTitleSize) =
-    when (size) {
-        OBRitTitleSize.Large -> AtomSpacing.S3.dp
-        OBRitTitleSize.Medium -> AtomSpacing.S3.dp
-        OBRitTitleSize.Small -> AtomSpacing.S1.dp
-    }
-
-private fun obritTitleTagGap(size: OBRitTitleSize) =
-    when (size) {
-        OBRitTitleSize.Large -> AtomSpacing.S2.dp
-        OBRitTitleSize.Medium -> AtomSpacing.S1_5.dp
-        OBRitTitleSize.Small -> AtomSpacing.S1.dp
-    }
 
 private fun obritTitleTagMinHeight(size: OBRitTitleSize) =
     when (size) {
