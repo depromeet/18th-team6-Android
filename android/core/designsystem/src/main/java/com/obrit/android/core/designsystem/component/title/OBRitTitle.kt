@@ -59,14 +59,14 @@ fun OBRitTitle(
                 Text(
                     text = title,
                     style = titleStyle.copy(color = colors.common00),
-                    maxLines = OBRitTitleTitleMaxLines,
+                    maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!description.isNullOrBlank()) {
                     Text(
                         text = description,
                         style = descriptionStyle.copy(color = colors.gray300),
-                        maxLines = OBRitTitleDescriptionMaxLines,
+                        maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -81,7 +81,7 @@ fun OBRitTitle(
                 Text(
                     text = title,
                     style = titleStyle.copy(color = colors.common00),
-                    maxLines = OBRitTitleTitleMaxLines,
+                    maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Row(
@@ -96,7 +96,7 @@ fun OBRitTitle(
                         Text(
                             text = description,
                             style = descriptionStyle.copy(color = colors.gray300),
-                            maxLines = OBRitTitleDescriptionMaxLines,
+                            maxLines = OBRIT_TITLE_DESCRIPTION_MAX_LINES,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
@@ -109,7 +109,7 @@ fun OBRitTitle(
                 text = title,
                 modifier = modifier,
                 style = titleStyle.copy(color = colors.common00),
-                maxLines = OBRitTitleTitleMaxLines,
+                maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -154,22 +154,20 @@ private fun OBRitTitleTag(
 private fun obritTitleTextStyle(
     typography: com.obrit.android.core.designsystem.theme.OBRitTypography,
     size: OBRitTitleSize,
-) =
-    when (size) {
-        OBRitTitleSize.Large -> typography.xl6
-        OBRitTitleSize.Medium -> typography.xl4
-        OBRitTitleSize.Small -> typography.xl2
-    }.copy(fontWeight = FontWeight.Bold)
+) = when (size) {
+    OBRitTitleSize.Large -> typography.xl6
+    OBRitTitleSize.Medium -> typography.xl4
+    OBRitTitleSize.Small -> typography.xl2
+}.copy(fontWeight = FontWeight.Bold)
 
 private fun obritTitleDescriptionStyle(
     typography: com.obrit.android.core.designsystem.theme.OBRitTypography,
     size: OBRitTitleSize,
-) =
-    when (size) {
-        OBRitTitleSize.Large -> typography.base
-        OBRitTitleSize.Medium -> typography.s
-        OBRitTitleSize.Small -> typography.xs
-    }.copy(fontWeight = FontWeight.Medium)
+) = when (size) {
+    OBRitTitleSize.Large -> typography.base
+    OBRitTitleSize.Medium -> typography.s
+    OBRitTitleSize.Small -> typography.xs
+}.copy(fontWeight = FontWeight.Medium)
 
 @Preview(
     name = "OBRitTitle Large Default",
@@ -375,5 +373,5 @@ private val OBRitTitleTagSmallHorizontalPadding = AtomSpacing.S1.dp
 private val OBRitTitleTagLargeVerticalPadding = AtomSpacing.S1.dp
 private val OBRitTitleTagMediumVerticalPadding = AtomSpacing.S0_5.dp
 private val OBRitTitleTagSmallVerticalPadding = AtomSpacing.Px.dp
-private const val OBRitTitleTitleMaxLines = 2
-private const val OBRitTitleDescriptionMaxLines = 2
+private const val OBRIT_TITLE_TITLE_MAX_LINES = 2
+private const val OBRIT_TITLE_DESCRIPTION_MAX_LINES = 2

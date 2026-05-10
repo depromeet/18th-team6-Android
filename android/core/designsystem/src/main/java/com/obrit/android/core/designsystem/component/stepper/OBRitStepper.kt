@@ -38,20 +38,20 @@ enum class OBRitStepperState {
 
 @Composable
 fun OBRitStepper(
-    value: Int = OBRitStepperMinValue,
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    value: Int = OBRIT_STEPPER_MIN_VALUE,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
     val state =
-        if (value > OBRitStepperMinValue) {
+        if (value > OBRIT_STEPPER_MIN_VALUE) {
             OBRitStepperState.Default
         } else {
             OBRitStepperState.Min
         }
     val isDecrementEnabled = state == OBRitStepperState.Default
-    val isIncrementEnabled = value < OBRitStepperMaxValue
+    val isIncrementEnabled = value < OBRIT_STEPPER_MAX_VALUE
 
     Row(
         modifier =
@@ -64,7 +64,7 @@ fun OBRitStepper(
     ) {
         OBRitStepperAction(
             enabled = isDecrementEnabled,
-            onClick = { onValueChange((value - 1).coerceAtLeast(OBRitStepperMinValue)) },
+            onClick = { onValueChange((value - 1).coerceAtLeast(OBRIT_STEPPER_MIN_VALUE)) },
         ) { contentColor ->
             Icon(
                 painter = painterResource(id = R.drawable.ic_stepper_minus),
@@ -80,8 +80,7 @@ fun OBRitStepper(
                     .defaultMinSize(
                         minWidth = OBRitStepperValueMinWidth,
                         minHeight = OBRitStepperValueHeight,
-                    )
-                    .padding(horizontal = OBRitStepperValueHorizontalPadding),
+                    ).padding(horizontal = OBRitStepperValueHorizontalPadding),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -95,7 +94,7 @@ fun OBRitStepper(
         }
         OBRitStepperAction(
             enabled = isIncrementEnabled,
-            onClick = { onValueChange((value + 1).coerceAtMost(OBRitStepperMaxValue)) },
+            onClick = { onValueChange((value + 1).coerceAtMost(OBRIT_STEPPER_MAX_VALUE)) },
         ) { contentColor ->
             Icon(
                 painter = painterResource(id = R.drawable.ic_stepper_plus),
@@ -127,8 +126,7 @@ private fun OBRitStepperAction(
                 .defaultMinSize(
                     minWidth = OBRitStepperActionWidth,
                     minHeight = OBRitStepperContainerHeight,
-                )
-                .clickable(
+                ).clickable(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,
@@ -162,9 +160,7 @@ private fun OBRitStepperMinPreview() {
 }
 
 @Composable
-private fun OBRitStepperPreviewContainer(
-    initialValue: Int,
-) {
+private fun OBRitStepperPreviewContainer(initialValue: Int) {
     var value by remember { mutableIntStateOf(initialValue) }
 
     OBRitTheme(dynamicColor = false) {
@@ -174,7 +170,7 @@ private fun OBRitStepperPreviewContainer(
             OBRitStepper(
                 value = value,
                 onValueChange = { nextValue ->
-                    value = nextValue.coerceIn(OBRitStepperMinValue, OBRitStepperMaxValue)
+                    value = nextValue.coerceIn(OBRIT_STEPPER_MIN_VALUE, OBRIT_STEPPER_MAX_VALUE)
                 },
             )
         }
@@ -188,5 +184,5 @@ private val OBRitStepperValueMinWidth = AtomSpacing.S9.dp
 private val OBRitStepperValueHeight = AtomSpacing.S9.dp
 private val OBRitStepperValueHorizontalPadding = AtomSpacing.S1.dp
 private val OBRitStepperSegmentGap = AtomSpacing.S1_5.dp
-private const val OBRitStepperMinValue = 0
-private const val OBRitStepperMaxValue = 99
+private const val OBRIT_STEPPER_MIN_VALUE = 0
+private const val OBRIT_STEPPER_MAX_VALUE = 99

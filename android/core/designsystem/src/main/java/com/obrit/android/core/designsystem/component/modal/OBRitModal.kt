@@ -1,5 +1,6 @@
 package com.obrit.android.core.designsystem.component.modal
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.Image
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,8 +32,8 @@ import com.obrit.android.core.designsystem.component.button.FilledButtonColor
 import com.obrit.android.core.designsystem.component.button.OBRitMiddleFilledTextButton
 import com.obrit.android.core.designsystem.component.dim.OBRitDim
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
+import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -96,7 +96,7 @@ fun OBRitModal(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         ),
-                    maxLines = OBRitModalTextMaxLines,
+                    maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
@@ -108,7 +108,7 @@ fun OBRitModal(
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
                         ),
-                    maxLines = OBRitModalTextMaxLines,
+                    maxLines = OBRIT_MODAL_TEXT_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -161,8 +161,7 @@ private fun OBRitModalGrayFilledTextButton(
                 .clickable(
                     role = Role.Button,
                     onClick = onClick,
-                )
-                .padding(
+                ).padding(
                     horizontal = OBRitModalSecondaryButtonHorizontalPadding,
                     vertical = OBRitModalSecondaryButtonVerticalPadding,
                 ),
@@ -357,7 +356,7 @@ private val OBRitModalSecondaryButtonWidth = 82.dp
 private val OBRitModalSecondaryButtonHorizontalPadding = 20.dp
 private val OBRitModalSecondaryButtonVerticalPadding = 12.dp
 private val OBRitModalImageSize = 68.dp
-private const val OBRitModalTextMaxLines = 2
+private const val OBRIT_MODAL_TEXT_MAX_LINES = 2
 
 private data class OBRitModalColorScheme(
     val containerColor: Color,

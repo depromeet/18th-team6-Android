@@ -53,7 +53,7 @@ fun OBRitBottomSheet(
                         .width(OBRitBottomSheetHandleWidth)
                         .height(OBRitBottomSheetHandleHeight)
                         .clip(OBRitBottomSheetHandleShape)
-                        .background(colors.gray250.copy(alpha = OBRitBottomSheetHandleAlpha)),
+                        .background(colors.gray250.copy(alpha = OBRIT_BOTTOM_SHEET_HANDLE_ALPHA)),
             )
         }
 
@@ -107,4 +107,4 @@ private val OBRitBottomSheetShape =
     )
 private val OBRitBottomSheetHandleShape = RoundedCornerShape(AtomSpacing.S0_5.dp)
 private val OBRitBottomSheetScrimColor = Color(AtomColors.CommonOpacity.CommonBlack.S00_60)
-private const val OBRitBottomSheetHandleAlpha = 0.4f
+private const val OBRIT_BOTTOM_SHEET_HANDLE_ALPHA = 0.4f

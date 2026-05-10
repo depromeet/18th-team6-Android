@@ -39,20 +39,21 @@ enum class OBRitGnbTab {
 @Composable
 fun OBRitGnb(
     selectedTab: OBRitGnbTab,
-    onTabSelected: (OBRitGnbTab) -> Unit,
+    onTabSelect: (OBRitGnbTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
 
     Row(
-        modifier = modifier
-            .obritGnbShadow()
-            .clip(OBRitGnbContainerShape)
-            .background(colors.gray250)
-            .padding(
-                horizontal = OBRitGnbHorizontalPadding,
-                vertical = OBRitGnbVerticalPadding,
-            ),
+        modifier =
+            modifier
+                .obritGnbShadow()
+                .clip(OBRitGnbContainerShape)
+                .background(colors.gray250)
+                .padding(
+                    horizontal = OBRitGnbHorizontalPadding,
+                    vertical = OBRitGnbVerticalPadding,
+                ),
     ) {
         OBRitGnbTabItem(
             icon = R.drawable.ic_gnb_home,
@@ -60,7 +61,7 @@ fun OBRitGnb(
             isSelected = selectedTab == OBRitGnbTab.Home,
             selectedIconColor = colors.common100,
             unselectedIconColor = colors.common00,
-            onClick = { onTabSelected(OBRitGnbTab.Home) },
+            onClick = { onTabSelect(OBRitGnbTab.Home) },
         )
         OBRitGnbTabItem(
             icon = R.drawable.ic_gnb_list,
@@ -68,7 +69,7 @@ fun OBRitGnb(
             isSelected = selectedTab == OBRitGnbTab.List,
             selectedIconColor = colors.common100,
             unselectedIconColor = colors.common00,
-            onClick = { onTabSelected(OBRitGnbTab.List) },
+            onClick = { onTabSelect(OBRitGnbTab.List) },
         )
     }
 }
@@ -83,11 +84,12 @@ private fun OBRitGnbTabItem(
     onClick: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .size(OBRitGnbTabWidth, OBRitGnbTabHeight)
-            .clip(OBRitGnbTabShape)
-            .background(if (isSelected) Color.White else Color.Transparent)
-            .clickable(onClick = onClick),
+        modifier =
+            Modifier
+                .size(OBRitGnbTabWidth, OBRitGnbTabHeight)
+                .clip(OBRitGnbTabShape)
+                .background(if (isSelected) Color.White else Color.Transparent)
+                .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -99,31 +101,33 @@ private fun OBRitGnbTabItem(
     }
 }
 
-private fun Modifier.obritGnbShadow(): Modifier = drawBehind {
-    drawIntoCanvas { canvas ->
-        val paint = Paint().apply {
-            asFrameworkPaint().apply {
-                isAntiAlias = true
-                color = android.graphics.Color.TRANSPARENT
-                setShadowLayer(
-                    OBRitGnbShadowBlur.toPx(),
-                    0f,
-                    OBRitGnbShadowOffsetY.toPx(),
-                    Color.Black.copy(alpha = OBRitGnbShadowAlpha).toArgb(),
-                )
-            }
+private fun Modifier.obritGnbShadow(): Modifier =
+    drawBehind {
+        drawIntoCanvas { canvas ->
+            val paint =
+                Paint().apply {
+                    asFrameworkPaint().apply {
+                        isAntiAlias = true
+                        color = android.graphics.Color.TRANSPARENT
+                        setShadowLayer(
+                            OBRitGnbShadowBlur.toPx(),
+                            0f,
+                            OBRitGnbShadowOffsetY.toPx(),
+                            Color.Black.copy(alpha = OBRIT_GNB_SHADOW_ALPHA).toArgb(),
+                        )
+                    }
+                }
+            canvas.drawRoundRect(
+                left = 0f,
+                top = 0f,
+                right = size.width,
+                bottom = size.height,
+                radiusX = OBRitGnbContainerRadius.toPx(),
+                radiusY = OBRitGnbContainerRadius.toPx(),
+                paint = paint,
+            )
         }
-        canvas.drawRoundRect(
-            left = 0f,
-            top = 0f,
-            right = size.width,
-            bottom = size.height,
-            radiusX = OBRitGnbContainerRadius.toPx(),
-            radiusY = OBRitGnbContainerRadius.toPx(),
-            paint = paint,
-        )
     }
-}
 
 @Preview(
     name = "OBRitGnb Home Selected",
@@ -136,7 +140,7 @@ private fun OBRitGnbHomeSelectedPreview() {
         Box(modifier = Modifier.padding(AtomSpacing.S10.dp)) {
             OBRitGnb(
                 selectedTab = OBRitGnbTab.Home,
-                onTabSelected = {},
+                onTabSelect = {},
             )
         }
     }
@@ -153,7 +157,7 @@ private fun OBRitGnbListSelectedPreview() {
         Box(modifier = Modifier.padding(AtomSpacing.S10.dp)) {
             OBRitGnb(
                 selectedTab = OBRitGnbTab.List,
-                onTabSelected = {},
+                onTabSelect = {},
             )
         }
     }
@@ -171,7 +175,7 @@ private fun OBRitGnbInteractivePreview() {
         Box(modifier = Modifier.padding(AtomSpacing.S10.dp)) {
             OBRitGnb(
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
+                onTabSelect = { selectedTab = it },
             )
         }
     }
@@ -189,5 +193,5 @@ private val OBRitGnbHomeIconSize = 20.dp
 private val OBRitGnbListIconSize = 24.dp
 private val OBRitGnbShadowBlur = 24.dp
 private val OBRitGnbShadowOffsetY = 16.dp
-private const val OBRitGnbContainerAlpha = 0.4f
-private const val OBRitGnbShadowAlpha = 0.24f
+private const val OBRIT_GNB_CONTAINER_ALPHA = 0.4f
+private const val OBRIT_GNB_SHADOW_ALPHA = 0.24f
