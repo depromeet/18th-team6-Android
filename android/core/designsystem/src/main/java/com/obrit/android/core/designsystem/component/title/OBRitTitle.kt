@@ -51,26 +51,29 @@ fun OBRitTitle(
     val typography = LocalOBRitTypography.current
 
     when (type) {
-        OBRitTitleType.Default -> OBRitTitleDefaultContent(
-            title = title,
-            description = description,
-            size = size,
-            modifier = modifier,
-        )
-        OBRitTitleType.WithTag -> OBRitTitleWithTagContent(
-            title = title,
-            description = description,
-            tagText = tagText,
-            size = size,
-            modifier = modifier,
-        )
-        OBRitTitleType.TextOnly -> Text(
-            text = title,
-            modifier = modifier,
-            style = obritTitleTextStyle(typography = typography, size = size).copy(color = colors.common00),
-            maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
-            overflow = TextOverflow.Ellipsis,
-        )
+        OBRitTitleType.Default ->
+            OBRitTitleDefaultContent(
+                title = title,
+                description = description,
+                size = size,
+                modifier = modifier,
+            )
+        OBRitTitleType.WithTag ->
+            OBRitTitleWithTagContent(
+                title = title,
+                description = description,
+                tagText = tagText,
+                size = size,
+                modifier = modifier,
+            )
+        OBRitTitleType.TextOnly ->
+            Text(
+                text = title,
+                modifier = modifier,
+                style = obritTitleTextStyle(typography = typography, size = size).copy(color = colors.common00),
+                maxLines = OBRIT_TITLE_TITLE_MAX_LINES,
+                overflow = TextOverflow.Ellipsis,
+            )
     }
 }
 
@@ -79,7 +82,7 @@ private fun OBRitTitleDefaultContent(
     title: String,
     description: String?,
     size: OBRitTitleSize,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
@@ -113,7 +116,7 @@ private fun OBRitTitleWithTagContent(
     description: String?,
     tagText: String?,
     size: OBRitTitleSize,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current

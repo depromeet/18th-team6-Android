@@ -86,8 +86,7 @@ private fun OBRitStepperValueDisplay(value: Int) {
                 .defaultMinSize(
                     minWidth = OBRitStepperValueMinWidth,
                     minHeight = OBRitStepperValueHeight,
-                )
-                .padding(horizontal = OBRitStepperValueHorizontalPadding),
+                ).padding(horizontal = OBRitStepperValueHorizontalPadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -122,8 +121,7 @@ private fun OBRitStepperAction(
                 .defaultMinSize(
                     minWidth = OBRitStepperActionWidth,
                     minHeight = OBRitStepperContainerHeight,
-                )
-                .clickable(
+                ).clickable(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,
