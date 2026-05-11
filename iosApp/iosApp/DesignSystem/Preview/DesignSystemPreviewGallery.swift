@@ -121,11 +121,20 @@ struct DesignSystemPreviewGallery: View {
                 }
 
                 previewSection("Tabs") {
-                    HStack(spacing: OBRitSpacing.s2) {
-                        OBRitTab(text: "Text", selected: selectedTabIndex == 0, number: 12) { selectedTabIndex = 0 }
-                        OBRitTab(text: "Text", selected: selectedTabIndex == 1, number: 12) { selectedTabIndex = 1 }
-                        OBRitTab(text: "Text", selected: selectedTabIndex == 2) { selectedTabIndex = 2 }
-                    }
+                    OBRitTabs(
+                        items: [
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}"),
+                            OBRitTabItem(text: "{Text}")
+                        ],
+                        selectedIndex: selectedTabIndex,
+                        onSelect: { selectedTabIndex = $0 }
+                    )
                 }
 
                 previewSection("Slider") {
