@@ -1,4 +1,74 @@
 import SwiftUI
+import Shared
+
+public struct OBRitNumber: View {
+    private let text: String
+    private let selected: Bool
+
+    public init(
+        text: String,
+        selected: Bool = false
+    ) {
+        self.text = text
+        self.selected = selected
+    }
+
+    public var body: some View {
+        Text(text)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: contentColor)
+            .frame(width: OBRitSpacing.s7, height: OBRitSpacing.s7)
+            .background(containerColor)
+            .clipShape(Circle())
+    }
+
+    private var containerColor: Color {
+        selected ? OBRitColors.common00 : OBRitColors.gray750
+    }
+
+    private var contentColor: Color {
+        selected ? OBRitColors.common100 : OBRitColors.common00
+    }
+}
+
+public struct OBRitIndicatorDot: View {
+    private let active: Bool
+
+    public init(active: Bool = false) {
+        self.active = active
+    }
+
+    public var body: some View {
+        Circle()
+            .fill(active ? OBRitColors.green300 : OBRitColors.gray700)
+            .frame(width: OBRitSpacing.s2, height: OBRitSpacing.s2)
+    }
+}
+
+public struct OBRitPageIndicator: View {
+    private let count: Int
+    private let selectedIndex: Int
+
+    public init(
+        count: Int,
+        selectedIndex: Int
+    ) {
+        self.count = max(0, count)
+        self.selectedIndex = selectedIndex
+    }
+
+    public var body: some View {
+        HStack(spacing: OBRitSpacing.s2_5) {
+            ForEach(0..<count, id: \.self) { index in
+                OBRitIndicatorDot(active: index == selectedIndex)
+            }
+        }
+        .padding(.horizontal, OBRitSpacing.s5)
+        .padding(.vertical, OBRitSpacing.s3)
+        .frame(maxWidth: .infinity)
+    }
+}
 
 public struct OBRitCheckBox: View {
     private let checked: Bool
@@ -20,13 +90,17 @@ public struct OBRitCheckBox: View {
             onCheckedChange?(!checked)
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 3.2)
-                    .fill(checked ? fillColor : Color.clear)
-                RoundedRectangle(cornerRadius: 3.2)
-                    .stroke(borderColor, lineWidth: checked ? 0 : 1.2)
-                if checked {
-                    OBRitIcon(kind: .check, color: checkColor)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(checked ? fillColor : Color.clear)
+                    if checked {
+                        OBRitIcon(kind: .check, color: checkColor)
+                    } else {
+                        RoundedRectangle(cornerRadius: 3)
+                            .stroke(borderColor, lineWidth: 1.2)
+                    }
                 }
+                .frame(width: 18, height: 18)
             }
             .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
             .contentShape(Rectangle())
@@ -38,15 +112,15 @@ public struct OBRitCheckBox: View {
     }
 
     private var fillColor: Color {
-        enabled ? OBRitColors.green300 : OBRitColors.gray600
+        enabled ? OBRitColors.green300 : OBRitColors.green800
     }
 
     private var borderColor: Color {
-        enabled ? OBRitColors.gray300 : OBRitColors.gray600
+        enabled ? OBRitColors.gray400 : OBRitColors.gray700
     }
 
     private var checkColor: Color {
-        enabled ? OBRitColors.gray900 : OBRitColors.gray250
+        OBRitColors.gray900
     }
 }
 
@@ -72,10 +146,11 @@ public struct OBRitRadioButton: View {
             ZStack {
                 Circle()
                     .stroke(ringColor, lineWidth: 1.5)
+                    .frame(width: 21, height: 21)
                 if selected {
                     Circle()
                         .fill(ringColor)
-                        .padding(6)
+                        .frame(width: OBRitSpacing.s3, height: OBRitSpacing.s3)
                 }
             }
             .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
@@ -89,8 +164,8 @@ public struct OBRitRadioButton: View {
 
     private var ringColor: Color {
         if selected {
-            return enabled ? OBRitColors.green300 : OBRitColors.gray600
+            return enabled ? OBRitColors.green300 : OBRitColors.green800
         }
-        return enabled ? OBRitColors.gray300 : OBRitColors.gray600
+        return enabled ? OBRitColors.gray400 : OBRitColors.gray700
     }
 }

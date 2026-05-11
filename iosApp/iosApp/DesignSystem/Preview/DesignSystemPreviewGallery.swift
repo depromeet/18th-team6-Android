@@ -18,9 +18,13 @@ struct DesignSystemPreviewGallery: View {
                 previewSection("TopBar") {
                     VStack(spacing: OBRitSpacing.s3) {
                         OBRitHomeTopBar(onSearchClick: {}, onNotificationClick: {}, onProfileClick: {})
+                        OBRitHomeTopBar(backgroundColor: false, onSearchClick: {}, onNotificationClick: {}, onProfileClick: {})
                         OBRitDepthTopBar(title: "PageTitle", onBackClick: {}, onMoreClick: {})
+                        OBRitDepthTopBar(title: "PageTitle", backgroundColor: false, onBackClick: {}, onMoreClick: {})
                         OBRitCloseTopBar(title: "PageTitle", onCloseClick: {}, onMoreClick: {})
+                        OBRitCloseTopBar(title: "PageTitle", showPageTitle: false, showRightButton: false, onCloseClick: {}, onMoreClick: {})
                         OBRitSearchTopBar(query: $searchQuery, onBackClick: {})
+                        OBRitSearchTopBar(query: $searchQuery, backgroundColor: false, onBackClick: {})
                     }
                 }
 
@@ -56,6 +60,19 @@ struct DesignSystemPreviewGallery: View {
                         OBRitRadioButton(selected: false)
                         OBRitRadioButton(selected: true, enabled: false)
                         OBRitRadioButton(selected: false, enabled: false)
+                    }
+                }
+
+                previewSection("Indicators") {
+                    VStack(alignment: .leading, spacing: OBRitSpacing.s4) {
+                        HStack(spacing: OBRitSpacing.s4) {
+                            OBRitNumber(text: "N")
+                            OBRitNumber(text: "N", selected: true)
+                            OBRitIndicatorDot(active: true)
+                            OBRitIndicatorDot()
+                        }
+                        OBRitPageIndicator(count: 18, selectedIndex: 0)
+                            .frame(width: 412)
                     }
                 }
 
@@ -116,6 +133,19 @@ struct DesignSystemPreviewGallery: View {
                         .frame(maxWidth: .infinity)
                 }
 
+                previewSection("Stepper") {
+                    VStack(alignment: .leading, spacing: OBRitSpacing.s8) {
+                        HStack(spacing: OBRitSpacing.s10) {
+                            OBRitStepper(valueText: "N")
+                            OBRitStepper(value: 0)
+                        }
+                        HStack(spacing: OBRitSpacing.s10) {
+                            OBRitStepper(valueText: "N", size: .large)
+                            OBRitStepper(valueText: "N", size: .large, isMinimum: true)
+                        }
+                    }
+                }
+
                 previewSection("Cards") {
                     VStack(spacing: OBRitSpacing.s3) {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -131,12 +161,84 @@ struct DesignSystemPreviewGallery: View {
                     }
                 }
 
+                previewSection("Modal") {
+                    VStack(spacing: OBRitSpacing.s5) {
+                        HStack(spacing: OBRitSpacing.s5) {
+                            OBRitModal(
+                                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                                mode: .light,
+                                buttonCount: .two,
+                                imageSize: .small,
+                                onPrimaryClick: {}
+                            )
+                            OBRitModal(
+                                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                                mode: .dark,
+                                buttonCount: .two,
+                                imageSize: .small,
+                                onPrimaryClick: {}
+                            )
+                        }
+                        HStack(spacing: OBRitSpacing.s5) {
+                            OBRitModal(
+                                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                                mode: .light,
+                                buttonCount: .one,
+                                imageSize: .large,
+                                onPrimaryClick: {}
+                            )
+                            OBRitModal(
+                                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                                mode: .dark,
+                                buttonCount: .one,
+                                imageSize: .large,
+                                onPrimaryClick: {}
+                            )
+                        }
+                    }
+                }
+
                 previewSection("Snackbar") {
                     VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
                         OBRitSnackbar(message: "토스트 팝업 내용을 입력하세요.")
                         OBRitSnackbar(message: "토스트 팝업 내용을 입력하세요.\n토스트 팝업 내용을 입력하세요.", icon: .default)
                         OBRitSnackbar(message: "토스트 팝업 내용을 입력하세요.", icon: .error)
                         OBRitSnackbar(message: "토스트 팝업 내용을 입력하세요.", icon: .success)
+                    }
+                }
+
+                previewSection("Tooltip") {
+                    VStack(spacing: OBRitSpacing.s6) {
+                        HStack(spacing: OBRitSpacing.s8) {
+                            OBRitTooltip(text: "Place your text here", direction: .top, alignment: .start)
+                            OBRitTooltip(text: "Place your text here", direction: .top)
+                            OBRitTooltip(text: "Place your text here", direction: .top, alignment: .end)
+                        }
+                        HStack(spacing: OBRitSpacing.s8) {
+                            OBRitTooltip(text: "Place your text here", direction: .bottom, alignment: .start)
+                            OBRitTooltip(text: "Place your text here", direction: .bottom)
+                            OBRitTooltip(text: "Place your text here", direction: .bottom, alignment: .end)
+                        }
+                        HStack(spacing: OBRitSpacing.s8) {
+                            OBRitTooltip(text: "Place your text here", direction: .right, alignment: .start)
+                            OBRitTooltip(text: "Place your text here", direction: .right)
+                            OBRitTooltip(text: "Place your text here", direction: .right, alignment: .end)
+                        }
+                        HStack(spacing: OBRitSpacing.s8) {
+                            OBRitTooltip(text: "Place your text here", direction: .left, alignment: .start)
+                            OBRitTooltip(text: "Place your text here", direction: .left)
+                            OBRitTooltip(text: "Place your text here", direction: .left, alignment: .end)
+                        }
+                    }
+                }
+
+                previewSection("BottomSheet") {
+                    OBRitBottomSheet {
+                        Color.clear
                     }
                 }
 
