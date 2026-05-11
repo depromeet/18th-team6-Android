@@ -58,12 +58,15 @@ struct DesignSystemPreviewGallery: View {
                         OBRitOutlinedTextField(text: $defaultText, placeholder: "TEXT", maxLength: 30, singleLine: true)
                         OBRitOutlinedTextField(text: $filledText, placeholder: "TEXT", maxLength: 30, singleLine: true)
                         OBRitOutlinedTextField(text: $filledText, placeholder: "TEXT", maxLength: 30, singleLine: true, forceFocused: true)
+                        OBRitOutlinedTextField(text: $defaultText, placeholder: "TEXT", style: .lined, maxLength: 30, singleLine: true)
+                        OBRitOutlinedTextField(text: $filledText, placeholder: "TEXT", style: .lined, maxLength: 30, singleLine: true)
                         OBRitOutlinedTextField(text: $disabledText, placeholder: "TEXT", maxLength: 30, enabled: false, singleLine: true)
                         OBRitOutlinedTextField(text: $errorText, placeholder: "TEXT", inputResultState: .error, maxLength: 30, supportingText: "에러 텍스트를 입력해주세요", singleLine: true)
                         OBRitOutlinedTextField(text: $successText, placeholder: "TEXT", inputResultState: .success, maxLength: 30, supportingText: "완료 텍스트를 입력해주세요", singleLine: true)
                         OBRitOutlinedTextField(text: $trailingText, placeholder: "TEXT", maxLength: 30, singleLine: true) {
+                            OBRitIcon(kind: .question, color: OBRitColors.common00)
+                        } trailingIcon: {
                             OBRitIcon(kind: .success, color: OBRitColors.green300)
-                                .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                         }
                     }
                 }

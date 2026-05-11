@@ -7,12 +7,18 @@ public enum OBRitInputResultState {
     case success
 }
 
-public struct OBRitOutlinedTextField<TrailingContent: View>: View {
+public enum OBRitInputFieldStyle {
+    case `default`
+    case lined
+}
+
+public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: View {
     @Binding private var text: String
     @FocusState private var isFocused: Bool
 
     private let placeholder: String
     private let inputResultState: OBRitInputResultState
+    private let style: OBRitInputFieldStyle
     private let containerColor: Color
     private let maxLength: Int?
     private let supportingText: String
@@ -20,12 +26,14 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
     private let readOnly: Bool
     private let singleLine: Bool
     private let forceFocused: Bool
-    private let trailingContent: () -> TrailingContent
+    private let leadingIcon: () -> LeadingIcon
+    private let trailingIcon: () -> TrailingIcon
 
     public init(
         text: Binding<String>,
         placeholder: String = "",
         inputResultState: OBRitInputResultState = .default,
+        style: OBRitInputFieldStyle = .default,
         containerColor: Color = OBRitColors.gray800,
         maxLength: Int? = nil,
         supportingText: String = "",
@@ -33,11 +41,13 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
         readOnly: Bool = false,
         singleLine: Bool = false,
         forceFocused: Bool = false,
-        @ViewBuilder trailingContent: @escaping () -> TrailingContent
+        @ViewBuilder leadingIcon: @escaping () -> LeadingIcon,
+        @ViewBuilder trailingIcon: @escaping () -> TrailingIcon
     ) {
         self._text = text
         self.placeholder = placeholder
         self.inputResultState = inputResultState
+        self.style = style
         self.containerColor = containerColor
         self.maxLength = maxLength
         self.supportingText = supportingText
@@ -45,12 +55,16 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
         self.readOnly = readOnly
         self.singleLine = singleLine
         self.forceFocused = forceFocused
-        self.trailingContent = trailingContent
+        self.leadingIcon = leadingIcon
+        self.trailingIcon = trailingIcon
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s2) {
+                leadingIcon()
+                    .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+
                 ZStack(alignment: .leading) {
                     if text.isEmpty && !placeholder.isEmpty {
                         Text(placeholder)
@@ -74,17 +88,15 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
                         .obritTextStyle(OBRitTypography.small, weight: AtomFontWeight.shared.Medium, color: counterColor)
                 }
 
-                trailingContent()
+                trailingIcon()
+                    .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
             }
             .frame(minHeight: OBRitSpacing.s14)
             .padding(.horizontal, OBRitSpacing.s5)
             .padding(.vertical, OBRitSpacing.s4)
             .background(containerColor)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
-            .overlay(
-                RoundedRectangle(cornerRadius: OBRitRadius.middle)
-                    .stroke(borderColor, lineWidth: 1.4)
-            )
+            .overlay { borderOverlay }
 
             if inputResultState != .default && !supportingText.isEmpty {
                 HStack(spacing: OBRitSpacing.s1_5) {
@@ -94,6 +106,14 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
                         .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: statusColor)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var borderOverlay: some View {
+        if let borderStroke {
+            RoundedRectangle(cornerRadius: OBRitRadius.middle)
+                .stroke(borderStroke.color, lineWidth: borderStroke.lineWidth)
         }
     }
 
@@ -115,17 +135,23 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
         }
     }
 
-    private var borderColor: Color {
+    private var borderStroke: (color: Color, lineWidth: CGFloat)? {
         if !enabled {
-            return OBRitColors.gray600
+            return (OBRitColors.gray700, OBRitSpacing.px)
         }
         switch inputResultState {
         case .error:
-            return OBRitColors.red300
+            return (OBRitColors.red300, OBRitSpacing.px)
         case .success:
-            return OBRitColors.green300
+            return (OBRitColors.green300, OBRitSpacing.px)
         case .default:
-            return isFocused || forceFocused ? OBRitColors.common00 : OBRitColors.gray300
+            if isFocused || forceFocused {
+                return (OBRitColors.common00, OBRitSpacing.px)
+            }
+            if style == .lined {
+                return (OBRitColors.gray300, OBRitInputFieldLinedBorderWidth)
+            }
+            return nil
         }
     }
 
@@ -145,11 +171,12 @@ public struct OBRitOutlinedTextField<TrailingContent: View>: View {
     }
 }
 
-public extension OBRitOutlinedTextField where TrailingContent == EmptyView {
+public extension OBRitOutlinedTextField where LeadingIcon == EmptyView, TrailingIcon == EmptyView {
     init(
         text: Binding<String>,
         placeholder: String = "",
         inputResultState: OBRitInputResultState = .default,
+        style: OBRitInputFieldStyle = .default,
         containerColor: Color = OBRitColors.gray800,
         maxLength: Int? = nil,
         supportingText: String = "",
@@ -162,6 +189,40 @@ public extension OBRitOutlinedTextField where TrailingContent == EmptyView {
             text: text,
             placeholder: placeholder,
             inputResultState: inputResultState,
+            style: style,
+            containerColor: containerColor,
+            maxLength: maxLength,
+            supportingText: supportingText,
+            enabled: enabled,
+            readOnly: readOnly,
+            singleLine: singleLine,
+            forceFocused: forceFocused,
+            leadingIcon: { EmptyView() },
+            trailingIcon: { EmptyView() }
+        )
+    }
+}
+
+public extension OBRitOutlinedTextField where LeadingIcon == EmptyView {
+    init(
+        text: Binding<String>,
+        placeholder: String = "",
+        inputResultState: OBRitInputResultState = .default,
+        style: OBRitInputFieldStyle = .default,
+        containerColor: Color = OBRitColors.gray800,
+        maxLength: Int? = nil,
+        supportingText: String = "",
+        enabled: Bool = true,
+        readOnly: Bool = false,
+        singleLine: Bool = false,
+        forceFocused: Bool = false,
+        @ViewBuilder trailingIcon: @escaping () -> TrailingIcon
+    ) {
+        self.init(
+            text: text,
+            placeholder: placeholder,
+            inputResultState: inputResultState,
+            style: style,
             containerColor: containerColor,
             maxLength: maxLength,
             supportingText: supportingText,
@@ -171,6 +232,48 @@ public extension OBRitOutlinedTextField where TrailingContent == EmptyView {
             forceFocused: forceFocused
         ) {
             EmptyView()
+        } trailingIcon: {
+            trailingIcon()
         }
     }
 }
+
+public extension OBRitOutlinedTextField where TrailingIcon == EmptyView {
+    init(
+        text: Binding<String>,
+        placeholder: String = "",
+        inputResultState: OBRitInputResultState = .default,
+        style: OBRitInputFieldStyle = .default,
+        containerColor: Color = OBRitColors.gray800,
+        maxLength: Int? = nil,
+        supportingText: String = "",
+        enabled: Bool = true,
+        readOnly: Bool = false,
+        singleLine: Bool = false,
+        forceFocused: Bool = false,
+        @ViewBuilder leadingIcon: @escaping () -> LeadingIcon,
+        trailingIcon: EmptyView = EmptyView()
+    ) {
+        self.init(
+            text: text,
+            placeholder: placeholder,
+            inputResultState: inputResultState,
+            style: style,
+            containerColor: containerColor,
+            maxLength: maxLength,
+            supportingText: supportingText,
+            enabled: enabled,
+            readOnly: readOnly,
+            singleLine: singleLine,
+            forceFocused: forceFocused,
+            leadingIcon: {
+                leadingIcon()
+            },
+            trailingIcon: {
+                EmptyView()
+            }
+        )
+    }
+}
+
+private let OBRitInputFieldLinedBorderWidth: CGFloat = 1.4
