@@ -1,6 +1,8 @@
 import SwiftUI
 import Shared
 
+private let obritCardListImageBackgroundColor = Color(red: 48.0 / 255.0, green: 51.0 / 255.0, blue: 62.0 / 255.0)
+
 public enum OBRitCardLevel {
     case l1
     case l2
@@ -143,7 +145,7 @@ public struct OBRitCardList<ImageContent: View>: View {
 
     public var body: some View {
         HStack(spacing: OBRitSpacing.s4) {
-            CardImageBox {
+            CardImageBox(backgroundColor: obritCardListImageBackgroundColor) {
                 image()
             }
             .frame(width: OBRitSpacing.s12, height: OBRitSpacing.s12)
@@ -237,16 +239,21 @@ public extension OBRitCardList where ImageContent == EmptyView {
 }
 
 private struct CardImageBox<Content: View>: View {
+    private let backgroundColor: Color
     private let content: () -> Content
 
-    init(@ViewBuilder content: @escaping () -> Content) {
+    init(
+        backgroundColor: Color = OBRitColors.gray800,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.backgroundColor = backgroundColor
         self.content = content
     }
 
     var body: some View {
         ZStack {
             Circle()
-                .fill(OBRitColors.gray800)
+                .fill(backgroundColor)
             content()
         }
     }
