@@ -1,7 +1,6 @@
 import SwiftUI
 import Shared
 
-// 배지 타입이 Figma 레이어 이름을 그대로 가져와서 직관적이지 못함. 보다 의미론적으로 추가될 필요 있을듯함
 public enum OBRitBadgeType {
     case warningFilled
     case gray750Filled
@@ -35,7 +34,7 @@ public struct OBRitBadge: View {
     private var containerColor: Color {
         switch type {
         case .warningFilled:
-            return OBRitColors.red300
+            return OBRitColors.backgroundWarningDefault
         case .gray750Filled:
             return OBRitColors.gray750
         case .warningWhiteBackgroundFilled:
@@ -47,13 +46,12 @@ public struct OBRitBadge: View {
         }
     }
 
-    // Semantic 색상과 Atom 색상의 혼용은 의도된 부분?
     private var contentColor: Color {
         switch type {
         case .warningFilled, .gray750Filled, .red250Filled:
             return OBRitColors.common00
         case .warningWhiteBackgroundFilled, .red800Filled:
-            return OBRitColors.red300
+            return OBRitColors.textWarningDefault
         }
     }
 }
