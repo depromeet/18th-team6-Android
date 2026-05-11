@@ -40,6 +40,16 @@ struct DesignSystemPreviewGallery: View {
                         OBRitDropdown(value: "", placeholder: "TEXT", expanded: true, onClick: {})
                         OBRitDropdown(value: "TEXT", placeholder: "TEXT", inputState: .error, supportingText: "에러 텍스트를 입력해주세요", onClick: {})
                         OBRitDropdown(value: "", placeholder: "TEXT", enabled: false, onClick: {})
+                        HStack(spacing: OBRitSpacing.s6) {
+                            VStack(spacing: OBRitSpacing.s3) {
+                                OBRitDropdownMenuItem(text: "TEXT", size: .small)
+                                OBRitDropdownMenuItem(text: "TEXT", size: .small, selected: true)
+                            }
+                            VStack(spacing: OBRitSpacing.s3) {
+                                OBRitDropdownMenuItem(text: "TEXT", size: .large)
+                                OBRitDropdownMenuItem(text: "TEXT", size: .large, selected: true)
+                            }
+                        }
                         OBRitDropdownMenu(items: Array(repeating: "TEXT", count: 6), selectedIndex: 1, onItemClick: { _ in })
                     }
                 }

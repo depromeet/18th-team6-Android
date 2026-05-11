@@ -4,6 +4,7 @@ enum OBRitIconKind {
     case check
     case chevronDown
     case exclamation
+    case info
     case question
     case success
 }
@@ -29,6 +30,12 @@ struct OBRitIcon: View {
                     .fill(color)
                 ExclamationShape()
                     .fill(OBRitColors.common00)
+                    .padding(5)
+            case .info:
+                Circle()
+                    .fill(color)
+                InfoShape()
+                    .fill(OBRitColors.gray900)
                     .padding(5)
             case .question:
                 Circle()
@@ -77,6 +84,31 @@ struct ExclamationShape: Shape {
             cornerSize: CGSize(width: rect.width * 0.08, height: rect.width * 0.08)
         )
         path.addEllipse(in: CGRect(x: midX - rect.width * 0.09, y: rect.minY + rect.height * 0.74, width: rect.width * 0.18, height: rect.width * 0.18))
+        return path
+    }
+}
+
+struct InfoShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let midX = rect.midX
+        path.addEllipse(
+            in: CGRect(
+                x: midX - rect.width * 0.09,
+                y: rect.minY + rect.height * 0.15,
+                width: rect.width * 0.18,
+                height: rect.width * 0.18
+            )
+        )
+        path.addRoundedRect(
+            in: CGRect(
+                x: midX - rect.width * 0.08,
+                y: rect.minY + rect.height * 0.42,
+                width: rect.width * 0.16,
+                height: rect.height * 0.43
+            ),
+            cornerSize: CGSize(width: rect.width * 0.08, height: rect.width * 0.08)
+        )
         return path
     }
 }
