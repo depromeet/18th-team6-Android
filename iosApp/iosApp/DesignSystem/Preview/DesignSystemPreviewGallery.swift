@@ -11,10 +11,31 @@ struct DesignSystemPreviewGallery: View {
     @State private var sliderValue = 0.5
     @State private var selectedChipIndex = 0
     @State private var selectedTabIndex = 0
+    @State private var selectedGnbItem = OBRitGnbItem.home
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: OBRitSpacing.s6) {
+                previewSection("GNB") {
+                    HStack(spacing: OBRitSpacing.s10) {
+                        OBRitGnb(selected: selectedGnbItem) { selectedGnbItem = $0 }
+                        OBRitGnb(selected: .list) { _ in }
+                    }
+                }
+
+                previewSection("Title") {
+                    VStack(spacing: OBRitSpacing.s3) {
+                        OBRitTitle(
+                            description: "설명을 입력해주세요. 최대 두 줄까지 입력 가능합니다.\n설명을 입력해주세요. 최대 두 줄까지 입력 가능합니다.",
+                            size: .large,
+                            type: .default
+                        )
+                        OBRitTitle(size: .medium, type: .withTag)
+                        OBRitTitle(size: .small, type: .textOnly)
+                    }
+                    .frame(width: 412)
+                }
+
                 previewSection("TopBar") {
                     VStack(spacing: OBRitSpacing.s3) {
                         OBRitHomeTopBar(onSearchClick: {}, onNotificationClick: {}, onProfileClick: {})
