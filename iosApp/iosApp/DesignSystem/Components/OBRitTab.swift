@@ -74,16 +74,25 @@ public struct OBRitTab: View {
             .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
             .padding(.horizontal, OBRitSpacing.s4)
             .padding(.vertical, OBRitSpacing.s3)
+            .background(OBRitTabBackdropBlur())
             .overlay(alignment: .bottom) {
                 Rectangle()
                     .fill(selected ? OBRitColors.green300 : Color.clear)
                     .frame(height: OBRitSpacing.px)
             }
-            .shadow(color: Color.black.opacity(0.16), radius: selected ? 24 : 12, x: 0, y: selected ? 12 : 6)
+            .shadow(color: Color.black.opacity(0.16), radius: selected ? 24 : 12, x: 0, y: OBRitSpacing.s1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
+}
+
+private struct OBRitTabBackdropBlur: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
 }
 
 struct OBRitTabs_Previews: PreviewProvider {
