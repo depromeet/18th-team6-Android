@@ -1,5 +1,6 @@
 import SwiftUI
 import Shared
+import UIKit
 
 public enum OBRitInputResultState {
     case `default`
@@ -10,6 +11,100 @@ public enum OBRitInputResultState {
 public enum OBRitInputFieldStyle {
     case `default`
     case lined
+}
+
+public enum OBRitTextInputType {
+    case text
+    case name
+    case email
+    case password
+    case number
+    case decimal
+    case phone
+    case url
+    case oneTimeCode
+    case custom(
+        keyboardType: UIKeyboardType,
+        textContentType: UITextContentType? = nil,
+        isSecure: Bool = false,
+        autocapitalization: TextInputAutocapitalization? = nil,
+        autocorrectionDisabled: Bool = false
+    )
+
+    var keyboardType: UIKeyboardType {
+        switch self {
+        case .text, .name, .password, .oneTimeCode:
+            return .default
+        case .email:
+            return .emailAddress
+        case .number:
+            return .numberPad
+        case .decimal:
+            return .decimalPad
+        case .phone:
+            return .phonePad
+        case .url:
+            return .URL
+        case let .custom(keyboardType, _, _, _, _):
+            return keyboardType
+        }
+    }
+
+    var textContentType: UITextContentType? {
+        switch self {
+        case .text, .number, .decimal:
+            return nil
+        case .name:
+            return .name
+        case .email:
+            return .emailAddress
+        case .password:
+            return .password
+        case .phone:
+            return .telephoneNumber
+        case .url:
+            return .URL
+        case .oneTimeCode:
+            return .oneTimeCode
+        case let .custom(_, textContentType, _, _, _):
+            return textContentType
+        }
+    }
+
+    var isSecure: Bool {
+        switch self {
+        case .password:
+            return true
+        case let .custom(_, _, isSecure, _, _):
+            return isSecure
+        default:
+            return false
+        }
+    }
+
+    var autocapitalization: TextInputAutocapitalization? {
+        switch self {
+        case .name:
+            return .words
+        case .email, .password, .url, .oneTimeCode:
+            return .never
+        case let .custom(_, _, _, autocapitalization, _):
+            return autocapitalization
+        default:
+            return nil
+        }
+    }
+
+    var autocorrectionDisabled: Bool {
+        switch self {
+        case .email, .password, .number, .decimal, .phone, .url, .oneTimeCode:
+            return true
+        case let .custom(_, _, _, _, autocorrectionDisabled):
+            return autocorrectionDisabled
+        default:
+            return false
+        }
+    }
 }
 
 public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: View {
@@ -26,6 +121,9 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
     private let readOnly: Bool
     private let singleLine: Bool
     private let forceFocused: Bool
+    private let inputType: OBRitTextInputType
+    private let submitLabel: SubmitLabel
+    private let onSubmit: () -> Void
     private let leadingIcon: () -> LeadingIcon
     private let trailingIcon: () -> TrailingIcon
 
@@ -41,6 +139,9 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
         readOnly: Bool = false,
         singleLine: Bool = false,
         forceFocused: Bool = false,
+        inputType: OBRitTextInputType = .text,
+        submitLabel: SubmitLabel = .done,
+        onSubmit: @escaping () -> Void = {},
         @ViewBuilder leadingIcon: @escaping () -> LeadingIcon,
         @ViewBuilder trailingIcon: @escaping () -> TrailingIcon
     ) {
@@ -55,6 +156,9 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
         self.readOnly = readOnly
         self.singleLine = singleLine
         self.forceFocused = forceFocused
+        self.inputType = inputType
+        self.submitLabel = submitLabel
+        self.onSubmit = onSubmit
         self.leadingIcon = leadingIcon
         self.trailingIcon = trailingIcon
     }
@@ -72,13 +176,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                             .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray700)
                     }
 
-                    TextField("", text: $text, axis: singleLine ? .horizontal : .vertical)
-                        .lineLimit(singleLine ? 1 : nil)
-                        .focused($isFocused)
-                        .disabled(!enabled)
-                        .allowsHitTesting(enabled && !readOnly)
-                        .tint(OBRitColors.common00)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: contentColor)
+                    inputField
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -107,6 +205,32 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private var inputField: some View {
+        if inputType.isSecure {
+            configuredInputField(SecureField("", text: $text))
+                .lineLimit(1)
+        } else {
+            configuredInputField(TextField("", text: $text, axis: singleLine ? .horizontal : .vertical))
+                .lineLimit(singleLine ? 1 : nil)
+        }
+    }
+
+    private func configuredInputField<Field: View>(_ field: Field) -> some View {
+        field
+            .focused($isFocused)
+            .disabled(!enabled)
+            .allowsHitTesting(enabled && !readOnly)
+            .keyboardType(inputType.keyboardType)
+            .textContentType(inputType.textContentType)
+            .textInputAutocapitalization(inputType.autocapitalization)
+            .autocorrectionDisabled(inputType.autocorrectionDisabled)
+            .submitLabel(submitLabel)
+            .onSubmit(onSubmit)
+            .tint(OBRitColors.common00)
+            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: contentColor)
     }
 
     @ViewBuilder
@@ -183,7 +307,10 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView, Trailing
         enabled: Bool = true,
         readOnly: Bool = false,
         singleLine: Bool = false,
-        forceFocused: Bool = false
+        forceFocused: Bool = false,
+        inputType: OBRitTextInputType = .text,
+        submitLabel: SubmitLabel = .done,
+        onSubmit: @escaping () -> Void = {}
     ) {
         self.init(
             text: text,
@@ -197,6 +324,9 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView, Trailing
             readOnly: readOnly,
             singleLine: singleLine,
             forceFocused: forceFocused,
+            inputType: inputType,
+            submitLabel: submitLabel,
+            onSubmit: onSubmit,
             leadingIcon: { EmptyView() },
             trailingIcon: { EmptyView() }
         )
@@ -216,6 +346,9 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView {
         readOnly: Bool = false,
         singleLine: Bool = false,
         forceFocused: Bool = false,
+        inputType: OBRitTextInputType = .text,
+        submitLabel: SubmitLabel = .done,
+        onSubmit: @escaping () -> Void = {},
         @ViewBuilder trailingIcon: @escaping () -> TrailingIcon
     ) {
         self.init(
@@ -229,7 +362,10 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView {
             enabled: enabled,
             readOnly: readOnly,
             singleLine: singleLine,
-            forceFocused: forceFocused
+            forceFocused: forceFocused,
+            inputType: inputType,
+            submitLabel: submitLabel,
+            onSubmit: onSubmit
         ) {
             EmptyView()
         } trailingIcon: {
@@ -251,6 +387,9 @@ public extension OBRitOutlinedTextField where TrailingIcon == EmptyView {
         readOnly: Bool = false,
         singleLine: Bool = false,
         forceFocused: Bool = false,
+        inputType: OBRitTextInputType = .text,
+        submitLabel: SubmitLabel = .done,
+        onSubmit: @escaping () -> Void = {},
         @ViewBuilder leadingIcon: @escaping () -> LeadingIcon,
         trailingIcon: EmptyView = EmptyView()
     ) {
@@ -266,6 +405,9 @@ public extension OBRitOutlinedTextField where TrailingIcon == EmptyView {
             readOnly: readOnly,
             singleLine: singleLine,
             forceFocused: forceFocused,
+            inputType: inputType,
+            submitLabel: submitLabel,
+            onSubmit: onSubmit,
             leadingIcon: {
                 leadingIcon()
             },

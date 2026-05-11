@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum OBRitIconKind {
+public enum OBRitIconKind {
     case check
     case chevronDown
     case exclamation
@@ -9,11 +9,19 @@ enum OBRitIconKind {
     case success
 }
 
-struct OBRitIcon: View {
+public struct OBRitIcon: View {
     let kind: OBRitIconKind
     let color: Color
 
-    var body: some View {
+    public init(
+        kind: OBRitIconKind,
+        color: Color
+    ) {
+        self.kind = kind
+        self.color = color
+    }
+
+    public var body: some View {
         ZStack {
             switch kind {
             case .check:
