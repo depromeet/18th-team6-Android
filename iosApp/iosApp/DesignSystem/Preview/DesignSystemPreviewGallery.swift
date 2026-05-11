@@ -7,16 +7,42 @@ struct DesignSystemPreviewGallery: View {
     @State private var errorText = "TEXT"
     @State private var successText = "TEXT"
     @State private var trailingText = "TEXT"
+    @State private var searchQuery = ""
+    @State private var sliderValue = 0.5
+    @State private var selectedChipIndex = 0
+    @State private var selectedTabIndex = 0
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: OBRitSpacing.s6) {
+                previewSection("TopBar") {
+                    VStack(spacing: OBRitSpacing.s3) {
+                        OBRitHomeTopBar(onSearchClick: {}, onNotificationClick: {}, onProfileClick: {})
+                        OBRitDepthTopBar(title: "PageTitle", onBackClick: {}, onMoreClick: {})
+                        OBRitCloseTopBar(title: "PageTitle", onCloseClick: {}, onMoreClick: {})
+                        OBRitSearchTopBar(query: $searchQuery, onBackClick: {})
+                    }
+                }
+
                 previewSection("Buttons") {
                     VStack(spacing: OBRitSpacing.s3) {
                         buttonRow(size: .large)
                         buttonRow(size: .middle)
                         buttonRow(size: .small)
                         buttonRow(size: .large, enabled: false)
+                        OBRitFilledTextButton(
+                            text: "Button",
+                            size: .middle,
+                            color: .gray,
+                            enabled: false,
+                            action: {}
+                        ) { contentColor in
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(contentColor)
+                        } trailingIcon: { contentColor in
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(contentColor)
+                        }
                     }
                 }
 
@@ -51,6 +77,57 @@ struct DesignSystemPreviewGallery: View {
                             }
                         }
                         OBRitDropdownMenu(items: Array(repeating: "TEXT", count: 6), selectedIndex: 1, onItemClick: { _ in })
+                    }
+                }
+
+                previewSection("Badges") {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: OBRitSpacing.s2) {
+                            OBRitBadge(text: "Text", type: .warningFilled)
+                            OBRitBadge(text: "Text", type: .gray750Filled)
+                            OBRitBadge(text: "Text", type: .warningWhiteBackgroundFilled)
+                            OBRitBadge(text: "Text", type: .red250Filled)
+                            OBRitBadge(text: "Text", type: .red800Filled)
+                        }
+                    }
+                }
+
+                previewSection("Chips") {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: OBRitSpacing.s2) {
+                            OBRitChip(text: "Text", selected: selectedChipIndex == 0, number: 12) { selectedChipIndex = 0 }
+                            OBRitChip(text: "Text", selected: selectedChipIndex == 1, number: 12) { selectedChipIndex = 1 }
+                            OBRitChip(text: "Text", selected: selectedChipIndex == 2) { selectedChipIndex = 2 }
+                            OBRitChip(text: "Text", selected: selectedChipIndex == 3) { selectedChipIndex = 3 }
+                        }
+                    }
+                }
+
+                previewSection("Tabs") {
+                    HStack(spacing: OBRitSpacing.s2) {
+                        OBRitTab(text: "Text", selected: selectedTabIndex == 0, number: 12) { selectedTabIndex = 0 }
+                        OBRitTab(text: "Text", selected: selectedTabIndex == 1, number: 12) { selectedTabIndex = 1 }
+                        OBRitTab(text: "Text", selected: selectedTabIndex == 2) { selectedTabIndex = 2 }
+                    }
+                }
+
+                previewSection("Slider") {
+                    OBRitSlider(value: sliderValue) { sliderValue = $0 }
+                        .frame(maxWidth: .infinity)
+                }
+
+                previewSection("Cards") {
+                    VStack(spacing: OBRitSpacing.s3) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: OBRitSpacing.s3) {
+                                OBRitCardGrid(level: .l1, title: "필터", stockCount: 0, daysLabel: "D-day")
+                                OBRitCardGrid(level: .l3, title: "필터", stockCount: 5, daysLabel: "D-day")
+                                OBRitCardGrid(level: .l5, title: "필터", stockCount: 0, daysLabel: "D-7")
+                            }
+                        }
+                        OBRitCardList(level: .l1, title: "필터", daysInUseLabel: "30일", replaceLabel: "교체 D+2", sparesLabel: "여분 5개")
+                        OBRitCardList(level: .l2, title: "필터", daysInUseLabel: "27일", replaceLabel: "교체 D-3", sparesLabel: "여분 0개")
+                        OBRitCardList(level: .l6, title: "필터", daysInUseLabel: "7일", replaceLabel: "교체 D-7", sparesLabel: "여분 5개")
                     }
                 }
 
