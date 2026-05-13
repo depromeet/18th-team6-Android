@@ -1,90 +1,155 @@
+@file:Suppress("TooManyFunctions")
+
 package com.obrit.android.core.designsystem.component.button
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsystem.theme.OBRitColor
+import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
-enum class FilledButtonColor {
-    Green,
-    Gray,
-    White,
-}
-
-internal enum class FilledButtonSize {
-    Large,
-    Middle,
-    Small,
-}
-
 @Composable
-fun OBRitLargeFilledButton(
+fun OBRitSmallFilledButton(
+    text: String,
     onClick: () -> Unit,
+    colors: ButtonColors,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    color: FilledButtonColor = FilledButtonColor.Green,
-    content: @Composable RowScope.(Color) -> Unit,
 ) {
     OBRitFilledButton(
+        text = text,
         onClick = onClick,
-        size = FilledButtonSize.Large,
+        textStyle =
+            LocalOBRitTypography.current.base.copy(
+                fontWeight = FontWeight.SemiBold,
+            ),
         modifier = modifier,
         enabled = enabled,
-        color = color,
-        content = content,
-    )
-}
-
-@Composable
-fun OBRitMiddleFilledButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    color: FilledButtonColor = FilledButtonColor.Green,
-    content: @Composable RowScope.(Color) -> Unit,
-) {
-    OBRitFilledButton(
-        onClick = onClick,
-        size = FilledButtonSize.Middle,
-        modifier = modifier,
-        enabled = enabled,
-        color = color,
-        content = content,
+        shape = RoundedCornerShape(AtomRadius.Small.dp),
+        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp),
+        colors = colors,
     )
 }
 
 @Composable
 fun OBRitSmallFilledButton(
     onClick: () -> Unit,
+    colors: ButtonColors,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    color: FilledButtonColor = FilledButtonColor.Green,
-    content: @Composable RowScope.(Color) -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     OBRitFilledButton(
         onClick = onClick,
-        size = FilledButtonSize.Small,
         modifier = modifier,
         enabled = enabled,
-        color = color,
+        shape = RoundedCornerShape(AtomRadius.Small.dp),
+        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp),
+        colors = colors,
+        content = content,
+    )
+}
+
+@Composable
+fun OBRitMiddleFilledButton(
+    text: String,
+    onClick: () -> Unit,
+    colors: ButtonColors,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    OBRitFilledButton(
+        text = text,
+        onClick = onClick,
+        textStyle =
+            LocalOBRitTypography.current.xl.copy(
+                fontWeight = FontWeight.SemiBold,
+            ),
+        modifier = modifier,
+        enabled = enabled,
+        shape = RoundedCornerShape(AtomRadius.Middle.dp),
+        contentPadding = PaddingValues(vertical = 11.dp, horizontal = 20.dp),
+        colors = colors,
+    )
+}
+
+@Composable
+fun OBRitMiddleFilledButton(
+    onClick: () -> Unit,
+    colors: ButtonColors,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    OBRitFilledButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = RoundedCornerShape(AtomRadius.Middle.dp),
+        contentPadding = PaddingValues(vertical = 11.dp, horizontal = 20.dp),
+        colors = colors,
+        content = content,
+    )
+}
+
+@Composable
+fun OBRitLargeFilledButton(
+    text: String,
+    onClick: () -> Unit,
+    colors: ButtonColors,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    OBRitFilledButton(
+        text = text,
+        onClick = onClick,
+        textStyle =
+            LocalOBRitTypography.current.xl.copy(
+                fontWeight = FontWeight.SemiBold,
+            ),
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        shape = RoundedCornerShape(AtomRadius.Large.dp),
+        contentPadding = PaddingValues(vertical = 16.dp),
+        colors = colors,
+    )
+}
+
+@Composable
+fun OBRitLargeFilledButton(
+    onClick: () -> Unit,
+    colors: ButtonColors,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    OBRitFilledButton(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        shape = RoundedCornerShape(AtomRadius.Large.dp),
+        contentPadding = PaddingValues(vertical = 16.dp),
+        colors = colors,
         content = content,
     )
 }
@@ -93,110 +158,144 @@ fun OBRitSmallFilledButton(
 @Suppress("LongParameterList")
 internal fun OBRitFilledButton(
     onClick: () -> Unit,
-    size: FilledButtonSize,
+    colors: ButtonColors,
+    shape: Shape,
+    contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    color: FilledButtonColor = FilledButtonColor.Green,
-    content: @Composable RowScope.(Color) -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
-    val colors = LocalOBRitColor.current
-
-    Row(
-        modifier =
-            modifier
-                .defaultMinSize(minHeight = filledButtonHeight(size = size))
-                .clip(filledButtonShape(size = size))
-                .background(filledButtonContainerColor(colors = colors, color = color, enabled = enabled))
-                .clickable(
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                ).padding(horizontal = filledButtonHorizontalPadding(size = size)),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        content(filledButtonContentColor(colors = colors, color = color, enabled = enabled))
-    }
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = shape,
+        contentPadding = contentPadding,
+        colors = colors,
+        content = content,
+    )
 }
-
-internal fun filledButtonContentColor(
-    colors: OBRitColor,
-    color: FilledButtonColor,
-    enabled: Boolean,
-): Color =
-    when (color) {
-        FilledButtonColor.Green -> colors.common100
-        FilledButtonColor.Gray ->
-            if (enabled) {
-                colors.common00
-            } else {
-                colors.gray700
-            }
-        FilledButtonColor.White ->
-            if (enabled) {
-                colors.common100
-            } else {
-                OBRitFilledButtonDisabledWhiteContentColor
-            }
-    }
 
 @Composable
-internal fun filledButtonTextStyle(size: FilledButtonSize): TextStyle {
-    val typography = LocalOBRitTypography.current
-
-    return when (size) {
-        FilledButtonSize.Large,
-        FilledButtonSize.Middle,
-        -> typography.xl
-        FilledButtonSize.Small -> typography.base
-    }.copy(fontWeight = FontWeight.Bold)
+@Suppress("LongParameterList")
+internal fun OBRitFilledButton(
+    text: String,
+    onClick: () -> Unit,
+    textStyle: TextStyle,
+    colors: ButtonColors,
+    shape: Shape,
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = shape,
+        contentPadding = contentPadding,
+        colors = colors,
+    ) {
+        Text(
+            text = text,
+            style = textStyle,
+        )
+    }
 }
 
-private fun filledButtonContainerColor(
-    colors: OBRitColor,
-    color: FilledButtonColor,
-    enabled: Boolean,
-): Color =
-    when (color) {
-        FilledButtonColor.Green ->
-            if (enabled) {
-                colors.green300
-            } else {
-                colors.green800
-            }
-        FilledButtonColor.Gray -> colors.gray800
-        FilledButtonColor.White ->
-            if (enabled) {
-                colors.common00
-            } else {
-                colors.gray600
-            }
-    }
+@Preview(name = "OBRitSmallFilledButton", showBackground = true)
+@Composable
+private fun OBRitSmallFilledButtonPreview() {
+    OBRitFilledButtonPreview(size = OBRitFilledButtonPreviewSize.Small)
+}
 
-private fun filledButtonHeight(size: FilledButtonSize) =
-    when (size) {
-        FilledButtonSize.Large -> AtomSpacing.S14.dp
-        FilledButtonSize.Middle -> OBRitFilledButtonMiddleHeight
-        FilledButtonSize.Small -> OBRitFilledButtonSmallHeight
-    }
+@Preview(name = "OBRitMiddleFilledButton", showBackground = true)
+@Composable
+private fun OBRitMiddleFilledButtonPreview() {
+    OBRitFilledButtonPreview(size = OBRitFilledButtonPreviewSize.Middle)
+}
 
-private fun filledButtonHorizontalPadding(size: FilledButtonSize) =
-    when (size) {
-        FilledButtonSize.Large -> AtomSpacing.S6.dp
-        FilledButtonSize.Middle -> OBRitFilledButtonMiddleHorizontalPadding
-        FilledButtonSize.Small -> OBRitFilledButtonSmallHorizontalPadding
-    }
+@Preview(name = "OBRitLargeFilledButton", showBackground = true)
+@Composable
+private fun OBRitLargeFilledButtonPreview() {
+    OBRitFilledButtonPreview(size = OBRitFilledButtonPreviewSize.Large)
+}
 
-private fun filledButtonShape(size: FilledButtonSize) =
-    when (size) {
-        FilledButtonSize.Large -> RoundedCornerShape(AtomRadius.Large.dp)
-        FilledButtonSize.Middle -> RoundedCornerShape(AtomRadius.Middle.dp)
-        FilledButtonSize.Small -> RoundedCornerShape(AtomRadius.Small.dp)
-    }
+@Composable
+private fun OBRitFilledButtonPreview(size: OBRitFilledButtonPreviewSize) {
+    OBRitTheme(dynamicColor = false) {
+        val colors = LocalOBRitColor.current
 
-private val OBRitFilledButtonMiddleHeight = 46.dp
-private val OBRitFilledButtonSmallHeight = 38.dp
-private val OBRitFilledButtonMiddleHorizontalPadding = 22.dp
-private val OBRitFilledButtonSmallHorizontalPadding = 14.dp
-private val OBRitFilledButtonDisabledWhiteContentColor = Color(OBRIT_FILLED_BUTTON_DISABLED_WHITE_CONTENT_COLOR)
-private const val OBRIT_FILLED_BUTTON_DISABLED_WHITE_CONTENT_COLOR = 0xFF24242AL
+        Column(
+            modifier =
+                Modifier
+                    .width(OBRitFilledButtonPreviewWidth)
+                    .background(colors.gray900)
+                    .padding(AtomSpacing.S5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
+        ) {
+            OBRitFilledButtonPreviewItems(
+                size = size,
+                text = OBRIT_FILLED_BUTTON_POSITIVE_PREVIEW_TEXT,
+                colors = OBRitButtonDefaults.positiveButtonColors(),
+            )
+            OBRitFilledButtonPreviewItems(
+                size = size,
+                text = OBRIT_FILLED_BUTTON_DEFAULT_PREVIEW_TEXT,
+                colors = OBRitButtonDefaults.defaultButtonColors(),
+            )
+            OBRitFilledButtonPreviewItems(
+                size = size,
+                text = OBRIT_FILLED_BUTTON_COMMON_PREVIEW_TEXT,
+                colors = OBRitButtonDefaults.commonButtonColors(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun OBRitFilledButtonPreviewItems(
+    size: OBRitFilledButtonPreviewSize,
+    text: String,
+    colors: ButtonColors,
+) {
+    listOf(true, false).forEach { enabled ->
+        val buttonText = if (enabled) text else "$text Disabled"
+
+        when (size) {
+            OBRitFilledButtonPreviewSize.Small ->
+                OBRitSmallFilledButton(
+                    text = buttonText,
+                    onClick = {},
+                    colors = colors,
+                    enabled = enabled,
+                )
+            OBRitFilledButtonPreviewSize.Middle ->
+                OBRitMiddleFilledButton(
+                    text = buttonText,
+                    onClick = {},
+                    colors = colors,
+                    enabled = enabled,
+                )
+            OBRitFilledButtonPreviewSize.Large ->
+                OBRitLargeFilledButton(
+                    text = buttonText,
+                    onClick = {},
+                    colors = colors,
+                    enabled = enabled,
+                )
+        }
+    }
+}
+
+private enum class OBRitFilledButtonPreviewSize {
+    Small,
+    Middle,
+    Large,
+}
+
+private val OBRitFilledButtonPreviewWidth = 320.dp
+private const val OBRIT_FILLED_BUTTON_POSITIVE_PREVIEW_TEXT = "Positive"
+private const val OBRIT_FILLED_BUTTON_DEFAULT_PREVIEW_TEXT = "Default"
+private const val OBRIT_FILLED_BUTTON_COMMON_PREVIEW_TEXT = "Common"

@@ -14,7 +14,7 @@ val LocalOBRitColor =
 @Immutable
 data class OBRitColor(
     val common00: Color = Color(AtomColors.Common.S00),
-    val common100: Color = Color(AtomColors.Common.S100),
+    val common1000: Color = Color(AtomColors.Common.S1000),
     val backgroundDefaultDimDefault: Color = Color(SemanticColors.Background.Default.DimDefault),
     val gray50: Color = Color(AtomColors.Gray.S50),
     val gray100: Color = Color(AtomColors.Gray.S100),
