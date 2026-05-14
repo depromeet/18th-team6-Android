@@ -16,21 +16,49 @@ struct MainNavigation: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        ZStack(alignment: .bottom) {
+            selectedContent
+
+            OBRitGnb(selected: selectedTab.gnbItem) { item in
+                selectedTab = item.mainTab
+            }
+            .padding(.bottom, OBRitSpacing.s6)
+        }
+        .background(OBRitColors.backgroundDefaultDefault)
+    }
+
+    @ViewBuilder
+    private var selectedContent: some View {
+        switch selectedTab {
+        case .home:
             HomeView(
                 onNavigateConsumable: onNavigateConsumable,
                 onNavigateMyPage: onNavigateMyPage
             )
-            .tabItem {
-                Label("홈", systemImage: "house")
-            }
-            .tag(MainTab.home)
-
+        case .consumableList:
             ConsumableListTabView(onNavigate: onNavigateConsumable)
-                .tabItem {
-                    Label("리스트", systemImage: "list.bullet")
-                }
-                .tag(MainTab.consumableList)
+        }
+    }
+}
+
+private extension MainTab {
+    var gnbItem: OBRitGnbItem {
+        switch self {
+        case .home:
+            return .home
+        case .consumableList:
+            return .list
+        }
+    }
+}
+
+private extension OBRitGnbItem {
+    var mainTab: MainTab {
+        switch self {
+        case .home:
+            return .home
+        case .list:
+            return .consumableList
         }
     }
 }

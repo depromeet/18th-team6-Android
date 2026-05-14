@@ -30,8 +30,10 @@ public struct OBRitGnb: View {
         .padding(.horizontal, OBRitGnbMetrics.horizontalInset)
         .padding(.vertical, OBRitSpacing.s1)
         .frame(width: OBRitGnbMetrics.width, height: OBRitSpacing.s14)
-        .background(OBRitColors.surfaceDefaultDefaultHoverLight)
-        .clipShape(Capsule())
+        .background {
+            Capsule()
+                .fill(OBRitColors.commonWhite00_40)
+        }
         .shadow(color: Color.black.opacity(0.24), radius: OBRitSpacing.s6, x: 0, y: OBRitSpacing.s4)
     }
 }

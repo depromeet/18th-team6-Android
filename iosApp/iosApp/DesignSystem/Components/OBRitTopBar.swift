@@ -23,8 +23,12 @@ public struct OBRitHomeTopBar: View {
         TopBarRoot(backgroundColor: backgroundColor) {
             HStack {
                 Text("OBRit")
-                    .font(.custom("Pretendard-ExtraBold", size: 25))
-                    .foregroundStyle(Color(red: 0.94, green: 0.99, blue: 0.98))
+                    .font(.custom("Pretendard-Black", size: 24))
+                    .tracking(-0.9)
+                    .foregroundStyle(Color(red: 240 / 255, green: 253 / 255, blue: 251 / 255))
+                    .fixedSize()
+                    .scaleEffect(x: 1.26, y: 1, anchor: .leading)
+                    .frame(width: 80, height: 25, alignment: .leading)
                     .lineLimit(1)
                     .accessibilityLabel("OBRit")
 
