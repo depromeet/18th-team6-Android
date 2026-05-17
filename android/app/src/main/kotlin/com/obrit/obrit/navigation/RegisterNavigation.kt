@@ -5,25 +5,26 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.obrit.obrit.navigation.route.AgentRoute
+import com.obrit.feature.register.screen.ManualRegisterScreen
 import com.obrit.obrit.navigation.route.RegisterRoute
 
 @Composable
-fun OBRitNavigation(modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack()
+fun RegisterNavigation(
+    onExit: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val registerBackStack = rememberNavBackStack(RegisterRoute.ManualRegister)
 
     NavDisplay(
-        backStack = backStack,
+        backStack = registerBackStack,
         modifier = modifier,
-        onBack = backStack::removeLastOrNull,
+        onBack = { registerBackStack.removeLastOrNull() },
         entryProvider =
             entryProvider {
-                entry<AgentRoute> {
-                    AgentNavigation(modifier = Modifier)
-                }
-                entry<RegisterRoute> {
-                    RegisterNavigation(
-                        onExit = { backStack.removeLastOrNull() },
+                entry<RegisterRoute.ManualRegister> {
+                    ManualRegisterScreen(
+                        onBack = onExit,
+                        onRegistered = onExit,
                         modifier = Modifier,
                     )
                 }

@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.shared.data)
     implementation(projects.shared.network)
     implementation(projects.android.feature.agent)
+    implementation(projects.android.feature.register)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
 
