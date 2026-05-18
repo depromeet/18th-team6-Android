@@ -9,11 +9,15 @@ import androidx.compose.ui.Modifier
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
 
+data class HomeScreenAction(
+    val onSearchClick: () -> Unit,
+    val onNotificationClick: () -> Unit,
+    val onProfileClick: () -> Unit,
+)
+
 @Composable
 fun HomeScreen(
-    onSearchClick: () -> Unit,
-    onNotificationClick: () -> Unit,
-    onProfileClick: () -> Unit,
+    action: HomeScreenAction,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -25,9 +29,9 @@ fun HomeScreen(
                 .background(colors.gray900),
     ) {
         HomeTopBar(
-            onSearchClick = onSearchClick,
-            onNotificationClick = onNotificationClick,
-            onProfileClick = onProfileClick,
+            onSearchClick = action.onSearchClick,
+            onNotificationClick = action.onNotificationClick,
+            onProfileClick = action.onProfileClick,
             modifier = Modifier.statusBarsPadding(),
         )
         ConsumableStatusSection()
