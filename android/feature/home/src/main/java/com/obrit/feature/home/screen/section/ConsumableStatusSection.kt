@@ -28,17 +28,18 @@ internal fun ConsumableStatusSection(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = buildAnnotatedString {
-                withStyle(SpanStyle(color = colors.common00)) {
-                    append("오늘의 소모품 관리\n상태는 ")
-                }
-                withStyle(SpanStyle(color = colors.red300)) {
-                    append("경고")
-                }
-                withStyle(SpanStyle(color = colors.common00)) {
-                    append("예요")
-                }
-            },
+            text =
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = colors.common00)) {
+                        append("오늘의 소모품 관리\n상태는 ")
+                    }
+                    withStyle(SpanStyle(color = colors.red300)) {
+                        append("경고")
+                    }
+                    withStyle(SpanStyle(color = colors.common00)) {
+                        append("예요")
+                    }
+                },
             style = typography.xl5.copy(fontWeight = FontWeight.Bold),
         )
 

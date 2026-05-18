@@ -3,9 +3,7 @@ package com.obrit.android.core.designsystem.component.topbar
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
@@ -14,25 +12,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -127,18 +118,10 @@ private val OBRitTopBarIconSize = AtomSpacing.S6.dp
 private val OBRitTopBarSidePadding = AtomSpacing.S3.dp
 private val OBRitTopBarLogoStartPadding = AtomSpacing.S5.dp
 private val OBRitTopBarLogoHeight = AtomSpacing.S6.dp
-private val OBRitTopBarSearchInputStartPadding = AtomSpacing.S16.dp
-private val OBRitTopBarTitleHorizontalPadding = AtomSpacing.S14.dp
-private val OBRitTopBarSearchBorderWidth = 1.4f.dp
-
 private const val OBRIT_TOP_BAR_LOGO_DESCRIPTION = "OBRit"
 private const val OBRIT_TOP_BAR_SEARCH_DESCRIPTION = "검색"
 private const val OBRIT_TOP_BAR_NOTIFICATION_DESCRIPTION = "알림"
 private const val OBRIT_TOP_BAR_PROFILE_DESCRIPTION = "프로필"
-private const val OBRIT_TOP_BAR_CLOSE_DESCRIPTION = "닫기"
-private const val OBRIT_TOP_BAR_BACK_DESCRIPTION = "뒤로"
-private const val OBRIT_TOP_BAR_MORE_DESCRIPTION = "더보기"
-private const val OBRIT_TOP_BAR_SEARCH_PLACEHOLDER = "원하시는 소모품을 검색해보세요"
 
 @Preview(name = "OBRitHomeTopBar", showBackground = false)
 @Composable

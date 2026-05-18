@@ -20,9 +20,10 @@ fun HomeScreen(
     val colors = LocalOBRitColor.current
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(colors.gray900),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(colors.gray900),
     ) {
         OBRitHomeTopBar(
             onSearchClick = onSearchClick,
