@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
 
@@ -25,7 +24,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(colors.gray900),
     ) {
-        OBRitHomeTopBar(
+        HomeTopBar(
             onSearchClick = onSearchClick,
             onNotificationClick = onNotificationClick,
             onProfileClick = onProfileClick,
