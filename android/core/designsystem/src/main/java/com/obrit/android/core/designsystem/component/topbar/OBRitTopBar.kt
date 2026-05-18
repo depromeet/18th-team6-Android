@@ -1,5 +1,3 @@
-@file:Suppress("TooManyFunctions")
-
 package com.obrit.android.core.designsystem.component.topbar
 
 import androidx.annotation.DrawableRes
@@ -83,113 +81,6 @@ fun OBRitHomeTopBar(
 }
 
 @Composable
-fun OBRitCloseTopBar(
-    title: String,
-    onCloseClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    onMoreClick: (() -> Unit)? = null,
-) {
-    TopBarWithTitle(
-        title = title,
-        leadingIconRes = R.drawable.ic_topbar_close,
-        leadingContentDescription = OBRIT_TOP_BAR_CLOSE_DESCRIPTION,
-        onLeadingClick = onCloseClick,
-        onMoreClick = onMoreClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun OBRitDepthTopBar(
-    title: String,
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    onMoreClick: (() -> Unit)? = null,
-) {
-    TopBarWithTitle(
-        title = title,
-        leadingIconRes = R.drawable.ic_topbar_arrow_left,
-        leadingContentDescription = OBRIT_TOP_BAR_BACK_DESCRIPTION,
-        onLeadingClick = onBackClick,
-        onMoreClick = onMoreClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun OBRitSearchTopBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String = OBRIT_TOP_BAR_SEARCH_PLACEHOLDER,
-) {
-    TopBarRoot(modifier = modifier) {
-        TopBarIconButton(
-            iconRes = R.drawable.ic_topbar_arrow_left,
-            onClick = onBackClick,
-            contentDescription = OBRIT_TOP_BAR_BACK_DESCRIPTION,
-            modifier =
-                Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = OBRitTopBarSidePadding),
-        )
-        TopBarSearchInput(
-            query = query,
-            onQueryChange = onQueryChange,
-            placeholder = placeholder,
-            modifier =
-                Modifier
-                    .padding(
-                        start = OBRitTopBarSearchInputStartPadding,
-                        end = OBRitTopBarSidePadding,
-                    ).fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
-@Suppress("LongParameterList")
-private fun TopBarWithTitle(
-    title: String,
-    @DrawableRes leadingIconRes: Int,
-    leadingContentDescription: String?,
-    onLeadingClick: () -> Unit,
-    onMoreClick: (() -> Unit)?,
-    modifier: Modifier = Modifier,
-) {
-    TopBarRoot(modifier = modifier) {
-        TopBarIconButton(
-            iconRes = leadingIconRes,
-            onClick = onLeadingClick,
-            contentDescription = leadingContentDescription,
-            modifier =
-                Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = OBRitTopBarSidePadding),
-        )
-        TopBarTitle(
-            text = title,
-            modifier =
-                Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = OBRitTopBarTitleHorizontalPadding),
-        )
-        if (onMoreClick != null) {
-            TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_more_vert,
-                onClick = onMoreClick,
-                contentDescription = OBRIT_TOP_BAR_MORE_DESCRIPTION,
-                modifier =
-                    Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = OBRitTopBarSidePadding),
-            )
-        }
-    }
-}
-
-@Composable
 private fun TopBarRoot(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
@@ -230,83 +121,6 @@ private fun TopBarIconButton(
     }
 }
 
-@Composable
-private fun TopBarTitle(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-    Text(
-        text = text,
-        style = typography.xl.copy(fontWeight = FontWeight.Bold),
-        color = colors.common00,
-        textAlign = TextAlign.Center,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-}
-
-@Composable
-@Suppress("LongMethod")
-private fun TopBarSearchInput(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-    val textStyle =
-        typography.xl.copy(
-            fontWeight = FontWeight.Medium,
-            color = colors.common00,
-        )
-    val placeholderStyle = textStyle.copy(color = colors.gray700)
-
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(AtomRadius.Middle.dp))
-                .border(
-                    width = OBRitTopBarSearchBorderWidth,
-                    color = colors.gray300,
-                    shape = RoundedCornerShape(AtomRadius.Middle.dp),
-                ).padding(
-                    horizontal = AtomSpacing.S5.dp,
-                    vertical = AtomSpacing.S4.dp,
-                ),
-        singleLine = true,
-        textStyle = textStyle,
-        cursorBrush = SolidColor(colors.common00),
-    ) { innerTextField ->
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
-        ) {
-            Box(modifier = Modifier.weight(1f)) {
-                if (query.isEmpty()) {
-                    Text(
-                        text = placeholder,
-                        style = placeholderStyle,
-                        maxLines = 1,
-                    )
-                }
-                innerTextField()
-            }
-            Icon(
-                painter = painterResource(id = R.drawable.ic_topbar_search),
-                contentDescription = null,
-                tint = colors.common00,
-                modifier = Modifier.size(OBRitTopBarIconSize),
-            )
-        }
-    }
-}
-
 private val OBRitTopBarHeight = AtomSpacing.S14.dp
 private val OBRitTopBarIconButtonSize = AtomSpacing.S10.dp
 private val OBRitTopBarIconSize = AtomSpacing.S6.dp
@@ -334,42 +148,6 @@ private fun OBRitHomeTopBarPreview() {
             onSearchClick = {},
             onNotificationClick = {},
             onProfileClick = {},
-        )
-    }
-}
-
-@Preview(name = "OBRitCloseTopBar", showBackground = false)
-@Composable
-private fun OBRitCloseTopBarPreview() {
-    OBRitTopBarPreviewContainer {
-        OBRitCloseTopBar(
-            title = "PageTitle",
-            onCloseClick = {},
-            onMoreClick = {},
-        )
-    }
-}
-
-@Preview(name = "OBRitDepthTopBar", showBackground = false)
-@Composable
-private fun OBRitDepthTopBarPreview() {
-    OBRitTopBarPreviewContainer {
-        OBRitDepthTopBar(
-            title = "PageTitle",
-            onBackClick = {},
-            onMoreClick = {},
-        )
-    }
-}
-
-@Preview(name = "OBRitSearchTopBar", showBackground = false)
-@Composable
-private fun OBRitSearchTopBarPreview() {
-    OBRitTopBarPreviewContainer {
-        OBRitSearchTopBar(
-            query = "",
-            onQueryChange = {},
-            onBackClick = {},
         )
     }
 }
