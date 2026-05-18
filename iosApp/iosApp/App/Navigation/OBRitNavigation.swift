@@ -60,12 +60,6 @@ struct OBRitNavigation: View {
     }
 
     private static var initialRootRoute: AppRoute {
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-OBRitStartHome") {
-            return .main(.home)
-        }
-        #endif
-
-        return .splash
+        .main(.home)
     }
 }
