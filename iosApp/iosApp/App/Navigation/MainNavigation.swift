@@ -36,7 +36,10 @@ struct MainNavigation: View {
                 onNavigateMyPage: onNavigateMyPage
             )
         case .consumableList:
-            ConsumableListTabView(onNavigate: onNavigateConsumable)
+            ConsumableListTabView(
+                onNavigate: onNavigateConsumable,
+                onNavigateMyPage: onNavigateMyPage
+            )
         }
     }
 }
