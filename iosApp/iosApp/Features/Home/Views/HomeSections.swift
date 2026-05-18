@@ -61,9 +61,11 @@ private struct HomeStatusPair: View {
 
 struct HomeInventorySection: View {
     let summary: HomeSummary
+    let items: [HomeConsumableItem]
 
     var body: some View {
         VStack(spacing: HomeLayoutMetrics.inventorySummarySpacing) {
+            // GlassBall 섹션
             HStack(alignment: .center, spacing: OBRitSpacing.s2) {
                 HomeRatioLabel(value: summary.positiveRatio, label: "양호", color: OBRitColors.textPositiveDefault, alignment: .trailing)
                     .padding(.top, OBRitSpacing.s8)
@@ -71,7 +73,8 @@ struct HomeInventorySection: View {
 
                 HomeGlassBall(
                     normalRatio: Double(summary.positiveRatio) / 100,
-                    warningRatio: Double(summary.warningRatio) / 100
+                    warningRatio: Double(summary.warningRatio) / 100,
+                    interiorItems: items.map(\.orbInteriorItem)
                 )
                 .frame(width: HomeOrbMetrics.outerDiameter, height: HomeOrbMetrics.outerDiameter)
 
@@ -89,6 +92,62 @@ struct HomeInventorySection: View {
     }
 }
 
+private extension HomeConsumableItem {
+    var orbInteriorItem: HomeOrbInteriorItem {
+        HomeOrbInteriorItem(
+            id: id,
+            assetName: orbAssetName,
+            weight: 0.92 + CGFloat(max(1, 7 - riskRank)) * 0.055
+        )
+    }
+
+    var orbAssetName: String {
+        if title.contains("디퓨저") || title.contains("샴푸") || title.contains("바디워시") {
+            return "home_orb_diffuser"
+        }
+
+        if title.contains("필터") {
+            return "home_orb_shower_filter"
+        }
+
+        if title.contains("칫솔") {
+            return "home_orb_toothbrush"
+        }
+
+        if title.contains("수세미") || title.contains("지퍼백") || title.contains("쓰레기") {
+            return "home_orb_sponge"
+        }
+
+        if title.contains("수건") || title.contains("키친타월") {
+            return "home_orb_towel"
+        }
+
+        if title.contains("세제") {
+            return "home_orb_detergent"
+        }
+
+        if title.contains("면도기") {
+            return "home_orb_razor"
+        }
+
+        return fallbackOrbAssetName
+    }
+
+    var fallbackOrbAssetName: String {
+        let assetNames = [
+            "home_orb_detergent",
+            "home_orb_sponge",
+            "home_orb_toothbrush",
+            "home_orb_diffuser",
+            "home_orb_shower_filter",
+            "home_orb_razor",
+            "home_orb_towel"
+        ]
+
+        return assetNames[id % assetNames.count]
+    }
+}
+
 private struct HomeRatioLabel: View {
     let value: Int
     let label: String
@@ -103,7 +162,24 @@ private struct HomeRatioLabel: View {
                 .obritTextStyle(OBRitTypography.xl, color: color)
         }
         .frame(width: OBRitSpacing.s14, alignment: alignment == .leading ? .leading : .trailing)
+        .background {
+            RoundedRectangle(cornerRadius: HomeRatioLabelMetrics.backgroundCornerRadius)
+                .fill(color.opacity(HomeRatioLabelMetrics.backgroundOpacity))
+                .frame(
+                    width: HomeRatioLabelMetrics.backgroundWidth,
+                    height: HomeRatioLabelMetrics.backgroundHeight
+                )
+                .blur(radius: HomeRatioLabelMetrics.backgroundBlurRadius)
+        }
     }
+}
+
+private enum HomeRatioLabelMetrics {
+    static let backgroundWidth: CGFloat = 291
+    static let backgroundHeight: CGFloat = 292
+    static let backgroundCornerRadius: CGFloat = 9999
+    static let backgroundBlurRadius: CGFloat = 48
+    static let backgroundOpacity: Double = 0.10
 }
 
 private struct HomeSummaryCard: View {

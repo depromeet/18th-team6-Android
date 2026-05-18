@@ -16,7 +16,10 @@ struct HomeContentView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     HomeStatusSection(summary: dashboard.summary)
-                    HomeInventorySection(summary: dashboard.summary)
+                    HomeInventorySection(
+                        summary: dashboard.summary,
+                        items: dashboard.usageItems
+                    )
                     HomeWarningSection(
                         items: visibleWarningItems,
                         selectedFilter: selectedStatusFilter,

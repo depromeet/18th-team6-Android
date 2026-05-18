@@ -5,59 +5,93 @@ struct HomeOrbStatusRing: View {
     let warningRatio: Double
 
     var body: some View {
-        ZStack {
-            Circle()
-                .trim(from: warningArcHalf, to: 1 - warningArcHalf)
-                .stroke(
-                    OBRitColors.textPositiveDefault,
-                    style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
-                )
+        Circle()
+            .stroke(
+                statusGradient,
+                style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
+            )
+    }
 
-            Circle()
-                .trim(from: 0, to: warningArcHalf)
-                .stroke(
-                    OBRitColors.textWarningDefault,
-                    style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
-                )
+    private var ringLineWidth: CGFloat { HomeOrbMetrics.ringLineWidth }
 
-            Circle()
-                .trim(from: 1 - warningArcHalf, to: 1)
-                .stroke(
-                    OBRitColors.textWarningDefault,
-                    style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
-                )
+    private var statusGradient: AngularGradient {
+        AngularGradient(
+            stops: gradientStops,
+            center: .center,
+            startAngle: .degrees(0),
+            endAngle: .degrees(360)
+        )
+    }
 
-            Circle()
-                .trim(from: warningArcHalf - transitionArc, to: warningArcHalf + transitionArc)
-                .stroke(
-                    LinearGradient(
-                        colors: [OBRitColors.textWarningDefault, OBRitColors.textPositiveDefault],
-                        startPoint: .topTrailing,
-                        endPoint: .topLeading
-                    ),
-                    style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
-                )
-
-            Circle()
-                .trim(from: 1 - warningArcHalf - transitionArc, to: 1 - warningArcHalf + transitionArc)
-                .stroke(
-                    LinearGradient(
-                        colors: [OBRitColors.textPositiveDefault, OBRitColors.textWarningDefault],
-                        startPoint: .bottomLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .butt)
-                )
+    private var gradientStops: [Gradient.Stop] {
+        if warningShare <= 0 {
+            return [
+                .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
+                .init(color: OBRitColors.backgroundPositiveDefault, location: 1)
+            ]
         }
+
+        if positiveShare <= 0 {
+            return [
+                .init(color: OBRitColors.backgroundWarningDefault, location: 0),
+                .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+            ]
+        }
+
+        return [
+            .init(color: OBRitColors.backgroundWarningDefault, location: 0),
+            .init(color: OBRitColors.backgroundWarningDefault, location: warningArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: warningArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 1 - warningArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1 - warningArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+        ]
+    }
+
+    private var positiveShare: CGFloat {
+        let total = max(normalRatio + warningRatio, 0.0001)
+        return CGFloat(max(0, min(1, normalRatio / total)))
+    }
+
+    private var warningShare: CGFloat {
+        let total = max(normalRatio + warningRatio, 0.0001)
+        return CGFloat(max(0, min(1, warningRatio / total)))
     }
 
     private var warningArcHalf: CGFloat {
-        CGFloat(max(0.04, min(0.46, warningRatio / max(normalRatio + warningRatio, 0.0001) / 2)))
+        warningShare / 2
     }
 
-    private var transitionArc: CGFloat { 0.03 }
+    private var transitionArc: CGFloat {
+        guard positiveShare > 0, warningShare > 0 else { return 0 }
 
-    private var ringLineWidth: CGFloat { OBRitSpacing.s1_5 }
+        return min(0.05, warningArcHalf, positiveShare / 2)
+    }
+}
+
+struct HomeOrbGroundShadow: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let scale = geometry.size.width / designCanvasSize
+            let shadowDiameter = designShadowDiameter * scale
+
+            Circle()
+                .fill(Color(red: 0.11, green: 0.11, blue: 0.13))
+                .frame(width: shadowDiameter, height: shadowDiameter)
+                .position(
+                    x: (designShadowX + designShadowDiameter / 2) * scale,
+                    y: (designShadowY + designShadowDiameter / 2) * scale
+                )
+                .blur(radius: designBlurRadius * scale)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var designCanvasSize: CGFloat { 224 }
+    private var designShadowX: CGFloat { 31.859375 }
+    private var designShadowY: CGFloat { 116.48046875 }
+    private var designShadowDiameter: CGFloat { 159.2888946533203 }
+    private var designBlurRadius: CGFloat { 39.82222 }
 }
 
 struct HomeOrbSurfaceArc: Shape {

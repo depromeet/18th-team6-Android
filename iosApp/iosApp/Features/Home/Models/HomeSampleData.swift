@@ -11,8 +11,8 @@ enum HomeSampleData {
         status: "경고",
         replacementStatus: "경고",
         stockStatus: "경고",
-        positiveRatio: 77,
-        warningRatio: 23,
+        positiveRatio: 62,
+        warningRatio: 38,
         totalCount: 16,
         warningCount: 4,
         history: [
