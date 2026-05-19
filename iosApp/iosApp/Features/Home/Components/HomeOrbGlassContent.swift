@@ -1,6 +1,48 @@
 import SwiftUI
 
-struct HomeOrbInternalShadow: View {
+struct HomeOrbGlassContent: View {
+    let normalRatio: Double
+    let warningRatio: Double
+    let interiorItems: [HomeOrbInteriorItem]
+    let drag: HomeOrbDragFrame
+
+    var body: some View {
+        ZStack {
+            HomeOrbInternalShadow(normalRatio: normalRatio, warningRatio: warningRatio)
+                .frame(
+                    width: HomeOrbMetrics.internalShadowDiameter,
+                    height: HomeOrbMetrics.internalShadowDiameter
+                )
+                .allowsHitTesting(false)
+
+            HomeOrbGlassTextureOverlay()
+                .allowsHitTesting(false)
+                .blendMode(.hardLight)
+
+            HomeOrbInteriorItems(
+                items: interiorItems,
+                normalRatio: normalRatio,
+                warningRatio: warningRatio,
+                drag: drag
+            )
+            .frame(
+                width: HomeOrbMetrics.glassBallDiameter,
+                height: HomeOrbMetrics.glassBallDiameter
+            )
+            .clipShape(Circle())
+        }
+    }
+}
+
+private struct HomeOrbInternalShadow: View {
+    let normalRatio: Double
+    let warningRatio: Double
+
+    init(normalRatio: Double = 0.62, warningRatio: Double = 0.38) {
+        self.normalRatio = normalRatio
+        self.warningRatio = warningRatio
+    }
+
     var body: some View {
         Circle()
             .fill(reflectedRingGradient)
@@ -77,19 +119,18 @@ struct HomeOrbInternalShadow: View {
 
     private var reflectedRingGradient: LinearGradient {
         LinearGradient(
-            stops: [
-                .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
-                .init(color: OBRitColors.backgroundPositiveDefault, location: 0.2),
-                .init(color: OBRitColors.backgroundWarningDefault, location: 0.6),
-                .init(color: OBRitColors.backgroundWarningDefault, location: 1)
-            ],
+            stops: HomeOrbStatusGradient.reflectedStops(for: gradientMix),
             startPoint: .leading,
             endPoint: .trailing
         )
     }
+
+    private var gradientMix: HomeOrbGradientMix {
+        HomeOrbGradientMix(normalRatio: normalRatio, warningRatio: warningRatio)
+    }
 }
 
-struct HomeOrbGlassTextureOverlay: View {
+private struct HomeOrbGlassTextureOverlay: View {
     var body: some View {
         Image("home_orb_glass_texture")
             .resizable()

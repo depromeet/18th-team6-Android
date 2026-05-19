@@ -2,9 +2,11 @@ import SwiftUI
 
 struct HomeGlassBall: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @StateObject private var tiltController = HomeOrbTiltController()
     @State private var dragTranslation = CGSize.zero
     @State private var settledRollDegrees: CGFloat = 0
     @State private var inertialRollDegrees: CGFloat = 0
+    @State private var rollImpulseDegrees: CGFloat = 0
 
     let normalRatio: Double
     let warningRatio: Double
@@ -24,7 +26,9 @@ struct HomeGlassBall: View {
         let drag = HomeOrbDragFrame(
             translation: reduceMotion ? .zero : dragTranslation,
             settledRollDegrees: reduceMotion ? 0 : settledRollDegrees,
-            inertialRollDegrees: reduceMotion ? 0 : inertialRollDegrees
+            inertialRollDegrees: reduceMotion ? 0 : inertialRollDegrees,
+            rollImpulseDegrees: reduceMotion ? 0 : rollImpulseDegrees,
+            screenTilt: reduceMotion ? .zero : tiltController.tilt
         )
 
         ZStack {
@@ -44,30 +48,12 @@ struct HomeGlassBall: View {
                 .blendMode(.multiply)
                 .allowsHitTesting(false)
 
-            // 유리볼
-            ZStack {
-                // (Planet Background) Elipse 기반 Shadow
-                HomeOrbInternalShadow()
-                    .frame(
-                        width: HomeOrbMetrics.internalShadowDiameter,
-                        height: HomeOrbMetrics.internalShadowDiameter
-                    )
-                    .allowsHitTesting(false)
-
-                // 내부 텍스쳐
-                HomeOrbGlassTextureOverlay()
-                    .allowsHitTesting(false)
-                    .blendMode(.hardLight)
-
-                // 내부에 들어가는 아이템들
-                HomeOrbInteriorItems(items: interiorItems, drag: drag)
-                    .frame(
-                        width: HomeOrbMetrics.glassBallDiameter,
-                        height: HomeOrbMetrics.glassBallDiameter
-                    )
-                    .clipShape(Circle())
-                    .blendMode(.hardLight)
-            }
+            HomeOrbGlassContent(
+                normalRatio: normalRatio,
+                warningRatio: warningRatio,
+                interiorItems: interiorItems,
+                drag: drag
+            )
             .frame(
                 width: HomeOrbMetrics.glassBallDiameter,
                 height: HomeOrbMetrics.glassBallDiameter
@@ -91,6 +77,21 @@ struct HomeGlassBall: View {
             width: HomeOrbMetrics.outerDiameter,
             height: HomeOrbMetrics.outerDiameter
         )
+        .onAppear {
+            if !reduceMotion {
+                tiltController.start()
+            }
+        }
+        .onDisappear {
+            tiltController.stop()
+        }
+        .onChange(of: reduceMotion) { _, nextReduceMotion in
+            if nextReduceMotion {
+                tiltController.stop()
+            } else {
+                tiltController.start()
+            }
+        }
     }
 
     private var orbDragGesture: some Gesture {
@@ -109,10 +110,15 @@ struct HomeGlassBall: View {
 
                 settledRollDegrees += inertialRollDegrees + releaseRollDegrees
                 inertialRollDegrees = 0
+                rollImpulseDegrees = inertialDeltaDegrees * 0.42
 
                 withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.82)) {
                     inertialRollDegrees = inertialDeltaDegrees
                     dragTranslation = .zero
+                }
+
+                withAnimation(.easeOut(duration: 0.95)) {
+                    rollImpulseDegrees = 0
                 }
             }
     }

@@ -16,56 +16,15 @@ struct HomeOrbStatusRing: View {
 
     private var statusGradient: AngularGradient {
         AngularGradient(
-            stops: gradientStops,
+            stops: HomeOrbStatusGradient.ringStops(for: gradientMix),
             center: .center,
             startAngle: .degrees(0),
             endAngle: .degrees(360)
         )
     }
 
-    private var gradientStops: [Gradient.Stop] {
-        if warningShare <= 0 {
-            return [
-                .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
-                .init(color: OBRitColors.backgroundPositiveDefault, location: 1)
-            ]
-        }
-
-        if positiveShare <= 0 {
-            return [
-                .init(color: OBRitColors.backgroundWarningDefault, location: 0),
-                .init(color: OBRitColors.backgroundWarningDefault, location: 1)
-            ]
-        }
-
-        return [
-            .init(color: OBRitColors.backgroundWarningDefault, location: 0),
-            .init(color: OBRitColors.backgroundWarningDefault, location: warningArcHalf - transitionArc),
-            .init(color: OBRitColors.backgroundPositiveDefault, location: warningArcHalf + transitionArc),
-            .init(color: OBRitColors.backgroundPositiveDefault, location: 1 - warningArcHalf - transitionArc),
-            .init(color: OBRitColors.backgroundWarningDefault, location: 1 - warningArcHalf + transitionArc),
-            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
-        ]
-    }
-
-    private var positiveShare: CGFloat {
-        let total = max(normalRatio + warningRatio, 0.0001)
-        return CGFloat(max(0, min(1, normalRatio / total)))
-    }
-
-    private var warningShare: CGFloat {
-        let total = max(normalRatio + warningRatio, 0.0001)
-        return CGFloat(max(0, min(1, warningRatio / total)))
-    }
-
-    private var warningArcHalf: CGFloat {
-        warningShare / 2
-    }
-
-    private var transitionArc: CGFloat {
-        guard positiveShare > 0, warningShare > 0 else { return 0 }
-
-        return min(0.05, warningArcHalf, positiveShare / 2)
+    private var gradientMix: HomeOrbGradientMix {
+        HomeOrbGradientMix(normalRatio: normalRatio, warningRatio: warningRatio)
     }
 }
 
@@ -94,17 +53,61 @@ struct HomeOrbGroundShadow: View {
     private var designBlurRadius: CGFloat { 39.82222 }
 }
 
-struct HomeOrbSurfaceArc: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.addArc(
-            center: CGPoint(x: rect.midX, y: rect.midY),
-            radius: min(rect.width, rect.height) / 2,
-            startAngle: .degrees(205),
-            endAngle: .degrees(277),
-            clockwise: false
+enum HomeOrbStatusGradient {
+    static func ringStops(for mix: HomeOrbGradientMix) -> [Gradient.Stop] {
+        if mix.warningShareCGFloat <= 0 {
+            return solidStops(color: OBRitColors.backgroundPositiveDefault)
+        }
+
+        if mix.positiveShareCGFloat <= 0 {
+            return solidStops(color: OBRitColors.backgroundWarningDefault)
+        }
+
+        let warningArcHalf = mix.warningShareCGFloat / 2
+        let transitionArc = min(
+            HomeOrbVisualConfig.statusRingTransitionArc,
+            warningArcHalf,
+            mix.positiveShareCGFloat / 2
         )
-        return path
+
+        return [
+            .init(color: OBRitColors.backgroundWarningDefault, location: 0),
+            .init(color: OBRitColors.backgroundWarningDefault, location: warningArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: warningArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 1 - warningArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1 - warningArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+        ]
+    }
+
+    static func reflectedStops(for mix: HomeOrbGradientMix) -> [Gradient.Stop] {
+        if mix.warningShareCGFloat <= 0 {
+            return solidStops(color: OBRitColors.backgroundPositiveDefault)
+        }
+
+        if mix.positiveShareCGFloat <= 0 {
+            return solidStops(color: OBRitColors.backgroundWarningDefault)
+        }
+
+        let transition = min(
+            HomeOrbVisualConfig.gradientTransitionWidth,
+            mix.positiveShareCGFloat / 2,
+            mix.warningShareCGFloat / 2
+        )
+
+        return [
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: max(0, mix.positiveShareCGFloat - transition)),
+            .init(color: OBRitColors.backgroundWarningDefault, location: min(1, mix.positiveShareCGFloat + transition)),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+        ]
+    }
+
+    private static func solidStops(color: Color) -> [Gradient.Stop] {
+        [
+            .init(color: color, location: 0),
+            .init(color: color, location: 1)
+        ]
     }
 }
 
