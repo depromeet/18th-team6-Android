@@ -17,6 +17,22 @@ struct HomeSummary {
     let history: [Double]
 }
 
+extension HomeSummary {
+    // 평균/내 상태의 백분율은 해당 기준을 참조합니다.
+    var ownStatusPercent: Double {
+        normalizedPercent(Double(positiveRatio) / 100)
+    }
+
+    var averageStatusPercent: Double {
+        guard !history.isEmpty else { return ownStatusPercent }
+        return normalizedPercent(history.reduce(0, +) / Double(history.count))
+    }
+
+    private func normalizedPercent(_ value: Double) -> Double {
+        min(max(value, 0), 1)
+    }
+}
+
 struct HomeConsumableItem: Identifiable {
     let id: Int
     let title: String
