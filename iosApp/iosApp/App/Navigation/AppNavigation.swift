@@ -50,7 +50,10 @@ struct AppNavigation {
             MainNavigation(
                 selectedTab: selectedTab,
                 onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
+                onNavigateMyPage: onNavigateMyPage,
+                onSelectMainTab: { tab in
+                    onSetRoot(.main(tab))
+                }
             )
             .navigationBarBackButtonHidden(true)
         }

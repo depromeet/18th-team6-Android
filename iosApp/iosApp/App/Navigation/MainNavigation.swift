@@ -1,18 +1,21 @@
 import SwiftUI
 
 struct MainNavigation: View {
-    @State private var selectedTab: MainTab
+    let selectedTab: MainTab
     let onNavigateConsumable: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
+    let onSelectMainTab: (MainTab) -> Void
 
     init(
         selectedTab: MainTab,
         onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void
+        onNavigateMyPage: @escaping (MyPageRoute) -> Void,
+        onSelectMainTab: @escaping (MainTab) -> Void
     ) {
-        _selectedTab = State(initialValue: selectedTab)
+        self.selectedTab = selectedTab
         self.onNavigateConsumable = onNavigateConsumable
         self.onNavigateMyPage = onNavigateMyPage
+        self.onSelectMainTab = onSelectMainTab
     }
 
     var body: some View {
@@ -20,7 +23,7 @@ struct MainNavigation: View {
             selectedContent
 
             OBRitGnb(selected: selectedTab.gnbItem) { item in
-                selectedTab = item.mainTab
+                onSelectMainTab(item.mainTab)
             }
             .padding(.bottom, OBRitSpacing.s6)
         }
@@ -35,7 +38,7 @@ struct MainNavigation: View {
                 onNavigateConsumable: onNavigateConsumable,
                 onNavigateMyPage: onNavigateMyPage,
                 onShowListTab: {
-                    selectedTab = .consumableList
+                    onSelectMainTab(.consumableList)
                 }
             )
         case .consumableList:
