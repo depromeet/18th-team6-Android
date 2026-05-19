@@ -17,11 +17,28 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.feature.home.viewmodel.ManagementStatusLevel
+import com.obrit.feature.home.viewmodel.StockStatusLevel
 
 @Composable
-internal fun ConsumableStatusSection(modifier: Modifier = Modifier) {
+internal fun ConsumableStatusSection(
+    title: String,
+    highlightWord: String,
+    replacementStatus: ManagementStatusLevel,
+    stockStatus: StockStatusLevel,
+    modifier: Modifier = Modifier,
+) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+    val highlightColor =
+        when (highlightWord) {
+            "완벽", "양호" -> colors.green300
+            else -> colors.red300
+        }
+    val suffix =
+        title.indexOf(highlightWord).let { index ->
+            if (index >= 0) title.substring(index + highlightWord.length) else ""
+        }
 
     Column(
         modifier = modifier.padding(horizontal = 20.dp, vertical = 20.dp),
@@ -33,19 +50,19 @@ internal fun ConsumableStatusSection(modifier: Modifier = Modifier) {
                     withStyle(SpanStyle(color = colors.common00)) {
                         append("오늘의 소모품 관리\n상태는 ")
                     }
-                    withStyle(SpanStyle(color = colors.red300)) {
-                        append("경고")
+                    withStyle(SpanStyle(color = highlightColor)) {
+                        append(highlightWord)
                     }
                     withStyle(SpanStyle(color = colors.common00)) {
-                        append("예요")
+                        append(suffix)
                     }
                 },
             style = typography.xl5.copy(fontWeight = FontWeight.Bold),
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ManagementStatusBox(label = "교체 관리", statusText = "경고")
-            ManagementStatusBox(label = "여분 관리", statusText = "경고")
+            ManagementStatusBox(label = "교체 관리", statusText = replacementStatus.displayName)
+            ManagementStatusBox(label = "여분 관리", statusText = stockStatus.displayName)
         }
     }
 }
@@ -81,6 +98,11 @@ private fun ManagementStatusBox(
 @Composable
 private fun ConsumableStatusSectionPreview() {
     OBRitTheme {
-        ConsumableStatusSection()
+        ConsumableStatusSection(
+            title = "오늘의 소모품 관리 상태는 경고예요",
+            highlightWord = "경고",
+            replacementStatus = ManagementStatusLevel.WARNING,
+            stockStatus = StockStatusLevel.WARNING,
+        )
     }
 }

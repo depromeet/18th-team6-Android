@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,6 +14,10 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
 import com.obrit.feature.home.screen.section.GlassBallSection
+import com.obrit.feature.home.viewmodel.HomeUiState
+import com.obrit.feature.home.viewmodel.HomeViewModel
+import org.koin.androidx.compose.koinViewModel
+import org.orbitmvi.orbit.compose.collectAsState
 
 @Composable
 fun HomeScreen(
@@ -20,7 +25,9 @@ fun HomeScreen(
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
+    val state by viewModel.collectAsState()
     val colors = LocalOBRitColor.current
 
     val icons =
@@ -45,7 +52,15 @@ fun HomeScreen(
             onProfileClick = onProfileClick,
             modifier = Modifier.statusBarsPadding(),
         )
-        ConsumableStatusSection()
+        if (state is HomeUiState.Success) {
+            val status = (state as HomeUiState.Success).status
+            ConsumableStatusSection(
+                title = status.message.title,
+                highlightWord = status.message.highlightWord,
+                replacementStatus = status.message.replacementStatus,
+                stockStatus = status.message.stockStatus,
+            )
+        }
         GlassBallSection(icons = icons)
     }
 }
