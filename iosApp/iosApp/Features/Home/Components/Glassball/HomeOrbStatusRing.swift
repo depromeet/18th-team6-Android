@@ -31,26 +31,20 @@ struct HomeOrbStatusRing: View {
 struct HomeOrbGroundShadow: View {
     var body: some View {
         GeometryReader { geometry in
-            let scale = geometry.size.width / designCanvasSize
-            let shadowDiameter = designShadowDiameter * scale
+            let diameter = min(geometry.size.width, geometry.size.height)
+            let shadowDiameter = diameter * HomeOrbGlassMetrics.groundShadowDiameterRatio
 
             Circle()
-                .fill(Color(red: 0.11, green: 0.11, blue: 0.13))
+                .fill(HomeOrbGlassMetrics.shadowCoreColor)
                 .frame(width: shadowDiameter, height: shadowDiameter)
                 .position(
-                    x: (designShadowX + designShadowDiameter / 2) * scale,
-                    y: (designShadowY + designShadowDiameter / 2) * scale
+                    x: diameter * HomeOrbGlassMetrics.groundShadowCenterXRatio,
+                    y: diameter * HomeOrbGlassMetrics.groundShadowCenterYRatio
                 )
-                .blur(radius: designBlurRadius * scale)
+                .blur(radius: diameter * HomeOrbGlassMetrics.groundShadowBlurRatio)
         }
         .allowsHitTesting(false)
     }
-
-    private var designCanvasSize: CGFloat { 224 }
-    private var designShadowX: CGFloat { 31.859375 }
-    private var designShadowY: CGFloat { 116.48046875 }
-    private var designShadowDiameter: CGFloat { 159.2888946533203 }
-    private var designBlurRadius: CGFloat { 39.82222 }
 }
 
 enum HomeOrbStatusGradient {

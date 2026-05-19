@@ -105,6 +105,44 @@ struct HomeConsumableItem: Identifiable {
     }
 }
 
+struct HomeOrbInteriorItem: Identifiable, Hashable {
+    let id: Int
+    let assetName: String
+    let weight: CGFloat
+
+    init(id: Int, assetName: String, weight: CGFloat = HomeOrbVisualConfig.defaultItemWeight) {
+        self.id = id
+        self.assetName = assetName
+        self.weight = min(
+            max(weight, HomeOrbVisualConfig.minimumItemWeight),
+            HomeOrbVisualConfig.maximumWeightForSizing
+        )
+    }
+
+    init(id: Int, assetName: String, riskRank: Int) {
+        self.init(
+            id: id,
+            assetName: assetName,
+            weight: Self.weight(forRiskRank: riskRank)
+        )
+    }
+
+    static func weight(forRiskRank riskRank: Int) -> CGFloat {
+        HomeOrbVisualConfig.itemWeightBase +
+            CGFloat(max(1, HomeOrbVisualConfig.riskRankUpperBound - riskRank)) * HomeOrbVisualConfig.itemWeightRiskScale
+    }
+}
+
+extension HomeConsumableItem {
+    var orbInteriorItem: HomeOrbInteriorItem {
+        HomeOrbInteriorItem(
+            id: id,
+            assetName: orbAssetName,
+            riskRank: riskRank
+        )
+    }
+}
+
 enum HomeStatusFilter: CaseIterable, Hashable {
     case replacementDanger
     case spareShortage

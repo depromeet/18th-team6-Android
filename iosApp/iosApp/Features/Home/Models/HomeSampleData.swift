@@ -7,6 +7,10 @@ enum HomeSampleData {
         usageItems: usageItems
     )
 
+    static var orbFallbackInteriorItems: [HomeOrbInteriorItem] {
+        Array(summaryItems.prefix(HomeOrbVisualConfig.maxVisibleItemCount)).map(\.orbInteriorItem)
+    }
+
     private static let summary = HomeSummary(
         items: summaryItems,
         averageStatusHistory: averageStatusHistory

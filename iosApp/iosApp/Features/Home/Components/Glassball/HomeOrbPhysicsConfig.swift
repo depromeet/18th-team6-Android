@@ -27,7 +27,7 @@ enum HomeOrbPhysicsConfig {
     static let boundaryRestitution: CGFloat = 0
 
     static let stablePackingMultiplier: CGFloat = 1.8
-    static let physicsRadiusMinimum: CGFloat = 10
+    static let physicsRadiusMinimumRatio: CGFloat = 10 / HomeOrbMetrics.glassBallDiameter
     static let physicsRadiusVisualWidthRatio: CGFloat = 0.105
 }
 
@@ -36,14 +36,20 @@ enum HomeOrbVisualConfig {
     static let gradientTransitionWidth: CGFloat = 0.12
     static let statusRingTransitionArc: CGFloat = 0.05
 
+    static let maxVisibleItemCount = 8
+    static let defaultItemWeight: CGFloat = 1
+    static let minimumItemWeight: CGFloat = 0.1
+    static let itemWeightBase: CGFloat = 0.92
+    static let itemWeightRiskScale: CGFloat = 0.055
+    static let riskRankUpperBound = 7
     static let itemTargetWidthBase: CGFloat = 0.8
     static let itemTargetWidthWeightScale: CGFloat = 0.0525
     static let maximumWeightForSizing: CGFloat = 1.45
     static let minimumTextureAspectRatio: CGFloat = 0.2
     static let spriteAnchorPoint = CGPoint(x: 0.5, y: 0.42)
 
-    static let jitterSpeedThreshold: CGFloat = 12
-    static let jitterDistanceThreshold: CGFloat = 1.4
+    static let jitterSpeedThresholdRatio: CGFloat = 12 / HomeOrbMetrics.glassBallDiameter
+    static let jitterDistanceThresholdRatio: CGFloat = 1.4 / HomeOrbMetrics.glassBallDiameter
     static let visualPositionFollowRate: CGFloat = 0.42
     static let visualRotationFollowRate: CGFloat = 0.38
 
@@ -72,4 +78,8 @@ enum HomeOrbVisualConfig {
     static let spawnLayerY: CGFloat = 0.24
     static let spawnEvenYOffset: CGFloat = 0.04
     static let spawnOddYOffset: CGFloat = -0.03
+}
+
+enum HomeOrbInteractionConfig {
+    static let maxDragDistanceRatio: CGFloat = 92 / HomeOrbMetrics.glassBallDiameter
 }

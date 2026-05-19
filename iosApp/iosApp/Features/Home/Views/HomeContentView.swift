@@ -23,24 +23,13 @@ struct HomeContentView: View {
                             onNotificationClick: action.onNotification,
                             onProfileClick: action.onProfile
                         )
-                        HomeStatusSection(summary: dashboard.summary)
-                        HomeInventorySection(
-                            summary: dashboard.summary,
-                            items: dashboard.usageItems
-                        )
-                        HomeWarningSection(
-                            items: visibleWarningItems,
-                            selectedFilter: selectedStatusFilter,
-                            filterCounts: statusFilterCounts,
-                            selectedSort: selectedWarningSort,
-                            onSelectFilter: action.onSelectStatusFilter,
-                            onSelectSort: action.onSelectWarningSort,
-                            onShowList: action.onShowList,
-                            onSelect: action.onSelectConsumable
-                        )
-                        HomeUsageListSection(
-                            items: dashboard.usageItems,
-                            onSelect: action.onSelectConsumable
+                        HomeTab(
+                            dashboard: dashboard,
+                            selectedStatusFilter: selectedStatusFilter,
+                            statusFilterCounts: statusFilterCounts,
+                            selectedWarningSort: selectedWarningSort,
+                            quickItems: visibleWarningItems,
+                            action: action
                         )
                     }
                     .padding(.bottom, OBRitSpacing.s32)

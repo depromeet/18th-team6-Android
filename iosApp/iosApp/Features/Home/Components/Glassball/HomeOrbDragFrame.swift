@@ -44,7 +44,7 @@ struct HomeOrbDragFrame: Equatable {
     }
 
     static func clamped(_ translation: CGSize) -> CGSize {
-        let maxDistance: CGFloat = 92
+        let maxDistance = HomeOrbMetrics.glassBallDiameter * HomeOrbInteractionConfig.maxDragDistanceRatio
         let distance = hypot(translation.width, translation.height)
         guard distance > maxDistance else { return translation }
 

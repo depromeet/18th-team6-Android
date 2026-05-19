@@ -25,6 +25,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     override func didSimulatePhysics() {
         let radius = boundaryRadius(for: size)
         for pair in itemNodes.values {
+            // SpriteKit 물리 위치를 그대로 쓰면 미세 떨림이 노출되므로, 표시용 sprite에 구면 깊이와 damping을 따로 적용한다.
             HomeOrbInteriorVisualProjector.applySphericalDepth(
                 to: pair,
                 sceneSize: size,
@@ -41,6 +42,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     ) {
         guard size.width > 0, size.height > 0 else { return }
 
+        // SwiftUI layout 크기가 바뀔 때만 Scene size와 원형 boundary를 다시 만든다.
         if configuredSize != size {
             configuredSize = size
             self.size = size
@@ -50,6 +52,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
         let visibleIds = Set(items.map(\.id))
         let staleIds = itemNodes.keys.filter { !visibleIds.contains($0) }
         for id in staleIds {
+            // 입력에서 사라진 item은 physics node와 sprite node를 함께 제거해야 z-order와 충돌체가 남지 않는다.
             itemNodes[id]?.physicsNode.removeFromParent()
             itemNodes[id]?.spriteNode.removeFromParent()
             itemNodes[id] = nil
@@ -80,6 +83,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     }
 
     func updateGravity(for drag: HomeOrbDragFrame) {
+        // 드래그 오프셋, release roll, 기기 기울기를 하나의 SpriteKit gravity vector로 합성한다.
         let rollRadians = drag.gravityRollDegrees * .pi / 180
         let offsetGravityX = drag.contentOffset.width / HomeOrbPhysicsConfig.dragGravityOffsetDivisor * HomeOrbPhysicsConfig.dragGravityScale
         let rollGravityX = sin(rollRadians) * HomeOrbPhysicsConfig.rollGravityScale
@@ -97,6 +101,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
         index: Int,
         size: CGSize
     ) -> HomeOrbInteriorNodePair {
+        // 최초 배치는 겹침을 줄이기 위해 원 내부에 column/layer 기반으로 흩뿌린다.
         let initialPosition = HomeOrbInteriorSpawner.initialPosition(
             for: index,
             itemCount: itemCount,
@@ -124,9 +129,11 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
         let targetPhysicsRadius = HomeOrbInteriorSizing.physicsRadius(
             for: targetWidth,
             itemCount: itemCount,
-            boundaryRadius: boundaryRadius(for: size)
+            boundaryRadius: boundaryRadius(for: size),
+            in: size
         )
 
+        // 크기와 충돌 반경이 그대로면 body를 다시 만들지 않아 현재 속도와 회전을 보존한다.
         guard
             pair.spriteNode.size != targetSize ||
                 abs(pair.physicsRadius - targetPhysicsRadius) > 0.5 ||
@@ -145,11 +152,13 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     }
 
     private func updateGradientUniforms(for pair: HomeOrbInteriorNodePair, gradientMix: HomeOrbGradientMix) {
+        // 상태 비율은 shader uniform으로만 갱신해서 texture/node 재생성을 피한다.
         pair.spriteNode.shader?.uniformNamed(HomeOrbShaderUniform.positiveShare)?.floatValue = gradientMix.positiveShare
         pair.spriteNode.shader?.uniformNamed(HomeOrbShaderUniform.transitionWidth)?.floatValue = gradientMix.transitionWidth
     }
 
     private func updateBoundary(for size: CGSize) {
+        // 유리구 가장자리와 item 반경을 보호하기 위해 실제 충돌 boundary는 보이는 원보다 살짝 안쪽에 둔다.
         let radius = boundaryRadius(for: size)
         let rect = CGRect(
             x: size.width / 2 - radius,
@@ -169,6 +178,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     }
 
     private func boundaryRadius(for size: CGSize) -> CGFloat {
+        // item이 edge에 붙어 잘리지 않도록 최대 예상 물리 반경만큼 boundary를 안으로 당긴다.
         let diameter = min(size.width, size.height)
         return max(
             diameter * HomeOrbPhysicsConfig.minimumBoundaryRadiusRatio,
@@ -190,6 +200,7 @@ private final class HomeOrbInteriorNodePair {
     var visualRotation: CGFloat
 
     init(physicsNode: SKNode, spriteNode: SKSpriteNode) {
+        // 물리 node는 충돌만 담당하고, sprite node는 shader/depth/damping 표시만 담당한다.
         self.physicsNode = physicsNode
         self.spriteNode = spriteNode
         self.visualPosition = physicsNode.position
@@ -253,6 +264,7 @@ private enum HomeOrbInteriorNodeFactory {
 
 private enum HomeOrbInteriorSizing {
     static func targetWidth(for item: HomeOrbInteriorItem, in size: CGSize) -> CGFloat {
+        // item weight는 asset의 실제 픽셀 크기가 아니라 유리구 안에서의 시각적 비중을 의미한다.
         let diameter = min(size.width, size.height)
         return diameter * (
             HomeOrbVisualConfig.itemTargetWidthBase +
@@ -276,13 +288,17 @@ private enum HomeOrbInteriorSizing {
     static func physicsRadius(
         for visualWidth: CGFloat,
         itemCount: Int,
-        boundaryRadius: CGFloat
+        boundaryRadius: CGFloat,
+        in size: CGSize
     ) -> CGFloat {
+        // 물리 반경은 시각 크기보다 작게 잡고, item 수가 많을수록 안정적으로 쌓이도록 상한을 낮춘다.
+        let diameter = min(size.width, size.height)
+        let minimumPhysicsRadius = diameter * HomeOrbPhysicsConfig.physicsRadiusMinimumRatio
         let stablePackingRadius = boundaryRadius / sqrt(
             CGFloat(max(itemCount, 1)) * HomeOrbPhysicsConfig.stablePackingMultiplier
         )
         return max(
-            HomeOrbPhysicsConfig.physicsRadiusMinimum,
+            minimumPhysicsRadius,
             min(visualWidth * HomeOrbPhysicsConfig.physicsRadiusVisualWidthRatio, stablePackingRadius)
         )
     }
@@ -304,13 +320,16 @@ private enum HomeOrbInteriorSpawner {
         boundaryRadius: CGFloat,
         maximumPhysicsRadiusEstimate: CGFloat
     ) -> CGPoint {
+        // 초기 위치는 중앙 하단부에 가까운 격자형 seed를 써서 동일 데이터가 매번 같은 배치를 갖게 한다.
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
         let spawnRadius = max(0, boundaryRadius - maximumPhysicsRadiusEstimate)
-        let layer = CGFloat(index / 4)
-        let column = CGFloat(index % 4)
-        let denominator = CGFloat(max(min(itemCount, 4) - 1, 1))
+        let columnCount = max(1, Int(ceil(sqrt(Double(max(itemCount, 1))))))
+        let layer = CGFloat(index / columnCount)
+        let column = CGFloat(index % columnCount)
+        let denominator = CGFloat(max(columnCount - 1, 1))
+        let normalizedColumn = columnCount == 1 ? 0.5 : column / denominator
         let x = center.x
-            + (column / denominator - 0.5) * spawnRadius * HomeOrbVisualConfig.spawnColumnSpread
+            + (normalizedColumn - 0.5) * spawnRadius * HomeOrbVisualConfig.spawnColumnSpread
             + (layer.truncatingRemainder(dividingBy: 2) == 0 ? 0 : spawnRadius * HomeOrbVisualConfig.spawnOddLayerOffset)
         let y = center.y
             + HomeOrbVisualConfig.spawnBaseY * spawnRadius
@@ -320,6 +339,7 @@ private enum HomeOrbInteriorSpawner {
     }
 
     static func initialRotation(for item: HomeOrbInteriorItem, index: Int) -> CGFloat {
+        // id와 index 기반의 deterministic seed로 랜덤 없이 자연스러운 초기 각도를 만든다.
         let seed = CGFloat((item.id % 9) - 4)
         return (seed * 8 + CGFloat(index) * 4) * .pi / 180
     }
@@ -340,10 +360,12 @@ private enum HomeOrbInteriorVisualProjector {
             physicsNode.position.x - pair.visualPosition.x,
             physicsNode.position.y - pair.visualPosition.y
         )
+        let sceneDiameter = min(sceneSize.width, sceneSize.height)
         let shouldAbsorbMicroJitter =
-            bodySpeed < HomeOrbVisualConfig.jitterSpeedThreshold &&
-            distanceFromVisual < HomeOrbVisualConfig.jitterDistanceThreshold
+            bodySpeed < sceneDiameter * HomeOrbVisualConfig.jitterSpeedThresholdRatio &&
+            distanceFromVisual < sceneDiameter * HomeOrbVisualConfig.jitterDistanceThresholdRatio
 
+        // 거의 멈춘 상태의 작은 물리 흔들림은 시각 위치에 반영하지 않아 정지 상태를 안정적으로 보이게 한다.
         if !shouldAbsorbMicroJitter {
             pair.visualPosition = CGPoint(
                 x: pair.visualPosition.x + (physicsNode.position.x - pair.visualPosition.x) * HomeOrbVisualConfig.visualPositionFollowRate,
@@ -356,6 +378,7 @@ private enum HomeOrbInteriorVisualProjector {
         let safeOrbRadius = max(orbRadius, HomeOrbVisualConfig.minimumRatioTotal)
         let distanceRatio = min(sqrt(delta.dx * delta.dx + delta.dy * delta.dy) / safeOrbRadius, 1)
         let verticalRatio = max(-1, min((pair.visualPosition.y - orbCenter.y) / safeOrbRadius, 1))
+        // 유리구의 앞쪽/가장자리 위치를 추정해 scale, alpha, shader shadow, zPosition을 함께 조정한다.
         let frontDepth = max(0, min(HomeOrbVisualConfig.depthVerticalCenter - verticalRatio * HomeOrbVisualConfig.depthVerticalCenter, 1))
         let edgeFalloff = max(
             0,

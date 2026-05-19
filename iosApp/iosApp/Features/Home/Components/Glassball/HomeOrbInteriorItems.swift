@@ -1,26 +1,5 @@
 import SwiftUI
 
-struct HomeOrbInteriorItem: Identifiable, Hashable {
-    let id: Int
-    let assetName: String
-    let weight: CGFloat
-
-    init(id: Int, assetName: String, weight: CGFloat = 1) {
-        self.id = id
-        self.assetName = assetName
-        self.weight = weight
-    }
-}
-
-extension HomeOrbInteriorItem {
-    static let previewItems = [
-        HomeOrbInteriorItem(id: 1, assetName: "home_orb_detergent", weight: 1.1),
-        HomeOrbInteriorItem(id: 2, assetName: "home_orb_sponge", weight: 1.0),
-        HomeOrbInteriorItem(id: 3, assetName: "home_orb_toothbrush", weight: 0.95),
-        HomeOrbInteriorItem(id: 4, assetName: "home_orb_diffuser", weight: 1.15)
-    ]
-}
-
 struct HomeOrbInteriorItems: View {
     @StateObject private var sceneStore = HomeOrbInteriorSceneStore()
 
@@ -30,7 +9,7 @@ struct HomeOrbInteriorItems: View {
     let drag: HomeOrbDragFrame
 
     private var visibleItems: [HomeOrbInteriorItem] {
-        Array(items.prefix(HomeOrbInteriorMetrics.maxVisibleItemCount))
+        HomeOrbInteriorInput.visibleItems(from: items)
     }
 
     private var gradientMix: HomeOrbGradientMix {
@@ -66,10 +45,23 @@ struct HomeOrbInteriorItems: View {
     }
 }
 
-private enum HomeOrbInteriorMetrics {
-    static let maxVisibleItemCount = 8
-}
-
 private final class HomeOrbInteriorSceneStore: ObservableObject {
     let scene = HomeOrbInteriorPhysicsScene()
+}
+
+private enum HomeOrbInteriorInput {
+    static func visibleItems(from items: [HomeOrbInteriorItem]) -> [HomeOrbInteriorItem] {
+        var seenIds = Set<Int>()
+        var visibleItems: [HomeOrbInteriorItem] = []
+
+        for item in items where !item.assetName.isEmpty && seenIds.insert(item.id).inserted {
+            visibleItems.append(item)
+
+            if visibleItems.count == HomeOrbVisualConfig.maxVisibleItemCount {
+                break
+            }
+        }
+
+        return visibleItems
+    }
 }

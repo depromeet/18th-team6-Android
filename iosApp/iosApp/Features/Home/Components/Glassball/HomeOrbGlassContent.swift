@@ -50,54 +50,69 @@ private struct HomeOrbInternalShadow: View {
                 internalEllipseStack
             }
             .overlay(alignment: .bottom) {
+                let diameter = HomeOrbMetrics.internalShadowDiameter
+
                 Ellipse()
                     .fill(
                         RadialGradient(
-                            stops: [
-                                .init(color: Color.black.opacity(0.58), location: 0),
-                                .init(color: Color.black.opacity(0.32), location: 0.42),
-                                .init(color: Color.black.opacity(0), location: 1)
-                            ],
-                            center: UnitPoint(x: 0.46, y: 0.42),
+                            stops: HomeOrbGlassMetrics.bottomShadowOpacityStops.map {
+                                .init(color: Color.black.opacity($0.colorOpacity), location: $0.location)
+                            },
+                            center: HomeOrbGlassMetrics.bottomShadowCenter,
                             startRadius: 0,
-                            endRadius: 92
+                            endRadius: diameter * HomeOrbGlassMetrics.bottomShadowEndRadiusRatio
                         )
                     )
-                    .frame(width: 150, height: 86)
-                    .offset(y: -18)
-                    .blur(radius: 14)
+                    .frame(
+                        width: diameter * HomeOrbGlassMetrics.bottomShadowWidthRatio,
+                        height: diameter * HomeOrbGlassMetrics.bottomShadowHeightRatio
+                    )
+                    .offset(y: diameter * HomeOrbGlassMetrics.bottomShadowOffsetYRatio)
+                    .blur(radius: diameter * HomeOrbGlassMetrics.bottomShadowBlurRatio)
             }
             .overlay(alignment: .trailing) {
+                let diameter = HomeOrbMetrics.internalShadowDiameter
+
                 Ellipse()
-                    .fill(OBRitColors.common00.opacity(0.30))
-                    .frame(width: 70, height: 162)
-                    .offset(x: 18, y: 8)
-                    .blur(radius: 18)
+                    .fill(OBRitColors.common00.opacity(HomeOrbGlassMetrics.trailingHighlightOpacity))
+                    .frame(
+                        width: diameter * HomeOrbGlassMetrics.trailingHighlightWidthRatio,
+                        height: diameter * HomeOrbGlassMetrics.trailingHighlightHeightRatio
+                    )
+                    .offset(
+                        x: diameter * HomeOrbGlassMetrics.trailingHighlightOffsetXRatio,
+                        y: diameter * HomeOrbGlassMetrics.trailingHighlightOffsetYRatio
+                    )
+                    .blur(radius: diameter * HomeOrbGlassMetrics.trailingHighlightBlurRatio)
                     .blendMode(.screen)
             }
             .overlay(alignment: .top) {
+                let diameter = HomeOrbMetrics.internalShadowDiameter
+
                 Ellipse()
-                    .fill(OBRitColors.common00.opacity(0.18))
-                    .frame(width: 104, height: 54)
-                    .offset(y: 12)
-                    .blur(radius: 16)
+                    .fill(OBRitColors.common00.opacity(HomeOrbGlassMetrics.topHighlightOpacity))
+                    .frame(
+                        width: diameter * HomeOrbGlassMetrics.topHighlightWidthRatio,
+                        height: diameter * HomeOrbGlassMetrics.topHighlightHeightRatio
+                    )
+                    .offset(y: diameter * HomeOrbGlassMetrics.topHighlightOffsetYRatio)
+                    .blur(radius: diameter * HomeOrbGlassMetrics.topHighlightBlurRatio)
                     .blendMode(.screen)
             }
-            .opacity(0.62)
+            .opacity(HomeOrbGlassMetrics.internalShadowOpacity)
             .clipShape(Circle())
     }
 
     private var internalEllipseStack: some View {
         GeometryReader { geometry in
-            let scale = geometry.size.width / HomeOrbMetrics.internalShadowDiameter
-            let lightDiameter = 169.24445 * scale
-            let darkDiameter = 159.28889 * scale
+            let lightDiameter = geometry.size.width * HomeOrbGlassMetrics.innerLightDiameterRatio
+            let darkDiameter = geometry.size.width * HomeOrbGlassMetrics.innerDarkDiameterRatio
 
             ZStack {
                 Circle()
-                    .fill(Color(red: 0.11, green: 0.11, blue: 0.13))
+                    .fill(HomeOrbGlassMetrics.shadowCoreColor)
                     .frame(width: darkDiameter, height: darkDiameter)
-                    .blur(radius: 39.82222 * scale)
+                    .blur(radius: geometry.size.width * HomeOrbGlassMetrics.innerDarkBlurRatio)
 
                 Circle()
                     .fill(
@@ -106,12 +121,12 @@ private struct HomeOrbInternalShadow: View {
                                 .init(color: .white, location: 0),
                                 .init(color: .white.opacity(0), location: 1)
                             ],
-                            startPoint: UnitPoint(x: 1, y: 0.13),
-                            endPoint: UnitPoint(x: 0.22, y: 1)
+                            startPoint: HomeOrbGlassMetrics.innerLightGradientStart,
+                            endPoint: HomeOrbGlassMetrics.innerLightGradientEnd
                         )
                     )
                     .frame(width: lightDiameter, height: lightDiameter)
-                    .blur(radius: 11.94667 * scale)
+                    .blur(radius: geometry.size.width * HomeOrbGlassMetrics.innerLightBlurRatio)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
@@ -153,20 +168,17 @@ private struct HomeOrbGlassTextureOverlay: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            stops: [
-                                .init(color: .white, location: 0),
-                                .init(color: .white.opacity(0.56), location: 0.38),
-                                .init(color: .white.opacity(0.18), location: 0.68),
-                                .init(color: .white.opacity(0.06), location: 1)
-                            ],
+                            stops: HomeOrbGlassMetrics.textureMaskStops.map {
+                                .init(color: .white.opacity($0.colorOpacity), location: $0.location)
+                            },
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
 
                 Circle()
-                    .strokeBorder(.white, lineWidth: diameter * 0.11)
-                    .blur(radius: diameter * 0.025)
+                    .strokeBorder(.white, lineWidth: diameter * HomeOrbGlassMetrics.textureRimWidthRatio)
+                    .blur(radius: diameter * HomeOrbGlassMetrics.textureRimBlurRatio)
             }
             .frame(width: diameter, height: diameter)
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
