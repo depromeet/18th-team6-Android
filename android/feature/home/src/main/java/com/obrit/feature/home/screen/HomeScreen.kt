@@ -14,20 +14,15 @@ import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
 import com.obrit.feature.home.screen.section.GlassBallSection
 
-data class HomeScreenAction(
-    val onSearchClick: () -> Unit,
-    val onNotificationClick: () -> Unit,
-    val onProfileClick: () -> Unit,
-)
-
 @Composable
 fun HomeScreen(
-    action: HomeScreenAction,
+    onSearchClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
 
-    // TODO: ViewModel에서 사용자 소모품 목록을 받아 대체
     val icons =
         remember {
             listOf(
@@ -45,9 +40,9 @@ fun HomeScreen(
                 .background(colors.gray900),
     ) {
         HomeTopBar(
-            onSearchClick = action.onSearchClick,
-            onNotificationClick = action.onNotificationClick,
-            onProfileClick = action.onProfileClick,
+            onSearchClick = onSearchClick,
+            onNotificationClick = onNotificationClick,
+            onProfileClick = onProfileClick,
             modifier = Modifier.statusBarsPadding(),
         )
         ConsumableStatusSection()
