@@ -2,11 +2,13 @@ import SpriteKit
 import SwiftUI
 
 struct HomeOrbSpriteView: UIViewRepresentable {
-    let scene: SKScene
+    let scene: HomeOrbInteriorPhysicsScene
+    let drag: HomeOrbDragFrame
 
     func makeUIView(context: Context) -> HomeOrbSKView {
         let view = HomeOrbSKView()
         configure(view)
+        scene.updateGravity(for: drag)
         view.presentScene(scene)
         return view
     }
@@ -17,6 +19,8 @@ struct HomeOrbSpriteView: UIViewRepresentable {
         if view.scene !== scene {
             view.presentScene(scene)
         }
+
+        scene.updateGravity(for: drag)
     }
 
     private func configure(_ view: SKView) {

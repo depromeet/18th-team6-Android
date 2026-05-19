@@ -39,7 +39,7 @@ struct HomeOrbInteriorItems: View {
 
     var body: some View {
         GeometryReader { geometry in
-            HomeOrbSpriteView(scene: sceneStore.scene)
+            HomeOrbSpriteView(scene: sceneStore.scene, drag: drag)
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .onAppear {
                     configureScene(size: geometry.size)
@@ -52,9 +52,6 @@ struct HomeOrbInteriorItems: View {
                 }
                 .onChange(of: geometry.size) { _, nextSize in
                     configureScene(size: nextSize)
-                }
-                .onChange(of: drag) { _, nextDrag in
-                    sceneStore.scene.updateGravity(for: nextDrag)
                 }
         }
     }
