@@ -38,8 +38,7 @@ public struct OBRitCardGrid<ImageContent: View>: View {
             CardImageBox {
                 image()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .aspectRatio(1, contentMode: .fit)
+            .frame(width: OBRitSpacing.s11, height: OBRitSpacing.s11, alignment: .leading)
 
             VStack(alignment: .leading, spacing: OBRitSpacing.s0_5) {
                 Text(title)
@@ -56,7 +55,7 @@ public struct OBRitCardGrid<ImageContent: View>: View {
             CardBadge(text: daysLabel, containerColor: gridBadgeContainerColor, contentColor: gridBadgeContentColor)
         }
         .padding(OBRitSpacing.s4)
-        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40)
+        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40, alignment: .topLeading)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
