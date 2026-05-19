@@ -26,8 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.android.core.designsystem.R
+import com.obrit.android.core.designsystem.theme.OBRitTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -49,28 +49,32 @@ internal fun GlassBallSection(
     val iconCount = icons.size
 
     // 볼 이미지의 실제 내부 영역 반경
-    val ballRadiusPx = remember(density) {
-        with(density) { GlassBallSize.toPx() / 2f * BallIconAreaRatio }
-    }
+    val ballRadiusPx =
+        remember(density) {
+            with(density) { GlassBallSize.toPx() / 2f * BALL_ICON_AREA_RATIO }
+        }
     // 충돌 감지에 사용할 아이콘 반경
     // 실제 이미지보다 작게 설정해 볼 내부 이동 공간 확보
-    val iconPhysicsRadiusPx = remember(density) {
-        with(density) { IconPhysicsRadiusDp.dp.toPx() }
-    }
-    // 아이콘 간 반발력이 작동하기 시작하는 최소 거리
-    val repulsionMinDistPx = remember(density) {
-        with(density) { RepulsionMinDistDp.dp.toPx() }
-    }
-    // 아이콘들의 초기 위치: 원 위에 균등하게 배치해 시작 시 겹치지 않도록
-    val initOffsets = remember(density, iconCount) {
-        if (iconCount == 0) return@remember emptyArray()
-        val r = with(density) { 22.dp.toPx() }
-        Array(iconCount) { i ->
-            // 360°를 아이콘 수로 나눠 등간격 배치, 45° 오프셋으로 정렬 편향 제거
-            val angle = 2f * PI.toFloat() * i / iconCount + PI.toFloat() / 4f
-            Offset(cos(angle) * r, sin(angle) * r)
+    val iconPhysicsRadiusPx =
+        remember(density) {
+            with(density) { ICON_PHYSICS_RADIUS_DP.dp.toPx() }
         }
-    }
+    // 아이콘 간 반발력이 작동하기 시작하는 최소 거리
+    val repulsionMinDistPx =
+        remember(density) {
+            with(density) { REPULSION_MIN_DIST_DP.dp.toPx() }
+        }
+    // 아이콘들의 초기 위치: 원 위에 균등하게 배치해 시작 시 겹치지 않도록
+    val initOffsets =
+        remember(density, iconCount) {
+            if (iconCount == 0) return@remember emptyArray()
+            val r = with(density) { 22.dp.toPx() }
+            Array(iconCount) { i ->
+                // 360°를 아이콘 수로 나눠 등간격 배치, 45° 오프셋으로 정렬 편향 제거
+                val angle = 2f * PI.toFloat() * i / iconCount + PI.toFloat() / 4f
+                Offset(cos(angle) * r, sin(angle) * r)
+            }
+        }
 
     // ball[0] = 현재 회전 각도(도), ball[1] = 각속도(도/s)
     val ball = remember { floatArrayOf(0f, 0f) }
@@ -90,9 +94,10 @@ internal fun GlassBallSection(
 
     // Compose 재구성을 유발하는 상태. 물리 루프에서 매 프레임 업데이트한다.
     val ballAngleState = remember { mutableFloatStateOf(0f) }
-    val iconOffsets = remember(iconCount) {
-        Array(iconCount) { i -> mutableStateOf(initOffsets.getOrNull(i) ?: Offset.Zero) }
-    }
+    val iconOffsets =
+        remember(iconCount) {
+            Array(iconCount) { i -> mutableStateOf(initOffsets.getOrNull(i) ?: Offset.Zero) }
+        }
 
     // 물리 시뮬레이션 루프: withFrameNanos로 화면 주사율(≈60fps)에 동기화한다.
     LaunchedEffect(iconCount) {
@@ -100,11 +105,12 @@ internal fun GlassBallSection(
         while (true) {
             withFrameNanos { time ->
                 // 프레임 간 경과 시간(초). 첫 프레임은 기본값 사용, 이후 실제 경과 시간을 사용한다.
-                val dt = if (lastTime == 0L) {
-                    DefaultDt
-                } else {
-                    ((time - lastTime) / NanosPerSecond).coerceIn(0f, MaxDt)
-                }
+                val dt =
+                    if (lastTime == 0L) {
+                        DEFAULT_DT
+                    } else {
+                        ((time - lastTime) / NANOS_PER_SECOND).coerceIn(0f, MAX_DT)
+                    }
                 lastTime = time
 
                 // --- 볼 회전 업데이트 ---
@@ -113,7 +119,7 @@ internal fun GlassBallSection(
                 pendingAngImpulse[0] = 0f
                 // 각속도로 각도를 적분하고, 감쇠로 서서히 멈춘다.
                 ball[0] += ball[1] * dt
-                ball[1] *= AngularDamping
+                ball[1] *= ANGULAR_DAMPING
 
                 // --- 아이콘 선형 충격량 반영 ---
                 // 아이콘마다 다른 질량 계수(MassFactorCycle)를 적용해 같은 힘에도 다르게 반응하게 한다.
@@ -149,17 +155,17 @@ internal fun GlassBallSection(
                         posY[i] = ny * maxR
                         // 법선 방향 속도 성분을 반전하고 반발 계수를 곱해 에너지를 감쇠시킨다.
                         val dot = velX[i] * nx + velY[i] * ny
-                        velX[i] = (velX[i] - 2f * dot * nx) * Restitution
-                        velY[i] = (velY[i] - 2f * dot * ny) * Restitution
+                        velX[i] = (velX[i] - 2f * dot * nx) * RESTITUTION
+                        velY[i] = (velY[i] - 2f * dot * ny) * RESTITUTION
                     }
 
                     // 선형 감쇠: 매 프레임 속도를 곱해 마찰로 서서히 멈추게 한다.
-                    velX[i] *= LinearDamping
-                    velY[i] *= LinearDamping
+                    velX[i] *= LINEAR_DAMPING
+                    velY[i] *= LINEAR_DAMPING
                 }
 
                 // --- 아이콘 간 반발력 ---
-                // 두 아이콘이 RepulsionMinDistDp보다 가까우면 서로 밀어내 겹침을 방지한다.
+                // 두 아이콘이 REPULSION_MIN_DIST_DP보다 가까우면 서로 밀어내 겹침을 방지한다.
                 for (i in 0 until iconCount) {
                     for (j in i + 1 until iconCount) {
                         val dx = posX[j] - posX[i]
@@ -171,7 +177,7 @@ internal fun GlassBallSection(
                             val nx = dx / dist
                             val ny = dy / dist
                             // 겹친 깊이에 비례한 충격량으로 양쪽을 반대 방향으로 밀어낸다.
-                            val impulse = (repulsionMinDistPx - dist) * RepulsionStrength
+                            val impulse = (repulsionMinDistPx - dist) * REPULSION_STRENGTH
                             velX[i] -= nx * impulse
                             velY[i] -= ny * impulse
                             velX[j] += nx * impulse
@@ -206,8 +212,8 @@ internal fun GlassBallSection(
                             },
                             onDragEnd = {
                                 // 손을 뗄 때 마지막 드래그 속도 방향으로 충격량을 줘 던지는 효과를 낸다.
-                                pendingImpulse[0] += prevDrag[0] * LinearImpulseScale
-                                pendingImpulse[1] += prevDrag[1] * LinearImpulseScale
+                                pendingImpulse[0] += prevDrag[0] * LINEAR_IMPULSE_SCALE
+                                pendingImpulse[1] += prevDrag[1] * LINEAR_IMPULSE_SCALE
                             },
                         ) { change, dragAmount ->
                             change.consume()
@@ -219,10 +225,10 @@ internal fun GlassBallSection(
                             prevDrag[0] = dragAmount.x
                             prevDrag[1] = dragAmount.y
                             // 수평 드래그 양에 비례해 볼 회전 각속도를 추가한다.
-                            pendingAngImpulse[0] += dragAmount.x * RotationSensitivity
+                            pendingAngImpulse[0] += dragAmount.x * ROTATION_SENSITIVITY
                             // 드래그 가속도 방향으로 아이콘에 충격량을 전달한다.
-                            pendingImpulse[0] += accelX * LinearImpulseScale
-                            pendingImpulse[1] += accelY * LinearImpulseScale
+                            pendingImpulse[0] += accelX * LINEAR_IMPULSE_SCALE
+                            pendingImpulse[1] += accelY * LINEAR_IMPULSE_SCALE
                         }
                     },
             contentAlignment = Alignment.Center,
@@ -277,40 +283,51 @@ private fun BoxScope.PhysicsIcon(
                 .offset(
                     x = with(density) { offset.x.toDp() },
                     y = with(density) { offset.y.toDp() },
-                )
-                .size(width = width, height = height)
+                ).size(width = width, height = height)
                 .rotate(staticRotation),
     )
 }
 
 // 글래스볼 이미지 크기
 private val GlassBallSize = 200.dp
+
 // 볼 이미지 중 아이콘이 실제로 존재하는 내부 영역 비율 (이미지 테두리 공간 제외)
-private const val BallIconAreaRatio = 0.62f
+private const val BALL_ICON_AREA_RATIO = 0.62f
+
 // 아이콘 충돌 반경(dp). 이미지보다 작게 설정해 볼 안 이동 공간을 확보한다.
-private const val IconPhysicsRadiusDp = 15f
+private const val ICON_PHYSICS_RADIUS_DP = 15f
+
 // 아이콘 간 반발이 시작되는 최소 거리(dp)
-private const val RepulsionMinDistDp = 48f
+private const val REPULSION_MIN_DIST_DP = 48f
+
 // 반발력 세기. 클수록 아이콘이 더 강하게 튕겨나간다.
-private const val RepulsionStrength = 0.3f
+private const val REPULSION_STRENGTH = 0.3f
+
 // 수평 드래그 → 볼 회전 변환 비율
-private const val RotationSensitivity = 0.3f
+private const val ROTATION_SENSITIVITY = 0.3f
+
 // 드래그 가속도 → 아이콘 속도 변환 비율
-private const val LinearImpulseScale = 5f
+private const val LINEAR_IMPULSE_SCALE = 5f
+
 // 볼 회전 감쇠 계수. 매 프레임 각속도에 곱해 마찰로 멈추게 한다. (0~1, 1에 가까울수록 느리게 멈춤)
-private const val AngularDamping = 0.90f
+private const val ANGULAR_DAMPING = 0.90f
+
 // 아이콘 선형 감쇠 계수. 매 프레임 속도에 곱해 마찰로 멈추게 한다. (0~1, 1에 가까울수록 느리게 멈춤)
-private const val LinearDamping = 0.97f
+private const val LINEAR_DAMPING = 0.97f
+
 // 경계 반사 시 에너지 보존 비율. 낮을수록 벽에 부딪힐 때 많이 감속된다.
-private const val Restitution = 0.35f
-private const val NanosPerSecond = 1_000_000_000f
+private const val RESTITUTION = 0.35f
+private const val NANOS_PER_SECOND = 1_000_000_000f
+
 // dt 계산 전 첫 프레임에 사용할 기본 시간 간격(초)
-private const val DefaultDt = 0.016f
+private const val DEFAULT_DT = 0.016f
+
 // 프레임 스킵 등으로 dt가 비정상적으로 커지는 경우를 방지하는 최대값(초)
-private const val MaxDt = 0.05f
+private const val MAX_DT = 0.05f
 
 // 아이콘에 순환 적용할 고정 기울기(도). 아이콘 수에 관계없이 인덱스 % 4로 적용된다.
 private val StaticRotationCycle = floatArrayOf(25f, -20f, -15f, 15f)
+
 // 아이콘에 순환 적용할 질량 계수. 작을수록 같은 힘에 더 많이 움직인다.
 private val MassFactorCycle = floatArrayOf(0.7f, 1.0f, 1.4f, 0.9f)
 
@@ -328,12 +345,13 @@ private val DetergentHeight = 54.dp
 private fun GlassBallSectionPreview() {
     OBRitTheme {
         GlassBallSection(
-            icons = listOf(
-                ConsumableIcon(R.drawable.ic_towel, TowelWidth, TowelHeight),
-                ConsumableIcon(R.drawable.ic_toothbrush, ToothbrushWidth, ToothbrushHeight),
-                ConsumableIcon(R.drawable.ic_detergent, DetergentWidth, DetergentHeight),
-                ConsumableIcon(R.drawable.ic_razor, RazorWidth, RazorHeight),
-            ),
+            icons =
+                listOf(
+                    ConsumableIcon(R.drawable.ic_towel, TowelWidth, TowelHeight),
+                    ConsumableIcon(R.drawable.ic_toothbrush, ToothbrushWidth, ToothbrushHeight),
+                    ConsumableIcon(R.drawable.ic_detergent, DetergentWidth, DetergentHeight),
+                    ConsumableIcon(R.drawable.ic_razor, RazorWidth, RazorHeight),
+                ),
         )
     }
 }
