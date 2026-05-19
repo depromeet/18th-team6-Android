@@ -18,6 +18,36 @@ public struct OBRitGnb: View {
     }
 
     public var body: some View {
+        if #available(iOS 26.0, *) {
+            glassBody
+        } else {
+            fallbackBody
+        }
+    }
+
+    @available(iOS 26.0, *)
+    private var glassBody: some View {
+        GlassEffectContainer(spacing: OBRitSpacing.s1) {
+            content
+                .glassEffect(.regular.tint(OBRitColors.commonWhite00_20).interactive(), in: Capsule())
+                .gnbGlassChrome()
+        }
+        .gnbGlassShadow()
+    }
+
+    private var fallbackBody: some View {
+        content
+            .background {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                Capsule()
+                    .fill(OBRitColors.commonWhite00_20)
+            }
+            .gnbGlassChrome()
+            .gnbGlassShadow()
+    }
+
+    private var content: some View {
         HStack(spacing: 0) {
             ForEach(OBRitGnbItem.allCases, id: \.self) { item in
                 OBRitGnbButton(
@@ -30,11 +60,6 @@ public struct OBRitGnb: View {
         .padding(.horizontal, OBRitGnbMetrics.horizontalInset)
         .padding(.vertical, OBRitSpacing.s1)
         .frame(width: OBRitGnbMetrics.width, height: OBRitSpacing.s14)
-        .background {
-            Capsule()
-                .fill(OBRitColors.commonWhite00_40)
-        }
-        .shadow(color: Color.black.opacity(0.24), radius: OBRitSpacing.s6, x: 0, y: OBRitSpacing.s4)
     }
 }
 
@@ -50,7 +75,25 @@ private struct OBRitGnbButton: View {
             OBRitGnbIcon(item: item, color: iconColor)
                 .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
                 .frame(width: OBRitGnbMetrics.itemWidth, height: OBRitSpacing.s12)
-                .background(selected ? OBRitColors.surfaceDefaultDefaultLight : Color.clear)
+                .background {
+                    if selected {
+                        Capsule()
+                            .fill(OBRitColors.common00.opacity(0.78))
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        OBRitColors.common00.opacity(0.36),
+                                        OBRitColors.common00.opacity(0.08),
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        Capsule()
+                            .stroke(OBRitColors.common00.opacity(0.32), lineWidth: OBRitGnbMetrics.hairline)
+                    }
+                }
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -146,4 +189,38 @@ private enum OBRitGnbMetrics {
     static let width: CGFloat = 122
     static let itemWidth: CGFloat = 56
     static let horizontalInset: CGFloat = 5
+    static let hairline: CGFloat = 1
+}
+
+private extension View {
+    func gnbGlassChrome() -> some View {
+        overlay {
+            Capsule()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            OBRitColors.common00.opacity(0.50),
+                            OBRitColors.common00.opacity(0.12),
+                            OBRitColors.commonBlack00_20,
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: OBRitGnbMetrics.hairline
+                )
+        }
+        .overlay(alignment: .top) {
+            Capsule()
+                .fill(OBRitColors.common00.opacity(0.18))
+                .frame(height: OBRitSpacing.s1)
+                .padding(.horizontal, OBRitSpacing.s5)
+                .padding(.top, OBRitSpacing.s1)
+                .blur(radius: OBRitSpacing.s0_5)
+        }
+    }
+
+    func gnbGlassShadow() -> some View {
+        shadow(color: Color.black.opacity(0.28), radius: OBRitSpacing.s6, x: 0, y: OBRitSpacing.s4)
+            .shadow(color: OBRitColors.common00.opacity(0.10), radius: OBRitSpacing.s2, x: 0, y: 0)
+    }
 }
