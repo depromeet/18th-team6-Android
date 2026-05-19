@@ -3,23 +3,29 @@ import SwiftUI
 private enum HomeLayoutMetrics {
     static let inventoryTopPadding = OBRitSpacing.s3
     static let inventorySummarySpacing = OBRitSpacing.s7
-    static let dashboardCardHeight: CGFloat = 96
+    static let dashboardCardHeight: CGFloat = 96 // 내 상태 현황 카드 높이
     static let dashboardCardPadding = OBRitSpacing.s6
     static let dashboardContentSpacing = OBRitSpacing.s6
-    static let dashboardMetricsWidth: CGFloat = 76
-    static let dashboardMeterWidth: CGFloat = 224
-    static let dashboardMeterHeight: CGFloat = 48
-    static let dashboardMeterBarTop: CGFloat = 15
+    static let dashboardMetricValueSpacing = OBRitSpacing.s4
+    static var dashboardMeterHeight: CGFloat {
+        max(0, dashboardCardHeight - dashboardCardPadding * 2)
+    }
     static let dashboardMeterBarHeight: CGFloat = 18
-    static let dashboardMeterTickWidth = OBRitSpacing.s0_5
-    static let dashboardMeterTickSpacing = OBRitSpacing.s0_5
+    static let dashboardMeterDividerWidth = OBRitSpacing.s1
+    static let dashboardMeterDividerStep = OBRitSpacing.s1 + OBRitSpacing.px
+    static let dashboardMeterDividerLeadingOffset = -(OBRitSpacing.s0_5 + OBRitSpacing.px / 2)
     static let dashboardIndicatorHeight = OBRitSpacing.s6
-    static let dashboardMarkerOverlayHeight: CGFloat = 68
+    static var dashboardMarkerHeight: CGFloat {
+        OBRitTypography.small.lineHeight + OBRitSpacing.s0_5 + dashboardIndicatorHeight
+    }
+    static let dashboardAverageMarkerTopOffset = OBRitSpacing.s5 + OBRitSpacing.s0_5
+    static var dashboardMarkerOverlayHeight: CGFloat {
+        dashboardMarkerHeight + dashboardAverageMarkerTopOffset
+    }
     static let ratioLabelWidth = OBRitSpacing.s14
-    static let ratioLabelHorizontalOffset: CGFloat = 0
     static let ratioLabelOffsetY = -(OBRitSpacing.s16 + OBRitSpacing.s1 + OBRitSpacing.px)
     static let dashboardOwnMarkerWidth = OBRitSpacing.s11
-    static let dashboardAverageMarkerWidth = OBRitSpacing.s7
+    static let dashboardAverageMarkerWidth = OBRitSpacing.s10
 }
 
 struct HomeStatusSection: View {
@@ -60,7 +66,7 @@ struct HomeStatusSection: View {
     }
 
     private var statusColor: Color {
-        summary.status == "양호" ? OBRitColors.textPositiveDefault : OBRitColors.textWarningDefault
+        summary.status == "완벽" || summary.status == "양호" ? OBRitColors.textPositiveDefault : OBRitColors.textWarningDefault
     }
 }
 
@@ -90,6 +96,7 @@ struct HomeInventorySection: View {
 
             HomeStatusOverviewCard(summary: summary)
                 .padding(.horizontal, OBRitSpacing.s5)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.top, HomeLayoutMetrics.inventoryTopPadding)
         .padding(.bottom, OBRitSpacing.s4)
@@ -119,10 +126,7 @@ private struct HomeOrbOverview: View {
                     alignment: .trailing
                 )
                 .padding(.top, OBRitSpacing.s8 * orbScale)
-                .offset(
-                    x: HomeLayoutMetrics.ratioLabelHorizontalOffset,
-                    y: labelOffsetY
-                )
+                .offset(y: labelOffsetY)
 
                 HomeGlassBall(
                     normalRatio: Double(summary.positiveRatio) / 100,
@@ -139,10 +143,7 @@ private struct HomeOrbOverview: View {
                     alignment: .leading
                 )
                 .padding(.top, OBRitSpacing.s8 * orbScale)
-                .offset(
-                    x: -HomeLayoutMetrics.ratioLabelHorizontalOffset,
-                    y: labelOffsetY
-                )
+                .offset(y: labelOffsetY)
             }
             .padding(.horizontal, horizontalPadding)
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -158,52 +159,6 @@ private extension HomeConsumableItem {
             assetName: orbAssetName,
             weight: 0.92 + CGFloat(max(1, 7 - riskRank)) * 0.055
         )
-    }
-
-    var orbAssetName: String {
-        if title.contains("디퓨저") || title.contains("샴푸") || title.contains("바디워시") {
-            return "home_orb_diffuser"
-        }
-
-        if title.contains("필터") {
-            return "home_orb_shower_filter"
-        }
-
-        if title.contains("칫솔") {
-            return "home_orb_toothbrush"
-        }
-
-        if title.contains("수세미") || title.contains("지퍼백") || title.contains("쓰레기") {
-            return "home_orb_sponge"
-        }
-
-        if title.contains("수건") || title.contains("키친타월") {
-            return "home_orb_towel"
-        }
-
-        if title.contains("세제") {
-            return "home_orb_detergent"
-        }
-
-        if title.contains("면도기") {
-            return "home_orb_razor"
-        }
-
-        return fallbackOrbAssetName
-    }
-
-    var fallbackOrbAssetName: String {
-        let assetNames = [
-            "home_orb_detergent",
-            "home_orb_sponge",
-            "home_orb_toothbrush",
-            "home_orb_diffuser",
-            "home_orb_shower_filter",
-            "home_orb_razor",
-            "home_orb_towel"
-        ]
-
-        return assetNames[id % assetNames.count]
     }
 }
 
@@ -247,9 +202,13 @@ private struct HomeStatusOverviewCard: View {
     var body: some View {
         HStack(spacing: HomeLayoutMetrics.dashboardContentSpacing) {
             HomeStatusOverviewMetrics(summary: summary)
+                .frame(height: HomeLayoutMetrics.dashboardMeterHeight, alignment: .center)
+                .fixedSize(horizontal: true, vertical: false)
 
             HomeStatusOverviewMeter(summary: summary)
-                .frame(maxWidth: .infinity, minHeight: HomeLayoutMetrics.dashboardMeterHeight)
+                .frame(maxWidth: .infinity)
+                .frame(height: HomeLayoutMetrics.dashboardMeterHeight)
+                .layoutPriority(1)
         }
         .padding(HomeLayoutMetrics.dashboardCardPadding)
         .frame(maxWidth: .infinity, minHeight: HomeLayoutMetrics.dashboardCardHeight)
@@ -268,7 +227,7 @@ private struct HomeStatusOverviewMetrics: View {
             HomeStatusOverviewMetricRow(title: "내 소모품", value: "\(summary.totalCount)", rowColor: OBRitColors.common00)
             HomeStatusOverviewMetricRow(title: "교체 필요", value: "\(summary.warningCount)", rowColor: replacementRequiredColor)
         }
-        .frame(width: HomeLayoutMetrics.dashboardMetricsWidth, alignment: .leading)
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     // 내 상태 현황: 교체 필요가 0개일 경우, 교체 필요 영역 텍스트 컬러가 Gray로 변경.
@@ -283,17 +242,16 @@ private struct HomeStatusOverviewMetricRow: View {
     let rowColor: Color
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: HomeLayoutMetrics.dashboardMetricValueSpacing) {
             Text(title)
                 .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: rowColor)
                 .lineLimit(1)
-            Spacer(minLength: 0)
             Text(value)
                 .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.bold, color: rowColor)
                 .lineLimit(1)
         }
         .frame(height: OBRitTypography.base.lineHeight)
-        .frame(width: HomeLayoutMetrics.dashboardMetricsWidth, alignment: .leading)
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 
@@ -302,43 +260,42 @@ private struct HomeStatusOverviewMeter: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let width = min(geometry.size.width, HomeLayoutMetrics.dashboardMeterWidth)
+            let width = geometry.size.width
 
-            ZStack(alignment: .topLeading) {
+            ZStack(alignment: .center) {
                 HomeStatusOverviewMeterBars()
                     .frame(width: width)
                     .frame(height: HomeLayoutMetrics.dashboardMeterBarHeight)
-                    .offset(y: HomeLayoutMetrics.dashboardMeterBarTop)
 
                 ZStack(alignment: .topLeading) {
                     HomeStatusOverviewMeterMarker(title: "내 상태", titlePosition: .top)
-                        .frame(width: HomeLayoutMetrics.dashboardOwnMarkerWidth, height: OBRitSpacing.s11 + OBRitSpacing.s1_5)
-                        .offset(x: markerX(for: summary.ownStatusPercent, markerWidth: HomeLayoutMetrics.dashboardOwnMarkerWidth, in: width))
+                        .frame(width: HomeLayoutMetrics.dashboardOwnMarkerWidth, height: HomeLayoutMetrics.dashboardMarkerHeight)
+                        .offset(x: markerOffsetX(for: summary.ownStatusPercent, markerWidth: HomeLayoutMetrics.dashboardOwnMarkerWidth, in: width))
 
                     HomeStatusOverviewMeterMarker(title: "평균", titlePosition: .bottom)
-                        .frame(width: HomeLayoutMetrics.dashboardAverageMarkerWidth, height: OBRitSpacing.s11 + OBRitSpacing.s1_5)
+                        .frame(width: HomeLayoutMetrics.dashboardAverageMarkerWidth, height: HomeLayoutMetrics.dashboardMarkerHeight)
                         .offset(
-                            x: markerX(for: summary.averageStatusPercent, markerWidth: HomeLayoutMetrics.dashboardAverageMarkerWidth, in: width),
-                            y: OBRitSpacing.s5 + OBRitSpacing.s0_5
+                            x: markerOffsetX(for: summary.averageStatusPercent, markerWidth: HomeLayoutMetrics.dashboardAverageMarkerWidth, in: width),
+                            y: HomeLayoutMetrics.dashboardAverageMarkerTopOffset
                         )
                 }
                 .frame(width: width, height: HomeLayoutMetrics.dashboardMarkerOverlayHeight, alignment: .topLeading)
-                .offset(y: markerOverlayTopOffset)
             }
             .frame(width: width, height: geometry.size.height)
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
     }
 
-    private var markerOverlayTopOffset: CGFloat {
-        let barCenterY = HomeLayoutMetrics.dashboardMeterBarTop + HomeLayoutMetrics.dashboardMeterBarHeight / 2
-        let topMarkerIndicatorCenterY = OBRitTypography.small.lineHeight + OBRitSpacing.s0_5 + HomeLayoutMetrics.dashboardIndicatorHeight / 2
-        return barCenterY - topMarkerIndicatorCenterY
+    private func markerOffsetX(for percent: Double, markerWidth: CGFloat, in width: CGFloat) -> CGFloat {
+        let centeredX = dividerCenterX(for: percent, in: width) - markerWidth / 2
+        return min(max(0, centeredX), max(0, width - markerWidth))
     }
 
-    private func markerX(for percent: Double, markerWidth: CGFloat, in width: CGFloat) -> CGFloat {
-        let centeredX = width * percent - markerWidth / 2
-        return min(max(0, centeredX), max(0, width - markerWidth))
+    private func dividerCenterX(for percent: Double, in width: CGFloat) -> CGFloat {
+        let firstDividerCenterX = HomeLayoutMetrics.dashboardMeterDividerLeadingOffset + HomeLayoutMetrics.dashboardMeterDividerWidth / 2
+        let dividerIndex = ((width * percent - firstDividerCenterX) / HomeLayoutMetrics.dashboardMeterDividerStep).rounded()
+        let centerX = firstDividerCenterX + dividerIndex * HomeLayoutMetrics.dashboardMeterDividerStep
+        return min(max(0, centerX), width)
     }
 }
 
@@ -378,34 +335,45 @@ private struct HomeStatusOverviewMeterMarker: View {
 private struct HomeStatusOverviewMeterBars: View {
     var body: some View {
         GeometryReader { geometry in
-            let tickCount = tickCount(for: geometry.size.width)
+            let width = geometry.size.width
+            let dividerCount = dividerCount(for: width)
 
-            HStack(alignment: .center, spacing: HomeLayoutMetrics.dashboardMeterTickSpacing) {
-                ForEach(0..<tickCount, id: \.self) { index in
-                    Capsule()
-                        .fill(barColor(at: index, tickCount: tickCount))
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                OBRitColors.backgroundWarningDefault,
+                                OBRitColors.backgroundPositiveDefault
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+
+                ForEach(0..<dividerCount, id: \.self) { index in
+                    // 검은색 divider
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(OBRitColors.common100)
                         .frame(
-                            width: HomeLayoutMetrics.dashboardMeterTickWidth,
+                            width: HomeLayoutMetrics.dashboardMeterDividerWidth,
                             height: HomeLayoutMetrics.dashboardMeterBarHeight
                         )
+                        .offset(x: dividerX(at: index))
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .center)
+            .frame(width: width, height: HomeLayoutMetrics.dashboardMeterBarHeight)
         }
     }
 
-    private func tickCount(for width: CGFloat) -> Int {
-        let step = HomeLayoutMetrics.dashboardMeterTickWidth + HomeLayoutMetrics.dashboardMeterTickSpacing
-        return max(1, Int((width + HomeLayoutMetrics.dashboardMeterTickSpacing) / step))
+    private func dividerCount(for width: CGFloat) -> Int {
+        let visibleWidth = width - HomeLayoutMetrics.dashboardMeterDividerLeadingOffset
+        return max(0, Int(ceil(visibleWidth / HomeLayoutMetrics.dashboardMeterDividerStep)) + 1)
     }
 
-    private func barColor(at index: Int, tickCount: Int) -> Color {
-        let progress = tickCount == 1 ? 1 : Double(index) / Double(tickCount - 1)
-        return Color(
-            red: 1.0 * (1 - progress) + (38 / 255) * progress,
-            green: (89 / 255) * (1 - progress) + (239 / 255) * progress,
-            blue: (34 / 255) * (1 - progress) + (205 / 255) * progress
-        )
+    private func dividerX(at index: Int) -> CGFloat {
+        HomeLayoutMetrics.dashboardMeterDividerLeadingOffset
+            + CGFloat(index) * HomeLayoutMetrics.dashboardMeterDividerStep
     }
 }
 
