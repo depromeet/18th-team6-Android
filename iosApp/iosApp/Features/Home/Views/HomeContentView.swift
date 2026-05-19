@@ -15,7 +15,6 @@ struct HomeContentView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    HomeStatusSection(summary: dashboard.summary)
                     HomeInventorySection(
                         summary: dashboard.summary,
                         items: dashboard.usageItems
@@ -48,6 +47,7 @@ struct HomeContentView: View {
                     onNotificationClick: action.onNotification,
                     onProfileClick: action.onProfile
                 )
+                HomeStatusSection(summary: dashboard.summary)
                 Spacer(minLength: 0)
             }
             .ignoresSafeArea(edges: .top)
@@ -69,7 +69,8 @@ struct HomeContentView: View {
 private enum HomeChromeMetrics {
     static let statusBarHeight: CGFloat = 52
     static let topBarHeight: CGFloat = 56
-    static let topContentInset: CGFloat = 105
+    static let homeHeaderHeight: CGFloat = 139
+    static let topContentInset: CGFloat = statusBarHeight + topBarHeight + homeHeaderHeight
 }
 
 private struct HomeRegisterButton: View {
