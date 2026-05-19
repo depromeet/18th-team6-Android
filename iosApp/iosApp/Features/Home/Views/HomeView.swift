@@ -5,14 +5,17 @@ struct HomeView: View {
 
     let onNavigateConsumable: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
+    let onShowListTab: () -> Void
 
     init(
         onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void
+        onNavigateMyPage: @escaping (MyPageRoute) -> Void,
+        onShowListTab: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel())
         self.onNavigateConsumable = onNavigateConsumable
         self.onNavigateMyPage = onNavigateMyPage
+        self.onShowListTab = onShowListTab
     }
 
     var body: some View {
@@ -29,7 +32,7 @@ struct HomeView: View {
                     onNotification: {},
                     onProfile: { onNavigateMyPage(.myPage) },
                     onRegister: { onNavigateConsumable(.registrationMethod) },
-                    onShowList: { onNavigateConsumable(.list) },
+                    onShowList: onShowListTab,
                     onSelectConsumable: { onNavigateConsumable(.detail(consumableId: $0)) },
                     onSelectStatusFilter: viewModel.selectStatusFilter,
                     onSelectWarningSort: viewModel.selectWarningSort

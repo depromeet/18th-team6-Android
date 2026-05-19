@@ -49,8 +49,6 @@ struct ConsumableNavigation {
                     onSetMainRoot(.consumableList)
                 }
             }
-        case .list:
-            ConsumableListView(onNavigate: onNavigate)
         case .search:
             RoutePlaceholderView(title: "검색", subtitle: "소모품 검색")
         case .filter:

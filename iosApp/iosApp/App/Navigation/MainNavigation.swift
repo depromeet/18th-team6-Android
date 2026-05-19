@@ -33,10 +33,13 @@ struct MainNavigation: View {
         case .home:
             HomeView(
                 onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
+                onNavigateMyPage: onNavigateMyPage,
+                onShowListTab: {
+                    selectedTab = .consumableList
+                }
             )
         case .consumableList:
-            ConsumableListTabView(
+            HomeListTab(
                 onNavigate: onNavigateConsumable,
                 onNavigateMyPage: onNavigateMyPage
             )
