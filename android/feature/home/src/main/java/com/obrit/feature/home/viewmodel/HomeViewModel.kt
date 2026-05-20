@@ -9,6 +9,12 @@ class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, Home
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
             intent { reduce { HomeUiState.Success(createMockStatus()) } }
         }
+
+    fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
+
+    fun onNotificationClick() = intent { postSideEffect(HomeSideEffect.OnNotificationClick) }
+
+    fun onProfileClick() = intent { postSideEffect(HomeSideEffect.OnProfileClick) }
 }
 
 sealed interface HomeUiState {
@@ -22,7 +28,13 @@ sealed interface HomeUiState {
     ) : HomeUiState
 }
 
-sealed interface HomeSideEffect
+sealed interface HomeSideEffect {
+    data object OnSearchClick : HomeSideEffect
+
+    data object OnNotificationClick : HomeSideEffect
+
+    data object OnProfileClick : HomeSideEffect
+}
 
 // API 응답 형태를 임시로 ViewModel에 정의한다.
 // shared/model에 HomeStatus가 선언되면 해당 타입으로 교체한다.
