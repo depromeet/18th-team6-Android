@@ -4,7 +4,7 @@ enum HomeSampleData {
     static let dashboard = HomeDashboard(
         summary: summary,
         warningItems: warningItems,
-        usageItems: usageItems
+        usageItems: summaryItems
     )
 
     static var orbFallbackInteriorItems: [HomeOrbInteriorItem] {
@@ -26,7 +26,7 @@ enum HomeSampleData {
     private static let warningItems: [HomeConsumableItem] = [
         HomeConsumableItem(
             id: 1,
-            title: "{Title}",
+            title: "칫솔",
             daysInUse: 30,
             stockCount: 0,
             dDayLabel: "D-day",
@@ -34,38 +34,35 @@ enum HomeSampleData {
             sparesLabel: "여분 0개",
             cardLevel: .l1,
             imageColor: Color(red: 1.0, green: 0.37, blue: 0.16),
-            orbAssetName: "home_orb_sponge",
-            statusFilters: [.replacementDanger, .spareShortage]
+            orbAssetName: "home_orb_toothbrush"
         ),
         HomeConsumableItem(
             id: 2,
-            title: "{Title}",
+            title: "면도기 날",
             daysInUse: 44,
             stockCount: 0,
-            dDayLabel: "D-3",
+            dDayLabel: "D+14",
             replaceLabel: "교체 D+14",
             sparesLabel: "여분 0개",
             cardLevel: .l2,
             imageColor: Color(red: 0.18, green: 0.20, blue: 0.24),
-            orbAssetName: "home_orb_toothbrush",
-            statusFilters: [.replacementDanger, .spareShortage]
+            orbAssetName: "home_orb_razor"
         ),
         HomeConsumableItem(
             id: 3,
-            title: "{Title}",
+            title: "샤워기 필터",
             daysInUse: 82,
             stockCount: 1,
-            dDayLabel: "D+1",
-            replaceLabel: "교체 D-8",
+            dDayLabel: "D-3",
+            replaceLabel: "교체 D-3",
             sparesLabel: "여분 1개",
             cardLevel: .l3,
             imageColor: Color(red: 0.30, green: 0.46, blue: 0.58),
-            orbAssetName: "home_orb_diffuser",
-            statusFilters: [.replacementDanger, .replacementWarning]
+            orbAssetName: "home_orb_shower_filter"
         ),
         HomeConsumableItem(
             id: 4,
-            title: "{Title}",
+            title: "주방 세제",
             daysInUse: 22,
             stockCount: 0,
             dDayLabel: "D+2",
@@ -73,8 +70,7 @@ enum HomeSampleData {
             sparesLabel: "여분 0개",
             cardLevel: .l4,
             imageColor: Color(red: 0.93, green: 0.79, blue: 0.49),
-            orbAssetName: "home_orb_shower_filter",
-            statusFilters: [.replacementDanger, .spareShortage, .replacementWarning]
+            orbAssetName: "home_orb_detergent"
         ),
         HomeConsumableItem(
             id: 5,
@@ -86,8 +82,7 @@ enum HomeSampleData {
             sparesLabel: "여분 2개",
             cardLevel: .l4,
             imageColor: Color(red: 0.80, green: 0.70, blue: 1.0),
-            orbAssetName: "home_orb_diffuser",
-            statusFilters: [.replacementWarning]
+            orbAssetName: "home_orb_diffuser"
         ),
         HomeConsumableItem(
             id: 6,
@@ -99,8 +94,7 @@ enum HomeSampleData {
             sparesLabel: "여분 1개",
             cardLevel: .l4,
             imageColor: Color(red: 0.56, green: 0.77, blue: 1.0),
-            orbAssetName: "home_orb_detergent",
-            statusFilters: [.replacementWarning]
+            orbAssetName: "home_orb_detergent"
         )
     ]
 

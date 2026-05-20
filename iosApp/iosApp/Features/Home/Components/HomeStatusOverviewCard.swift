@@ -1,12 +1,12 @@
 import SwiftUI
 
 private enum HomeStatusOverviewLayoutMetrics {
-    static let cardHeight: CGFloat = 96 // 내 상태 현황 카드 높이
+    static let minimumCardHeight: CGFloat = 96 // 내 상태 현황 카드 최소 높이
     static let cardPadding = OBRitSpacing.s6
     static let contentSpacing = OBRitSpacing.s6
     static let metricValueSpacing = OBRitSpacing.s4
     static var meterHeight: CGFloat {
-        max(0, cardHeight - cardPadding * 2)
+        max(markerOverlayHeight, minimumCardHeight - cardPadding * 2)
     }
     static let meterBarHeight: CGFloat = 18
     static let meterDividerWidth = OBRitSpacing.s1
@@ -30,7 +30,7 @@ struct HomeStatusOverviewCard: View {
     var body: some View {
         HStack(spacing: HomeStatusOverviewLayoutMetrics.contentSpacing) {
             HomeStatusOverviewMetrics(summary: summary)
-                .frame(height: HomeStatusOverviewLayoutMetrics.meterHeight, alignment: .center)
+                .frame(minHeight: HomeStatusOverviewLayoutMetrics.meterHeight, alignment: .center)
                 .fixedSize(horizontal: true, vertical: false)
 
             HomeStatusOverviewMeter(summary: summary)
@@ -39,7 +39,7 @@ struct HomeStatusOverviewCard: View {
                 .layoutPriority(1)
         }
         .padding(HomeStatusOverviewLayoutMetrics.cardPadding)
-        .frame(maxWidth: .infinity, minHeight: HomeStatusOverviewLayoutMetrics.cardHeight)
+        .frame(maxWidth: .infinity, minHeight: HomeStatusOverviewLayoutMetrics.minimumCardHeight)
         .background(OBRitColors.common100)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
         .accessibilityElement(children: .contain)
@@ -53,12 +53,12 @@ private struct HomeStatusOverviewMetrics: View {
     var body: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s1) {
             HomeStatusOverviewMetricRow(title: "내 소모품", value: "\(summary.totalCount)", rowColor: OBRitColors.common00)
-            HomeStatusOverviewMetricRow(title: "교체 필요", value: "\(summary.warningCount)", rowColor: replacementRequiredColor)
+            HomeStatusOverviewMetricRow(title: "교체 위험", value: "\(summary.warningCount)", rowColor: replacementRequiredColor)
         }
         .fixedSize(horizontal: true, vertical: false)
     }
 
-    // 내 상태 현황: 교체 필요가 0개일 경우, 교체 필요 영역 텍스트 컬러가 Gray로 변경.
+    // 내 상태 현황: 교체 위험이 0개일 경우, 교체 위험 영역 텍스트 컬러가 Gray로 변경.
     private var replacementRequiredColor: Color {
         summary.warningCount == 0 ? OBRitColors.textDefaultSecondary : OBRitColors.textWarningDefault
     }

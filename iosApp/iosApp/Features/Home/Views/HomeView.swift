@@ -6,16 +6,19 @@ struct HomeView: View {
     let onNavigateConsumable: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
     let onShowListTab: () -> Void
+    let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
         onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
         onNavigateMyPage: @escaping (MyPageRoute) -> Void,
-        onShowListTab: @escaping () -> Void
+        onShowListTab: @escaping () -> Void,
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel())
         self.onNavigateConsumable = onNavigateConsumable
         self.onNavigateMyPage = onNavigateMyPage
         self.onShowListTab = onShowListTab
+        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
 
     var body: some View {
@@ -26,12 +29,15 @@ struct HomeView: View {
                 selectedStatusFilter: viewModel.selectedStatusFilter,
                 statusFilterCounts: viewModel.statusFilterCounts,
                 selectedWarningSort: viewModel.selectedWarningSort,
+                visibleQuickItems: viewModel.visibleQuickItems,
                 visibleWarningItems: viewModel.visibleWarningItems,
+                onBottomSheetVisibleChange: onBottomSheetVisibleChange,
                 action: HomeViewAction(
                     onSearch: { onNavigateConsumable(.search) },
                     onNotification: {},
                     onProfile: { onNavigateMyPage(.myPage) },
-                    onRegister: { onNavigateConsumable(.registrationMethod) },
+                    onRegisterFromImage: { onNavigateConsumable(.receiptCaptureOrUpload) },
+                    onRegisterDirect: { onNavigateConsumable(.manualRegistration) },
                     onShowList: onShowListTab,
                     onSelectConsumable: { onNavigateConsumable(.detail(consumableId: $0)) },
                     onSelectStatusFilter: viewModel.selectStatusFilter,
@@ -46,7 +52,8 @@ struct HomeViewAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
-    let onRegister: () -> Void
+    let onRegisterFromImage: () -> Void
+    let onRegisterDirect: () -> Void
     let onShowList: () -> Void
     let onSelectConsumable: (Int) -> Void
     let onSelectStatusFilter: (HomeStatusFilter) -> Void

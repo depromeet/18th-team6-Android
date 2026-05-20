@@ -19,7 +19,7 @@ struct HomeQuickItemSection: View {
         VStack(alignment: .leading, spacing: HomeQuickItemLayoutMetrics.contentSpacing) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: HomeQuickItemLayoutMetrics.itemSpacing) {
-                    ForEach(HomeStatusFilter.allCases, id: \.self) { filter in
+                    ForEach(visibleFilters, id: \.self) { filter in
                         OBRitChip(
                             text: filter.title,
                             selected: selectedFilter == filter,
@@ -43,7 +43,11 @@ struct HomeQuickItemSection: View {
                                 title: item.title,
                                 stockCount: item.stockCount,
                                 daysLabel: item.dDayLabel
-                            )
+                            ) {
+                                Image(item.imageAssetName)
+                                    .resizable()
+                                    .scaledToFit()
+                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -52,5 +56,9 @@ struct HomeQuickItemSection: View {
             .frame(height: HomeQuickItemLayoutMetrics.carouselHeight)
         }
         .padding(HomeQuickItemLayoutMetrics.sectionPadding)
+    }
+
+    private var visibleFilters: [HomeStatusFilter] {
+        HomeStatusFilter.allCases.filter { filterCounts[$0, default: 0] > 0 }
     }
 }

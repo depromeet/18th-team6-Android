@@ -166,9 +166,11 @@ public struct OBRitCardList<ImageContent: View>: View {
                 CardBadge(text: replaceLabel, containerColor: listFirstBadgeContainerColor, contentColor: listFirstBadgeContentColor)
                 CardBadge(text: sparesLabel, containerColor: listSecondBadgeContainerColor, contentColor: OBRitColors.common00)
             }
+            .fixedSize(horizontal: true, vertical: true)
         }
         .padding(.horizontal, OBRitSpacing.s5)
         .padding(.vertical, OBRitSpacing.s4)
+        .frame(maxWidth: .infinity)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
@@ -271,5 +273,6 @@ private struct CardBadge: View {
             .padding(.vertical, OBRitSpacing.s1)
             .background(containerColor)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
+            .fixedSize(horizontal: true, vertical: true)
     }
 }

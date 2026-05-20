@@ -98,10 +98,47 @@ struct HomeConsumableItem: Identifiable {
     let cardLevel: OBRitCardLevel
     let imageColor: Color
     let orbAssetName: String
-    var statusFilters: Set<HomeStatusFilter> = []
 
     var riskRank: Int {
         cardLevel.homeRiskRank
+    }
+
+    var imageAssetName: String {
+        orbAssetName
+    }
+
+    var quickStatusFilters: Set<HomeStatusFilter> {
+        var filters: Set<HomeStatusFilter> = []
+
+        if replacementScore == 0 {
+            filters.insert(.replacementDanger)
+        } else if replacementScore == 1 {
+            filters.insert(.replacementWarning)
+        }
+
+        if stockCount == 0 {
+            filters.insert(.spareShortage)
+        }
+
+        return filters
+    }
+
+    var replacementDday: Int {
+        if dDayLabel.localizedCaseInsensitiveContains("day") || dDayLabel == "D-0" {
+            return 0
+        }
+
+        if dDayLabel.hasPrefix("D+"),
+           let days = Int(dDayLabel.dropFirst(2)) {
+            return -days
+        }
+
+        if dDayLabel.hasPrefix("D-"),
+           let days = Int(dDayLabel.dropFirst(2)) {
+            return days
+        }
+
+        return 0
     }
 }
 
@@ -167,7 +204,7 @@ enum HomeWarningSort: CaseIterable, Hashable {
     var title: String {
         switch self {
         case .replacementRisk:
-            return "교체 위험순"
+            return "교체 임박 순"
         case .longestUse:
             return "오래 사용한 순"
         }
@@ -299,17 +336,10 @@ private enum HomeOverallStatus {
 
 private extension HomeConsumableItem {
     var replacementScore: Int {
-        if dDayLabel.localizedCaseInsensitiveContains("day")
-            || dDayLabel.hasPrefix("D+")
-            || dDayLabel == "D-0" {
+        if replacementDday <= 0 {
             return 0
         }
 
-        guard dDayLabel.hasPrefix("D-"),
-              let days = Int(dDayLabel.dropFirst(2)) else {
-            return 0
-        }
-
-        return days >= 4 ? 2 : 1
+        return replacementDday >= 4 ? 2 : 1
     }
 }
