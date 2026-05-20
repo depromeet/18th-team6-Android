@@ -7,7 +7,7 @@ import org.orbitmvi.orbit.viewmodel.container
 class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
-            reduce { HomeUiState.Success(createMockStatus()) }
+            intent { reduce { HomeUiState.Success(createMockStatus()) } }
         }
 }
 
