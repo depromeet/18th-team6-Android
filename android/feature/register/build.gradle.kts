@@ -8,4 +8,5 @@ plugins {
 dependencies {
     implementation(projects.android.core.ui)
     implementation(projects.android.core.designsystem)
+    implementation(projects.shared.designSystem)
 }

@@ -8,19 +8,26 @@ class ManualRegisterViewModel :
     BaseContainerHost<ManualRegisterUiState, ManualRegisterSideEffect>() {
     override val container =
         container<ManualRegisterUiState, ManualRegisterSideEffect>(
-            ManualRegisterUiState.Editing(),
+            ManualRegisterUiState(),
         )
+
+    fun onCategoryChange(value: String) =
+        intent {
+            reduce {
+                state.copy(categoryName = value)
+            }
+        }
 
     fun onNameChange(value: String) =
         intent {
-            reduceOn<ManualRegisterUiState.Editing> {
+            reduce {
                 state.copy(name = value)
             }
         }
 
     fun onSpareCountChange(value: String) =
         intent {
-            reduceOn<ManualRegisterUiState.Editing> {
+            reduce {
                 state.copy(spareCount = value)
             }
         }
@@ -36,15 +43,14 @@ class ManualRegisterViewModel :
         }
 }
 
-sealed interface ManualRegisterUiState {
-    @Immutable
-    data class Editing(
-        val name: String = "",
-        val spareCount: String = "",
-    ) : ManualRegisterUiState {
-        val isSubmitEnabled: Boolean
-            get() = name.isNotBlank()
-    }
+@Immutable
+data class ManualRegisterUiState(
+    val categoryName: String = "",
+    val name: String = "",
+    val spareCount: String = "",
+) {
+    val isSubmitEnabled: Boolean
+        get() = categoryName.isNotBlank() && name.isNotBlank()
 }
 
 sealed interface ManualRegisterSideEffect {

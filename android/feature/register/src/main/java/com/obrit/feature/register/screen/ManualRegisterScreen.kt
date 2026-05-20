@@ -22,6 +22,7 @@ fun ManualRegisterScreen(
         state = state,
         action =
             ManualRegisterScreenAction(
+                onCategoryChange = viewModel::onCategoryChange,
                 onNameChange = viewModel::onNameChange,
                 onSpareCountChange = viewModel::onSpareCountChange,
                 onSubmit = viewModel::onSubmit,
@@ -39,6 +40,7 @@ fun ManualRegisterScreen(
 }
 
 internal data class ManualRegisterScreenAction(
+    val onCategoryChange: (String) -> Unit,
     val onNameChange: (String) -> Unit,
     val onSpareCountChange: (String) -> Unit,
     val onSubmit: () -> Unit,
