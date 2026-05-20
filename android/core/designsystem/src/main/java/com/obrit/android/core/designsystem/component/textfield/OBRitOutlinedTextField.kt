@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +30,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -56,17 +55,16 @@ enum class InputResultState {
 @Suppress("LongParameterList")
 fun OBRitOutlinedTextField(
     state: TextFieldState,
+    supportingTextEnabled: Boolean,
     modifier: Modifier = Modifier,
+    supportingText: String = "",
     placeholder: String = "",
     inputResultState: InputResultState = InputResultState.Default,
-    containerColor: Color = LocalOBRitColor.current.gray800,
     textStyle: TextStyle =
         LocalOBRitTypography.current.xl.copy(
             fontWeight = FontWeight.Medium,
         ),
-    placeholderTextStyle: TextStyle = textStyle,
     maxLength: Int? = null,
-    supportingText: String = "",
     enabled: Boolean = true,
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -76,10 +74,7 @@ fun OBRitOutlinedTextField(
     minLines: Int = 1,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    interactionSource: MutableInteractionSource? = null,
     cursorBrush: Brush = SolidColor(LocalOBRitColor.current.common00),
-    decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit =
-        @Composable { innerTextField -> innerTextField() },
 ) {
     OBRitOutlinedTextField(
         value = state.text.toString(),
@@ -88,14 +83,13 @@ fun OBRitOutlinedTextField(
                 replace(0, length, changedValue)
             }
         },
+        supportingTextEnabled = supportingTextEnabled,
+        supportingText = supportingText,
         modifier = modifier,
         placeholder = placeholder,
         inputResultState = inputResultState,
-        containerColor = containerColor,
         textStyle = textStyle,
-        placeholderTextStyle = placeholderTextStyle,
         maxLength = maxLength,
-        supportingText = supportingText,
         enabled = enabled,
         readOnly = readOnly,
         keyboardOptions = keyboardOptions,
@@ -105,28 +99,26 @@ fun OBRitOutlinedTextField(
         minLines = minLines,
         visualTransformation = visualTransformation,
         onTextLayout = onTextLayout,
-        interactionSource = interactionSource,
         cursorBrush = cursorBrush,
-        decorationBox = decorationBox,
     )
 }
 
 @Composable
-@Suppress("LongMethod", "LongParameterList")
+@Suppress("CyclomaticComplexMethod", "LongMethod", "LongParameterList")
 fun OBRitOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    supportingTextEnabled: Boolean,
     modifier: Modifier = Modifier,
+    supportingText: String = "",
     placeholder: String = "",
     inputResultState: InputResultState = InputResultState.Default,
-    containerColor: Color = LocalOBRitColor.current.gray800,
     textStyle: TextStyle =
         LocalOBRitTypography.current.xl.copy(
             fontWeight = FontWeight.Medium,
+            color = LocalOBRitColor.current.common00,
         ),
-    placeholderTextStyle: TextStyle = textStyle,
     maxLength: Int? = null,
-    supportingText: String = "",
     enabled: Boolean = true,
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -136,59 +128,25 @@ fun OBRitOutlinedTextField(
     minLines: Int = 1,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    interactionSource: MutableInteractionSource? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     cursorBrush: Brush = SolidColor(LocalOBRitColor.current.common00),
-    decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit =
-        @Composable { innerTextField -> innerTextField() },
 ) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-    val actualInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
-    val isFocused by actualInteractionSource.collectIsFocusedAsState()
-    val borderColor =
-        outlinedTextFieldBorderColor(
-            colors = colors,
-            enabled = enabled,
-            inputResultState = inputResultState,
-            isFocused = isFocused,
-        )
-    val contentColor =
-        if (enabled) {
-            colors.common00
-        } else {
-            colors.gray700
-        }
-    val placeholderColor = colors.gray700
-    val counterColor =
-        outlinedTextFieldCounterColor(
-            colors = colors,
-            enabled = enabled,
-            inputResultState = inputResultState,
-        )
-    val statusColor =
-        when (inputResultState) {
-            InputResultState.Error -> colors.red300
-            InputResultState.Success -> colors.green300
-            InputResultState.Default -> contentColor
-        }
-    val resolvedTextStyle = textStyle.copy(color = contentColor)
-    val resolvedPlaceholderStyle =
-        placeholderTextStyle.copy(color = placeholderColor)
-    val resolvedCounterStyle =
-        typography.s.copy(
-            color = counterColor,
-            fontWeight = FontWeight.Medium,
-        )
-    val resolvedCounterText = maxLength?.let { "${value.length.coerceAtMost(it)}/$it" }
-    val resolvedStatusTextStyle =
-        typography.base.copy(
-            color = statusColor,
-            fontWeight = FontWeight.SemiBold,
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val resolvedBorder =
+        BorderStroke(
+            width = 1.dp,
+            color =
+                when {
+                    !enabled -> LocalOBRitColor.current.gray700
+                    inputResultState == InputResultState.Error -> LocalOBRitColor.current.red300
+                    inputResultState == InputResultState.Success -> LocalOBRitColor.current.green300
+                    isFocused -> LocalOBRitColor.current.common00
+                    else -> Color.Transparent
+                },
         )
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(OBRitOutlinedTextFieldSupportingGap),
     ) {
         BasicTextField(
             value = value,
@@ -196,25 +154,18 @@ fun OBRitOutlinedTextField(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = OBRitOutlinedTextFieldMinHeight)
-                    .clip(OBRitOutlinedTextFieldShape)
-                    .background(containerColor)
-                    .then(
-                        Modifier.border(
-                            border =
-                                BorderStroke(
-                                    width = OBRitOutlinedTextFieldBorderWidth,
-                                    color = borderColor,
-                                ),
-                            shape = OBRitOutlinedTextFieldShape,
-                        ),
+                    .clip(shape = RoundedCornerShape(AtomRadius.Middle.dp))
+                    .background(LocalOBRitColor.current.gray800)
+                    .border(
+                        border = resolvedBorder,
+                        shape = RoundedCornerShape(AtomRadius.Middle.dp),
                     ).padding(
-                        horizontal = OBRitOutlinedTextFieldHorizontalPadding,
-                        vertical = OBRitOutlinedTextFieldVerticalPadding,
+                        horizontal = 20.dp,
+                        vertical = 16.dp,
                     ),
             enabled = enabled,
             readOnly = readOnly,
-            textStyle = resolvedTextStyle,
+            textStyle = textStyle,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             singleLine = singleLine,
@@ -222,13 +173,13 @@ fun OBRitOutlinedTextField(
             minLines = minLines,
             visualTransformation = visualTransformation,
             onTextLayout = onTextLayout,
-            interactionSource = actualInteractionSource,
+            interactionSource = interactionSource,
             cursorBrush = cursorBrush,
         ) { innerTextField ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(OBRitOutlinedTextFieldContentGap),
+                horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
             ) {
                 Box(
                     modifier = Modifier.weight(1f),
@@ -237,33 +188,57 @@ fun OBRitOutlinedTextField(
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
                             text = placeholder,
-                            style = resolvedPlaceholderStyle,
+                            style =
+                                textStyle.copy(
+                                    fontWeight = FontWeight.Medium,
+                                    color = LocalOBRitColor.current.gray700,
+                                ),
                             maxLines = if (singleLine) 1 else Int.MAX_VALUE,
                         )
                     }
 
-                    decorationBox(innerTextField)
+                    innerTextField()
                 }
 
-                if (resolvedCounterText != null) {
+                if (maxLength != null) {
                     Text(
-                        text = resolvedCounterText,
-                        style = resolvedCounterStyle,
+                        text = "${value.length}/$maxLength",
+                        style =
+                            LocalOBRitTypography.current.s.copy(
+                                fontWeight = FontWeight.Medium,
+                                color =
+                                    when {
+                                        !enabled -> LocalOBRitColor.current.gray700
+                                        inputResultState == InputResultState.Error -> LocalOBRitColor.current.red300
+                                        inputResultState == InputResultState.Success -> LocalOBRitColor.current.green300
+                                        else -> LocalOBRitColor.current.common00
+                                    },
+                            ),
                         maxLines = 1,
                     )
                 }
             }
         }
 
-        if (inputResultState != InputResultState.Default && supportingText.isNotEmpty()) {
+        if (supportingTextEnabled) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(OBRitOutlinedTextFieldStatusGap),
+                modifier = Modifier.padding(top = AtomSpacing.S2.dp),
             ) {
                 OBRitOutlinedTextFieldStatusIcon(inputResultState = inputResultState)
                 Text(
                     text = supportingText,
-                    style = resolvedStatusTextStyle,
+                    style =
+                        LocalOBRitTypography.current.base.copy(
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    color =
+                        when (inputResultState) {
+                            InputResultState.Error -> LocalOBRitColor.current.red300
+                            InputResultState.Success -> LocalOBRitColor.current.green300
+                            else -> Color.Transparent
+                        },
+                    modifier = Modifier.padding(start = 6.dp),
                 )
             }
         }
@@ -280,52 +255,17 @@ private fun OBRitOutlinedTextFieldStatusIcon(inputResultState: InputResultState)
         }
 
     Icon(
-        painter = painterResource(id = iconRes),
+        imageVector = ImageVector.vectorResource(id = iconRes),
         contentDescription = null,
-        modifier = Modifier.size(OBRitOutlinedTextFieldStatusIconSize),
+        modifier = Modifier.size(AtomSpacing.S4.dp),
         tint = Color.Unspecified,
     )
 }
 
-private fun outlinedTextFieldCounterColor(
-    colors: OBRitColor,
-    enabled: Boolean,
-    inputResultState: InputResultState,
-): Color =
-    when {
-        !enabled -> colors.gray600
-        inputResultState == InputResultState.Error -> colors.red300
-        inputResultState == InputResultState.Success -> colors.green300
-        else -> colors.common00
-    }
-
-private fun outlinedTextFieldBorderColor(
-    colors: OBRitColor,
-    enabled: Boolean,
-    inputResultState: InputResultState,
-    isFocused: Boolean,
-): Color =
-    when {
-        !enabled -> colors.gray600
-        inputResultState == InputResultState.Error -> colors.red300
-        inputResultState == InputResultState.Success -> colors.green300
-        isFocused -> colors.common00
-        else -> colors.gray300
-    }
-
-private val OBRitOutlinedTextFieldMinHeight = AtomSpacing.S14.dp
-private val OBRitOutlinedTextFieldBorderWidth = 1.4f.dp
-private val OBRitOutlinedTextFieldHorizontalPadding = AtomSpacing.S5.dp
-private val OBRitOutlinedTextFieldVerticalPadding = AtomSpacing.S4.dp
-private val OBRitOutlinedTextFieldContentGap = AtomSpacing.S2.dp
-private val OBRitOutlinedTextFieldSupportingGap = AtomSpacing.S2.dp
-private val OBRitOutlinedTextFieldStatusGap = AtomSpacing.S1_5.dp
-private val OBRitOutlinedTextFieldStatusIconSize = AtomSpacing.S4.dp
-private val OBRitOutlinedTextFieldShape = RoundedCornerShape(AtomRadius.Middle.dp)
-
 @Preview(
     name = "OBRitOutlinedTextField Default Empty",
     showBackground = true,
+    widthDp = 360,
 )
 @Composable
 private fun OBRitOutlinedTextFieldDefaultEmptyPreview() {
@@ -333,9 +273,10 @@ private fun OBRitOutlinedTextFieldDefaultEmptyPreview() {
         OBRitOutlinedTextField(
             value = "",
             onValueChange = {},
-            placeholder = "TEXT",
+            supportingTextEnabled = false,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
             modifier = Modifier.fillMaxWidth(),
-            maxLength = 30,
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
             singleLine = true,
         )
     }
@@ -344,16 +285,18 @@ private fun OBRitOutlinedTextFieldDefaultEmptyPreview() {
 @Preview(
     name = "OBRitOutlinedTextField Default Filled",
     showBackground = true,
+    widthDp = 360,
 )
 @Composable
 private fun OBRitOutlinedTextFieldDefaultFilledPreview() {
     OBRitOutlinedTextFieldPreviewContainer {
         OBRitOutlinedTextField(
-            value = "TEXT",
+            value = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_TEXT,
             onValueChange = {},
-            placeholder = "TEXT",
+            supportingTextEnabled = false,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
             modifier = Modifier.fillMaxWidth(),
-            maxLength = 30,
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
             singleLine = true,
         )
     }
@@ -362,6 +305,7 @@ private fun OBRitOutlinedTextFieldDefaultFilledPreview() {
 @Preview(
     name = "OBRitOutlinedTextField Disabled",
     showBackground = true,
+    widthDp = 360,
 )
 @Composable
 private fun OBRitOutlinedTextFieldDisabledPreview() {
@@ -369,10 +313,32 @@ private fun OBRitOutlinedTextFieldDisabledPreview() {
         OBRitOutlinedTextField(
             value = "",
             onValueChange = {},
-            placeholder = "TEXT",
+            supportingTextEnabled = false,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
             modifier = Modifier.fillMaxWidth(),
-            maxLength = 30,
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
             enabled = false,
+            singleLine = true,
+        )
+    }
+}
+
+@Preview(
+    name = "OBRitOutlinedTextField ReadOnly",
+    showBackground = true,
+    widthDp = 360,
+)
+@Composable
+private fun OBRitOutlinedTextFieldReadOnlyPreview() {
+    OBRitOutlinedTextFieldPreviewContainer {
+        OBRitOutlinedTextField(
+            value = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_TEXT,
+            onValueChange = {},
+            supportingTextEnabled = false,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
+            modifier = Modifier.fillMaxWidth(),
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
+            readOnly = true,
             singleLine = true,
         )
     }
@@ -381,18 +347,20 @@ private fun OBRitOutlinedTextFieldDisabledPreview() {
 @Preview(
     name = "OBRitOutlinedTextField Error",
     showBackground = true,
+    widthDp = 360,
 )
 @Composable
 private fun OBRitOutlinedTextFieldErrorPreview() {
     OBRitOutlinedTextFieldPreviewContainer {
         OBRitOutlinedTextField(
-            value = "TEXT",
+            value = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_TEXT,
             onValueChange = {},
-            placeholder = "TEXT",
-            modifier = Modifier.fillMaxWidth(),
+            supportingTextEnabled = true,
+            supportingText = OBRIT_OUTLINED_TEXT_FIELD_ERROR_PREVIEW_TEXT,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
             inputResultState = InputResultState.Error,
-            maxLength = 30,
-            supportingText = "에러 텍스트를 입력해주세요",
+            modifier = Modifier.fillMaxWidth(),
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
             singleLine = true,
         )
     }
@@ -401,19 +369,41 @@ private fun OBRitOutlinedTextFieldErrorPreview() {
 @Preview(
     name = "OBRitOutlinedTextField Success",
     showBackground = true,
+    widthDp = 360,
 )
 @Composable
 private fun OBRitOutlinedTextFieldSuccessPreview() {
     OBRitOutlinedTextFieldPreviewContainer {
         OBRitOutlinedTextField(
-            value = "TEXT",
+            value = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_TEXT,
             onValueChange = {},
-            placeholder = "TEXT",
-            modifier = Modifier.fillMaxWidth(),
+            supportingTextEnabled = true,
+            supportingText = OBRIT_OUTLINED_TEXT_FIELD_SUCCESS_PREVIEW_TEXT,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
             inputResultState = InputResultState.Success,
-            maxLength = 30,
-            supportingText = "성공 텍스트를 입력해주세요",
+            modifier = Modifier.fillMaxWidth(),
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH,
             singleLine = true,
+        )
+    }
+}
+
+@Preview(
+    name = "OBRitOutlinedTextField Multiline",
+    showBackground = true,
+    widthDp = 360,
+)
+@Composable
+private fun OBRitOutlinedTextFieldMultilinePreview() {
+    OBRitOutlinedTextFieldPreviewContainer {
+        OBRitOutlinedTextField(
+            value = OBRIT_OUTLINED_TEXT_FIELD_MULTILINE_PREVIEW_TEXT,
+            onValueChange = {},
+            supportingTextEnabled = false,
+            placeholder = OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER,
+            modifier = Modifier.fillMaxWidth(),
+            maxLength = OBRIT_OUTLINED_TEXT_FIELD_MULTILINE_PREVIEW_MAX_LENGTH,
+            minLines = 3,
         )
     }
 }
@@ -421,14 +411,21 @@ private fun OBRitOutlinedTextFieldSuccessPreview() {
 @Composable
 private fun OBRitOutlinedTextFieldPreviewContainer(content: @Composable () -> Unit) {
     OBRitTheme(dynamicColor = false) {
-        val colors = LocalOBRitColor.current
         Box(
             modifier =
                 Modifier
-                    .background(colors.gray900)
+                    .background(LocalOBRitColor.current.gray900)
                     .padding(AtomSpacing.S6.dp),
         ) {
             content()
         }
     }
 }
+
+private const val OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_TEXT = "Text"
+private const val OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_PLACEHOLDER = "Placeholder"
+private const val OBRIT_OUTLINED_TEXT_FIELD_ERROR_PREVIEW_TEXT = "Error message"
+private const val OBRIT_OUTLINED_TEXT_FIELD_SUCCESS_PREVIEW_TEXT = "Success message"
+private const val OBRIT_OUTLINED_TEXT_FIELD_MULTILINE_PREVIEW_TEXT = "Text\nText\nText"
+private const val OBRIT_OUTLINED_TEXT_FIELD_PREVIEW_MAX_LENGTH = 30
+private const val OBRIT_OUTLINED_TEXT_FIELD_MULTILINE_PREVIEW_MAX_LENGTH = 120
