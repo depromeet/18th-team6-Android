@@ -13,7 +13,7 @@ import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
-import com.obrit.feature.home.screen.section.GlassBallSection
+import com.obrit.feature.home.screen.section.ConsumableOrbit
 import com.obrit.feature.home.screen.section.HomeGraphSection
 import com.obrit.feature.home.viewmodel.HomeUiState
 import com.obrit.feature.home.viewmodel.HomeViewModel
@@ -65,7 +65,7 @@ private fun HomeContents(
             stockStatus = state.status.message.stockStatus,
         )
     }
-    GlassBallSection(icons = icons)
+    ConsumableOrbit(icons = icons)
     if (state is HomeUiState.Success) {
         HomeGraphSection(
             totalCount = state.status.graph.totalCount,
