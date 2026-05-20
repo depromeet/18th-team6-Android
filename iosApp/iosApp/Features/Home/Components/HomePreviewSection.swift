@@ -7,9 +7,6 @@ private enum HomePreviewLayoutMetrics {
     static let cardSpacing = OBRitSpacing.s2
     static let headerHeight = OBRitSpacing.s9 + OBRitSpacing.s0_5
     static let moreButtonHeight: CGFloat = 46
-    static let sortButtonHorizontalPadding = OBRitSpacing.s3
-    static let sortButtonVerticalPadding = OBRitSpacing.s2
-    static let sortButtonIconSize = OBRitSpacing.s4
     static let headerTitleSpacing = OBRitSpacing.s3
     static let bottomSheetTopMargin = OBRitSpacing.s5
     static let bottomSheetHeaderHeight = OBRitSpacing.s1 + OBRitSpacing.s8 + OBRitSpacing.s2_5
@@ -83,32 +80,11 @@ private struct HomePreviewSortButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: OBRitSpacing.s0_5) {
-                Text(text)
-                    .lineLimit(1)
-                    .obritTextStyle(
-                        OBRitTypography.base,
-                        weight: OBRitFontWeight.semiBold,
-                        color: OBRitColors.common00
-                    )
-
-                OBRitIcon(kind: .chevronDown, color: OBRitColors.common00)
-                    .frame(
-                        width: HomePreviewLayoutMetrics.sortButtonIconSize,
-                        height: HomePreviewLayoutMetrics.sortButtonIconSize
-                    )
-            }
-            .padding(.horizontal, HomePreviewLayoutMetrics.sortButtonHorizontalPadding)
-            .padding(.vertical, HomePreviewLayoutMetrics.sortButtonVerticalPadding)
-            .frame(height: HomePreviewLayoutMetrics.headerHeight)
-            .overlay {
-                RoundedRectangle(cornerRadius: OBRitRadius.small)
-                    .stroke(OBRitColors.borderDefaultSecondary, lineWidth: OBRitSpacing.px)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
-        }
-        .buttonStyle(.plain)
+        OBRitDropdown(
+            value: text,
+            variant: .chip,
+            onClick: action
+        )
     }
 }
 

@@ -11,6 +11,11 @@ public enum OBRitDropdownMenuItemSize {
     case large
 }
 
+public enum OBRitDropdownVariant {
+    case input
+    case chip
+}
+
 public struct OBRitDropdown: View {
     private let value: String
     private let placeholder: String
@@ -18,6 +23,7 @@ public struct OBRitDropdown: View {
     private let supportingText: String
     private let enabled: Bool
     private let expanded: Bool
+    private let variant: OBRitDropdownVariant
     private let containerColor: Color
     private let onClick: () -> Void
 
@@ -28,6 +34,7 @@ public struct OBRitDropdown: View {
         supportingText: String = "",
         enabled: Bool = true,
         expanded: Bool = false,
+        variant: OBRitDropdownVariant = .input,
         containerColor: Color = OBRitColors.gray800,
         onClick: @escaping () -> Void
     ) {
@@ -37,11 +44,21 @@ public struct OBRitDropdown: View {
         self.supportingText = supportingText
         self.enabled = enabled
         self.expanded = expanded
+        self.variant = variant
         self.containerColor = containerColor
         self.onClick = onClick
     }
 
     public var body: some View {
+        switch variant {
+        case .input:
+            inputBody
+        case .chip:
+            chipBody
+        }
+    }
+
+    private var inputBody: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             Button(action: onClick) {
                 HStack(spacing: OBRitSpacing.s2) {
@@ -75,6 +92,32 @@ public struct OBRitDropdown: View {
         }
     }
 
+    private var chipBody: some View {
+        Button(action: onClick) {
+            HStack(spacing: OBRitSpacing.s0_5) {
+                Text(displayedText)
+                    .lineLimit(1)
+                    .obritTextStyle(
+                        OBRitTypography.base,
+                        weight: AtomFontWeight.shared.SemiBold,
+                        color: chipTextColor
+                    )
+
+                OBRitIcon(kind: .chevronDown, color: chipTextColor)
+                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+            }
+            .padding(.horizontal, OBRitSpacing.s3)
+            .padding(.vertical, OBRitSpacing.s2)
+            .overlay {
+                RoundedRectangle(cornerRadius: OBRitRadius.small)
+                    .stroke(chipBorderColor, lineWidth: OBRitSpacing.px)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+    }
+
     private var displayedText: String {
         value.isEmpty ? placeholder : value
     }
@@ -102,6 +145,14 @@ public struct OBRitDropdown: View {
             return OBRitColors.gray700
         }
         return nil
+    }
+
+    private var chipTextColor: Color {
+        enabled ? OBRitColors.textDefaultDefault : OBRitColors.textDisabledDefault
+    }
+
+    private var chipBorderColor: Color {
+        enabled ? OBRitColors.borderDefaultSecondary : OBRitColors.borderDisabledDefault
     }
 }
 
