@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MainNavigation: View {
+    @State private var isGnbHiddenByContent = false
+
     let selectedTab: MainTab
     let onNavigateConsumable: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
@@ -26,8 +28,15 @@ struct MainNavigation: View {
                 onSelectMainTab(item.mainTab)
             }
             .padding(.bottom, OBRitSpacing.s6)
+            .opacity(gnbOpacity)
+            .allowsHitTesting(!isGnbHiddenByContent)
+            .accessibilityHidden(isGnbHiddenByContent)
+            .zIndex(1)
         }
         .background(OBRitColors.backgroundDefaultDefault)
+        .onChange(of: selectedTab) { _, _ in
+            isGnbHiddenByContent = false
+        }
     }
 
     @ViewBuilder
@@ -39,14 +48,24 @@ struct MainNavigation: View {
                 onNavigateMyPage: onNavigateMyPage,
                 onShowListTab: {
                     onSelectMainTab(.consumableList)
+                },
+                onBottomSheetVisibleChange: { isVisible in
+                    isGnbHiddenByContent = isVisible
                 }
             )
         case .consumableList:
             HomeListTab(
                 onNavigate: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
+                onNavigateMyPage: onNavigateMyPage,
+                onBottomSheetVisibleChange: { isVisible in
+                    isGnbHiddenByContent = isVisible
+                }
             )
         }
+    }
+
+    private var gnbOpacity: Double {
+        isGnbHiddenByContent ? 0 : 1
     }
 }
 

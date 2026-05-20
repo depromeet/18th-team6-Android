@@ -60,6 +60,7 @@ public struct OBRitGnb: View {
         .padding(.horizontal, OBRitGnbMetrics.horizontalInset)
         .padding(.vertical, OBRitSpacing.s1)
         .frame(width: OBRitGnbMetrics.width, height: OBRitSpacing.s14)
+        .contentShape(Capsule())
     }
 }
 
@@ -95,6 +96,7 @@ private struct OBRitGnbButton: View {
                     }
                 }
                 .clipShape(Capsule())
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
