@@ -1,12 +1,30 @@
 import SwiftUI
 
+enum HomeOrbInteriorSceneCacheKey: Hashable {
+    case homeInventory
+}
+
 struct HomeOrbInteriorItems: View {
-    @StateObject private var sceneStore = HomeOrbInteriorSceneStore()
+    @StateObject private var sceneStore: HomeOrbInteriorSceneStore
 
     let items: [HomeOrbInteriorItem]
     let normalRatio: Double
     let warningRatio: Double
     let drag: HomeOrbDragFrame
+
+    init(
+        items: [HomeOrbInteriorItem],
+        normalRatio: Double,
+        warningRatio: Double,
+        sceneCacheKey: HomeOrbInteriorSceneCacheKey,
+        drag: HomeOrbDragFrame
+    ) {
+        _sceneStore = StateObject(wrappedValue: HomeOrbInteriorSceneStore(cacheKey: sceneCacheKey))
+        self.items = items
+        self.normalRatio = normalRatio
+        self.warningRatio = warningRatio
+        self.drag = drag
+    }
 
     private var visibleItems: [HomeOrbInteriorItem] {
         HomeOrbInteriorInput.visibleItems(from: items)
@@ -45,8 +63,32 @@ struct HomeOrbInteriorItems: View {
     }
 }
 
+@MainActor
 private final class HomeOrbInteriorSceneStore: ObservableObject {
-    let scene = HomeOrbInteriorPhysicsScene()
+    let scene: HomeOrbInteriorPhysicsScene
+
+    init(cacheKey: HomeOrbInteriorSceneCacheKey) {
+        self.scene = HomeOrbInteriorSceneCache.shared.scene(for: cacheKey)
+    }
+}
+
+@MainActor
+private final class HomeOrbInteriorSceneCache {
+    static let shared = HomeOrbInteriorSceneCache()
+
+    private var scenes: [HomeOrbInteriorSceneCacheKey: HomeOrbInteriorPhysicsScene] = [:]
+
+    private init() {}
+
+    func scene(for key: HomeOrbInteriorSceneCacheKey) -> HomeOrbInteriorPhysicsScene {
+        if let cachedScene = scenes[key] {
+            return cachedScene
+        }
+
+        let scene = HomeOrbInteriorPhysicsScene()
+        scenes[key] = scene
+        return scene
+    }
 }
 
 private enum HomeOrbInteriorInput {

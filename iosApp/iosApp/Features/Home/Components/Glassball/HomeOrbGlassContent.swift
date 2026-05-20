@@ -4,6 +4,7 @@ struct HomeOrbGlassContent: View {
     let normalRatio: Double
     let warningRatio: Double
     let interiorItems: [HomeOrbInteriorItem]
+    let sceneCacheKey: HomeOrbInteriorSceneCacheKey
     let drag: HomeOrbDragFrame
 
     var body: some View {
@@ -23,6 +24,7 @@ struct HomeOrbGlassContent: View {
                 items: interiorItems,
                 normalRatio: normalRatio,
                 warningRatio: warningRatio,
+                sceneCacheKey: sceneCacheKey,
                 drag: drag
             )
             .frame(

@@ -11,15 +11,18 @@ struct HomeGlassBall: View {
     let normalRatio: Double
     let warningRatio: Double
     let interiorItems: [HomeOrbInteriorItem]
+    let sceneCacheKey: HomeOrbInteriorSceneCacheKey
 
     init(
         normalRatio: Double,
         warningRatio: Double,
-        interiorItems: [HomeOrbInteriorItem] = HomeSampleData.orbFallbackInteriorItems
+        interiorItems: [HomeOrbInteriorItem] = HomeSampleData.orbFallbackInteriorItems,
+        sceneCacheKey: HomeOrbInteriorSceneCacheKey = .homeInventory
     ) {
         self.normalRatio = normalRatio
         self.warningRatio = warningRatio
         self.interiorItems = interiorItems
+        self.sceneCacheKey = sceneCacheKey
     }
 
     var body: some View {
@@ -52,6 +55,7 @@ struct HomeGlassBall: View {
                 normalRatio: normalRatio,
                 warningRatio: warningRatio,
                 interiorItems: interiorItems,
+                sceneCacheKey: sceneCacheKey,
                 drag: drag
             )
             .frame(
