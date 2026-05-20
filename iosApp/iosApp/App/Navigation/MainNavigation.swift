@@ -47,13 +47,13 @@ struct MainNavigation: View {
                 onNavigateConsumable: onNavigateConsumable,
                 onNavigateMyPage: onNavigateMyPage,
                 onShowListTab: {
-                    onSelectMainTab(.consumableList)
+                    onSelectMainTab(.homeListTab)
                 },
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
                 }
             )
-        case .consumableList:
+        case .homeListTab:
             HomeListTab(
                 onNavigate: onNavigateConsumable,
                 onNavigateMyPage: onNavigateMyPage,
@@ -74,7 +74,7 @@ private extension MainTab {
         switch self {
         case .home:
             return .home
-        case .consumableList:
+        case .homeListTab:
             return .list
         }
     }
@@ -86,7 +86,7 @@ private extension OBRitGnbItem {
         case .home:
             return .home
         case .list:
-            return .consumableList
+            return .homeListTab
         }
     }
 }

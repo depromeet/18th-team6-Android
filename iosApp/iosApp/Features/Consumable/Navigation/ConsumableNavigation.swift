@@ -46,7 +46,7 @@ struct ConsumableNavigation {
                     onSetMainRoot(.home)
                 }
                 NavigationActionButton("전체 소모품 목록") {
-                    onSetMainRoot(.consumableList)
+                    onSetMainRoot(.homeListTab)
                 }
             }
         case .search:
