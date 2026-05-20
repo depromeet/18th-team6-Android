@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ConsumableNavigation {
+    @MainActor
     @ViewBuilder
     static func destination(
         for route: ConsumableRoute,
@@ -50,7 +51,9 @@ struct ConsumableNavigation {
                 }
             }
         case .search:
-            RoutePlaceholderView(title: "검색", subtitle: "소모품 검색")
+            SearchView { consumableId in
+                onNavigate(.detail(consumableId: consumableId))
+            }
         case .filter:
             RoutePlaceholderView(title: "필터", subtitle: "소모품 목록 필터")
         case .sort:
