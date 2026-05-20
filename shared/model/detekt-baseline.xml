@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:CreateAgentError.kt$CreateAgentError.DuplicatedName$10001</ID>
+    <ID>MagicNumber:CreateAgentError.kt$CreateAgentError.EmptyName$10000</ID>
+    <ID>MagicNumber:CreateAgentError.kt$CreateAgentError.InvalidAgentType$10003</ID>
+    <ID>MagicNumber:CreateAgentError.kt$CreateAgentError.InvalidNameFormat$10002</ID>
+    <ID>MagicNumber:DeleteAgentError.kt$DeleteAgentError.InvalidId$20000</ID>
+    <ID>MagicNumber:PatchAgentError.kt$PatchAgentError.DuplicatedName$10001</ID>
+    <ID>MagicNumber:PatchAgentError.kt$PatchAgentError.EmptyName$10000</ID>
+    <ID>MagicNumber:PatchAgentError.kt$PatchAgentError.InvalidAgentType$10003</ID>
+    <ID>MagicNumber:PatchAgentError.kt$PatchAgentError.InvalidNameFormat$10002</ID>
+  </CurrentIssues>
+</SmellBaseline>

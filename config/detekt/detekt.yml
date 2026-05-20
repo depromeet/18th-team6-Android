@@ -1,0 +1,47 @@
+obrit:
+  NoDirectRunOnInViewModel:
+    active: true
+  ScreenContentNoLambdaParams:
+    active: true
+  ScreenActionContract:
+    active: true
+  ScreenComposableFileContract:
+    active: true
+  NoViewModelInScreenContent:
+    active: true
+  ScreenContentVisibility:
+    active: true
+  RemoteDataSourceImplementationVisibility:
+    active: true
+  RepositoryImplementationVisibility:
+    active: true
+  RepositoryReturnTypeContract:
+    active: true
+  RepositoryResultRunCatchingContract:
+    active: true
+  NoTodoCallInMainSource:
+    active: true
+  NoBangBangInMainSource:
+    active: true
+  ModuleBuildScriptConvention:
+    active: true
+  ProjectAccessorsOnly:
+    active: true
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 40
+
+naming:
+  FunctionNaming:
+    active: false
+  MatchingDeclarationName:
+    active: false
+
+style:
+  MaxLineLength:
+    active: false
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - Preview
