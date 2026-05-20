@@ -51,11 +51,10 @@ data class HomeRatio(
 
 @Immutable
 data class HomeGraph(
-    val totalSupplies: Int,
-    val dangerCount: Int,
-    val myScore: Float,
+    val totalCount: Int,
+    val needReplaceCount: Int,
+    val score: Float,
     val averageScore: Float,
-    val scoreLabel: ScoreLabel,
 )
 
 enum class ConsumableStatusLevel { PERFECT, GOOD, WARNING, DANGER }
@@ -78,8 +77,6 @@ enum class StockStatusLevel(
 
 enum class IllustrationType { POSITIVE, NEGATIVE }
 
-enum class ScoreLabel { ABOVE_AVERAGE, AVERAGE, BELOW_AVERAGE }
-
 @Suppress("MagicNumber")
 private fun createMockStatus() =
     HomeStatus(
@@ -99,10 +96,9 @@ private fun createMockStatus() =
             ),
         graph =
             HomeGraph(
-                totalSupplies = 16,
-                dangerCount = 4,
-                myScore = 42.5f,
-                averageScore = 65.0f,
-                scoreLabel = ScoreLabel.BELOW_AVERAGE,
+                totalCount = 16,
+                needReplaceCount = 4,
+                score = 0.425f,
+                averageScore = 0.65f,
             ),
     )

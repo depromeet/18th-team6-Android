@@ -14,6 +14,7 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
 import com.obrit.feature.home.screen.section.GlassBallSection
+import com.obrit.feature.home.screen.section.HomeGraphSection
 import com.obrit.feature.home.viewmodel.HomeUiState
 import com.obrit.feature.home.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -29,7 +30,6 @@ fun HomeScreen(
 ) {
     val state by viewModel.collectAsState()
     val colors = LocalOBRitColor.current
-
     val icons =
         remember {
             listOf(
@@ -39,12 +39,8 @@ fun HomeScreen(
                 ConsumableIcon(R.drawable.ic_razor, 58.dp, 79.dp),
             )
         }
-
     Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(colors.gray900),
+        modifier = modifier.fillMaxSize().background(colors.gray900),
     ) {
         HomeTopBar(
             onSearchClick = onSearchClick,
@@ -52,15 +48,30 @@ fun HomeScreen(
             onProfileClick = onProfileClick,
             modifier = Modifier.statusBarsPadding(),
         )
-        if (state is HomeUiState.Success) {
-            val status = (state as HomeUiState.Success).status
-            ConsumableStatusSection(
-                title = status.message.title,
-                highlightWord = status.message.highlightWord,
-                replacementStatus = status.message.replacementStatus,
-                stockStatus = status.message.stockStatus,
-            )
-        }
-        GlassBallSection(icons = icons)
+        HomeContents(state = state, icons = icons)
+    }
+}
+
+@Composable
+private fun HomeContents(
+    state: HomeUiState,
+    icons: List<ConsumableIcon>,
+) {
+    if (state is HomeUiState.Success) {
+        ConsumableStatusSection(
+            title = state.status.message.title,
+            highlightWord = state.status.message.highlightWord,
+            replacementStatus = state.status.message.replacementStatus,
+            stockStatus = state.status.message.stockStatus,
+        )
+    }
+    GlassBallSection(icons = icons)
+    if (state is HomeUiState.Success) {
+        HomeGraphSection(
+            totalCount = state.status.graph.totalCount,
+            needReplaceCount = state.status.graph.needReplaceCount,
+            score = state.status.graph.score,
+            averageScore = state.status.graph.averageScore,
+        )
     }
 }
