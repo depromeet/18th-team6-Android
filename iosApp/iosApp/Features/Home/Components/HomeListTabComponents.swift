@@ -26,7 +26,8 @@ struct HomeListTabAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
-    let onRegister: () -> Void
+    let onRegisterFromImage: () -> Void
+    let onRegisterDirect: () -> Void
     let onSelectConsumable: (Int) -> Void
     let onOpenFilterSheet: () -> Void
     let onOpenSortSheet: () -> Void
@@ -43,6 +44,8 @@ struct HomeListTabAction {
 }
 
 private struct HomeListTabSuccessView: View {
+    @State private var isFabMenuPresented = false
+
     let viewData: HomeListTabViewData
     let action: HomeListTabAction
 
@@ -75,12 +78,24 @@ private struct HomeListTabSuccessView: View {
                     Spacer(minLength: 0)
                     HStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionButton(
-                            accessibilityLabel: "소모품 등록",
-                            action: action.onRegister
+                        OBRitFloatingActionMenu(
+                            isPresented: $isFabMenuPresented,
+                            items: [
+                                OBRitFloatingActionMenuItem(
+                                    id: "image",
+                                    title: "이미지 등록",
+                                    action: action.onRegisterFromImage
+                                ),
+                                OBRitFloatingActionMenuItem(
+                                    id: "manual",
+                                    title: "직접 등록",
+                                    action: action.onRegisterDirect
+                                )
+                            ],
+                            accessibilityLabel: "소모품 등록"
                         )
                         .padding(.trailing, OBRitSpacing.s5)
-                        .padding(.bottom, OBRitSpacing.s11)
+                        .padding(.bottom, OBRitSpacing.s6)
                     }
                 }
 
@@ -310,28 +325,67 @@ private struct HomeListBottomSheetOverlay: View {
     let action: HomeListTabAction
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            OBRitColors.backgroundDefaultDimDefault
-                .ignoresSafeArea()
-                .onTapGesture(perform: action.onDismissBottomSheet)
+        GeometryReader { geometry in
+            let bottomPadding = geometry.safeAreaInsets.bottom
 
-            switch bottomSheet {
-            case .filter:
-                OBRitBottomSheet(contentHeight: HomeListTabMetrics.filterSheetContentHeight) {
-                    HomeListFilterBottomSheet(viewData: viewData, action: action)
+            ZStack(alignment: .bottom) {
+                OBRitColors.backgroundDefaultDimDefault
+                    .ignoresSafeArea()
+                    .onTapGesture(perform: action.onDismissBottomSheet)
+
+                switch bottomSheet {
+                case .filter:
+                    OBRitBottomSheet(
+                        contentHeight: bottomSheetContentHeight(
+                            preferredHeight: HomeListTabMetrics.preferredFilterSheetContentHeight,
+                            in: geometry,
+                            bottomPadding: bottomPadding
+                        ),
+                        bottomPadding: bottomPadding
+                    ) {
+                        ScrollView(showsIndicators: false) {
+                            HomeListFilterBottomSheet(viewData: viewData, action: action)
+                                .frame(maxWidth: .infinity, alignment: .top)
+                        }
+                    }
+                    .ignoresSafeArea(.container, edges: .bottom)
+                case .sort:
+                    OBRitBottomSheet(
+                        contentHeight: bottomSheetContentHeight(
+                            preferredHeight: HomeListTabMetrics.preferredSortSheetContentHeight,
+                            in: geometry,
+                            bottomPadding: bottomPadding
+                        ),
+                        bottomPadding: bottomPadding
+                    ) {
+                        ScrollView(showsIndicators: false) {
+                            HomeListSortBottomSheet(
+                                selectedOption: viewData.sortOption,
+                                onSelect: action.onSelectSortOption
+                            )
+                            .frame(maxWidth: .infinity, alignment: .top)
+                        }
+                    }
+                    .ignoresSafeArea(.container, edges: .bottom)
                 }
-                .ignoresSafeArea(edges: .bottom)
-            case .sort:
-                OBRitBottomSheet(contentHeight: HomeListTabMetrics.sortSheetContentHeight) {
-                    HomeListSortBottomSheet(
-                        selectedOption: viewData.sortOption,
-                        onSelect: action.onSelectSortOption
-                    )
-                }
-                .ignoresSafeArea(edges: .bottom)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(.container, edges: .bottom)
         }
         .transition(.opacity)
+    }
+
+    private func bottomSheetContentHeight(
+        preferredHeight: CGFloat,
+        in geometry: GeometryProxy,
+        bottomPadding: CGFloat
+    ) -> CGFloat {
+        let availableHeight = geometry.size.height
+            - geometry.safeAreaInsets.top
+            - HomeListTabMetrics.bottomSheetTopMargin
+            - HomeListTabMetrics.bottomSheetHeaderHeight
+            - bottomPadding
+        return min(preferredHeight, max(0, availableHeight))
     }
 }
 
@@ -456,8 +510,10 @@ private struct HomeListScrollOffsetPreferenceKey: PreferenceKey {
 private enum HomeListTabMetrics {
     static let filterBarHeight: CGFloat = 70
     static let toolbarButtonHeight: CGFloat = 38
-    static let filterSheetContentHeight: CGFloat = 312
-    static let sortSheetContentHeight: CGFloat = 224
+    static let preferredFilterSheetContentHeight: CGFloat = 312
+    static let preferredSortSheetContentHeight: CGFloat = 224
+    static let bottomSheetTopMargin = OBRitSpacing.s5
+    static let bottomSheetHeaderHeight = OBRitSpacing.s1 + OBRitSpacing.s8 + OBRitSpacing.s2_5
     static let scrollDirectionThreshold: CGFloat = 2
     static let scrollSpaceName = "HomeListTabScroll"
 }

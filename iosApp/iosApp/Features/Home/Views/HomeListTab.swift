@@ -5,14 +5,17 @@ struct HomeListTab: View {
 
     let onNavigate: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
+    let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
         onNavigate: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void = { _ in }
+        onNavigateMyPage: @escaping (MyPageRoute) -> Void = { _ in },
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeListTabViewModel())
         self.onNavigate = onNavigate
         self.onNavigateMyPage = onNavigateMyPage
+        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
 
     var body: some View {
@@ -22,7 +25,8 @@ struct HomeListTab: View {
                 onSearch: { onNavigate(.search) },
                 onNotification: {},
                 onProfile: { onNavigateMyPage(.myPage) },
-                onRegister: { onNavigate(.registrationMethod) },
+                onRegisterFromImage: { onNavigate(.receiptCaptureOrUpload) },
+                onRegisterDirect: { onNavigate(.manualRegistration) },
                 onSelectConsumable: { onNavigate(.detail(consumableId: $0)) },
                 onOpenFilterSheet: viewModel.openFilterSheet,
                 onOpenSortSheet: viewModel.openSortSheet,
@@ -38,9 +42,25 @@ struct HomeListTab: View {
                 onFilterBarVisibleChange: viewModel.setFilterBarVisible
             )
         )
+        .onAppear {
+            onBottomSheetVisibleChange(viewModel.state.isBottomSheetPresented)
+        }
+        .onChange(of: viewModel.state.isBottomSheetPresented) { _, isPresented in
+            onBottomSheetVisibleChange(isPresented)
+        }
+        .onDisappear {
+            onBottomSheetVisibleChange(false)
+        }
     }
 }
 
 #Preview {
     HomeListTab(onNavigate: { _ in })
+}
+
+private extension HomeListTabState {
+    var isBottomSheetPresented: Bool {
+        guard case let .success(viewData) = self else { return false }
+        return viewData.bottomSheet != nil
+    }
 }
