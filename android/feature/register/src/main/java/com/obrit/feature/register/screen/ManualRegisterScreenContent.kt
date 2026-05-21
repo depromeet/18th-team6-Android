@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,17 +37,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import com.obrit.android.core.designsystem.R
-import com.obrit.android.core.designsystem.component.button.FilledButtonColor
+import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults
 import com.obrit.android.core.designsystem.component.button.OBRitLargeFilledButton
 import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdown
+import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdownMenu
 import com.obrit.android.core.designsystem.component.stepper.OBRitStepper
 import com.obrit.android.core.designsystem.component.textfield.InputResultState
 import com.obrit.android.core.designsystem.component.textfield.OBRitOutlinedTextField
@@ -77,22 +95,23 @@ internal fun ManualRegisterScreenContent(
         OBRitDepthTopBar(
             title = ManualRegisterTitle,
             onBackClick = action.onBack,
-            onMoreClick = {},
         )
 
         Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(top = ManualRegisterTopBarToBodyGap),
+                    .weight(1f),
         ) {
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(bottom = ManualRegisterScrollFadeHeight),
+                        .padding(
+                            top = ManualRegisterTopBarToBodyGap,
+                            bottom = ManualRegisterScrollFadeHeight,
+                        ),
                 verticalArrangement = Arrangement.spacedBy(ManualRegisterSectionGap),
             ) {
                 OBRitTitle(
@@ -121,23 +140,33 @@ internal fun ManualRegisterScreenContent(
                         onClick = { isCategorySheetOpen = true },
                     )
                     NameField(value = state.name, onValueChange = action.onNameChange)
-                    LastReplaceDateField()
-                    QuantityField(quantity = quantity, onQuantityChange = { quantity = it })
+                    LastReplaceDateField(
+                        selectedOption = state.lastReplaceDate,
+                        onOptionChange = action.onLastReplaceDateChange,
+                    )
+                    QuantityField(
+                        title = state.categoryName,
+                        quantity = quantity,
+                        onQuantityChange = { quantity = it },
+                    )
                 }
             }
 
-            Box(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(ManualRegisterScrollFadeHeight)
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.Transparent, colors.gray900),
+            val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            if (!isImeVisible) {
+                Box(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(ManualRegisterScrollFadeHeight)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, colors.gray900),
+                                ),
                             ),
-                        ),
-            )
+                )
+            }
         }
 
         Column(
@@ -153,14 +182,13 @@ internal fun ManualRegisterScreenContent(
             OBRitLargeFilledButton(
                 onClick = action.onSubmit,
                 enabled = state.isSubmitEnabled,
-                color = FilledButtonColor.Green,
+                colors = OBRitButtonDefaults.positiveButtonColors(),
                 modifier = Modifier.fillMaxWidth(),
-            ) { contentColor ->
+            ) {
                 val typography = LocalOBRitTypography.current
                 Text(
                     text = ManualRegisterSubmitLabel,
                     style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
-                    color = contentColor,
                 )
             }
         }
@@ -201,43 +229,127 @@ private fun NameField(
     onValueChange: (String) -> Unit,
 ) {
     val isOverLimit = value.length > ManualRegisterNameMaxLength
-    Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
+    val bringIntoView = remember { BringIntoViewRequester() }
+    var isFocused by remember { mutableStateOf(false) }
+    var columnSize by remember { mutableStateOf(IntSize.Zero) }
+    val imeBottomPx = WindowInsets.ime.getBottom(LocalDensity.current)
+
+    LaunchedEffect(isFocused, imeBottomPx, columnSize) {
+        if (isFocused && columnSize.height > 0) {
+            bringIntoView.bringIntoView(
+                Rect(
+                    left = 0f,
+                    top = 0f,
+                    right = columnSize.width.toFloat(),
+                    bottom = columnSize.height + imeBottomPx.toFloat(),
+                ),
+            )
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
+        modifier =
+            Modifier
+                .bringIntoViewRequester(bringIntoView)
+                .onSizeChanged { columnSize = it },
+    ) {
         FieldSectionHeader(label = ManualRegisterNameLabel)
         OBRitOutlinedTextField(
             value = value,
             onValueChange = onValueChange,
+            supportingTextEnabled = isOverLimit,
             placeholder = ManualRegisterNamePlaceholder,
             maxLength = ManualRegisterNameMaxLength,
             inputResultState = if (isOverLimit) InputResultState.Error else InputResultState.Default,
             supportingText = if (isOverLimit) ManualRegisterNameOverLimitMessage else "",
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .onFocusEvent { isFocused = it.isFocused },
         )
     }
 }
 
 @Composable
-private fun LastReplaceDateField() {
+private fun LastReplaceDateField(
+    selectedOption: String,
+    onOptionChange: (String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var triggerSize by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
+    val menuGapPx = with(density) { LastReplaceDateMenuGap.roundToPx() }
+    val positionProvider =
+        remember(menuGapPx) { LastReplaceDateMenuPositionProvider(menuGapPx) }
+
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         FieldSectionHeader(label = ManualRegisterLastReplaceDateLabel)
-        OBRitDropdown(
-            value = "",
-            onClick = {},
-            placeholder = ManualRegisterLastReplaceDatePlaceholder,
-            modifier = Modifier.fillMaxWidth(),
-        )
+
+        Box {
+            OBRitDropdown(
+                value = selectedOption,
+                onClick = { expanded = !expanded },
+                placeholder = ManualRegisterLastReplaceDatePlaceholder,
+                expanded = expanded,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { triggerSize = it },
+            )
+
+            if (expanded) {
+                Popup(
+                    popupPositionProvider = positionProvider,
+                    onDismissRequest = { expanded = false },
+                    properties = PopupProperties(focusable = true),
+                ) {
+                    OBRitDropdownMenu(
+                        items = LastReplaceDateOptions,
+                        selectedIndex = LastReplaceDateOptions
+                            .indexOf(selectedOption)
+                            .takeIf { it >= 0 },
+                        onItemClick = { index ->
+                            onOptionChange(LastReplaceDateOptions[index])
+                            expanded = false
+                        },
+                        modifier = with(density) { Modifier.width(triggerSize.width.toDp()) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+private class LastReplaceDateMenuPositionProvider(
+    private val verticalGapPx: Int,
+) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val x = anchorBounds.left
+        val belowY = anchorBounds.bottom + verticalGapPx
+        val aboveY = anchorBounds.top - popupContentSize.height - verticalGapPx
+        val fitsBelow = belowY + popupContentSize.height <= windowSize.height
+        val y = if (fitsBelow) belowY else aboveY.coerceAtLeast(0)
+        return IntOffset(x, y)
     }
 }
 
 @Composable
 private fun QuantityField(
+    title: String,
     quantity: Int,
     onQuantityChange: (Int) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         FieldSectionHeader(label = ManualRegisterQuantityLabel)
         QuantityCard(
-            title = ManualRegisterQuantityTitlePlaceholder,
+            title = title.ifEmpty { ManualRegisterQuantityTitlePlaceholder },
             totalCount = 0,
             quantity = quantity,
             onQuantityChange = onQuantityChange,
@@ -431,6 +543,15 @@ private val SelectableFieldSearchIconSize = AtomSpacing.S6.dp
 private val EssentialIconSize = AtomSpacing.S6.dp
 private val QuantityCardImageSize = 52.dp
 private val InfoNoteIconSize = AtomSpacing.S4.dp
+private val LastReplaceDateMenuGap = 6.dp
+
+private val LastReplaceDateOptions =
+    listOf(
+        "1주일 이내",
+        "2-4주 전",
+        "1-3개월 전",
+        "잘 모르겠어요",
+    )
 
 @Preview(name = "ManualRegisterScreen Empty", showBackground = false)
 @Composable
@@ -443,6 +564,7 @@ private fun ManualRegisterScreenEmptyPreview() {
                     onCategoryChange = {},
                     onNameChange = {},
                     onSpareCountChange = {},
+                    onLastReplaceDateChange = {},
                     onSubmit = {},
                     onBack = {},
                 ),
@@ -461,6 +583,7 @@ private fun ManualRegisterScreenFilledPreview() {
                     onCategoryChange = {},
                     onNameChange = {},
                     onSpareCountChange = {},
+                    onLastReplaceDateChange = {},
                     onSubmit = {},
                     onBack = {},
                 ),

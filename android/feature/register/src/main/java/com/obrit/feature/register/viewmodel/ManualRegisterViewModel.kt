@@ -32,6 +32,13 @@ class ManualRegisterViewModel :
             }
         }
 
+    fun onLastReplaceDateChange(value: String) =
+        intent {
+            reduce {
+                state.copy(lastReplaceDate = value)
+            }
+        }
+
     fun onSubmit() =
         intent {
             postSideEffect(ManualRegisterSideEffect.OnRegistered)
@@ -48,9 +55,10 @@ data class ManualRegisterUiState(
     val categoryName: String = "",
     val name: String = "",
     val spareCount: String = "",
+    val lastReplaceDate: String = "",
 ) {
     val isSubmitEnabled: Boolean
-        get() = categoryName.isNotBlank() && name.isNotBlank()
+        get() = categoryName.isNotBlank() && name.isNotBlank() && lastReplaceDate.isNotBlank()
 }
 
 sealed interface ManualRegisterSideEffect {
