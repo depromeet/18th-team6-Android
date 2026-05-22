@@ -3,7 +3,7 @@ import Shared
 
 public enum OBRitColors {
     public static let common00 = color(AtomColors.Common.shared.S00)
-    public static let common100 = color(AtomColors.Common.shared.S100)
+    public static let common100 = color(AtomColors.Common.shared.S1000)
     public static let commonBlack00_80 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_80)
     public static let commonBlack00_60 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_60)
     public static let commonBlack00_40 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_40)
