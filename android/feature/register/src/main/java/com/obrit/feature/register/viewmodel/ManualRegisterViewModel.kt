@@ -48,6 +48,11 @@ class ManualRegisterViewModel :
         intent {
             postSideEffect(ManualRegisterSideEffect.OnBack)
         }
+
+    fun onDirectRegister() =
+        intent {
+            postSideEffect(ManualRegisterSideEffect.OnNavigateToDirectRegister)
+        }
 }
 
 @Immutable
@@ -65,4 +70,6 @@ sealed interface ManualRegisterSideEffect {
     data object OnRegistered : ManualRegisterSideEffect
 
     data object OnBack : ManualRegisterSideEffect
+
+    data object OnNavigateToDirectRegister : ManualRegisterSideEffect
 }

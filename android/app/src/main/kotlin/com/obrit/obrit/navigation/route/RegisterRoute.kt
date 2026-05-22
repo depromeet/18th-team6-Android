@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 sealed interface RegisterRoute : Route {
     @Serializable
     data object ManualRegister : RegisterRoute
+
+    @Serializable
+    data object DirectRegister : RegisterRoute
 }

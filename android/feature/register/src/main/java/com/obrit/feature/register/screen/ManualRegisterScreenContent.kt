@@ -202,6 +202,11 @@ internal fun ManualRegisterScreenContent(
                 isCategorySheetOpen = false
             },
             onDismissRequest = { isCategorySheetOpen = false },
+            onDirectRegisterClick = {
+                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
+                isCategorySheetOpen = false
+                action.onDirectRegister()
+            },
         )
     }
 }
@@ -567,6 +572,7 @@ private fun ManualRegisterScreenEmptyPreview() {
                     onLastReplaceDateChange = {},
                     onSubmit = {},
                     onBack = {},
+                    onDirectRegister = {},
                 ),
         )
     }
@@ -586,6 +592,7 @@ private fun ManualRegisterScreenFilledPreview() {
                     onLastReplaceDateChange = {},
                     onSubmit = {},
                     onBack = {},
+                    onDirectRegister = {},
                 ),
         )
     }

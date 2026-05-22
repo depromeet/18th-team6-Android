@@ -89,6 +89,7 @@ internal fun CategorySelectionBottomSheet(
     initialSelected: String,
     onConfirm: (String) -> Unit,
     onDismissRequest: () -> Unit,
+    onDirectRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // AnchoredDraggable: 2개 anchor (Expanded ↔ Hidden). M3 ModalBottomSheet과 같은 swipe-dismiss UX
@@ -179,6 +180,7 @@ internal fun CategorySelectionBottomSheet(
                 CategorySelectionBottomSheetContent(
                     initialSelected = initialSelected,
                     onConfirm = onConfirm,
+                    onDirectRegisterClick = onDirectRegisterClick,
                 )
             }
         }
@@ -199,6 +201,7 @@ private val CategorySheetScrimColor = Color.Black.copy(alpha = 0.8f)
 private fun CategorySelectionBottomSheetContent(
     initialSelected: String,
     onConfirm: (String) -> Unit,
+    onDirectRegisterClick: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var confirmedQuery by rememberSaveable { mutableStateOf("") }
@@ -301,8 +304,7 @@ private fun CategorySelectionBottomSheetContent(
             ) {
                 if (isEmptyResult) {
                     CategoryEmptyStateCard(
-                        // 후속 PR에서 직접 등록 화면 연결
-                        onDirectRegisterClick = {},
+                        onDirectRegisterClick = onDirectRegisterClick,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
@@ -753,6 +755,7 @@ private fun CategorySelectionBottomSheetEmptyPreview() {
         CategorySelectionBottomSheetContent(
             initialSelected = "",
             onConfirm = {},
+            onDirectRegisterClick = {},
         )
     }
 }
@@ -764,6 +767,7 @@ private fun CategorySelectionBottomSheetSelectedPreview() {
         CategorySelectionBottomSheetContent(
             initialSelected = "정수기 필터",
             onConfirm = {},
+            onDirectRegisterClick = {},
         )
     }
 }
