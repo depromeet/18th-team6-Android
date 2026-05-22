@@ -4,11 +4,11 @@ import Shared
 struct RegistrationMethodView: View {
     @StateObject private var viewModel: RegistrationMethodViewModel
 
-    let onNavigate: (ConsumableRoute) -> Void
+    let onNavigate: (ItemRoute) -> Void
     let onBack: () -> Void
 
     init(
-        onNavigate: @escaping (ConsumableRoute) -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void,
         onBack: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: RegistrationMethodViewModel())
@@ -18,7 +18,7 @@ struct RegistrationMethodView: View {
 
     init(
         viewModel: RegistrationMethodViewModel,
-        onNavigate: @escaping (ConsumableRoute) -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void,
         onBack: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -68,8 +68,8 @@ struct RegistrationMethodView: View {
                                 ForEach(options) { option in
                                     RegistrationMethodOptionCard(option: option) {
                                         switch option.id {
-                                        case .manual:
-                                            onNavigate(.manualRegistration)
+                                        case .direct:
+                                            onNavigate(.itemRegistration)
                                         }
                                     }
                                 }

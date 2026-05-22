@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct HomeConsumableImage: View {
+struct HomeItemImage: View {
     let color: Color
 
     var body: some View {

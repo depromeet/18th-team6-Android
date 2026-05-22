@@ -17,7 +17,7 @@ struct RegistrationPromptView: View {
                     Spacer(minLength: 0)
 
                     VStack(spacing: RegistrationPromptLayoutConfig.contentGap) {
-                        Image("manual_registration_complete_badge")
+                        Image("item_registration_complete_badge")
                             .resizable()
                             .scaledToFit()
                             .frame(width: RegistrationPromptLayoutConfig.badgeSize, height: RegistrationPromptLayoutConfig.badgeSize)

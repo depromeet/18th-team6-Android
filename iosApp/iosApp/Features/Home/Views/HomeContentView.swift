@@ -8,8 +8,8 @@ struct HomeContentView: View {
     let selectedStatusFilter: HomeStatusFilter
     let statusFilterCounts: [HomeStatusFilter: Int]
     let selectedWarningSort: HomeWarningSort
-    let visibleQuickItems: [HomeConsumableItem]
-    let visibleWarningItems: [HomeConsumableItem]
+    let visibleQuickItems: [HomeItemItem]
+    let visibleWarningItems: [HomeItemItem]
     let onBottomSheetVisibleChange: (Bool) -> Void
     let action: HomeViewAction
 
@@ -53,7 +53,7 @@ struct HomeContentView: View {
                             isPresented: $isFabMenuPresented,
                             items: [
                                 OBRitFloatingActionMenuItem(
-                                    id: "manual",
+                                    id: "itemRegistration",
                                     title: "직접 등록",
                                     action: action.onRegisterDirect
                                 )
@@ -108,7 +108,7 @@ struct HomeContentView: View {
             onProfile: {},
             onRegisterDirect: {},
             onShowList: {},
-            onSelectConsumable: { _ in },
+            onSelectItem: { _ in },
             onSelectStatusFilter: { _ in },
             onSelectWarningSort: { _ in }
         )

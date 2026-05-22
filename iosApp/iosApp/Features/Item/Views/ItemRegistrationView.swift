@@ -2,8 +2,8 @@ import SwiftUI
 import Shared
 import UIKit
 
-struct ManualRegistrationView: View {
-    @StateObject private var viewModel: ManualRegistrationViewModel
+struct ItemRegistrationView: View {
+    @StateObject private var viewModel: ItemRegistrationViewModel
 
     let onBack: () -> Void
     let onClose: () -> Void
@@ -14,14 +14,14 @@ struct ManualRegistrationView: View {
         onClose: @escaping () -> Void,
         onComplete: @escaping () -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: ManualRegistrationViewModel())
+        _viewModel = StateObject(wrappedValue: ItemRegistrationViewModel())
         self.onBack = onBack
         self.onClose = onClose
         self.onComplete = onComplete
     }
 
     init(
-        viewModel: ManualRegistrationViewModel,
+        viewModel: ItemRegistrationViewModel,
         onBack: @escaping () -> Void,
         onClose: @escaping () -> Void,
         onComplete: @escaping () -> Void
@@ -35,9 +35,9 @@ struct ManualRegistrationView: View {
     var body: some View {
         switch viewModel.state {
         case let .success(data):
-            ManualRegistrationContentView(
+            ItemRegistrationContentView(
                 data: data,
-                action: ManualRegistrationAction(
+                action: ItemRegistrationAction(
                     onBack: {
                         if data.mode == .directKind {
                             viewModel.resetToForm()
@@ -68,30 +68,30 @@ struct ManualRegistrationView: View {
     }
 }
 
-struct ManualRegistrationAction {
+struct ItemRegistrationAction {
     let onBack: () -> Void
     let onClose: () -> Void
     let onUpdateItemName: (String) -> Void
     let onOpenKindSheet: () -> Void
     let onDismissBottomSheet: () -> Void
     let onUpdateKindSearchQuery: (String) -> Void
-    let onSelectKind: (ManualConsumableKind) -> Void
-    let onSelectKindCandidate: (ManualConsumableKind) -> Void
+    let onSelectKind: (ItemKind) -> Void
+    let onSelectKindCandidate: (ItemKind) -> Void
     let onConfirmKindSelection: () -> Void
-    let onSelectReplacementDate: (ManualReplacementDateOption) -> Void
+    let onSelectReplacementDate: (ItemReplacementDateOption) -> Void
     let onIncrementQuantity: () -> Void
     let onDecrementQuantity: () -> Void
     let onShowDirectKindRegistration: () -> Void
     let onUpdateDirectKindName: (String) -> Void
-    let onSelectImageOption: (ManualConsumableImageOption) -> Void
+    let onSelectImageOption: (ItemImageOption) -> Void
     let onSubmitDirectKind: () -> Void
     let onSubmitForm: () -> Void
     let onComplete: () -> Void
 }
 
-private struct ManualRegistrationContentView: View {
-    let data: ManualRegistrationViewData
-    let action: ManualRegistrationAction
+private struct ItemRegistrationContentView: View {
+    let data: ItemRegistrationViewData
+    let action: ItemRegistrationAction
 
     var body: some View {
         GeometryReader { geometry in
@@ -101,15 +101,15 @@ private struct ManualRegistrationContentView: View {
 
                 switch data.mode {
                 case .form:
-                    ManualRegistrationFormView(data: data, action: action)
+                    ItemRegistrationFormView(data: data, action: action)
                 case .directKind:
-                    ManualDirectKindRegistrationView(data: data, action: action)
+                    ItemDirectKindRegistrationView(data: data, action: action)
                 case .complete:
-                    ManualRegistrationCompleteView(action: action)
+                    ItemRegistrationCompleteView(action: action)
                 }
 
                 if let bottomSheet = data.bottomSheet {
-                    Color.black.opacity(ManualRegistrationLayoutConfig.dimOpacity)
+                    Color.black.opacity(ItemRegistrationLayoutConfig.dimOpacity)
                         .ignoresSafeArea()
                         .onTapGesture(perform: action.onDismissBottomSheet)
                         .transition(.opacity)
@@ -120,31 +120,33 @@ private struct ManualRegistrationContentView: View {
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     .ignoresSafeArea(edges: .bottom)
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .animation(.easeOut(duration: ManualRegistrationLayoutConfig.bottomSheetAnimationDuration), value: data.bottomSheet)
+            .ignoresSafeArea(.keyboard)
+            .animation(.easeOut(duration: ItemRegistrationLayoutConfig.bottomSheetAnimationDuration), value: data.bottomSheet)
         }
     }
 
     @ViewBuilder
-    private func bottomSheetView(_ bottomSheet: ManualRegistrationBottomSheet) -> some View {
+    private func bottomSheetView(_ bottomSheet: ItemRegistrationBottomSheet) -> some View {
         switch bottomSheet {
         case .kind:
-            ManualKindSelectionBottomSheet(data: data, action: action)
+            ItemKindSelectionBottomSheet(data: data, action: action)
         }
     }
 }
 
-private struct ManualRegistrationFormView: View {
+private struct ItemRegistrationFormView: View {
     @State private var isReplacementDateDropdownExpanded = false
 
-    let data: ManualRegistrationViewData
-    let action: ManualRegistrationAction
+    let data: ItemRegistrationViewData
+    let action: ItemRegistrationAction
 
     var body: some View {
         GeometryReader { geometry in
-            let horizontalPadding = ManualRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
+            let horizontalPadding = ItemRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
 
             VStack(spacing: 0) {
                 OBRitDepthTopBar(
@@ -155,35 +157,35 @@ private struct ManualRegistrationFormView: View {
                 )
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: ManualRegistrationLayoutConfig.contentSectionGap) {
-                        ManualRegistrationTitle(
+                    VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.contentSectionGap) {
+                        ItemRegistrationTitle(
                             title: "소모품의 상세 정보를\n입력해주세요",
                             subtitle: "원활한 관리를 위해 구체적인 정보를 입력해주세요"
                         )
 
-                        VStack(alignment: .leading, spacing: ManualRegistrationLayoutConfig.fieldGroupGap) {
-                            ManualRequiredField(title: "소모품 종류") {
-                                ManualKindPickerField(
+                        VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.fieldGroupGap) {
+                            ItemRequiredField(title: "소모품 종류") {
+                                ItemKindPickerField(
                                     value: data.draft.selectedKind?.title ?? "",
                                     placeholder: "소모품 종류를 선택해주세요",
                                     onClick: action.onOpenKindSheet
                                 )
                             }
 
-                            ManualRequiredField(title: "소모품 명") {
-                                ManualTextInputField(
+                            ItemRequiredField(title: "소모품 명") {
+                                ItemTextInputField(
                                     text: Binding(
                                         get: { data.draft.itemName },
                                         set: action.onUpdateItemName
                                     ),
                                     placeholder: "구분을 위한 이름을 입력해주세요",
-                                    maxLength: ManualRegistrationConfig.itemNameMaxLength,
+                                    maxLength: ItemRegistrationConfig.itemNameMaxLength,
                                     singleLine: true
                                 )
                             }
 
-                            ManualRequiredField(title: "마지막 교체 일자") {
-                                ManualReplacementDateDropdown(
+                            ItemRequiredField(title: "마지막 교체 일자") {
+                                ItemReplacementDateDropdown(
                                     selectedOption: data.draft.lastReplacementDateOption,
                                     isExpanded: $isReplacementDateDropdownExpanded,
                                     onSelect: { option in
@@ -192,9 +194,10 @@ private struct ManualRegistrationFormView: View {
                                     }
                                 )
                             }
+                            .zIndex(isReplacementDateDropdownExpanded ? 10 : 0)
 
-                            ManualRequiredField(title: "등록할 수량") {
-                                ManualQuantityCard(
+                            ItemRequiredField(title: "등록할 수량") {
+                                ItemQuantityCard(
                                     kind: data.draft.selectedKind,
                                     quantity: data.draft.quantity,
                                     quantityLabelPrefix: "전체",
@@ -204,15 +207,15 @@ private struct ManualRegistrationFormView: View {
                             }
                         }
 
-                        ManualScrollButton(
+                        ItemScrollButton(
                             text: "소모품 등록하기",
                             enabled: data.canSubmitForm,
                             action: action.onSubmitForm
                         )
                     }
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, ManualRegistrationLayoutConfig.topContentInset)
-                    .padding(.bottom, ManualRegistrationLayoutConfig.scrollBottomPadding)
+                    .padding(.top, ItemRegistrationLayoutConfig.topContentInset)
+                    .padding(.bottom, ItemRegistrationLayoutConfig.scrollBottomPadding)
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .background(OBRitColors.backgroundDefaultDefault.onTapGesture(perform: dismissKeyboard))
@@ -222,13 +225,13 @@ private struct ManualRegistrationFormView: View {
     }
 }
 
-private struct ManualDirectKindRegistrationView: View {
-    let data: ManualRegistrationViewData
-    let action: ManualRegistrationAction
+private struct ItemDirectKindRegistrationView: View {
+    let data: ItemRegistrationViewData
+    let action: ItemRegistrationAction
 
     var body: some View {
         GeometryReader { geometry in
-            let horizontalPadding = ManualRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
+            let horizontalPadding = ItemRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
 
             VStack(spacing: 0) {
                 OBRitDepthTopBar(
@@ -239,33 +242,33 @@ private struct ManualDirectKindRegistrationView: View {
                 )
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: ManualRegistrationLayoutConfig.contentSectionGap) {
-                        ManualRegistrationTitle(
+                    VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.contentSectionGap) {
+                        ItemRegistrationTitle(
                             title: "소모품 종류 직접 등록하기",
                             subtitle: "원하는 소모품 종류가 없다면 직접 추가할 수 있어요."
                         )
 
-                        VStack(alignment: .leading, spacing: ManualRegistrationLayoutConfig.fieldGroupGap) {
-                            ManualRequiredField(title: "소모품 종류 이름") {
-                                ManualTextInputField(
+                        VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.fieldGroupGap) {
+                            ItemRequiredField(title: "소모품 종류 이름") {
+                                ItemTextInputField(
                                     text: Binding(
                                         get: { data.draft.directKindName },
                                         set: action.onUpdateDirectKindName
                                     ),
                                     placeholder: "소모품의 종류 이름을 입력해주세요",
-                                    maxLength: ManualRegistrationConfig.kindNameMaxLength,
+                                    maxLength: ItemRegistrationConfig.kindNameMaxLength,
                                     singleLine: true
                                 )
                             }
 
-                            ManualRequiredField(title: "대표 이미지") {
+                            ItemRequiredField(title: "대표 이미지") {
                                 LazyVGrid(
-                                    columns: ManualRegistrationLayoutConfig.imageGridColumns,
+                                    columns: ItemRegistrationLayoutConfig.imageGridColumns,
                                     alignment: .leading,
-                                    spacing: ManualRegistrationLayoutConfig.imageGridRowGap
+                                    spacing: ItemRegistrationLayoutConfig.imageGridRowGap
                                 ) {
                                     ForEach(data.imageOptions) { option in
-                                        ManualImageOptionButton(
+                                        ItemImageOptionButton(
                                             option: option,
                                             selected: option == data.draft.selectedImageOption,
                                             onSelect: { action.onSelectImageOption(option) }
@@ -275,15 +278,15 @@ private struct ManualDirectKindRegistrationView: View {
                             }
                         }
 
-                        ManualScrollButton(
+                        ItemScrollButton(
                             text: "소모품 종류 등록하기",
                             enabled: data.canSubmitDirectKind,
                             action: action.onSubmitDirectKind
                         )
                     }
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, ManualRegistrationLayoutConfig.topContentInset)
-                    .padding(.bottom, ManualRegistrationLayoutConfig.scrollBottomPadding)
+                    .padding(.top, ItemRegistrationLayoutConfig.topContentInset)
+                    .padding(.bottom, ItemRegistrationLayoutConfig.scrollBottomPadding)
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .background(OBRitColors.backgroundDefaultDefault.onTapGesture(perform: dismissKeyboard))
@@ -293,23 +296,23 @@ private struct ManualDirectKindRegistrationView: View {
     }
 }
 
-private struct ManualRegistrationCompleteView: View {
-    let action: ManualRegistrationAction
+private struct ItemRegistrationCompleteView: View {
+    let action: ItemRegistrationAction
 
     var body: some View {
         GeometryReader { geometry in
-            let horizontalPadding = ManualRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
+            let horizontalPadding = ItemRegistrationLayoutConfig.horizontalPadding(for: geometry.size.width)
 
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
 
-                VStack(spacing: ManualRegistrationLayoutConfig.completeContentGap) {
-                    Image("manual_registration_complete_badge")
+                VStack(spacing: ItemRegistrationLayoutConfig.completeContentGap) {
+                    Image("item_registration_complete_badge")
                         .resizable()
                         .scaledToFit()
                         .frame(
-                            width: ManualRegistrationLayoutConfig.completeBadgeWidth,
-                            height: ManualRegistrationLayoutConfig.completeBadgeHeight
+                            width: ItemRegistrationLayoutConfig.completeBadgeWidth,
+                            height: ItemRegistrationLayoutConfig.completeBadgeHeight
                         )
 
                     VStack(spacing: OBRitSpacing.s4) {
@@ -331,11 +334,11 @@ private struct ManualRegistrationCompleteView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, geometry.size.height * ManualRegistrationLayoutConfig.completeCenterYOffsetRatio)
+                .padding(.bottom, geometry.size.height * ItemRegistrationLayoutConfig.completeCenterYOffsetRatio)
 
                 Spacer(minLength: 0)
 
-                ManualBottomButton(
+                ItemBottomButton(
                     text: "홈 화면으로 돌아가기",
                     enabled: true,
                     horizontalPadding: horizontalPadding,
@@ -346,7 +349,7 @@ private struct ManualRegistrationCompleteView: View {
     }
 }
 
-private struct ManualRegistrationTitle: View {
+private struct ItemRegistrationTitle: View {
     let title: String
     let subtitle: String
 
@@ -373,7 +376,7 @@ private struct ManualRegistrationTitle: View {
     }
 }
 
-private struct ManualRequiredField<Content: View>: View {
+private struct ItemRequiredField<Content: View>: View {
     let title: String
     let content: Content
 
@@ -408,7 +411,7 @@ private struct ManualRequiredField<Content: View>: View {
     }
 }
 
-private struct ManualKindPickerField: View {
+private struct ItemKindPickerField: View {
     let value: String
     let placeholder: String
     let onClick: () -> Void
@@ -430,7 +433,7 @@ private struct ManualKindPickerField: View {
                     .foregroundStyle(OBRitColors.common00)
                     .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
             }
-            .frame(height: ManualRegistrationLayoutConfig.fieldHeight)
+            .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
             .padding(.horizontal, OBRitSpacing.s5)
             .background(OBRitColors.gray800)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
@@ -440,7 +443,7 @@ private struct ManualKindPickerField: View {
     }
 }
 
-private struct ManualDropdownPickerField: View {
+private struct ItemDropdownPickerField: View {
     let value: String
     let placeholder: String
     let onClick: () -> Void
@@ -460,7 +463,7 @@ private struct ManualDropdownPickerField: View {
                 OBRitIcon(kind: .chevronDown, color: OBRitColors.common00)
                     .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
             }
-            .frame(height: ManualRegistrationLayoutConfig.fieldHeight)
+            .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
             .padding(.horizontal, OBRitSpacing.s5)
             .background(OBRitColors.gray800)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
@@ -470,41 +473,49 @@ private struct ManualDropdownPickerField: View {
     }
 }
 
-private struct ManualReplacementDateDropdown: View {
-    let selectedOption: ManualReplacementDateOption?
+private struct ItemReplacementDateDropdown: View {
+    let selectedOption: ItemReplacementDateOption?
     @Binding var isExpanded: Bool
-    let onSelect: (ManualReplacementDateOption) -> Void
+    let onSelect: (ItemReplacementDateOption) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
-            ManualDropdownPickerField(
+        ZStack(alignment: .topLeading) {
+            ItemDropdownPickerField(
                 value: selectedOption?.title ?? "",
                 placeholder: "마지막 교체 일자를 등록해주세요",
                 onClick: {
                     dismissKeyboard()
-                    withAnimation(.easeOut(duration: ManualRegistrationLayoutConfig.dropdownAnimationDuration)) {
+                    withAnimation(.easeOut(duration: ItemRegistrationLayoutConfig.dropdownAnimationDuration)) {
                         isExpanded.toggle()
                     }
                 }
             )
+            .frame(maxWidth: .infinity)
 
             if isExpanded {
                 OBRitDropdownMenu(
-                    items: ManualReplacementDateOption.allCases.map(\.title),
+                    items: ItemReplacementDateOption.allCases.map(\.title),
                     selectedIndex: selectedOption?.rawValue,
+                    fillsWidth: true,
                     onItemClick: { index in
-                        guard let option = ManualReplacementDateOption(rawValue: index) else { return }
+                        guard let option = ItemReplacementDateOption(rawValue: index) else { return }
                         onSelect(option)
                     }
                 )
+                .frame(maxWidth: .infinity)
+                .offset(y: ItemRegistrationLayoutConfig.fieldHeight + OBRitSpacing.s2)
                 .transition(.opacity.combined(with: .move(edge: .top)))
+                .zIndex(1)
             }
         }
-        .animation(.easeOut(duration: ManualRegistrationLayoutConfig.dropdownAnimationDuration), value: isExpanded)
+        .frame(maxWidth: .infinity)
+        .frame(height: ItemRegistrationLayoutConfig.fieldHeight, alignment: .top)
+        .zIndex(isExpanded ? 10 : 0)
+        .animation(.easeOut(duration: ItemRegistrationLayoutConfig.dropdownAnimationDuration), value: isExpanded)
     }
 }
 
-private struct ManualTextInputField: View {
+private struct ItemTextInputField: View {
     @Binding var text: String
     let placeholder: String
     let maxLength: Int
@@ -544,14 +555,14 @@ private struct ManualTextInputField: View {
                     color: OBRitColors.common00
                 )
         }
-        .frame(height: ManualRegistrationLayoutConfig.fieldHeight)
+        .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
         .padding(.horizontal, OBRitSpacing.s5)
         .background(OBRitColors.gray800)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
     }
 }
 
-private struct ManualSearchInputField: View {
+private struct ItemSearchInputField: View {
     @State private var localText: String
     @FocusState private var isFocused: Bool
 
@@ -603,7 +614,7 @@ private struct ManualSearchInputField: View {
                 .foregroundStyle(OBRitColors.common00)
                 .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
         }
-        .frame(height: ManualRegistrationLayoutConfig.fieldHeight)
+        .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
         .padding(.horizontal, OBRitSpacing.s5)
         .overlay {
             RoundedRectangle(cornerRadius: OBRitRadius.middle)
@@ -622,19 +633,19 @@ private struct ManualSearchInputField: View {
     }
 }
 
-private struct ManualQuantityCard: View {
-    let kind: ManualConsumableKind?
+private struct ItemQuantityCard: View {
+    let kind: ItemKind?
     let quantity: Int
     let quantityLabelPrefix: String
     let helperText: String
-    let action: ManualRegistrationAction
+    let action: ItemRegistrationAction
 
     var body: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s4) {
-                ManualConsumableImage(
-                    assetName: kind?.imageAssetName ?? "manual_consumable_razor",
-                    size: ManualRegistrationLayoutConfig.quantityImageSize
+                ItemImage(
+                    assetName: kind?.imageAssetName ?? "item_registration_razor",
+                    size: ItemRegistrationLayoutConfig.quantityImageSize
                 )
 
                 VStack(alignment: .leading, spacing: OBRitSpacing.s1) {
@@ -658,7 +669,7 @@ private struct ManualQuantityCard: View {
                 OBRitStepper(
                     value: quantity,
                     size: .small,
-                    minimumValue: ManualRegistrationConfig.quantityMinimum,
+                    minimumValue: ItemRegistrationConfig.quantityMinimum,
                     onDecrement: action.onDecrementQuantity,
                     onIncrement: action.onIncrementQuantity
                 )
@@ -682,42 +693,45 @@ private struct ManualQuantityCard: View {
     }
 }
 
-private struct ManualKindSelectionBottomSheet: View {
-    let data: ManualRegistrationViewData
-    let action: ManualRegistrationAction
+private struct ItemKindSelectionBottomSheet: View {
+    let data: ItemRegistrationViewData
+    let action: ItemRegistrationAction
 
     var body: some View {
-        OBRitBottomSheet(contentHeight: ManualRegistrationLayoutConfig.kindSheetContentHeight) {
+        OBRitBottomSheet(
+            contentHeight: ItemRegistrationLayoutConfig.kindSheetContentHeight,
+            onDismiss: action.onDismissBottomSheet
+        ) {
             VStack(alignment: .leading, spacing: OBRitSpacing.s8) {
-                ManualSearchInputField(
+                ItemSearchInputField(
                     text: data.kindSearchQuery,
                     placeholder: "원하시는 소모품을 검색해보세요",
                     onTextChange: action.onUpdateKindSearchQuery
                 )
 
                 VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
-                    ManualSheetCountText(
+                    ItemSheetCountText(
                         prefix: data.kindSearchQuery.isEmpty ? "전체 소모품" : "검색 결과",
-                        count: data.kindSearchQuery.isEmpty ? data.consumableKinds.count : data.filteredKinds.count
+                        count: data.kindSearchQuery.isEmpty ? data.itemKinds.count : data.filteredKinds.count
                     )
 
                     if data.filteredKinds.isEmpty {
-                        ManualKindNoResultView(action: action)
+                        ItemKindNoResultView(action: action)
                     } else {
                         ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: OBRitSpacing.s2) {
                                 ForEach(data.filteredKinds) { kind in
-                                    ManualKindSelectionRow(
+                                    ItemKindSelectionRow(
                                         kind: kind,
                                         selected: kind == data.kindCandidateForDisplay,
                                         action: action
                                     )
                                 }
                             }
-                            .padding(.bottom, ManualRegistrationLayoutConfig.sheetButtonHeight + OBRitSpacing.s6)
+                            .padding(.bottom, ItemRegistrationLayoutConfig.sheetButtonHeight + OBRitSpacing.s6)
                         }
                         .overlay(alignment: .bottom) {
-                            ManualSheetGradientButton(
+                            ItemSheetGradientButton(
                                 text: "소모품 종류 선택하기",
                                 enabled: data.selectedKindCandidate != nil,
                                 action: action.onConfirmKindSelection
@@ -730,7 +744,7 @@ private struct ManualKindSelectionBottomSheet: View {
     }
 }
 
-private struct ManualSheetCountText: View {
+private struct ItemSheetCountText: View {
     let prefix: String
     let count: Int
 
@@ -746,19 +760,19 @@ private struct ManualSheetCountText: View {
     }
 }
 
-private struct ManualKindSelectionRow: View {
-    let kind: ManualConsumableKind
+private struct ItemKindSelectionRow: View {
+    let kind: ItemKind
     let selected: Bool
-    let action: ManualRegistrationAction
+    let action: ItemRegistrationAction
 
     var body: some View {
         Button {
             action.onSelectKindCandidate(kind)
         } label: {
             HStack(spacing: OBRitSpacing.s4) {
-                ManualConsumableImage(
+                ItemImage(
                     assetName: kind.imageAssetName,
-                    size: ManualRegistrationLayoutConfig.sheetRowImageSize
+                    size: ItemRegistrationLayoutConfig.sheetRowImageSize
                 )
 
                 VStack(alignment: .leading, spacing: OBRitSpacing.s1) {
@@ -791,8 +805,8 @@ private struct ManualKindSelectionRow: View {
     }
 }
 
-private struct ManualKindNoResultView: View {
-    let action: ManualRegistrationAction
+private struct ItemKindNoResultView: View {
+    let action: ItemRegistrationAction
 
     var body: some View {
         VStack(spacing: OBRitSpacing.s5) {
@@ -819,13 +833,13 @@ private struct ManualKindNoResultView: View {
             )
         }
         .frame(maxWidth: .infinity)
-        .frame(height: ManualRegistrationLayoutConfig.noResultHeight)
+        .frame(height: ItemRegistrationLayoutConfig.noResultHeight)
 
-        ManualSheetGradientButton(text: "소모품 종류 선택하기", enabled: false, action: {})
+        ItemSheetGradientButton(text: "소모품 종류 선택하기", enabled: false, action: {})
     }
 }
 
-private struct ManualSheetGradientButton: View {
+private struct ItemSheetGradientButton: View {
     let text: String
     let enabled: Bool
     let action: () -> Void
@@ -858,8 +872,8 @@ private struct ManualSheetGradientButton: View {
     }
 }
 
-private struct ManualImageOptionButton: View {
-    let option: ManualConsumableImageOption
+private struct ItemImageOptionButton: View {
+    let option: ItemImageOption
     let selected: Bool
     let onSelect: () -> Void
 
@@ -869,8 +883,8 @@ private struct ManualImageOptionButton: View {
                 .resizable()
                 .scaledToFill()
                 .frame(
-                    width: ManualRegistrationLayoutConfig.imageOptionSize,
-                    height: ManualRegistrationLayoutConfig.imageOptionSize
+                    width: ItemRegistrationLayoutConfig.imageOptionSize,
+                    height: ItemRegistrationLayoutConfig.imageOptionSize
                 )
                 .clipShape(Circle())
                 .overlay {
@@ -885,7 +899,7 @@ private struct ManualImageOptionButton: View {
     }
 }
 
-private struct ManualConsumableImage: View {
+private struct ItemImage: View {
     let assetName: String
     let size: CGFloat
 
@@ -898,7 +912,7 @@ private struct ManualConsumableImage: View {
     }
 }
 
-private struct ManualBottomButton: View {
+private struct ItemBottomButton: View {
     let text: String
     let enabled: Bool
     let horizontalPadding: CGFloat
@@ -921,7 +935,7 @@ private struct ManualBottomButton: View {
     }
 }
 
-private struct ManualScrollButton: View {
+private struct ItemScrollButton: View {
     let text: String
     let enabled: Bool
     let action: () -> Void
@@ -938,7 +952,7 @@ private struct ManualScrollButton: View {
     }
 }
 
-private enum ManualRegistrationLayoutConfig {
+private enum ItemRegistrationLayoutConfig {
     static let designWidth: CGFloat = 412
     static let horizontalInsetRatio: CGFloat = 20 / designWidth
     static let topContentInset: CGFloat = OBRitSpacing.s5
@@ -975,8 +989,8 @@ private func dismissKeyboard() {
     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 }
 
-#Preview("Manual Registration") {
-    ManualRegistrationView(
+#Preview("Item Registration") {
+    ItemRegistrationView(
         onBack: {},
         onClose: {},
         onComplete: {}

@@ -3,17 +3,17 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
 
-    let onNavigateConsumable: (ConsumableRoute) -> Void
+    let onNavigateItem: (ItemRoute) -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
+        onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel())
-        self.onNavigateConsumable = onNavigateConsumable
+        self.onNavigateItem = onNavigateItem
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
@@ -30,12 +30,12 @@ struct HomeView: View {
                 visibleWarningItems: viewModel.visibleWarningItems,
                 onBottomSheetVisibleChange: onBottomSheetVisibleChange,
                 action: HomeViewAction(
-                    onSearch: { onNavigateConsumable(.search) },
+                    onSearch: { onNavigateItem(.search) },
                     onNotification: {},
                     onProfile: {},
-                    onRegisterDirect: { onNavigateConsumable(.manualRegistration) },
+                    onRegisterDirect: { onNavigateItem(.itemRegistration) },
                     onShowList: onShowListTab,
-                    onSelectConsumable: { onNavigateConsumable(.detail(consumableId: $0)) },
+                    onSelectItem: { onNavigateItem(.detail(itemId: $0)) },
                     onSelectStatusFilter: viewModel.selectStatusFilter,
                     onSelectWarningSort: viewModel.selectWarningSort
                 )
@@ -50,7 +50,7 @@ struct HomeViewAction {
     let onProfile: () -> Void
     let onRegisterDirect: () -> Void
     let onShowList: () -> Void
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
     let onSelectStatusFilter: (HomeStatusFilter) -> Void
     let onSelectWarningSort: (HomeWarningSort) -> Void
 }

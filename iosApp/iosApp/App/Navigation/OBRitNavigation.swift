@@ -28,7 +28,7 @@ struct OBRitNavigation: View {
                 onSelectMainTab: selectMainTab,
                 onBack: popRoute,
                 onNavigateApp: { navigate(to: $0) },
-                onNavigateConsumable: { navigate(to: $0) }
+                onNavigateItem: { navigate(to: $0) }
             )
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
@@ -40,13 +40,13 @@ struct OBRitNavigation: View {
                     onSelectMainTab: selectMainTab,
                     onBack: popRoute,
                     onNavigateApp: { navigate(to: $0) },
-                    onNavigateConsumable: { navigate(to: $0) }
+                    onNavigateItem: { navigate(to: $0) }
                 )
                 .navigationBarBackButtonHidden(true)
                 .toolbar(.hidden, for: .navigationBar)
             }
-            .navigationDestination(for: ConsumableRoute.self) { route in
-                ConsumableNavigation.destination(
+            .navigationDestination(for: ItemRoute.self) { route in
+                ItemNavigation.destination(
                     for: route,
                     onBack: popRoute,
                     onNavigate: { navigate(to: $0) },
@@ -75,7 +75,7 @@ struct OBRitNavigation: View {
         path.append(route)
     }
 
-    private func navigate(to route: ConsumableRoute) {
+    private func navigate(to route: ItemRoute) {
         path.append(route)
     }
 
@@ -97,13 +97,13 @@ struct OBRitNavigation: View {
             return (.onboarding, initialPath)
         case "registrationPrompt":
             return (.registrationPrompt, initialPath)
-        case "initialConsumableRegistration":
-            return (.initialConsumableRegistration, initialPath)
+        case "initialItemRegistration":
+            return (.initialItemRegistration, initialPath)
         case "registrationMethod":
-            initialPath.append(ConsumableRoute.registrationMethod)
+            initialPath.append(ItemRoute.registrationMethod)
             return (.main(.home), initialPath)
-        case "manualRegistration":
-            initialPath.append(ConsumableRoute.manualRegistration)
+        case "itemRegistration":
+            initialPath.append(ItemRoute.itemRegistration)
             return (.main(.home), initialPath)
         default:
             return (.main(.home), initialPath)

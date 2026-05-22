@@ -3,11 +3,11 @@ import SwiftUI
 struct HomeListTab: View {
     @StateObject private var viewModel: HomeListTabViewModel
 
-    let onNavigate: (ConsumableRoute) -> Void
+    let onNavigate: (ItemRoute) -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
-        onNavigate: @escaping (ConsumableRoute) -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeListTabViewModel())
@@ -22,8 +22,8 @@ struct HomeListTab: View {
                 onSearch: { onNavigate(.search) },
                 onNotification: {},
                 onProfile: {},
-                onRegisterDirect: { onNavigate(.manualRegistration) },
-                onSelectConsumable: { onNavigate(.detail(consumableId: $0)) },
+                onRegisterDirect: { onNavigate(.itemRegistration) },
+                onSelectItem: { onNavigate(.detail(itemId: $0)) },
                 onOpenFilterSheet: viewModel.openFilterSheet,
                 onOpenSortSheet: viewModel.openSortSheet,
                 onDismissBottomSheet: viewModel.dismissBottomSheet,

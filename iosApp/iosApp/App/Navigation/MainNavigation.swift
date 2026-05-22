@@ -4,16 +4,16 @@ struct MainNavigation: View {
     @State private var isGnbHiddenByContent = false
 
     let selectedTab: MainTab
-    let onNavigateConsumable: (ConsumableRoute) -> Void
+    let onNavigateItem: (ItemRoute) -> Void
     let onSelectMainTab: (MainTab) -> Void
 
     init(
         selectedTab: MainTab,
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
+        onNavigateItem: @escaping (ItemRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void
     ) {
         self.selectedTab = selectedTab
-        self.onNavigateConsumable = onNavigateConsumable
+        self.onNavigateItem = onNavigateItem
         self.onSelectMainTab = onSelectMainTab
     }
 
@@ -41,7 +41,7 @@ struct MainNavigation: View {
         switch selectedTab {
         case .home:
             HomeView(
-                onNavigateConsumable: onNavigateConsumable,
+                onNavigateItem: onNavigateItem,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
                 },
@@ -51,7 +51,7 @@ struct MainNavigation: View {
             )
         case .homeListTab:
             HomeListTab(
-                onNavigate: onNavigateConsumable,
+                onNavigate: onNavigateItem,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
                 }

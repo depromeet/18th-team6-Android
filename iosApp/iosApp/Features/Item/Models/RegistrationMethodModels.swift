@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RegistrationMethodOption: Identifiable {
     enum Kind {
-        case manual
+        case direct
     }
 
     let id: Kind
@@ -19,7 +19,7 @@ enum RegistrationMethodViewState {
 enum RegistrationMethodSampleData {
     static let options: [RegistrationMethodOption] = [
         RegistrationMethodOption(
-            id: .manual,
+            id: .direct,
             title: "직접 등록하기",
             subtitle: "소모품 종류와 수량을 직접 입력해요",
             symbolName: "square.and.pencil",

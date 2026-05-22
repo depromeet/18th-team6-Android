@@ -4,11 +4,11 @@ import Foundation
 final class OnboardingViewModel: ObservableObject {
     @Published private(set) var state: OnboardingViewState
 
-    private let options: [OnboardingConsumableOption]
+    private let options: [OnboardingItemOption]
     private var selectedOptionIds: Set<Int>
 
     init(
-        options: [OnboardingConsumableOption] = OnboardingSampleData.options,
+        options: [OnboardingItemOption] = OnboardingSampleData.options,
         selectedOptionIds: Set<Int> = [1]
     ) {
         self.options = options
@@ -16,7 +16,7 @@ final class OnboardingViewModel: ObservableObject {
         self.state = .success(OnboardingViewData(options: options, selectedOptionIds: selectedOptionIds))
     }
 
-    func toggleOption(_ option: OnboardingConsumableOption) {
+    func toggleOption(_ option: OnboardingItemOption) {
         if selectedOptionIds.contains(option.id) {
             selectedOptionIds.remove(option.id)
         } else {

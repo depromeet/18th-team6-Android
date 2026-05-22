@@ -9,7 +9,7 @@ struct AppNavigation {
         onSelectMainTab: @escaping (MainTab) -> Void,
         onBack: @escaping () -> Void,
         onNavigateApp: @escaping (AppRoute) -> Void,
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void
+        onNavigateItem: @escaping (ItemRoute) -> Void
     ) -> some View {
         switch route {
         case .splash:
@@ -31,21 +31,21 @@ struct AppNavigation {
         case .registrationPrompt:
             RegistrationPromptView(
                 onRegister: {
-                    onNavigateApp(.initialConsumableRegistration)
+                    onNavigateApp(.initialItemRegistration)
                 },
                 onSkip: {
                     onSetRoot(.main(.home))
                 }
             )
-        case .initialConsumableRegistration:
+        case .initialItemRegistration:
             RegistrationMethodView(
-                onNavigate: onNavigateConsumable,
+                onNavigate: onNavigateItem,
                 onBack: onBack
             )
         case .main:
             MainNavigation(
                 selectedTab: selectedMainTab,
-                onNavigateConsumable: onNavigateConsumable,
+                onNavigateItem: onNavigateItem,
                 onSelectMainTab: onSelectMainTab
             )
             .navigationBarBackButtonHidden(true)

@@ -5,21 +5,21 @@ struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SearchViewModel
 
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
 
     @MainActor
-    init(onSelectConsumable: @escaping (Int) -> Void) {
+    init(onSelectItem: @escaping (Int) -> Void) {
         _viewModel = StateObject(wrappedValue: SearchViewModel())
-        self.onSelectConsumable = onSelectConsumable
+        self.onSelectItem = onSelectItem
     }
 
     @MainActor
     init(
         viewModel: SearchViewModel,
-        onSelectConsumable: @escaping (Int) -> Void
+        onSelectItem: @escaping (Int) -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.onSelectConsumable = onSelectConsumable
+        self.onSelectItem = onSelectItem
     }
 
     var body: some View {
@@ -34,7 +34,7 @@ struct SearchView: View {
                 onSelectKeyword: viewModel.selectKeyword,
                 onRemoveRecentKeyword: viewModel.removeRecentKeyword,
                 onSubmitSearch: viewModel.submitSearch,
-                onSelectConsumable: onSelectConsumable
+                onSelectItem: onSelectItem
             )
         )
         .navigationBarBackButtonHidden(true)
@@ -47,7 +47,7 @@ struct SearchViewAction {
     let onSelectKeyword: (String) -> Void
     let onRemoveRecentKeyword: (String) -> Void
     let onSubmitSearch: () -> Void
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
 }
 
 private struct SearchContentView: View {
@@ -104,7 +104,7 @@ private struct SearchBodyView: View {
         case .results:
             SearchResultListView(
                 items: viewData.results,
-                onSelectConsumable: action.onSelectConsumable
+                onSelectItem: action.onSelectItem
             )
         case .noResult:
             SearchEmptyMessageView(
@@ -220,7 +220,7 @@ private struct SearchSuggestionListView: View {
 
 private struct SearchResultListView: View {
     let items: [HomeListTabItem]
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -234,7 +234,7 @@ private struct SearchResultListView: View {
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(items) { item in
                         Button {
-                            onSelectConsumable(item.id)
+                            onSelectItem(item.id)
                         } label: {
                             OBRitCardList(
                                 level: item.cardLevel,
@@ -283,7 +283,7 @@ private extension SearchViewModel {
             )
         ),
         query: .constant(""),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectConsumable: { _ in })
+        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
     )
 }
 
@@ -299,6 +299,6 @@ private extension SearchViewModel {
             )
         ),
         query: .constant("샤워기"),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectConsumable: { _ in })
+        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
     )
 }
