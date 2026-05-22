@@ -38,6 +38,12 @@
 - shared Kotlin API를 Swift에서 사용할 때는 Kotlin/Native export 이름과 nullability를 확인한다.
 - sample UI를 수정할 때도 `ContentView_Previews`가 깨지지 않도록 유지한다.
 
+## Git 커밋 규칙
+
+- iOS 작업 커밋의 제목과 본문은 한글로 작성한다.
+- 커밋 타입은 루트 `AGENTS.md`와 `docs/ruleset/Git.md`의 Conventional Commits 형식을 따르되, 요약과 설명 문장은 한글로 작성한다.
+- 예: `feat: 홈 리스트 탭 추가`, `fix: GNB 탭 전환 시 네비게이션 스택 초기화`
+
 ## 검증
 
 - shared Kotlin 변경은 먼저 관련 Gradle metadata compile을 확인한다.

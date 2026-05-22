@@ -2,13 +2,16 @@ import SwiftUI
 
 public struct OBRitBottomSheet<Content: View>: View {
     private let contentHeight: CGFloat
+    private let bottomPadding: CGFloat
     private let content: Content
 
     public init(
         contentHeight: CGFloat = 414,
+        bottomPadding: CGFloat = OBRitSpacing.s5,
         @ViewBuilder content: () -> Content
     ) {
         self.contentHeight = contentHeight
+        self.bottomPadding = bottomPadding
         self.content = content()
     }
 
@@ -17,14 +20,12 @@ public struct OBRitBottomSheet<Content: View>: View {
             OBRitBottomSheetHeader()
 
             content
-                .frame(
-                    width: OBRitBottomSheetMetrics.contentWidth,
-                    height: contentHeight,
-                    alignment: .top
-                )
+                .padding(.horizontal, OBRitBottomSheetMetrics.contentHorizontalPadding)
+                .frame(maxWidth: .infinity, alignment: .top)
+                .frame(height: contentHeight, alignment: .top)
         }
-        .frame(width: OBRitBottomSheetMetrics.sheetWidth)
-        .padding(.bottom, OBRitSpacing.s5)
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, bottomPadding)
         .background(OBRitColors.gray900)
         .clipShape(OBRitTopRoundedRectangle(radius: OBRitRadius.bottomSheet))
     }
@@ -40,7 +41,7 @@ private struct OBRitBottomSheetHeader: View {
                     height: OBRitBottomSheetMetrics.handleHeight
                 )
         }
-        .frame(width: OBRitBottomSheetMetrics.sheetWidth)
+        .frame(maxWidth: .infinity)
         .padding(OBRitSpacing.s4)
     }
 }
@@ -70,9 +71,7 @@ private struct OBRitTopRoundedRectangle: Shape {
 }
 
 private enum OBRitBottomSheetMetrics {
-    static let sheetWidth: CGFloat = 412
-    static let contentWidth: CGFloat = 372
-    static let contentHeight: CGFloat = 414
+    static let contentHorizontalPadding = OBRitSpacing.s5
     static let handleWidth: CGFloat = 32
     static let handleHeight: CGFloat = 4
 }

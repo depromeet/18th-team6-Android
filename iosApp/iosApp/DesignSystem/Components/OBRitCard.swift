@@ -38,8 +38,7 @@ public struct OBRitCardGrid<ImageContent: View>: View {
             CardImageBox {
                 image()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .aspectRatio(1, contentMode: .fit)
+            .frame(width: OBRitSpacing.s11, height: OBRitSpacing.s11, alignment: .leading)
 
             VStack(alignment: .leading, spacing: OBRitSpacing.s0_5) {
                 Text(title)
@@ -56,7 +55,7 @@ public struct OBRitCardGrid<ImageContent: View>: View {
             CardBadge(text: daysLabel, containerColor: gridBadgeContainerColor, contentColor: gridBadgeContentColor)
         }
         .padding(OBRitSpacing.s4)
-        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40)
+        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40, alignment: .topLeading)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
@@ -167,9 +166,11 @@ public struct OBRitCardList<ImageContent: View>: View {
                 CardBadge(text: replaceLabel, containerColor: listFirstBadgeContainerColor, contentColor: listFirstBadgeContentColor)
                 CardBadge(text: sparesLabel, containerColor: listSecondBadgeContainerColor, contentColor: OBRitColors.common00)
             }
+            .fixedSize(horizontal: true, vertical: true)
         }
         .padding(.horizontal, OBRitSpacing.s5)
         .padding(.vertical, OBRitSpacing.s4)
+        .frame(maxWidth: .infinity)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
@@ -272,5 +273,6 @@ private struct CardBadge: View {
             .padding(.vertical, OBRitSpacing.s1)
             .background(containerColor)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
+            .fixedSize(horizontal: true, vertical: true)
     }
 }

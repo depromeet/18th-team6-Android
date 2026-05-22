@@ -1,23 +1,61 @@
 import SwiftUI
 
 struct HomeView: View {
+    @StateObject private var viewModel: HomeViewModel
+
     let onNavigateConsumable: (ConsumableRoute) -> Void
     let onNavigateMyPage: (MyPageRoute) -> Void
+    let onShowListTab: () -> Void
+    let onBottomSheetVisibleChange: (Bool) -> Void
+
+    init(
+        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
+        onNavigateMyPage: @escaping (MyPageRoute) -> Void,
+        onShowListTab: @escaping () -> Void,
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
+    ) {
+        _viewModel = StateObject(wrappedValue: HomeViewModel())
+        self.onNavigateConsumable = onNavigateConsumable
+        self.onNavigateMyPage = onNavigateMyPage
+        self.onShowListTab = onShowListTab
+        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
+    }
 
     var body: some View {
-        RoutePlaceholderView(title: "홈탭", subtitle: "홈 진입 이후 기본 탭") {
-            NavigationActionButton("마이페이지") {
-                onNavigateMyPage(.myPage)
-            }
-            NavigationActionButton("+ 등록") {
-                onNavigateConsumable(.registrationMethod)
-            }
-            NavigationActionButton("전체 소모품 목록") {
-                onNavigateConsumable(.list)
-            }
-            NavigationActionButton("소모품 상세") {
-                onNavigateConsumable(.detail(consumableId: 1))
-            }
+        switch viewModel.state {
+        case let .success(dashboard):
+            HomeContentView(
+                dashboard: dashboard,
+                selectedStatusFilter: viewModel.selectedStatusFilter,
+                statusFilterCounts: viewModel.statusFilterCounts,
+                selectedWarningSort: viewModel.selectedWarningSort,
+                visibleQuickItems: viewModel.visibleQuickItems,
+                visibleWarningItems: viewModel.visibleWarningItems,
+                onBottomSheetVisibleChange: onBottomSheetVisibleChange,
+                action: HomeViewAction(
+                    onSearch: { onNavigateConsumable(.search) },
+                    onNotification: {},
+                    onProfile: { onNavigateMyPage(.myPage) },
+                    onRegisterFromImage: { onNavigateConsumable(.receiptCaptureOrUpload) },
+                    onRegisterDirect: { onNavigateConsumable(.manualRegistration) },
+                    onShowList: onShowListTab,
+                    onSelectConsumable: { onNavigateConsumable(.detail(consumableId: $0)) },
+                    onSelectStatusFilter: viewModel.selectStatusFilter,
+                    onSelectWarningSort: viewModel.selectWarningSort
+                )
+            )
         }
     }
+}
+
+struct HomeViewAction {
+    let onSearch: () -> Void
+    let onNotification: () -> Void
+    let onProfile: () -> Void
+    let onRegisterFromImage: () -> Void
+    let onRegisterDirect: () -> Void
+    let onShowList: () -> Void
+    let onSelectConsumable: (Int) -> Void
+    let onSelectStatusFilter: (HomeStatusFilter) -> Void
+    let onSelectWarningSort: (HomeWarningSort) -> Void
 }

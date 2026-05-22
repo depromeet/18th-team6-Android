@@ -6,7 +6,6 @@ enum ConsumableRoute: OBRitRoute {
     case receiptRecognitionReview
     case receiptDetailInput
     case registrationComplete
-    case list
     case search
     case filter
     case sort
