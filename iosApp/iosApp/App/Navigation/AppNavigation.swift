@@ -7,9 +7,9 @@ struct AppNavigation {
         selectedMainTab: MainTab,
         onSetRoot: @escaping (AppRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void,
+        onBack: @escaping () -> Void,
         onNavigateApp: @escaping (AppRoute) -> Void,
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void
+        onNavigateConsumable: @escaping (ConsumableRoute) -> Void
     ) -> some View {
         switch route {
         case .splash:
@@ -25,34 +25,27 @@ struct AppNavigation {
                 }
             }
         case .onboarding:
-            RoutePlaceholderView(title: "온보딩", subtitle: "초기 사용자 안내") {
-                NavigationActionButton("등록 유도") {
-                    onNavigateApp(.registrationPrompt)
-                }
+            OnboardingView {
+                onNavigateApp(.registrationPrompt)
             }
         case .registrationPrompt:
-            RoutePlaceholderView(title: "등록 유도", subtitle: "첫 소모품 등록 안내") {
-                NavigationActionButton("소모품 등록") {
+            RegistrationPromptView(
+                onRegister: {
                     onNavigateApp(.initialConsumableRegistration)
-                }
-                NavigationActionButton("홈 진입") {
+                },
+                onSkip: {
                     onSetRoot(.main(.home))
                 }
-            }
+            )
         case .initialConsumableRegistration:
-            RoutePlaceholderView(title: "소모품 등록", subtitle: "초기 등록 플로우 진입") {
-                NavigationActionButton("등록 방식 선택") {
-                    onNavigateConsumable(.registrationMethod)
-                }
-                NavigationActionButton("홈 진입") {
-                    onSetRoot(.main(.home))
-                }
-            }
+            RegistrationMethodView(
+                onNavigate: onNavigateConsumable,
+                onBack: onBack
+            )
         case .main:
             MainNavigation(
                 selectedTab: selectedMainTab,
                 onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage,
                 onSelectMainTab: onSelectMainTab
             )
             .navigationBarBackButtonHidden(true)
