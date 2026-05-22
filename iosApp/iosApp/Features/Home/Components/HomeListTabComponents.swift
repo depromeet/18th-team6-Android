@@ -26,7 +26,6 @@ struct HomeListTabAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
-    let onRegisterFromImage: () -> Void
     let onRegisterDirect: () -> Void
     let onSelectConsumable: (Int) -> Void
     let onOpenFilterSheet: () -> Void
@@ -81,11 +80,6 @@ private struct HomeListTabSuccessView: View {
                         OBRitFloatingActionMenu(
                             isPresented: $isFabMenuPresented,
                             items: [
-                                OBRitFloatingActionMenuItem(
-                                    id: "image",
-                                    title: "이미지 등록",
-                                    action: action.onRegisterFromImage
-                                ),
                                 OBRitFloatingActionMenuItem(
                                     id: "manual",
                                     title: "직접 등록",

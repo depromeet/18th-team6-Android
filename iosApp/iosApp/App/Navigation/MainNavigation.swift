@@ -5,18 +5,15 @@ struct MainNavigation: View {
 
     let selectedTab: MainTab
     let onNavigateConsumable: (ConsumableRoute) -> Void
-    let onNavigateMyPage: (MyPageRoute) -> Void
     let onSelectMainTab: (MainTab) -> Void
 
     init(
         selectedTab: MainTab,
         onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void
     ) {
         self.selectedTab = selectedTab
         self.onNavigateConsumable = onNavigateConsumable
-        self.onNavigateMyPage = onNavigateMyPage
         self.onSelectMainTab = onSelectMainTab
     }
 
@@ -45,7 +42,6 @@ struct MainNavigation: View {
         case .home:
             HomeView(
                 onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
                 },
@@ -56,7 +52,6 @@ struct MainNavigation: View {
         case .homeListTab:
             HomeListTab(
                 onNavigate: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
                 }

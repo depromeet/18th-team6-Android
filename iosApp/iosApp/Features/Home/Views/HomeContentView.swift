@@ -53,11 +53,6 @@ struct HomeContentView: View {
                             isPresented: $isFabMenuPresented,
                             items: [
                                 OBRitFloatingActionMenuItem(
-                                    id: "image",
-                                    title: "이미지 등록",
-                                    action: action.onRegisterFromImage
-                                ),
-                                OBRitFloatingActionMenuItem(
                                     id: "manual",
                                     title: "직접 등록",
                                     action: action.onRegisterDirect
@@ -111,7 +106,6 @@ struct HomeContentView: View {
             onSearch: {},
             onNotification: {},
             onProfile: {},
-            onRegisterFromImage: {},
             onRegisterDirect: {},
             onShowList: {},
             onSelectConsumable: { _ in },

@@ -2,10 +2,6 @@ enum ConsumableRoute: OBRitRoute {
     case registrationMethod
     case manualRegistration
     case manualDetailInput
-    case receiptCaptureOrUpload
-    case receiptRecognitionReview
-    case receiptDetailInput
-    case registrationComplete
     case search
     case filter
     case sort
