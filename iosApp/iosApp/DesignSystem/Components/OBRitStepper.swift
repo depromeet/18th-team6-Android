@@ -59,12 +59,6 @@ public struct OBRitStepper: View {
         .padding(.vertical, OBRitSpacing.s1)
         .background(OBRitColors.gray750)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
-        .shadow(
-            color: isMinimum ? .clear : Color.black.opacity(0.25),
-            radius: 1,
-            x: 0,
-            y: 4
-        )
     }
 
     private var smallValue: some View {
