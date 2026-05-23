@@ -51,7 +51,6 @@ internal fun ConsumableListPreviewSection(
     modifier: Modifier = Modifier,
 ) {
     val typography = LocalOBRitTypography.current
-    if (buckets.isEmpty()) return
     var expanded by remember { mutableStateOf(false) }
     val sortedBuckets = remember(buckets, sortOrder) { sortBuckets(buckets, sortOrder) }
 
@@ -141,7 +140,7 @@ private fun BucketList(
 }
 
 @Composable
-private fun BucketListItem(bucket: Bucket) {
+internal fun BucketListItem(bucket: Bucket) {
     val daysUntil = remember(bucket.replacementDate) { daysUntil(bucket.replacementDate) }
     OBRitCardList(
         level = bucketListLevel(bucket),
