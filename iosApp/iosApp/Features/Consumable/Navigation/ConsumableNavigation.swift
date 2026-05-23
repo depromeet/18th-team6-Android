@@ -63,13 +63,13 @@ struct ConsumableNavigation {
         case let .statusInfo(consumableId):
             RoutePlaceholderView(title: "상태 정보", subtitle: "소모품 ID \(consumableId)")
         case let .edit(consumableId):
-            RoutePlaceholderView(title: "편집", subtitle: "소모품 ID \(consumableId)")
+            ItemDetailEditRouteView(consumableId: consumableId)
         case let .delete(consumableId):
             RoutePlaceholderView(title: "삭제", subtitle: "소모품 ID \(consumableId)")
         case let .spareEdit(consumableId):
-            RoutePlaceholderView(title: "여분 수정", subtitle: "소모품 ID \(consumableId)")
+            ItemDetailSpareRouteView(consumableId: consumableId)
         case let .replacementComplete(consumableId):
-            RoutePlaceholderView(title: "교체 완료", subtitle: "소모품 ID \(consumableId)")
+            ItemDetailReplacementCompleteRouteView(consumableId: consumableId)
         }
     }
 }
