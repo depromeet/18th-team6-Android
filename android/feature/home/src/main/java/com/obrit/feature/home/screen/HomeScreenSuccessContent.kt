@@ -110,20 +110,21 @@ private fun HomeFab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalOBRitColor.current
     Box(
         modifier =
             modifier
                 .homeFabShadow()
                 .size(HomeFabSize)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(colors.common00)
                 .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_gnb_fab),
             contentDescription = null,
-            tint = Color.Unspecified,
+            tint = colors.gray900,
             modifier = Modifier.size(HomeFabIconSize),
         )
     }
