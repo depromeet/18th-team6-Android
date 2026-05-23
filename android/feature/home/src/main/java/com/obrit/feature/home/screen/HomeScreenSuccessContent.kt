@@ -18,6 +18,7 @@ import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableListPreviewSection
 import com.obrit.feature.home.screen.section.ConsumableOrbit
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
+import com.obrit.feature.home.screen.section.ConsumableUsageStatusSection
 import com.obrit.feature.home.screen.section.HomeGraphSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
@@ -98,5 +99,6 @@ private fun HomeContents(
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,
         )
+        ConsumableUsageStatusSection(buckets = state.status.buckets)
     }
 }
