@@ -59,9 +59,9 @@ private fun HomeContents(
     )
     ConsumableOrbit(
         icons = icons,
-        positiveRatio = state.status.ratio.goodPercentage / 100f,
-        positiveScore = state.status.ratio.goodPercentage,
-        negativeScore = state.status.ratio.warningPercentage,
+//        positiveRatio = state.status.ratio.goodPercentage / 100f,
+//        positiveScore = state.status.ratio.goodPercentage,
+//        negativeScore = state.status.ratio.warningPercentage,
     )
     HomeGraphSection(
         totalCount = state.status.graph.totalCount,
