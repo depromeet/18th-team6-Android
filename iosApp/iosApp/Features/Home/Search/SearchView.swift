@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
@@ -122,9 +121,9 @@ private struct SearchEmptyMessageView: View {
     var body: some View {
         VStack(spacing: OBRitSpacing.s2) {
             Text(title)
-                .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
             Text(description)
-                .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray500)
+                .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.medium, color: OBRitColors.gray500)
         }
         .frame(maxWidth: .infinity, alignment: .top)
         .padding(.top, SearchMetrics.emptyMessageTopPadding)
@@ -164,7 +163,7 @@ private struct RecentKeywordRow: View {
             } label: {
                 Text(keyword)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                    .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
             }
             .buttonStyle(.plain)
 
@@ -196,7 +195,7 @@ private struct SearchSuggestionListView: View {
                 } label: {
                     Text(highlightedKeyword(keyword))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .padding(.vertical, OBRitSpacing.s2)
                 }
                 .buttonStyle(.plain)
@@ -225,7 +224,7 @@ private struct SearchResultListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("검색 결과")
-                .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                 .padding(.horizontal, OBRitSpacing.s5)
                 .padding(.top, OBRitSpacing.s4)
                 .padding(.bottom, OBRitSpacing.s3)

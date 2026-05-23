@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitModalButtonCount: Sendable {
     case one
@@ -68,13 +67,13 @@ public struct OBRitModal<ImageContent: View>: View {
                     Text(title)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
-                        .obritTextStyle(OBRitModalMetrics.titleTextToken, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitModalMetrics.titleTextToken, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .frame(maxWidth: .infinity)
 
                     Text(description)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray300)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray300)
                         .frame(maxWidth: .infinity)
                 }
                 .frame(width: OBRitModalMetrics.contentWidth)
@@ -201,7 +200,7 @@ private struct OBRitModalButton: View {
         Button(action: action) {
             Text(title)
                 .lineLimit(1)
-                .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.SemiBold, color: contentColor)
+                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: contentColor)
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
                 .padding(.horizontal, OBRitSpacing.s5)

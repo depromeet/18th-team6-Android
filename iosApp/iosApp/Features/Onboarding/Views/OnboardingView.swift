@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 struct OnboardingView: View {
     @StateObject private var viewModel: OnboardingViewModel
@@ -33,11 +32,11 @@ struct OnboardingView: View {
                         VStack(alignment: .leading, spacing: OnboardingLayoutConfig.titleGap) {
                             Text("관리할 소모품을\n선택해주세요")
                                 .fixedSize(horizontal: false, vertical: true)
-                                .obritTextStyle(OBRitTypography.s6xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                                .obritTextStyle(OBRitTypography.s6xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
 
                             Text("선택한 항목을 기준으로 교체 주기와 여분 관리를 도와드릴게요")
                                 .fixedSize(horizontal: false, vertical: true)
-                                .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.textDefaultSecondary)
+                                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
                         }
                         .padding(.top, OnboardingLayoutConfig.titleTopPadding)
 
@@ -58,7 +57,7 @@ struct OnboardingView: View {
                                             .clipShape(Circle())
 
                                         Text(option.title)
-                                            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
 
                                         Spacer(minLength: 0)
 

@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitDropdownInputState {
     case `default`
@@ -65,7 +64,7 @@ public struct OBRitDropdown: View {
                     Text(displayedText)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: displayedTextColor)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: displayedTextColor)
 
                     OBRitIcon(kind: .chevronDown, color: OBRitColors.common00)
                         .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
@@ -86,7 +85,7 @@ public struct OBRitDropdown: View {
                     OBRitIcon(kind: .exclamation, color: OBRitColors.red300)
                         .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                     Text(supportingText)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: OBRitColors.red300)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: OBRitColors.red300)
                 }
             }
         }
@@ -99,7 +98,7 @@ public struct OBRitDropdown: View {
                     .lineLimit(1)
                     .obritTextStyle(
                         OBRitTypography.base,
-                        weight: AtomFontWeight.shared.SemiBold,
+                        weight: OBRitFontWeight.semiBold,
                         color: chipTextColor
                     )
 
@@ -199,7 +198,7 @@ public struct OBRitDropdownMenuItem: View {
             .padding(.vertical, verticalPadding)
             .frame(width: fixedWidth)
             .background(selected ? OBRitColors.gray750 : OBRitColors.gray800)
-            .obritTextStyle(textStyle, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+            .obritTextStyle(textStyle, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
             .contentShape(Rectangle())
     }
 

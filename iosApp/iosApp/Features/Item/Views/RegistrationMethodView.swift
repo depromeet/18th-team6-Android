@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 struct RegistrationMethodView: View {
     @StateObject private var viewModel: RegistrationMethodViewModel
@@ -50,7 +49,7 @@ struct RegistrationMethodView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .obritTextStyle(
                                         OBRitTypography.s6xl,
-                                        weight: AtomFontWeight.shared.Bold,
+                                        weight: OBRitFontWeight.bold,
                                         color: OBRitColors.textDefaultDefault
                                     )
 
@@ -58,7 +57,7 @@ struct RegistrationMethodView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .obritTextStyle(
                                         OBRitTypography.xl,
-                                        weight: AtomFontWeight.shared.Medium,
+                                        weight: OBRitFontWeight.medium,
                                         color: OBRitColors.textDefaultSecondary
                                     )
                             }
@@ -104,10 +103,10 @@ private struct RegistrationMethodOptionCard: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(option.title)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                     Text(option.subtitle)
                         .fixedSize(horizontal: false, vertical: true)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.textDefaultSecondary)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
                 }
 
                 Spacer(minLength: 0)

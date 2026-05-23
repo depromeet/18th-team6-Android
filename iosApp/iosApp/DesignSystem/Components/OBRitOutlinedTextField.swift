@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 import UIKit
 
 public enum OBRitInputResultState {
@@ -173,7 +172,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                     if text.isEmpty && !placeholder.isEmpty {
                         Text(placeholder)
                             .lineLimit(singleLine ? 1 : nil)
-                            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray700)
+                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.gray700)
                     }
 
                     inputField
@@ -183,7 +182,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                 if let maxLength {
                     Text("\(min(text.count, maxLength))/\(maxLength)")
                         .lineLimit(1)
-                        .obritTextStyle(OBRitTypography.small, weight: AtomFontWeight.shared.Medium, color: counterColor)
+                        .obritTextStyle(OBRitTypography.small, weight: OBRitFontWeight.medium, color: counterColor)
                 }
 
                 trailingIcon()
@@ -201,7 +200,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                     OBRitIcon(kind: statusIconKind, color: statusColor)
                         .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                     Text(supportingText)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: statusColor)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: statusColor)
                 }
             }
         }
@@ -230,7 +229,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
             .submitLabel(submitLabel)
             .onSubmit(onSubmit)
             .tint(OBRitColors.common00)
-            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: contentColor)
+            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: contentColor)
     }
 
     @ViewBuilder

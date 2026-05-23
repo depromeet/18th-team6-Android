@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitBadgeType {
     case warningFilled
@@ -24,7 +23,7 @@ public struct OBRitBadge: View {
     public var body: some View {
         Text(text)
             .lineLimit(1)
-            .obritTextStyle(OBRitTypography.xs, weight: AtomFontWeight.shared.Bold, color: contentColor)
+            .obritTextStyle(OBRitTypography.xs, weight: OBRitFontWeight.bold, color: contentColor)
             .padding(.horizontal, OBRitSpacing.s2)
             .padding(.vertical, OBRitSpacing.s1)
             .background(containerColor)

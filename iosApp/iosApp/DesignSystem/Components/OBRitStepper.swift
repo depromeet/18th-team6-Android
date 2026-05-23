@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitStepperSize {
     case small
@@ -65,7 +64,7 @@ public struct OBRitStepper: View {
         Text(valueText)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .obritTextStyle(OBRitStepperTypography.lg, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+            .obritTextStyle(OBRitStepperTypography.lg, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
             .frame(width: OBRitStepperMetrics.smallControlSize, height: OBRitStepperMetrics.smallControlSize)
             .background(OBRitColors.gray600)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
@@ -77,7 +76,7 @@ public struct OBRitStepper: View {
             Text(valueText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .obritTextStyle(OBRitStepperTypography.xl7, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                .obritTextStyle(OBRitStepperTypography.xl7, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 .frame(minWidth: 21)
             stepperButton(symbol: .plus, size: .large, disabled: false, action: onIncrement)
         }
@@ -137,12 +136,12 @@ public struct OBRitStepper: View {
 
 private enum OBRitStepperTypography {
     static let lg = OBRitTypography.TextToken(
-        size: CGFloat(AtomText.Lg.shared.FontSize),
-        lineHeight: CGFloat(AtomText.Lg.shared.LineHeight)
+        size: OBRitTypography.lg.size,
+        lineHeight: OBRitTypography.lg.lineHeight
     )
     static let xl7 = OBRitTypography.TextToken(
-        size: CGFloat(AtomText.S7xl.shared.FontSize),
-        lineHeight: CGFloat(AtomText.S7xl.shared.LineHeight)
+        size: OBRitTypography.s7xl.size,
+        lineHeight: OBRitTypography.s7xl.lineHeight
     )
 }
 

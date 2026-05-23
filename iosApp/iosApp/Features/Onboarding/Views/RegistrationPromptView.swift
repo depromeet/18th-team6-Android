@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 struct RegistrationPromptView: View {
     let onRegister: () -> Void
@@ -25,11 +24,11 @@ struct RegistrationPromptView: View {
                         VStack(spacing: RegistrationPromptLayoutConfig.titleGap) {
                             Text("첫 소모품을\n등록해볼까요?")
                                 .multilineTextAlignment(.center)
-                                .obritTextStyle(OBRitTypography.s6xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                                .obritTextStyle(OBRitTypography.s6xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
 
                             Text("등록한 소모품부터 교체 시기와 여분 상태를 확인할 수 있어요")
                                 .multilineTextAlignment(.center)
-                                .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.textDefaultSecondary)
+                                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
                         }
                     }
 

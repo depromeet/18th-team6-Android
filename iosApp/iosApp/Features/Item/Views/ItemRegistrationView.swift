@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 import UIKit
 
 struct ItemRegistrationView: View {
@@ -364,7 +363,7 @@ private struct ItemRegistrationCompleteView: View {
                             .lineLimit(1)
                             .obritTextStyle(
                                 OBRitTypography.s6xl,
-                                weight: AtomFontWeight.shared.Bold,
+                                weight: OBRitFontWeight.bold,
                                 color: OBRitColors.common00
                             )
 
@@ -372,7 +371,7 @@ private struct ItemRegistrationCompleteView: View {
                             .multilineTextAlignment(.center)
                             .obritTextStyle(
                                 OBRitTypography.xl,
-                                weight: AtomFontWeight.shared.Medium,
+                                weight: OBRitFontWeight.medium,
                                 color: OBRitColors.textDefaultSecondary
                             )
                     }
@@ -403,7 +402,7 @@ private struct ItemRegistrationTitle: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .obritTextStyle(
                     OBRitTypography.s6xl,
-                    weight: AtomFontWeight.shared.Bold,
+                    weight: OBRitFontWeight.bold,
                     color: OBRitColors.textDefaultDefault
                 )
 
@@ -411,7 +410,7 @@ private struct ItemRegistrationTitle: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .obritTextStyle(
                     OBRitTypography.xl,
-                    weight: AtomFontWeight.shared.Medium,
+                    weight: OBRitFontWeight.medium,
                     color: OBRitColors.textDefaultSecondary
                 )
         }
@@ -438,13 +437,13 @@ private struct ItemRequiredField<Content: View>: View {
                 Text(title)
                     .obritTextStyle(
                         OBRitTypography.s2xl,
-                        weight: AtomFontWeight.shared.SemiBold,
+                        weight: OBRitFontWeight.semiBold,
                         color: OBRitColors.common00
                     )
                 Text("*")
                     .obritTextStyle(
                         OBRitTypography.base,
-                        weight: AtomFontWeight.shared.Bold,
+                        weight: OBRitFontWeight.bold,
                         color: OBRitColors.red300
                     )
                     .padding(.top, 1)
@@ -468,7 +467,7 @@ private struct ItemKindPickerField: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .obritTextStyle(
                         OBRitTypography.xl,
-                        weight: AtomFontWeight.shared.Medium,
+                        weight: OBRitFontWeight.medium,
                         color: value.isEmpty ? OBRitColors.gray700 : OBRitColors.common00
                     )
 
@@ -500,7 +499,7 @@ private struct ItemDropdownPickerField: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .obritTextStyle(
                         OBRitTypography.xl,
-                        weight: AtomFontWeight.shared.Medium,
+                        weight: OBRitFontWeight.medium,
                         color: value.isEmpty ? OBRitColors.gray700 : OBRitColors.common00
                     )
 
@@ -588,7 +587,7 @@ private struct ItemTextInputField: View {
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.xl,
-                            weight: AtomFontWeight.shared.Medium,
+                            weight: OBRitFontWeight.medium,
                             color: OBRitColors.gray700
                         )
                 }
@@ -601,7 +600,7 @@ private struct ItemTextInputField: View {
                     .tint(OBRitColors.common00)
                     .obritTextStyle(
                         OBRitTypography.xl,
-                        weight: AtomFontWeight.shared.Medium,
+                        weight: OBRitFontWeight.medium,
                         color: OBRitColors.common00
                     )
             }
@@ -611,7 +610,7 @@ private struct ItemTextInputField: View {
                 .lineLimit(1)
                 .obritTextStyle(
                     OBRitTypography.small,
-                    weight: AtomFontWeight.shared.Medium,
+                    weight: OBRitFontWeight.medium,
                     color: OBRitColors.common00
                 )
         }
@@ -665,7 +664,7 @@ private struct ItemSearchInputField: View {
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.xl,
-                            weight: AtomFontWeight.shared.Medium,
+                            weight: OBRitFontWeight.medium,
                             color: OBRitColors.gray700
                         )
                 }
@@ -679,7 +678,7 @@ private struct ItemSearchInputField: View {
                     .tint(OBRitColors.common00)
                     .obritTextStyle(
                         OBRitTypography.xl,
-                        weight: AtomFontWeight.shared.Medium,
+                        weight: OBRitFontWeight.medium,
                         color: OBRitColors.common00
                     )
             }
@@ -726,14 +725,14 @@ private struct ItemQuantityCard: View {
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.xl,
-                            weight: AtomFontWeight.shared.Bold,
+                            weight: OBRitFontWeight.bold,
                             color: OBRitColors.common00
                         )
                     Text("\(quantityLabelPrefix) \(quantity)개")
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.small,
-                            weight: AtomFontWeight.shared.Medium,
+                            weight: OBRitFontWeight.medium,
                             color: OBRitColors.common00.opacity(0.64)
                         )
                 }
@@ -758,7 +757,7 @@ private struct ItemQuantityCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .obritTextStyle(
                         OBRitTypography.base,
-                        weight: AtomFontWeight.shared.SemiBold,
+                        weight: OBRitFontWeight.semiBold,
                         color: OBRitColors.textDefaultTertiary
                     )
             }
@@ -833,7 +832,7 @@ private struct ItemSheetCountText: View {
                 Text("\(count)개")
                 .foregroundColor(OBRitColors.green300)
         )
-        .font(OBRitTypography.font(OBRitTypography.s3xl, weight: AtomFontWeight.shared.Bold))
+        .font(OBRitTypography.font(OBRitTypography.s3xl, weight: OBRitFontWeight.bold))
         .tracking(OBRitTypography.letterSpacing(for: OBRitTypography.s3xl))
     }
 }
@@ -858,14 +857,14 @@ private struct ItemKindSelectionRow: View {
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.xl,
-                            weight: AtomFontWeight.shared.Bold,
+                            weight: OBRitFontWeight.bold,
                             color: OBRitColors.common00
                         )
                     Text("추가된 소모품 \(kind.addedCount)개")
                         .lineLimit(1)
                         .obritTextStyle(
                             OBRitTypography.small,
-                            weight: AtomFontWeight.shared.Medium,
+                            weight: OBRitFontWeight.medium,
                             color: OBRitColors.common00.opacity(0.64)
                         )
                 }
@@ -915,13 +914,13 @@ private struct ItemKindNoResultView: View {
                 Text("소모품 검색 결과가 없어요!")
                     .obritTextStyle(
                         OBRitTypography.s3xl,
-                        weight: AtomFontWeight.shared.Bold,
+                        weight: OBRitFontWeight.bold,
                         color: OBRitColors.common00
                     )
                 Text("직접 소모품 종류를 등록할 수 있어요.")
                     .obritTextStyle(
                         OBRitTypography.base,
-                        weight: AtomFontWeight.shared.Medium,
+                        weight: OBRitFontWeight.medium,
                         color: OBRitColors.textDefaultSecondary
                     )
             }

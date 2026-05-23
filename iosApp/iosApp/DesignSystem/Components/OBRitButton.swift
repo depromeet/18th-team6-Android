@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitFilledButtonSize {
     case large
@@ -163,7 +162,7 @@ public struct OBRitFilledTextButton<LeadingIcon: View, TrailingIcon: View>: View
                 .lineLimit(1)
                 .obritTextStyle(
                     size == .small ? OBRitTypography.base : OBRitTypography.xl,
-                    weight: AtomFontWeight.shared.SemiBold,
+                    weight: OBRitFontWeight.semiBold,
                     color: contentColor
                 )
             if hasTrailingIcon {
