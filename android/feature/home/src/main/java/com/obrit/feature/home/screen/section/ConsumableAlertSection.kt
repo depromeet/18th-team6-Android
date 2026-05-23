@@ -134,7 +134,9 @@ private fun daysLabel(daysUntil: Int): String =
     }
 
 private fun daysUntil(replacementDate: String): Int =
-    ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
+    ChronoUnit.DAYS
+        .between(LocalDate.now(), LocalDate.parse(replacementDate))
+        .toInt()
 
 @Suppress("MagicNumber")
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
@@ -166,7 +168,7 @@ private fun ConsumableAlertSectionPreview() {
                         3,
                         "2026-05-26",
                         BucketLevel.HAS_SAFE,
-                        10
+                        10,
                     ),
                 ),
         )

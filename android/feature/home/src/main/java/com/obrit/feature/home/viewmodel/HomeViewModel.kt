@@ -112,7 +112,9 @@ data class Bucket(
     val daysInUse: Int,
 )
 
-enum class ConsumableListSortOrder(val displayName: String) {
+enum class ConsumableListSortOrder(
+    val displayName: String,
+) {
     REPLACE_IMMINENT("교체 임박 순"),
     LEAST_SPARE("여분 적은 순"),
     OLDEST_REPLACEMENT("교체 오래된 순"),
@@ -160,8 +162,7 @@ private fun createMockStatus() =
         buckets = createMockBuckets(),
     )
 
-private fun createMockBuckets() =
-    mockReplaceDangerBuckets()  + mockReplaceWarnBuckets()
+private fun createMockBuckets() = mockReplaceDangerBuckets() + mockReplaceWarnBuckets()
 
 @Suppress("MagicNumber")
 private fun mockReplaceDangerBuckets() =
