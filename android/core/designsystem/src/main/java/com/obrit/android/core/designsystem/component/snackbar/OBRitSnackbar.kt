@@ -1,11 +1,10 @@
 package com.obrit.android.core.designsystem.component.snackbar
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,7 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,76 +46,57 @@ fun OBRitSnackbar(
             fontWeight = FontWeight.Medium,
         ),
 ) {
-    val colors = LocalOBRitColor.current
+    val iconRes = snackbarIconRes(icon = icon)
+    val hasIcon = iconRes != null
 
     Row(
         modifier =
             modifier
                 .clip(OBRitSnackbarShape)
-                .background(colors.gray800)
+                .background(LocalOBRitColor.current.gray800)
                 .border(
                     border =
                         BorderStroke(
-                            width = OBRitSnackbarBorderWidth,
-                            color = colors.gray750,
+                            width = 1.4.dp,
+                            color = LocalOBRitColor.current.gray750,
                         ),
                     shape = OBRitSnackbarShape,
-                ).padding(
-                    start = snackbarStartPadding(icon = icon),
-                    top = snackbarVerticalPadding(icon = icon),
-                    end = OBRitSnackbarEndPadding,
-                    bottom = snackbarVerticalPadding(icon = icon),
-                ),
+                ).padding(snackbarContentPadding(hasIcon = hasIcon)),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(OBRitSnackbarContentGap),
     ) {
-        if (icon != SnackbarIcon.None) {
+        if (iconRes != null) {
             Icon(
-                painter = painterResource(id = snackbarIconRes(icon = icon)),
+                imageVector = ImageVector.vectorResource(id = iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(OBRitSnackbarIconSize),
+                modifier = Modifier.size(AtomSpacing.S5.dp),
                 tint = Color.Unspecified,
             )
         }
 
         Text(
             text = message,
-            style = textStyle.copy(color = colors.common00),
+            modifier = if (hasIcon) Modifier.padding(start = 14.dp) else Modifier,
+            style = textStyle.copy(color = LocalOBRitColor.current.common00),
         )
     }
 }
 
-@DrawableRes
-private fun snackbarIconRes(icon: SnackbarIcon): Int =
+private fun snackbarIconRes(icon: SnackbarIcon): Int? =
     when (icon) {
-        SnackbarIcon.None -> error("SnackbarIcon.None has no drawable resource.")
+        SnackbarIcon.None -> null
         SnackbarIcon.Default -> R.drawable.ic_snackbar_question_circle
         SnackbarIcon.Error -> R.drawable.ic_snackbar_exclamation_circle
         SnackbarIcon.Success -> R.drawable.ic_snackbar_check_circle
     }
 
-private fun snackbarStartPadding(icon: SnackbarIcon) =
-    if (icon == SnackbarIcon.None) {
-        OBRitSnackbarNoIconHorizontalPadding
-    } else {
-        OBRitSnackbarIconStartPadding
-    }
+private fun snackbarContentPadding(hasIcon: Boolean): PaddingValues =
+    PaddingValues(
+        start = if (hasIcon) 14.dp else 20.dp,
+        top = if (hasIcon) 10.dp else 8.dp,
+        end = 20.dp,
+        bottom = if (hasIcon) 10.dp else 8.dp,
+    )
 
-private fun snackbarVerticalPadding(icon: SnackbarIcon) =
-    if (icon == SnackbarIcon.None) {
-        OBRitSnackbarNoIconVerticalPadding
-    } else {
-        OBRitSnackbarIconVerticalPadding
-    }
-
-private val OBRitSnackbarBorderWidth = 1.4.dp
-private val OBRitSnackbarIconStartPadding = 14.dp
-private val OBRitSnackbarEndPadding = AtomSpacing.S5.dp
-private val OBRitSnackbarNoIconHorizontalPadding = AtomSpacing.S5.dp
-private val OBRitSnackbarIconVerticalPadding = AtomSpacing.S2_5.dp
-private val OBRitSnackbarNoIconVerticalPadding = AtomSpacing.S2.dp
-private val OBRitSnackbarContentGap = 14.dp
-private val OBRitSnackbarIconSize = AtomSpacing.S5.dp
 private val OBRitSnackbarShape = RoundedCornerShape(AtomRadius.Large.dp)
 private const val OBRIT_SNACKBAR_PREVIEW_MESSAGE = "토스트 팝업 내용을 입력하세요."
 
