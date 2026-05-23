@@ -4,20 +4,27 @@ struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SearchViewModel
 
+    let onBack: (() -> Void)?
     let onSelectItem: (Int) -> Void
 
     @MainActor
-    init(onSelectItem: @escaping (Int) -> Void) {
+    init(
+        onBack: (() -> Void)? = nil,
+        onSelectItem: @escaping (Int) -> Void
+    ) {
         _viewModel = StateObject(wrappedValue: SearchViewModel())
+        self.onBack = onBack
         self.onSelectItem = onSelectItem
     }
 
     @MainActor
     init(
         viewModel: SearchViewModel,
+        onBack: (() -> Void)? = nil,
         onSelectItem: @escaping (Int) -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onBack = onBack
         self.onSelectItem = onSelectItem
     }
 
@@ -29,7 +36,7 @@ struct SearchView: View {
                 set: viewModel.updateQuery
             ),
             action: SearchViewAction(
-                onBack: { dismiss() },
+                onBack: handleBack,
                 onSelectKeyword: viewModel.selectKeyword,
                 onRemoveRecentKeyword: viewModel.removeRecentKeyword,
                 onSubmitSearch: viewModel.submitSearch,
@@ -38,6 +45,14 @@ struct SearchView: View {
         )
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func handleBack() {
+        if let onBack {
+            onBack()
+        } else {
+            dismiss()
+        }
     }
 }
 

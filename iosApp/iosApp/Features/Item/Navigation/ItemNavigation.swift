@@ -69,20 +69,7 @@ private struct ItemRouteBackActionModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .simultaneousGesture(edgeBackGesture)
             .accessibilityAction(.escape, onBack)
-    }
-
-    private var edgeBackGesture: some Gesture {
-        DragGesture(minimumDistance: 24, coordinateSpace: .local)
-            .onEnded { value in
-                guard value.startLocation.x <= ItemRouteBackActionMetrics.edgeActivationWidth,
-                      value.translation.width >= ItemRouteBackActionMetrics.minimumHorizontalDistance,
-                      abs(value.translation.height) <= ItemRouteBackActionMetrics.maximumVerticalDistance else {
-                    return
-                }
-                onBack()
-            }
     }
 }
 
@@ -90,10 +77,4 @@ private extension View {
     func itemRouteBackAction(_ onBack: @escaping () -> Void) -> some View {
         modifier(ItemRouteBackActionModifier(onBack: onBack))
     }
-}
-
-private enum ItemRouteBackActionMetrics {
-    static let edgeActivationWidth: CGFloat = 32
-    static let minimumHorizontalDistance: CGFloat = 80
-    static let maximumVerticalDistance: CGFloat = 70
 }
