@@ -716,7 +716,7 @@ private struct ItemQuantityCard: View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s4) {
                 ItemImage(
-                    assetName: kind?.imageAssetName ?? "item_registration_razor",
+                    assetName: kind?.imageAssetName ?? "item_razor",
                     size: ItemRegistrationLayoutConfig.quantityImageSize
                 )
 

@@ -268,7 +268,7 @@ private enum ItemDetailReplacementModalMetrics {
         OBRitColors.gray900
         ItemDetailReplacementCompletionModal(
             itemName: "칫솔",
-            itemImageAssetName: "home_orb_toothbrush",
+            itemImageAssetName: "item_toothbrush",
             daysComparedToPrevious: -2,
             nextReplacementLabel: "6월 22일(30일 후)",
             recordedAtText: "2026. 05. 23 오전 09:30 기록됨",
@@ -283,7 +283,7 @@ private enum ItemDetailReplacementModalMetrics {
         OBRitColors.gray900
         ItemDetailReplacementCompletionModal(
             itemName: "칫솔",
-            itemImageAssetName: "home_orb_toothbrush",
+            itemImageAssetName: "item_toothbrush",
             remainingSpareQuantity: 1,
             recordedAtText: "2026. 05. 23 오전 09:30 기록됨",
             onConfirm: {},
