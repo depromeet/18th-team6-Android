@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.feature.home.screen.section.ConsumableAlertSection
 import com.obrit.feature.home.screen.section.ConsumableIcon
 import com.obrit.feature.home.screen.section.ConsumableOrbit
 import com.obrit.feature.home.screen.section.ConsumableStatusSection
@@ -56,11 +57,17 @@ private fun HomeContents(
         stockStatus = state.status.message.stockStatus,
         modifier = modifier,
     )
-    ConsumableOrbit(icons = icons)
+    ConsumableOrbit(
+        icons = icons,
+        positiveRatio = state.status.ratio.goodPercentage / 100f,
+        positiveScore = state.status.ratio.goodPercentage,
+        negativeScore = state.status.ratio.warningPercentage,
+    )
     HomeGraphSection(
         totalCount = state.status.graph.totalCount,
         needReplaceCount = state.status.graph.needReplaceCount,
         score = state.status.graph.score,
         averageScore = state.status.graph.averageScore,
     )
+    ConsumableAlertSection(buckets = state.status.buckets)
 }

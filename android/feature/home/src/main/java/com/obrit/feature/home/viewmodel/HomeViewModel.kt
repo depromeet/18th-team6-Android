@@ -44,6 +44,7 @@ data class HomeStatus(
     val message: HomeMessage,
     val ratio: HomeRatio,
     val graph: HomeGraph,
+    val buckets: List<Bucket>,
 )
 
 @Immutable
@@ -89,6 +90,30 @@ enum class StockStatusLevel(
 
 enum class IllustrationType { POSITIVE, NEGATIVE }
 
+@Immutable
+data class Bucket(
+    val status: BucketStatus,
+    val title: String,
+    val spare: Int,
+    val replacementDate: String,
+    val level: BucketLevel,
+)
+
+enum class BucketStatus {
+    REPLACE_DANGER,
+    SPARE_SHORTAGE,
+    REPLACE_WARN,
+}
+
+enum class BucketLevel {
+    NONE_OVERDUE,
+    NONE_WARN,
+    HAS_OVERDUE,
+    HAS_WARN,
+    NONE_SAFE,
+    HAS_SAFE,
+}
+
 @Suppress("MagicNumber")
 private fun createMockStatus() =
     HomeStatus(
@@ -113,4 +138,100 @@ private fun createMockStatus() =
                 score = 0.425f,
                 averageScore = 0.65f,
             ),
+        buckets = createMockBuckets(),
+    )
+
+private fun createMockBuckets() =
+    mockReplaceDangerBuckets() + mockSpareShortBuckets() + mockReplaceWarnBuckets()
+
+@Suppress("MagicNumber")
+private fun mockReplaceDangerBuckets() =
+    listOf(
+        Bucket(
+            status = BucketStatus.REPLACE_DANGER,
+            title = "면도기",
+            spare = 0,
+            replacementDate = "2026-05-23",
+            level = BucketLevel.NONE_OVERDUE,
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_DANGER,
+            title = "칫솔",
+            spare = 1,
+            replacementDate = "2026-05-26",
+            level = BucketLevel.NONE_WARN,
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_DANGER,
+            title = "수건",
+            spare = 0,
+            replacementDate = "2026-05-22",
+            level = BucketLevel.HAS_OVERDUE,
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_DANGER,
+            title = "세탁망",
+            spare = 2,
+            replacementDate = "2026-05-30",
+            level = BucketLevel.HAS_WARN,
+        ),
+    )
+
+@Suppress("MagicNumber")
+private fun mockSpareShortBuckets() =
+    listOf(
+        Bucket(
+            status = BucketStatus.SPARE_SHORTAGE,
+            title = "샴푸",
+            spare = 0,
+            replacementDate = "2026-05-25",
+            level = BucketLevel.NONE_SAFE,
+        ),
+        Bucket(
+            status = BucketStatus.SPARE_SHORTAGE,
+            title = "치약",
+            spare = 1,
+            replacementDate = "2026-06-02",
+            level = BucketLevel.HAS_SAFE
+        ),
+        Bucket(
+            status = BucketStatus.SPARE_SHORTAGE,
+            title = "세제",
+            spare = 0,
+            replacementDate = "2026-05-20",
+            level = BucketLevel.HAS_SAFE
+        ),
+    )
+
+@Suppress("MagicNumber")
+private fun mockReplaceWarnBuckets() =
+    listOf(
+        Bucket(
+            status = BucketStatus.REPLACE_WARN,
+            title = "필터",
+            spare = 3,
+            replacementDate = "2026-05-26",
+            level = BucketLevel.NONE_SAFE
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_WARN,
+            title = "화장솜",
+            spare = 5,
+            replacementDate = "2026-06-06",
+            level = BucketLevel.NONE_SAFE
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_WARN,
+            title = "청소포",
+            spare = 2,
+            replacementDate = "2026-05-21",
+            level = BucketLevel.NONE_OVERDUE,
+        ),
+        Bucket(
+            status = BucketStatus.REPLACE_WARN,
+            title = "욕실매트",
+            spare = 4,
+            replacementDate = "2026-06-10",
+            level = BucketLevel.HAS_OVERDUE,
+        ),
     )
