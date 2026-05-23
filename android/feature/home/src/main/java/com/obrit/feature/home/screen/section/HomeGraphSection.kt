@@ -86,7 +86,7 @@ internal fun HomeGraphSection(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(colors.common100)
+                .background(colors.common1000)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         HomeGraphRow(

@@ -23,8 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import com.obrit.android.core.designsystem.component.button.FilledButtonColor
-import com.obrit.android.core.designsystem.component.button.OBRitLargeFilledTextButton
+import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults
+import com.obrit.android.core.designsystem.component.button.OBRitLargeFilledButton
 import com.obrit.android.core.designsystem.component.card.OBRitCardLevel
 import com.obrit.android.core.designsystem.component.card.OBRitCardList
 import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdown
@@ -79,11 +79,11 @@ internal fun ConsumableListPreviewSection(
         }
 
         BucketList(buckets = sortedBuckets.take(LIST_PREVIEW_COUNT))
-        OBRitLargeFilledTextButton(
+        OBRitLargeFilledButton(
             text = "더보기",
             onClick = onMoreClick,
+            colors = OBRitButtonDefaults.defaultButtonColors(),
             modifier = Modifier.fillMaxWidth(),
-            color = FilledButtonColor.Gray,
         )
     }
 }
