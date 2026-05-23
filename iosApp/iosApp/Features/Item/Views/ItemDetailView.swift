@@ -141,7 +141,6 @@ struct ItemDetailView: View {
             OBRitModal(
                 title: "\(data.consumable.name) 교체를 완료할까요?",
                 description: "오늘 날짜로 교체 기록이 추가되고 여분 수량이 1개 줄어들어요.",
-                mode: .dark,
                 buttonCount: .two,
                 showsImage: false,
                 primaryTitle: data.isProcessing ? "처리 중" : "완료",

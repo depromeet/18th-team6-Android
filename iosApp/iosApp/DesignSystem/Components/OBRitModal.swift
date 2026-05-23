@@ -1,11 +1,6 @@
 import SwiftUI
 import Shared
 
-public enum OBRitModalMode: Sendable {
-    case light
-    case dark
-}
-
 public enum OBRitModalButtonCount: Sendable {
     case one
     case two
@@ -28,7 +23,6 @@ public enum OBRitModalImageSize: Sendable {
 public struct OBRitModal<ImageContent: View>: View {
     private let title: String
     private let description: String
-    private let mode: OBRitModalMode
     private let buttonCount: OBRitModalButtonCount
     private let imageSize: OBRitModalImageSize
     private let showsImage: Bool
@@ -41,7 +35,6 @@ public struct OBRitModal<ImageContent: View>: View {
     public init(
         title: String,
         description: String,
-        mode: OBRitModalMode = .light,
         buttonCount: OBRitModalButtonCount = .two,
         imageSize: OBRitModalImageSize = .small,
         showsImage: Bool = true,
@@ -53,7 +46,6 @@ public struct OBRitModal<ImageContent: View>: View {
     ) {
         self.title = title
         self.description = description
-        self.mode = mode
         self.buttonCount = buttonCount
         self.imageSize = imageSize
         self.showsImage = showsImage
@@ -76,13 +68,13 @@ public struct OBRitModal<ImageContent: View>: View {
                     Text(title)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
-                        .obritTextStyle(OBRitModalMetrics.titleTextToken, weight: AtomFontWeight.shared.Bold, color: titleColor)
+                        .obritTextStyle(OBRitModalMetrics.titleTextToken, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
                         .frame(maxWidth: .infinity)
 
                     Text(description)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: descriptionColor)
+                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray300)
                         .frame(maxWidth: .infinity)
                 }
                 .frame(width: OBRitModalMetrics.contentWidth)
@@ -95,7 +87,7 @@ public struct OBRitModal<ImageContent: View>: View {
         .padding(.horizontal, OBRitSpacing.s7)
         .padding(.vertical, OBRitSpacing.s6)
         .frame(width: OBRitModalMetrics.modalWidth)
-        .background(backgroundColor)
+        .background(OBRitColors.gray800)
         .clipShape(RoundedRectangle(cornerRadius: OBRitModalMetrics.cornerRadius))
     }
 
@@ -106,7 +98,6 @@ public struct OBRitModal<ImageContent: View>: View {
             OBRitModalButton(
                 title: primaryTitle,
                 style: .primary,
-                mode: mode,
                 action: onPrimaryClick
             )
         case .two:
@@ -114,7 +105,6 @@ public struct OBRitModal<ImageContent: View>: View {
                 OBRitModalButton(
                     title: secondaryTitle,
                     style: .secondary,
-                    mode: mode,
                     action: onSecondaryClick
                 )
                 .frame(width: OBRitModalMetrics.secondaryButtonWidth)
@@ -122,37 +112,9 @@ public struct OBRitModal<ImageContent: View>: View {
                 OBRitModalButton(
                     title: primaryTitle,
                     style: .primary,
-                    mode: mode,
                     action: onPrimaryClick
                 )
             }
-        }
-    }
-
-    private var backgroundColor: Color {
-        switch mode {
-        case .light:
-            return OBRitColors.common00
-        case .dark:
-            return OBRitColors.gray800
-        }
-    }
-
-    private var titleColor: Color {
-        switch mode {
-        case .light:
-            return OBRitColors.gray900
-        case .dark:
-            return OBRitColors.common00
-        }
-    }
-
-    private var descriptionColor: Color {
-        switch mode {
-        case .light:
-            return OBRitColors.gray600
-        case .dark:
-            return OBRitColors.gray300
         }
     }
 
@@ -170,7 +132,6 @@ public extension OBRitModal where ImageContent == OBRitModalPlaceholderImage {
     init(
         title: String,
         description: String,
-        mode: OBRitModalMode = .light,
         buttonCount: OBRitModalButtonCount = .two,
         imageSize: OBRitModalImageSize = .small,
         showsImage: Bool = true,
@@ -182,7 +143,6 @@ public extension OBRitModal where ImageContent == OBRitModalPlaceholderImage {
         self.init(
             title: title,
             description: description,
-            mode: mode,
             buttonCount: buttonCount,
             imageSize: imageSize,
             showsImage: showsImage,
@@ -235,7 +195,6 @@ private enum OBRitModalButtonStyle {
 private struct OBRitModalButton: View {
     let title: String
     let style: OBRitModalButtonStyle
-    let mode: OBRitModalMode
     let action: () -> Void
 
     var body: some View {
@@ -258,12 +217,7 @@ private struct OBRitModalButton: View {
         case .primary:
             return OBRitColors.green300
         case .secondary:
-            switch mode {
-            case .light:
-                return OBRitColors.gray100
-            case .dark:
-                return OBRitColors.gray750
-            }
+            return OBRitColors.gray750
         }
     }
 
@@ -272,12 +226,7 @@ private struct OBRitModalButton: View {
         case .primary:
             return OBRitColors.common100
         case .secondary:
-            switch mode {
-            case .light:
-                return OBRitColors.gray700
-            case .dark:
-                return OBRitColors.gray300
-            }
+            return OBRitColors.gray300
         }
     }
 }
@@ -296,42 +245,20 @@ private struct TriangleShape: Shape {
 struct OBRitModal_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: OBRitSpacing.s5) {
-            HStack(spacing: OBRitSpacing.s5) {
-                OBRitModal(
-                    title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
-                    description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
-                    mode: .light,
-                    buttonCount: .two,
-                    imageSize: .small,
-                    onPrimaryClick: {}
-                )
-                OBRitModal(
-                    title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
-                    description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
-                    mode: .dark,
-                    buttonCount: .two,
-                    imageSize: .small,
-                    onPrimaryClick: {}
-                )
-            }
-            HStack(spacing: OBRitSpacing.s5) {
-                OBRitModal(
-                    title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
-                    description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
-                    mode: .light,
-                    buttonCount: .one,
-                    imageSize: .large,
-                    onPrimaryClick: {}
-                )
-                OBRitModal(
-                    title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
-                    description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
-                    mode: .dark,
-                    buttonCount: .one,
-                    imageSize: .large,
-                    onPrimaryClick: {}
-                )
-            }
+            OBRitModal(
+                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                buttonCount: .two,
+                imageSize: .small,
+                onPrimaryClick: {}
+            )
+            OBRitModal(
+                title: "Title Text\n최대 두 줄까지 작성 가능합니다.",
+                description: "모달의 상세 내용을 작성해주세요.\n최대 두 줄까지 작성 가능합니다.",
+                buttonCount: .one,
+                imageSize: .large,
+                onPrimaryClick: {}
+            )
         }
         .padding(OBRitSpacing.s5)
         .background(OBRitColors.gray900)
