@@ -99,16 +99,21 @@ private struct ItemRegistrationContentView: View {
                 OBRitColors.backgroundDefaultDefault
                     .ignoresSafeArea()
 
-                switch data.mode {
-                case .form:
-                    ItemRegistrationFormView(data: data, action: action)
-                case .directKind:
-                    ItemDirectKindRegistrationView(data: data, action: action)
-                case .complete:
-                    ItemRegistrationCompleteView(action: action)
+                Group {
+                    switch data.mode {
+                    case .form:
+                        ItemRegistrationFormView(data: data, action: action)
+                    case .directKind:
+                        ItemDirectKindRegistrationView(data: data, action: action)
+                    case .complete:
+                        ItemRegistrationCompleteView(action: action)
+                    }
                 }
+                .ignoresSafeArea(.keyboard)
 
                 if let bottomSheet = data.bottomSheet {
+                    let bottomPadding = bottomSheetBottomPadding(in: geometry)
+
                     Color.black.opacity(ItemRegistrationLayoutConfig.dimOpacity)
                         .ignoresSafeArea()
                         .onTapGesture(perform: action.onDismissBottomSheet)
@@ -116,25 +121,58 @@ private struct ItemRegistrationContentView: View {
 
                     VStack {
                         Spacer(minLength: 0)
-                        bottomSheetView(bottomSheet)
+                        bottomSheetView(
+                            bottomSheet,
+                            contentHeight: bottomSheetContentHeight(
+                                in: geometry,
+                                bottomPadding: bottomPadding
+                            ),
+                            bottomPadding: bottomPadding
+                        )
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-                    .ignoresSafeArea(edges: .bottom)
-                    .ignoresSafeArea(.keyboard, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: .bottom)
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .ignoresSafeArea(.keyboard)
             .animation(.easeOut(duration: ItemRegistrationLayoutConfig.bottomSheetAnimationDuration), value: data.bottomSheet)
         }
     }
 
     @ViewBuilder
-    private func bottomSheetView(_ bottomSheet: ItemRegistrationBottomSheet) -> some View {
+    private func bottomSheetView(
+        _ bottomSheet: ItemRegistrationBottomSheet,
+        contentHeight: CGFloat,
+        bottomPadding: CGFloat
+    ) -> some View {
         switch bottomSheet {
         case .kind:
-            ItemKindSelectionBottomSheet(data: data, action: action)
+            ItemKindSelectionBottomSheet(
+                data: data,
+                action: action,
+                contentHeight: contentHeight,
+                bottomPadding: bottomPadding
+            )
         }
+    }
+
+    private func bottomSheetContentHeight(
+        in geometry: GeometryProxy,
+        bottomPadding: CGFloat
+    ) -> CGFloat {
+        let availableHeight = geometry.size.height
+            - geometry.safeAreaInsets.top
+            - ItemRegistrationLayoutConfig.bottomSheetTopMargin
+            - ItemRegistrationLayoutConfig.bottomSheetHeaderHeight
+            - bottomPadding
+        return min(ItemRegistrationLayoutConfig.kindSheetContentHeight, max(0, availableHeight))
+    }
+
+    private func bottomSheetBottomPadding(in geometry: GeometryProxy) -> CGFloat {
+        max(
+            ItemRegistrationLayoutConfig.bottomSheetBottomPadding,
+            min(geometry.safeAreaInsets.bottom, ItemRegistrationLayoutConfig.bottomSheetMaximumSafeAreaPadding)
+        )
     }
 }
 
@@ -174,13 +212,11 @@ private struct ItemRegistrationFormView: View {
 
                             ItemRequiredField(title: "소모품 명") {
                                 ItemTextInputField(
-                                    text: Binding(
-                                        get: { data.draft.itemName },
-                                        set: action.onUpdateItemName
-                                    ),
+                                    text: data.draft.itemName,
                                     placeholder: "구분을 위한 이름을 입력해주세요",
                                     maxLength: ItemRegistrationConfig.itemNameMaxLength,
-                                    singleLine: true
+                                    singleLine: true,
+                                    onTextChange: action.onUpdateItemName
                                 )
                             }
 
@@ -218,9 +254,14 @@ private struct ItemRegistrationFormView: View {
                     .padding(.bottom, ItemRegistrationLayoutConfig.scrollBottomPadding)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .background(OBRitColors.backgroundDefaultDefault.onTapGesture(perform: dismissKeyboard))
+                .background(
+                    OBRitColors.backgroundDefaultDefault
+                        .contentShape(Rectangle())
+                        .onTapGesture(perform: dismissKeyboard)
+                )
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .background(OBRitColors.backgroundDefaultDefault)
         }
     }
 }
@@ -251,13 +292,11 @@ private struct ItemDirectKindRegistrationView: View {
                         VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.fieldGroupGap) {
                             ItemRequiredField(title: "소모품 종류 이름") {
                                 ItemTextInputField(
-                                    text: Binding(
-                                        get: { data.draft.directKindName },
-                                        set: action.onUpdateDirectKindName
-                                    ),
+                                    text: data.draft.directKindName,
                                     placeholder: "소모품의 종류 이름을 입력해주세요",
                                     maxLength: ItemRegistrationConfig.kindNameMaxLength,
-                                    singleLine: true
+                                    singleLine: true,
+                                    onTextChange: action.onUpdateDirectKindName
                                 )
                             }
 
@@ -289,9 +328,14 @@ private struct ItemDirectKindRegistrationView: View {
                     .padding(.bottom, ItemRegistrationLayoutConfig.scrollBottomPadding)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .background(OBRitColors.backgroundDefaultDefault.onTapGesture(perform: dismissKeyboard))
+                .background(
+                    OBRitColors.backgroundDefaultDefault
+                        .contentShape(Rectangle())
+                        .onTapGesture(perform: dismissKeyboard)
+                )
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .background(OBRitColors.backgroundDefaultDefault)
         }
     }
 }
@@ -485,9 +529,7 @@ private struct ItemReplacementDateDropdown: View {
                 placeholder: "마지막 교체 일자를 등록해주세요",
                 onClick: {
                     dismissKeyboard()
-                    withAnimation(.easeOut(duration: ItemRegistrationLayoutConfig.dropdownAnimationDuration)) {
-                        isExpanded.toggle()
-                    }
+                    isExpanded.toggle()
                 }
             )
             .frame(maxWidth: .infinity)
@@ -504,27 +546,44 @@ private struct ItemReplacementDateDropdown: View {
                 )
                 .frame(maxWidth: .infinity)
                 .offset(y: ItemRegistrationLayoutConfig.fieldHeight + OBRitSpacing.s2)
-                .transition(.opacity.combined(with: .move(edge: .top)))
                 .zIndex(1)
             }
         }
         .frame(maxWidth: .infinity)
         .frame(height: ItemRegistrationLayoutConfig.fieldHeight, alignment: .top)
         .zIndex(isExpanded ? 10 : 0)
-        .animation(.easeOut(duration: ItemRegistrationLayoutConfig.dropdownAnimationDuration), value: isExpanded)
     }
 }
 
 private struct ItemTextInputField: View {
-    @Binding var text: String
+    @State private var localText: String
+    @FocusState private var isFocused: Bool
+
+    let text: String
     let placeholder: String
     let maxLength: Int
     let singleLine: Bool
+    let onTextChange: (String) -> Void
+
+    init(
+        text: String,
+        placeholder: String,
+        maxLength: Int,
+        singleLine: Bool,
+        onTextChange: @escaping (String) -> Void
+    ) {
+        _localText = State(initialValue: String(text.prefix(maxLength)))
+        self.text = text
+        self.placeholder = placeholder
+        self.maxLength = maxLength
+        self.singleLine = singleLine
+        self.onTextChange = onTextChange
+    }
 
     var body: some View {
         HStack(spacing: OBRitSpacing.s2) {
             ZStack(alignment: .leading) {
-                if text.isEmpty {
+                if localText.isEmpty {
                     Text(placeholder)
                         .lineLimit(1)
                         .obritTextStyle(
@@ -534,10 +593,11 @@ private struct ItemTextInputField: View {
                         )
                 }
 
-                TextField("", text: $text, axis: singleLine ? .horizontal : .vertical)
+                TextField("", text: $localText, axis: singleLine ? .horizontal : .vertical)
                     .lineLimit(singleLine ? 1 : nil)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .focused($isFocused)
                     .tint(OBRitColors.common00)
                     .obritTextStyle(
                         OBRitTypography.xl,
@@ -547,7 +607,7 @@ private struct ItemTextInputField: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("\(min(text.count, maxLength))/\(maxLength)")
+            Text("\(min(localText.count, maxLength))/\(maxLength)")
                 .lineLimit(1)
                 .obritTextStyle(
                     OBRitTypography.small,
@@ -559,6 +619,22 @@ private struct ItemTextInputField: View {
         .padding(.horizontal, OBRitSpacing.s5)
         .background(OBRitColors.gray800)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
+        .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
+        .onTapGesture {
+            isFocused = true
+        }
+        .onChange(of: localText) { _, newValue in
+            let clippedText = String(newValue.prefix(maxLength))
+            if clippedText != newValue {
+                localText = clippedText
+            }
+            onTextChange(clippedText)
+        }
+        .onChange(of: text) { _, newValue in
+            let clippedText = String(newValue.prefix(maxLength))
+            guard clippedText != localText else { return }
+            localText = clippedText
+        }
     }
 }
 
@@ -619,9 +695,6 @@ private struct ItemSearchInputField: View {
         .overlay {
             RoundedRectangle(cornerRadius: OBRitRadius.middle)
                 .stroke(OBRitColors.gray300, lineWidth: 1.4)
-        }
-        .onAppear {
-            isFocused = true
         }
         .onChange(of: localText) { _, newValue in
             onTextChange(newValue)
@@ -696,10 +769,15 @@ private struct ItemQuantityCard: View {
 private struct ItemKindSelectionBottomSheet: View {
     let data: ItemRegistrationViewData
     let action: ItemRegistrationAction
+    let contentHeight: CGFloat
+    let bottomPadding: CGFloat
 
     var body: some View {
+        let filteredKinds = data.filteredKinds
+
         OBRitBottomSheet(
-            contentHeight: ItemRegistrationLayoutConfig.kindSheetContentHeight,
+            contentHeight: contentHeight,
+            bottomPadding: bottomPadding,
             onDismiss: action.onDismissBottomSheet
         ) {
             VStack(alignment: .leading, spacing: OBRitSpacing.s8) {
@@ -712,15 +790,15 @@ private struct ItemKindSelectionBottomSheet: View {
                 VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
                     ItemSheetCountText(
                         prefix: data.kindSearchQuery.isEmpty ? "전체 소모품" : "검색 결과",
-                        count: data.kindSearchQuery.isEmpty ? data.itemKinds.count : data.filteredKinds.count
+                        count: data.kindSearchQuery.isEmpty ? data.itemKinds.count : filteredKinds.count
                     )
 
-                    if data.filteredKinds.isEmpty {
+                    if filteredKinds.isEmpty {
                         ItemKindNoResultView(action: action)
                     } else {
                         ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: OBRitSpacing.s2) {
-                                ForEach(data.filteredKinds) { kind in
+                                ForEach(filteredKinds) { kind in
                                     ItemKindSelectionRow(
                                         kind: kind,
                                         selected: kind == data.kindCandidateForDisplay,
@@ -793,7 +871,7 @@ private struct ItemKindSelectionRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                OBRitRadioButton(selected: selected, onClick: { action.onSelectKindCandidate(kind) })
+                ItemKindSelectionRadioIndicator(selected: selected)
                     .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
             }
             .padding(.horizontal, OBRitSpacing.s5)
@@ -802,6 +880,29 @@ private struct ItemKindSelectionRow: View {
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct ItemKindSelectionRadioIndicator: View {
+    let selected: Bool
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(ringColor, lineWidth: 1.5)
+                .frame(width: 21, height: 21)
+            if selected {
+                Circle()
+                    .fill(ringColor)
+                    .frame(width: OBRitSpacing.s3, height: OBRitSpacing.s3)
+            }
+        }
+        .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+        .accessibilityHidden(true)
+    }
+
+    private var ringColor: Color {
+        selected ? OBRitColors.green300 : OBRitColors.gray400
     }
 }
 
@@ -973,7 +1074,10 @@ private enum ItemRegistrationLayoutConfig {
     static let completeContentGap: CGFloat = OBRitSpacing.s9
     static let completeCenterYOffsetRatio: CGFloat = 0.07
     static let bottomSheetAnimationDuration: Double = 0.24
-    static let dropdownAnimationDuration: Double = 0.18
+    static let bottomSheetTopMargin: CGFloat = OBRitSpacing.s5
+    static let bottomSheetHeaderHeight: CGFloat = OBRitSpacing.s1 + OBRitSpacing.s8 + OBRitSpacing.s2_5
+    static let bottomSheetBottomPadding: CGFloat = OBRitSpacing.s5
+    static let bottomSheetMaximumSafeAreaPadding: CGFloat = 48
 
     static let imageGridColumns: [GridItem] = Array(
         repeating: GridItem(.fixed(imageOptionSize), spacing: 18, alignment: .leading),

@@ -79,10 +79,12 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     func updateItemName(_ itemName: String) {
         let clippedName = String(itemName.prefix(ItemRegistrationConfig.itemNameMaxLength))
+        guard data.draft.itemName != clippedName else { return }
         update { $0.draft.itemName = clippedName }
     }
 
     func updateKindSearchQuery(_ query: String) {
+        guard data.kindSearchQuery != query else { return }
         update { data in
             data.kindSearchQuery = query
             data.selectedKindCandidate = data.filteredKinds.first
@@ -91,6 +93,7 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     func updateDirectKindName(_ name: String) {
         let clippedName = String(name.prefix(ItemRegistrationConfig.kindNameMaxLength))
+        guard data.draft.directKindName != clippedName else { return }
         update { $0.draft.directKindName = clippedName }
     }
 
