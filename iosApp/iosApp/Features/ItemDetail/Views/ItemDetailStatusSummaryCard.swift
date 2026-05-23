@@ -46,14 +46,16 @@ struct ItemDetailStatusSummaryCard: View {
 
             Spacer(minLength: OBRitSpacing.s3)
 
-            if let badgeText {
-                ItemDetailStatusBadge(text: badgeText, itemStatus: item.status)
-            }
+            HStack(spacing: OBRitSpacing.s1_5) {
+                if let badgeText {
+                    ItemDetailStatusBadge(text: badgeText, itemStatus: item.status)
+                }
 
-            Text(value)
-                .lineLimit(1)
-                .minimumScaleFactor(0.82)
-                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.textDefaultDefault)
+                Text(value)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+                    .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.textDefaultDefault)
+            }
         }
     }
 
@@ -61,5 +63,6 @@ struct ItemDetailStatusSummaryCard: View {
         Rectangle()
             .fill(OBRitColors.gray800)
             .frame(height: 1)
+            .padding(.horizontal, -OBRitSpacing.s4)
     }
 }

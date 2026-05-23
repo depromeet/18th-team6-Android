@@ -168,7 +168,6 @@ struct ItemDetailViewData: Equatable {
     let editDraft: ItemDetailEditDraft
     let spareDraft: ItemDetailSpareDraft
     let moreMenuItems: [ItemDetailMoreMenuItem]
-    let isMoreMenuPresented: Bool
     let confirmationDialog: ItemDetailConfirmationDialog?
     let isProcessing: Bool
 }
@@ -274,14 +273,11 @@ enum ItemDetailMoreMenuItem: CaseIterable, Identifiable, Equatable {
 
 enum ItemDetailConfirmationDialog: Equatable {
     case delete
-    case replacementComplete
 
     var title: String {
         switch self {
         case .delete:
             return "소모품을 삭제할까요?"
-        case .replacementComplete:
-            return "교체를 완료할까요?"
         }
     }
 
@@ -289,8 +285,6 @@ enum ItemDetailConfirmationDialog: Equatable {
         switch self {
         case .delete:
             return "삭제하면 등록된 교체 기록과 알림 설정을 되돌릴 수 없어요."
-        case .replacementComplete:
-            return "오늘 날짜로 교체 기록이 추가되고 여분 수량이 1개 줄어들어요."
         }
     }
 }
@@ -320,7 +314,6 @@ extension ItemDetailViewData {
         consumable: ItemDetailConsumable,
         referenceDate: Date,
         calendar: Calendar = .current,
-        isMoreMenuPresented: Bool = false,
         confirmationDialog: ItemDetailConfirmationDialog? = nil,
         isProcessing: Bool = false
     ) {
@@ -365,7 +358,6 @@ extension ItemDetailViewData {
         self.editDraft = ItemDetailEditDraft(consumable: consumable)
         self.spareDraft = ItemDetailSpareDraft(quantity: consumable.spareQuantity)
         self.moreMenuItems = [.edit, .delete]
-        self.isMoreMenuPresented = isMoreMenuPresented
         self.confirmationDialog = confirmationDialog
         self.isProcessing = isProcessing
     }

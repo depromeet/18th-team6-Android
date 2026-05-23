@@ -4,28 +4,30 @@ struct ItemDetailDateSummary: View {
     let item: ItemDetailDisplayData
 
     var body: some View {
-        HStack(spacing: 0) {
-            summaryColumn(
-                title: "최근 교체일",
-                value: item.lastReplacementDateText,
-                titleColor: OBRitColors.textDefaultDarkTertiary,
-                valueColor: OBRitColors.textDefaultDefault
-            )
-
+        ZStack {
             Rectangle()
                 .fill(OBRitColors.gray700)
                 .frame(width: 1, height: 61)
 
-            summaryColumn(
-                title: "다음 교체 예정일",
-                value: item.nextReplacementDateText,
-                titleColor: item.status.subduedAccentColor,
-                valueColor: item.status.accentColor,
-                badgeText: item.replacementDayBadgeText
-            )
+            HStack(spacing: 0) {
+                summaryColumn(
+                    title: "최근 교체일",
+                    value: item.lastReplacementDateText,
+                    titleColor: OBRitColors.textDefaultDarkTertiary,
+                    valueColor: OBRitColors.textDefaultDefault
+                )
+
+                summaryColumn(
+                    title: "다음 교체 예정일",
+                    value: item.nextReplacementDateText,
+                    titleColor: item.status.subduedAccentColor,
+                    valueColor: item.status.accentColor,
+                    badgeText: item.replacementDayBadgeText
+                )
+            }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: ItemDetailLayout.dateSummaryHeight)
+        .padding(.vertical, ItemDetailLayout.dateSummaryVerticalPadding)
         .background(OBRitColors.backgroundDefaultSecondary)
         .clipShape(RoundedRectangle(cornerRadius: ItemDetailLayout.cardCornerRadius))
     }

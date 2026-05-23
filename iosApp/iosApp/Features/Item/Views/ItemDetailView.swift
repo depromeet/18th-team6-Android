@@ -2,9 +2,9 @@ import SwiftUI
 
 struct ItemDetailView: View {
     let itemId: Int
+    let onBack: () -> Void
     let onNavigate: (ItemRoute) -> Void
 
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ItemDetailViewModel
     @State private var stockDraftQuantity = 0
     @State private var isStockSheetPresented = false
@@ -12,9 +12,11 @@ struct ItemDetailView: View {
 
     init(
         itemId: Int,
+        onBack: @escaping () -> Void,
         onNavigate: @escaping (ItemRoute) -> Void
     ) {
         self.itemId = itemId
+        self.onBack = onBack
         self.onNavigate = onNavigate
         _viewModel = StateObject(wrappedValue: ItemDetailViewModel(consumableId: itemId))
     }
@@ -40,8 +42,9 @@ struct ItemDetailView: View {
             ItemDetailScreenView(
                 data: data,
                 action: ItemDetailViewAction(
-                    onBack: { dismiss() },
-                    onMore: viewModel.openMoreMenu,
+                    onBack: onBack,
+                    moreMenuItems: data.moreMenuItems,
+                    onSelectMoreMenuItem: viewModel.selectMoreMenuItem,
                     onManageStock: {
                         stockDraftQuantity = data.spareDraft.quantity
                         isStockSheetPresented = true
@@ -55,25 +58,8 @@ struct ItemDetailView: View {
     @ViewBuilder
     private var overlay: some View {
         if case let .success(data) = viewModel.state {
-            if data.isMoreMenuPresented {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .ignoresSafeArea()
-                    .onTapGesture(perform: viewModel.dismissMoreMenu)
-
-                VStack {
-                    HStack {
-                        Spacer()
-                        ItemDetailMoreMenu(items: data.moreMenuItems, onSelect: viewModel.selectMoreMenuItem)
-                            .padding(.top, OBRitSpacing.s14)
-                            .padding(.trailing, OBRitSpacing.s3)
-                    }
-                    Spacer()
-                }
-            }
-
             if isStockSheetPresented {
-                Color.black.opacity(ItemDetailOverlayMetrics.dimOpacity)
+                OBRitColors.backgroundDefaultDimDefault
                     .ignoresSafeArea()
                     .onTapGesture {
                         isStockSheetPresented = false
@@ -116,7 +102,7 @@ struct ItemDetailView: View {
     }
 
     private var modalDim: some View {
-        Color.black.opacity(ItemDetailOverlayMetrics.dimOpacity)
+        OBRitColors.backgroundDefaultDimDefault
             .ignoresSafeArea()
             .onTapGesture {
                 viewModel.dismissConfirmationDialog()
@@ -136,17 +122,6 @@ struct ItemDetailView: View {
                 isProcessing: data.isProcessing,
                 onCancel: viewModel.dismissConfirmationDialog,
                 onConfirm: viewModel.confirmCurrentDialog
-            )
-        case .replacementComplete:
-            OBRitModal(
-                title: "\(data.consumable.name) 교체를 완료할까요?",
-                description: "오늘 날짜로 교체 기록이 추가되고 여분 수량이 1개 줄어들어요.",
-                buttonCount: .two,
-                showsImage: false,
-                primaryTitle: data.isProcessing ? "처리 중" : "완료",
-                secondaryTitle: "취소",
-                onPrimaryClick: viewModel.confirmCurrentDialog,
-                onSecondaryClick: viewModel.dismissConfirmationDialog
             )
         }
     }
@@ -185,7 +160,7 @@ struct ItemDetailView: View {
         case let .navigate(destination):
             handleNavigation(destination)
         case .itemDeleted:
-            dismiss()
+            onBack()
         case .replacementCompleted:
             if case let .success(data) = viewModel.state {
                 completionModal = ItemDetailCompletionModalData(data: data)
@@ -203,8 +178,8 @@ struct ItemDetailView: View {
             onNavigate(.edit(itemId: consumableId))
         case let .spareEdit(consumableId):
             onNavigate(.spareEdit(itemId: consumableId))
-        case .notification:
-            break
+        case let .notification(consumableId):
+            onNavigate(.notification(itemId: consumableId))
         }
     }
 }
@@ -230,8 +205,4 @@ private struct ItemDetailMessageView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
     }
-}
-
-private enum ItemDetailOverlayMetrics {
-    static let dimOpacity: CGFloat = 0.62
 }

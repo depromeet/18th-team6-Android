@@ -13,8 +13,15 @@ enum ItemDetailLayout {
     static let heroMaxDiameter: CGFloat = 230
     static let heroVerticalPadding = OBRitSpacing.s5
     static let heroRingWidthRatio: CGFloat = 12 / 230
-    static let dateSummaryHeight: CGFloat = 81
-    static let actionBarButtonHeight: CGFloat = 60
+    static let heroImagePadding: CGFloat = 40
+    static let dateSummaryVerticalPadding = OBRitSpacing.s2_5
+    static let actionBarButtonSize = OBRitFilledButtonSize.large
+    static let actionBarVerticalPadding = OBRitSpacing.s4
+    static let actionBarAdditionalScrollPadding = OBRitSpacing.s4
+
+    static var actionBarHeight: CGFloat {
+        actionBarButtonSize.height + actionBarVerticalPadding * 2
+    }
 }
 
 enum ItemDetailStatus {
@@ -77,6 +84,20 @@ enum ItemDetailStatus {
     var chartCurrentColor: Color {
         OBRitColors.green300
     }
+
+    func progressAccentColor(for progress: Double) -> Color {
+        let clampedProgress = min(max(progress, 0), 1)
+        let start = (red: 0.145, green: 0.937, blue: 0.804)
+        let end = (red: 1.000, green: 0.349, blue: 0.133)
+
+        return Color(
+            .sRGB,
+            red: start.red + (end.red - start.red) * clampedProgress,
+            green: start.green + (end.green - start.green) * clampedProgress,
+            blue: start.blue + (end.blue - start.blue) * clampedProgress,
+            opacity: 1
+        )
+    }
 }
 
 struct ItemDetailDisplayData: Identifiable {
@@ -121,64 +142,16 @@ struct ItemDetailReplacementHistoryEntry: Identifiable {
 
 struct ItemDetailViewAction {
     let onBack: () -> Void
-    let onMore: () -> Void
+    let moreMenuItems: [ItemDetailMoreMenuItem]
+    let onSelectMoreMenuItem: (ItemDetailMoreMenuItem) -> Void
     let onManageStock: () -> Void
     let onCompleteReplacement: () -> Void
 
     static let noop = ItemDetailViewAction(
         onBack: {},
-        onMore: {},
+        moreMenuItems: [.edit, .delete],
+        onSelectMoreMenuItem: { _ in },
         onManageStock: {},
         onCompleteReplacement: {}
-    )
-}
-
-enum ItemDetailPreviewData {
-    static let good = ItemDetailDisplayData(
-        id: 1,
-        title: "칫솔",
-        imageAssetName: "home_orb_toothbrush",
-        status: .good,
-        heroProgress: 0.82,
-        lastReplacementDateText: "5월 1일",
-        nextReplacementDateText: "6월 1일",
-        replacementDayBadgeText: "D-7",
-        stockCount: 3,
-        averageReplacementDaysText: "34일",
-        recommendedReplacementDaysText: "30일",
-        currentUsageDaysText: "23일째",
-        currentStatusBadgeText: nil,
-        replacementHistory: [
-            ItemDetailReplacementHistoryEntry(id: "history-1", daysText: "29일", dateText: "01/01", ratio: 0.90),
-            ItemDetailReplacementHistoryEntry(id: "history-2", daysText: "31일", dateText: "01/31", ratio: 0.70),
-            ItemDetailReplacementHistoryEntry(id: "history-3", daysText: "32일", dateText: "03/03", ratio: 0.78),
-            ItemDetailReplacementHistoryEntry(id: "history-4", daysText: "38일", dateText: "04/10", ratio: 0.92),
-            ItemDetailReplacementHistoryEntry(id: "history-current", daysText: "23일", dateText: "현재", ratio: 1, isCurrent: true)
-        ],
-        replacementHistoryAverageText: "33.8일"
-    )
-
-    static let warning = ItemDetailDisplayData(
-        id: 2,
-        title: "칫솔",
-        imageAssetName: "home_orb_toothbrush",
-        status: .warning,
-        heroProgress: 0.90,
-        lastReplacementDateText: "5월 1일",
-        nextReplacementDateText: "5월 21일",
-        replacementDayBadgeText: "D+2",
-        stockCount: 0,
-        averageReplacementDaysText: "34일",
-        recommendedReplacementDaysText: "30일",
-        currentUsageDaysText: "32일째",
-        currentStatusBadgeText: "D+2",
-        replacementHistory: [
-            ItemDetailReplacementHistoryEntry(id: "history-1", daysText: "31일", dateText: "01/01", ratio: 0.90),
-            ItemDetailReplacementHistoryEntry(id: "history-2", daysText: "29일", dateText: "01/31", ratio: 0.70),
-            ItemDetailReplacementHistoryEntry(id: "history-3", daysText: "34일", dateText: "03/03", ratio: 0.78),
-            ItemDetailReplacementHistoryEntry(id: "history-4", daysText: "37일", dateText: "04/10", ratio: 0.92),
-            ItemDetailReplacementHistoryEntry(id: "history-current", daysText: "32일", dateText: "현재", ratio: 1, isCurrent: true)
-        ],
-        replacementHistoryAverageText: "33.8일"
     )
 }

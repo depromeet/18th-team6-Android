@@ -10,6 +10,7 @@ struct ItemDetailHeaderHero: View {
             ItemDetailLayout.heroMaxDiameter
         )
         let ringWidth = max(10, diameter * ItemDetailLayout.heroRingWidthRatio)
+        let progressColor = item.status.progressAccentColor(for: item.heroProgress)
 
         ZStack {
             Circle()
@@ -23,7 +24,7 @@ struct ItemDetailHeaderHero: View {
             Circle()
                 .trim(from: 0, to: item.heroProgress)
                 .stroke(
-                    item.status.accentColor,
+                    progressColor,
                     style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
@@ -32,8 +33,10 @@ struct ItemDetailHeaderHero: View {
             Image(item.imageAssetName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: diameter * 0.58, height: diameter * 0.58)
-                .shadow(color: item.status.accentColor.opacity(0.28), radius: 12, x: 0, y: 4)
+                .padding(ItemDetailLayout.heroImagePadding)
+                .frame(width: diameter, height: diameter)
+                .blendMode(.colorDodge)
+                .shadow(color: progressColor.opacity(0.28), radius: 12, x: 0, y: 4)
         }
         .frame(maxWidth: .infinity)
         .frame(height: diameter + ItemDetailLayout.heroVerticalPadding * 2)

@@ -102,11 +102,12 @@ struct ItemDetailReplacementCompletionModal: View {
 
             Image(itemImageAssetName)
                 .resizable()
-                .scaledToFit()
+                .scaledToFill()
                 .frame(
                     width: ItemDetailReplacementModalMetrics.imageSize,
                     height: ItemDetailReplacementModalMetrics.imageSize
                 )
+                .clipShape(Circle())
         }
         .frame(
             width: ItemDetailReplacementModalMetrics.badgeSize,
@@ -141,9 +142,9 @@ struct ItemDetailReplacementCompletionModal: View {
     private var summaryRow: some View {
         HStack {
             HStack(spacing: OBRitSpacing.s1_5) {
-                Image(systemName: kind.summarySymbolName)
-                    .font(.system(size: ItemDetailReplacementModalMetrics.summaryIconSize, weight: .regular))
-                    .foregroundStyle(OBRitColors.textDefaultTertiary)
+                Image(kind.summaryIconAssetName)
+                    .resizable()
+                    .scaledToFit()
                     .frame(
                         width: ItemDetailReplacementModalMetrics.summaryIconFrame,
                         height: ItemDetailReplacementModalMetrics.summaryIconFrame
@@ -231,12 +232,12 @@ extension ItemDetailReplacementCompletionModal {
 }
 
 private extension ItemDetailReplacementCompletionModalKind {
-    var summarySymbolName: String {
+    var summaryIconAssetName: String {
         switch self {
         case .nextReplacement:
-            return "calendar"
+            return "item_detail_icon_calendar"
         case .lowStock:
-            return "shippingbox"
+            return "item_detail_icon_box"
         }
     }
 
@@ -260,7 +261,6 @@ private enum ItemDetailReplacementModalMetrics {
     static let glowOpacity: CGFloat = 0.9
     static let summaryHeight: CGFloat = 48
     static let summaryIconFrame: CGFloat = 24
-    static let summaryIconSize: CGFloat = 18
 }
 
 #Preview("Next Replacement") {

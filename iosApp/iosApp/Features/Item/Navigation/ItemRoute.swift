@@ -8,6 +8,7 @@ enum ItemRoute: OBRitRoute {
     case detail(itemId: Int)
     case statusInfo(itemId: Int)
     case edit(itemId: Int)
+    case notification(itemId: Int)
     case delete(itemId: Int)
     case spareEdit(itemId: Int)
     case replacementComplete(itemId: Int)

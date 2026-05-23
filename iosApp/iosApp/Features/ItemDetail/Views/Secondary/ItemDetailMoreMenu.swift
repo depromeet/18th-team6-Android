@@ -4,49 +4,45 @@ struct ItemDetailMoreMenu: View {
     let items: [ItemDetailMoreMenuItem]
     let onSelect: (ItemDetailMoreMenuItem) -> Void
 
-    init(
-        items: [ItemDetailMoreMenuItem] = [.edit, .delete],
-        onSelect: @escaping (ItemDetailMoreMenuItem) -> Void
-    ) {
-        self.items = items
-        self.onSelect = onSelect
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: ItemDetailMoreMenuMetrics.rowSpacing) {
+        VStack(spacing: OBRitSpacing.s0) {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 Button {
                     onSelect(item)
                 } label: {
-                    HStack(spacing: ItemDetailMoreMenuMetrics.iconTextSpacing) {
+                    HStack(spacing: OBRitSpacing.s2_5) {
                         Image(systemName: item.symbolName)
                             .font(.system(size: ItemDetailMoreMenuMetrics.iconSize, weight: .regular))
-                            .foregroundStyle(item.tintColor)
                             .frame(
-                                width: ItemDetailMoreMenuMetrics.iconFrameSize,
-                                height: ItemDetailMoreMenuMetrics.iconFrameSize
+                                width: ItemDetailMoreMenuMetrics.iconFrame,
+                                height: ItemDetailMoreMenuMetrics.iconFrame
                             )
 
                         Text(item.title)
                             .lineLimit(1)
-                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: item.tintColor)
+                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: item.foregroundColor)
                     }
+                    .foregroundStyle(item.foregroundColor)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: ItemDetailMoreMenuMetrics.rowHeight)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
                 if index < items.count - 1 {
                     Rectangle()
-                        .fill(OBRitColors.commonWhite00_40)
-                        .frame(height: OBRitSpacing.px)
+                        .fill(OBRitColors.gray700)
+                        .frame(height: 1)
+                        .padding(.vertical, OBRitSpacing.s2)
                 }
             }
         }
-        .padding(.horizontal, ItemDetailMoreMenuMetrics.horizontalPadding)
-        .padding(.vertical, ItemDetailMoreMenuMetrics.verticalPadding)
-        .frame(width: ItemDetailMoreMenuMetrics.width, alignment: .leading)
-        .background(OBRitColors.commonWhite00_20)
-        .clipShape(RoundedRectangle(cornerRadius: ItemDetailMoreMenuMetrics.cornerRadius))
+        .padding(.horizontal, 14)
+        .padding(.vertical, OBRitSpacing.s4)
+        .frame(width: ItemDetailMoreMenuMetrics.width)
+        .background(OBRitColors.surfaceDefaultDefaultDark)
+        .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
+        .shadow(color: OBRitColors.commonBlack00_40, radius: 16, x: 0, y: 8)
     }
 }
 
@@ -64,26 +60,14 @@ private extension ItemDetailMoreMenuItem {
         }
     }
 
-    var tintColor: Color {
+    var foregroundColor: Color {
         self == .delete ? OBRitColors.textWarningDefault : OBRitColors.textDefaultDefault
     }
 }
 
 private enum ItemDetailMoreMenuMetrics {
     static let width: CGFloat = 120
-    static let horizontalPadding: CGFloat = 14
-    static let verticalPadding: CGFloat = 18
-    static let rowSpacing: CGFloat = 10
-    static let iconTextSpacing: CGFloat = 10
-    static let iconFrameSize: CGFloat = 24
-    static let iconSize: CGFloat = 22
-    static let cornerRadius: CGFloat = 16
-}
-
-#Preview {
-    ZStack(alignment: .topTrailing) {
-        OBRitColors.gray900
-        ItemDetailMoreMenu { _ in }
-            .padding(OBRitSpacing.s5)
-    }
+    static let rowHeight: CGFloat = 24
+    static let iconFrame: CGFloat = 24
+    static let iconSize: CGFloat = 18
 }

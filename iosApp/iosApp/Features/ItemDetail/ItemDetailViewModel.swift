@@ -11,7 +11,6 @@ final class ItemDetailViewModel: ObservableObject {
     private let calendar: Calendar
 
     private var consumable: ItemDetailConsumable?
-    private var isMoreMenuPresented = false
     private var confirmationDialog: ItemDetailConfirmationDialog?
     private var isProcessing = false
 
@@ -56,28 +55,13 @@ final class ItemDetailViewModel: ObservableObject {
         effect = .navigate(.statusInfo(consumableId: consumableId))
     }
 
-    func openMoreMenu() {
-        isMoreMenuPresented = true
-        publishSuccess()
-    }
-
-    func dismissMoreMenu() {
-        isMoreMenuPresented = false
-        publishSuccess()
-    }
-
     func selectMoreMenuItem(_ item: ItemDetailMoreMenuItem) {
-        isMoreMenuPresented = false
-
         switch item {
         case .edit:
-            publishSuccess()
             effect = .navigate(.edit(consumableId: consumableId))
         case .spareEdit:
-            publishSuccess()
             effect = .navigate(.spareEdit(consumableId: consumableId))
         case .notification:
-            publishSuccess()
             effect = .navigate(.notification(consumableId: consumableId))
         case .delete:
             confirmationDialog = .delete
@@ -86,8 +70,14 @@ final class ItemDetailViewModel: ObservableObject {
     }
 
     func requestReplacementCompletion() {
-        confirmationDialog = .replacementComplete
+        guard !isProcessing else { return }
+        confirmationDialog = nil
+        isProcessing = true
         publishSuccess()
+
+        Task {
+            await completeReplacementTask()
+        }
     }
 
     func dismissConfirmationDialog() {
@@ -113,17 +103,12 @@ final class ItemDetailViewModel: ObservableObject {
     }
 
     func confirmCurrentDialog() {
-        guard let confirmationDialog, !isProcessing else { return }
+        guard confirmationDialog == .delete, !isProcessing else { return }
         isProcessing = true
         publishSuccess()
 
         Task {
-            switch confirmationDialog {
-            case .delete:
-                await deleteTask()
-            case .replacementComplete:
-                await completeReplacementTask()
-            }
+            await deleteTask()
         }
     }
 
@@ -203,7 +188,6 @@ final class ItemDetailViewModel: ObservableObject {
                 consumable: consumable,
                 referenceDate: dateProvider(),
                 calendar: calendar,
-                isMoreMenuPresented: isMoreMenuPresented,
                 confirmationDialog: confirmationDialog,
                 isProcessing: isProcessing
             )

@@ -229,7 +229,7 @@ public enum OBRitTypography {
     public static let base = TextToken(size: 14, lineHeight: 22)
     public static let lg = TextToken(size: 15, lineHeight: 24)
     public static let xl = TextToken(size: 16, lineHeight: 24)
-    public static let s2xl = TextToken(size: 18, lineHeight: 26)
+    public static let s2xl = TextToken(size: 18, lineHeight: 24)
     public static let s3xl = TextToken(size: 20, lineHeight: 30)
     public static let s4xl = TextToken(size: 22, lineHeight: 32)
     public static let s5xl = TextToken(size: 24, lineHeight: 36)

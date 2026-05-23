@@ -1,25 +1,52 @@
 import SwiftUI
 
 struct ItemDetailEditRouteView: View {
-    @Environment(\.dismiss) private var dismiss
     @State private var draft: ItemDetailEditDraft
+    @State private var isExitConfirmationPresented = false
 
     private let consumable: ItemDetailConsumable
+    private let onBack: () -> Void
 
-    init(consumableId: Int) {
+    init(
+        consumableId: Int,
+        onBack: @escaping () -> Void
+    ) {
         let consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
         self.consumable = consumable
+        self.onBack = onBack
         _draft = State(initialValue: ItemDetailEditDraft(consumable: consumable))
     }
 
     var body: some View {
-        ItemDetailEditScaffoldView(
-            draft: $draft,
-            recommendedCycleDays: consumable.replacementCycle.intervalDays,
-            averageCycleDays: averageCycleDays,
-            onClose: { dismiss() },
-            onSubmit: { dismiss() }
-        )
+        ZStack {
+            ItemDetailEditScaffoldView(
+                draft: $draft,
+                recommendedCycleDays: consumable.replacementCycle.intervalDays,
+                averageCycleDays: averageCycleDays,
+                existingConsumableNames: ItemDetailDomainSampleData.consumables.map(\.name),
+                onClose: {
+                    isExitConfirmationPresented = true
+                },
+                onSubmit: onBack
+            )
+
+            if isExitConfirmationPresented {
+                OBRitColors.backgroundDefaultDimDefault
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        isExitConfirmationPresented = false
+                    }
+
+                ItemDetailConfirmationModal(
+                    kind: .editExit,
+                    onCancel: {
+                        isExitConfirmationPresented = false
+                    },
+                    onConfirm: onBack
+                )
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -32,14 +59,18 @@ struct ItemDetailEditRouteView: View {
 }
 
 struct ItemDetailSpareRouteView: View {
-    @Environment(\.dismiss) private var dismiss
     @State private var quantity: Int
 
     private let consumable: ItemDetailConsumable
+    private let onBack: () -> Void
 
-    init(consumableId: Int) {
+    init(
+        consumableId: Int,
+        onBack: @escaping () -> Void
+    ) {
         let consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
         self.consumable = consumable
+        self.onBack = onBack
         _quantity = State(initialValue: consumable.spareQuantity)
     }
 
@@ -52,8 +83,8 @@ struct ItemDetailSpareRouteView: View {
                 itemName: consumable.name,
                 initialQuantity: consumable.spareQuantity,
                 quantity: $quantity,
-                onCommit: { _ in dismiss() },
-                onDismiss: { dismiss() }
+                onCommit: { _ in onBack() },
+                onDismiss: onBack
             )
         }
         .navigationBarBackButtonHidden(true)
@@ -62,12 +93,15 @@ struct ItemDetailSpareRouteView: View {
 }
 
 struct ItemDetailReplacementCompleteRouteView: View {
-    @Environment(\.dismiss) private var dismiss
-
     private let consumable: ItemDetailConsumable
+    private let onBack: () -> Void
 
-    init(consumableId: Int) {
+    init(
+        consumableId: Int,
+        onBack: @escaping () -> Void
+    ) {
         consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
+        self.onBack = onBack
     }
 
     var body: some View {
@@ -81,8 +115,8 @@ struct ItemDetailReplacementCompleteRouteView: View {
                 daysComparedToPrevious: -2,
                 nextReplacementLabel: nextReplacementLabel,
                 recordedAtText: Date().itemDetailRecordedAtText,
-                onConfirm: { dismiss() },
-                onCancel: { dismiss() }
+                onConfirm: onBack,
+                onCancel: onBack
             )
         }
         .navigationBarBackButtonHidden(true)

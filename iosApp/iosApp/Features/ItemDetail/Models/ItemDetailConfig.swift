@@ -8,7 +8,7 @@ enum ItemDetailConfig {
     static let replacementWarningRemainingDays = 3
     static let lowSpareQuantityThreshold = 1
     static let visibleReplacementRecordLimit = 5
-    static let maximumNameLength = 30
+    static let maximumNameLength = 15
     static let defaultReminderLeadDays = 1
     static let defaultReminderHour = 9
     static let defaultReminderMinute = 0

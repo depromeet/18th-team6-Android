@@ -40,7 +40,8 @@ extension ItemDetailDisplayData {
             averageReplacementDaysText: Self.averageReplacementDaysText(
                 records: consumable.replacementRecords,
                 fallbackDays: intervalDays,
-                calendar: calendar
+                calendar: calendar,
+                allowsFraction: false
             ),
             recommendedReplacementDaysText: viewData.replacementCycleSummary.intervalLabel,
             currentUsageDaysText: "\(daysInUse)일째",
@@ -54,7 +55,8 @@ extension ItemDetailDisplayData {
             replacementHistoryAverageText: Self.averageReplacementDaysText(
                 records: consumable.replacementRecords,
                 fallbackDays: intervalDays,
-                calendar: calendar
+                calendar: calendar,
+                allowsFraction: true
             )
         )
     }
@@ -62,7 +64,8 @@ extension ItemDetailDisplayData {
     private static func averageReplacementDaysText(
         records: [ItemDetailReplacementRecord],
         fallbackDays: Int,
-        calendar: Calendar
+        calendar: Calendar,
+        allowsFraction: Bool
     ) -> String {
         let days = records.map { $0.usedDays(calendar: calendar) }
 
@@ -71,7 +74,11 @@ extension ItemDetailDisplayData {
         }
 
         let average = Double(days.reduce(0, +)) / Double(days.count)
-        return String(format: "%.1f일", average)
+        if allowsFraction {
+            return String(format: "%.1f일", average)
+        }
+
+        return "\(Int(average.rounded()))일"
     }
 
     private static func replacementHistoryEntries(

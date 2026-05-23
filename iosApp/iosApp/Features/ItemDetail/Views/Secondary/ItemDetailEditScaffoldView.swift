@@ -1,18 +1,26 @@
 import SwiftUI
+import UIKit
 
 struct ItemDetailEditValidation: Equatable {
     var nameErrorMessage: String?
 
     static let valid = ItemDetailEditValidation(nameErrorMessage: nil)
+    static let emptyName = ItemDetailEditValidation(nameErrorMessage: "소모품명을 입력해주세요")
     static let duplicateName = ItemDetailEditValidation(nameErrorMessage: "다른 이름과 중복되지 않게 입력해주세요")
+    static let invalidNameCharacters = ItemDetailEditValidation(nameErrorMessage: "한글, 영문, 숫자, 공백, -, _, /, (, )만 사용할 수 있어요")
 }
 
 struct ItemDetailEditScaffoldView: View {
     @Binding var draft: ItemDetailEditDraft
+    @State private var replacementCycleInput: String
+    @State private var originalName: String
+    @State private var selectedImageOptionID: Int?
+    @State private var imageGridWidth = ItemDetailEditMetrics.referenceContentWidth
 
     let validation: ItemDetailEditValidation
     let recommendedCycleDays: Int?
     let averageCycleDays: Int?
+    let existingConsumableNames: [String]
     let imageAssetNames: [String]
     let isProcessing: Bool
     let canSubmitOverride: Bool?
@@ -24,6 +32,7 @@ struct ItemDetailEditScaffoldView: View {
         validation: ItemDetailEditValidation = .valid,
         recommendedCycleDays: Int? = nil,
         averageCycleDays: Int? = nil,
+        existingConsumableNames: [String] = [],
         imageAssetNames: [String] = ItemDetailEditAssetCatalog.defaultAssetNames,
         isProcessing: Bool = false,
         canSubmit: Bool? = nil,
@@ -31,9 +40,12 @@ struct ItemDetailEditScaffoldView: View {
         onSubmit: @escaping () -> Void
     ) {
         self._draft = draft
+        self._replacementCycleInput = State(initialValue: "\(draft.wrappedValue.replacementCycleDays)")
+        self._originalName = State(initialValue: draft.wrappedValue.name)
         self.validation = validation
         self.recommendedCycleDays = recommendedCycleDays
         self.averageCycleDays = averageCycleDays
+        self.existingConsumableNames = existingConsumableNames
         self.imageAssetNames = imageAssetNames
         self.isProcessing = isProcessing
         self.canSubmitOverride = canSubmit
@@ -56,9 +68,14 @@ struct ItemDetailEditScaffoldView: View {
                     imageSection
                 }
                 .padding(.horizontal, OBRitSpacing.s5)
-                .padding(.top, ItemDetailEditMetrics.topContentPadding)
-                .padding(.bottom, ItemDetailEditMetrics.scrollBottomPadding)
+                .padding(.vertical, OBRitSpacing.s4)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .background {
+                    OBRitColors.backgroundDefaultDefault
+                        .onTapGesture(perform: dismissKeyboard)
+                }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: OBRitSpacing.s0) {
@@ -71,12 +88,14 @@ struct ItemDetailEditScaffoldView: View {
             sectionTitle("소모품명")
 
             OBRitOutlinedTextField(
-                text: $draft.name,
-                inputResultState: validation.nameErrorMessage == nil ? .default : .error,
+                text: clippedNameText,
+                inputResultState: nameValidationMessage == nil ? .default : .error,
                 maxLength: ItemDetailConfig.maximumNameLength,
-                supportingText: validation.nameErrorMessage ?? "",
+                supportingText: "",
                 singleLine: true
             )
+
+            nameHelperText
         }
     }
 
@@ -89,6 +108,8 @@ struct ItemDetailEditScaffoldView: View {
                     text: replacementCycleText,
                     singleLine: true,
                     inputType: .number,
+                    submitLabel: .done,
+                    onSubmit: normalizeReplacementCycleInput,
                     trailingIcon: {
                         Text("일")
                             .lineLimit(1)
@@ -125,84 +146,228 @@ struct ItemDetailEditScaffoldView: View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
             sectionTitle("대표 이미지")
 
-            LazyVGrid(columns: imageGridColumns, spacing: ItemDetailEditMetrics.imageRowSpacing) {
-                ForEach(imageAssetNames, id: \.self) { assetName in
-                    Button {
-                        draft.imageAssetName = assetName
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(OBRitColors.gray750)
+            GeometryReader { geometry in
+                let imageSize = imageSize(in: geometry.size.width)
 
-                            Image(assetName)
-                                .resizable()
-                                .scaledToFit()
-                                .padding(ItemDetailEditMetrics.imagePadding)
-                        }
-                        .frame(
-                            width: ItemDetailEditMetrics.imageSize,
-                            height: ItemDetailEditMetrics.imageSize
-                        )
-                        .overlay {
-                            if draft.imageAssetName == assetName {
-                                Circle()
-                                    .stroke(OBRitColors.backgroundPositiveDefault, lineWidth: ItemDetailEditMetrics.selectedImageBorderWidth)
+                LazyVGrid(columns: imageGridColumns(in: geometry.size.width), spacing: ItemDetailEditMetrics.imageRowSpacing) {
+                    ForEach(imageOptions) { option in
+                        ItemDetailEditImageButton(
+                            assetName: option.assetName,
+                            size: imageSize,
+                            selected: isSelectedImageOption(option),
+                            accessibilityLabel: option.accessibilityLabel,
+                            onSelect: {
+                                selectedImageOptionID = option.id
+                                draft.imageAssetName = option.assetName
+                                dismissKeyboard()
                             }
-                        }
+                        )
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("대표 이미지 선택")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onAppear {
+                    imageGridWidth = geometry.size.width
+                }
+                .onChange(of: geometry.size.width) { _, newWidth in
+                    imageGridWidth = newWidth
                 }
             }
+            .frame(height: imageGridHeight(for: imageGridWidth))
         }
     }
 
     private var bottomBar: some View {
-        VStack(spacing: OBRitSpacing.s0) {
-            OBRitFilledTextButton(
-                text: isProcessing ? "편집 중" : "편집 완료",
-                size: .large,
-                color: canSubmit ? .green : .gray,
-                enabled: canSubmit,
-                fillsWidth: true,
-                action: onSubmit
-            )
-            .padding(.horizontal, OBRitSpacing.s5)
-            .padding(.vertical, OBRitSpacing.s4)
-
-            Capsule()
-                .fill(OBRitColors.common00)
-                .frame(width: ItemDetailEditMetrics.homeIndicatorWidth, height: ItemDetailEditMetrics.homeIndicatorHeight)
-                .padding(.bottom, OBRitSpacing.s2)
-        }
+        OBRitFilledTextButton(
+            text: isProcessing ? "편집 중" : "편집 완료",
+            size: .large,
+            color: canSubmit ? .green : .gray,
+            enabled: canSubmit,
+            fillsWidth: true,
+            action: submitEdit
+        )
+        .frame(height: ItemDetailEditMetrics.bottomButtonHeight)
+        .padding(.horizontal, OBRitSpacing.s5)
+        .padding(.vertical, OBRitSpacing.s4)
         .background(OBRitColors.backgroundDefaultDefault)
     }
 
     private var replacementCycleText: Binding<String> {
         Binding {
-            "\(draft.replacementCycleDays)"
+            replacementCycleInput
         } set: { newValue in
             let digits = newValue.filter(\.isNumber)
-            guard let value = Int(digits) else {
-                draft.replacementCycleDays = ItemDetailConfig.minimumReplacementCycleDays
-                return
-            }
-            draft.replacementCycleDays = min(
-                max(value, ItemDetailConfig.minimumReplacementCycleDays),
-                ItemDetailConfig.maximumReplacementCycleDays
+            let maximumDigitCount = "\(ItemDetailConfig.maximumReplacementCycleDays)".count
+            let clippedDigits = String(digits.prefix(maximumDigitCount))
+
+            replacementCycleInput = clippedDigits
+
+            guard let value = Int(clippedDigits) else { return }
+            draft.replacementCycleDays = clampedReplacementCycleDays(value)
+        }
+    }
+
+    private var clippedNameText: Binding<String> {
+        Binding {
+            draft.name
+        } set: { newValue in
+            draft.name = String(newValue.prefix(ItemDetailConfig.maximumNameLength))
+        }
+    }
+
+    private var nameValidationMessage: String? {
+        if normalizedName(draft.name).isEmpty {
+            return ItemDetailEditValidation.emptyName.nameErrorMessage
+        }
+
+        if normalizedName(draft.name).count > ItemDetailConfig.maximumNameLength {
+            return "\(ItemDetailConfig.maximumNameLength)자 이내로 입력해주세요"
+        }
+
+        if hasInvalidNameCharacters {
+            return ItemDetailEditValidation.invalidNameCharacters.nameErrorMessage
+        }
+
+        if hasDuplicateName {
+            return ItemDetailEditValidation.duplicateName.nameErrorMessage
+        }
+
+        return validation.nameErrorMessage
+    }
+
+    private var hasDuplicateName: Bool {
+        let currentName = normalizedName(draft.name)
+        guard !currentName.isEmpty && !namesMatch(currentName, originalName) else {
+            return false
+        }
+
+        return existingConsumableNames.contains { namesMatch($0, currentName) }
+    }
+
+    private var hasInvalidNameCharacters: Bool {
+        let currentName = normalizedName(draft.name)
+        guard !currentName.isEmpty else { return false }
+
+        return currentName.range(
+            of: ItemDetailEditMetrics.allowedNamePattern,
+            options: .regularExpression
+        ) == nil
+    }
+
+    private var imageOptions: [ItemDetailEditImageOption] {
+        imageAssetNames.enumerated().map { index, assetName in
+            ItemDetailEditImageOption(
+                id: index,
+                assetName: assetName,
+                accessibilityLabel: "\(index + 1)번째 \(imageAccessibilityName(for: assetName)) 대표 이미지"
             )
         }
     }
 
-    private var imageGridColumns: [GridItem] {
-        Array(
-            repeating: GridItem(.fixed(ItemDetailEditMetrics.imageSize), spacing: ItemDetailEditMetrics.imageColumnSpacing),
-            count: ItemDetailEditMetrics.imageColumnCount
+    private func imageGridHeight(for availableWidth: CGFloat) -> CGFloat {
+        guard !imageOptions.isEmpty else { return 0 }
+
+        let imageSize = imageSize(in: availableWidth)
+        let rowCount = ceil(CGFloat(imageOptions.count) / CGFloat(ItemDetailEditMetrics.imageColumnCount))
+        return rowCount * imageSize +
+            max(0, rowCount - 1) * ItemDetailEditMetrics.imageRowSpacing
+    }
+
+    private func imageGridColumns(in availableWidth: CGFloat) -> [GridItem] {
+        let columnCount = ItemDetailEditMetrics.imageColumnCount
+        let imageSize = imageSize(in: availableWidth)
+        let totalImageWidth = imageSize * CGFloat(columnCount)
+        let spacing = max(
+            OBRitSpacing.s2,
+            (availableWidth - totalImageWidth) / CGFloat(columnCount - 1)
+        )
+
+        return Array(
+            repeating: GridItem(.fixed(imageSize), spacing: spacing, alignment: .leading),
+            count: columnCount
+        )
+    }
+
+    private func imageSize(in availableWidth: CGFloat) -> CGFloat {
+        min(
+            ItemDetailEditMetrics.maximumImageSize,
+            max(
+                ItemDetailEditMetrics.minimumImageSize,
+                availableWidth * ItemDetailEditMetrics.imageWidthRatio
+            )
         )
     }
 
     private var canSubmit: Bool {
-        canSubmitOverride ?? (draft.isValid && validation.nameErrorMessage == nil && !isProcessing)
+        canSubmitOverride ?? (
+            draft.isValid &&
+                isReplacementCycleInputValid &&
+                nameValidationMessage == nil &&
+                !isProcessing
+        )
+    }
+
+    private var isReplacementCycleInputValid: Bool {
+        guard let value = Int(replacementCycleInput) else { return false }
+
+        return value >= ItemDetailConfig.minimumReplacementCycleDays &&
+            value <= ItemDetailConfig.maximumReplacementCycleDays
+    }
+
+    private func isSelectedImageOption(_ option: ItemDetailEditImageOption) -> Bool {
+        let selectedID = selectedImageOptionID ?? imageOptions.first { $0.assetName == draft.imageAssetName }?.id
+
+        return option.id == selectedID && option.assetName == draft.imageAssetName
+    }
+
+    private func normalizeReplacementCycleInput() {
+        guard let value = Int(replacementCycleInput) else {
+            return
+        }
+
+        let clampedValue = clampedReplacementCycleDays(value)
+        replacementCycleInput = "\(clampedValue)"
+        draft.replacementCycleDays = clampedValue
+    }
+
+    private func clampedReplacementCycleDays(_ value: Int) -> Int {
+        min(
+            max(value, ItemDetailConfig.minimumReplacementCycleDays),
+            ItemDetailConfig.maximumReplacementCycleDays
+        )
+    }
+
+    private func normalizedName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func namesMatch(_ lhs: String, _ rhs: String) -> Bool {
+        normalizedName(lhs).localizedCaseInsensitiveCompare(normalizedName(rhs)) == .orderedSame
+    }
+
+    private func submitEdit() {
+        normalizeReplacementCycleInput()
+        onSubmit()
+    }
+
+    private func imageAccessibilityName(for assetName: String) -> String {
+        switch assetName {
+        case "home_orb_toothbrush":
+            return "칫솔"
+        case "home_orb_razor":
+            return "면도기"
+        case "home_orb_shower_filter":
+            return "샤워기 필터"
+        case "home_orb_detergent":
+            return "세제"
+        case "home_orb_diffuser":
+            return "디퓨저"
+        case "home_orb_sponge":
+            return "수세미"
+        case "home_orb_towel":
+            return "수건"
+        default:
+            return "소모품"
+        }
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -210,6 +375,23 @@ struct ItemDetailEditScaffoldView: View {
             .lineLimit(1)
             .obritTextStyle(OBRitTypography.s2xl, weight: OBRitFontWeight.bold, color: OBRitColors.textDefaultDefault)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var nameHelperText: some View {
+        HStack(alignment: .top, spacing: OBRitSpacing.s1_5) {
+            if nameValidationMessage != nil {
+                OBRitIcon(kind: .exclamation, color: OBRitColors.red300)
+                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+            }
+
+            Text(nameValidationMessage ?? "소모품을 구분하기 쉬운 이름으로 입력해주세요")
+                .fixedSize(horizontal: false, vertical: true)
+                .obritTextStyle(
+                    OBRitTypography.base,
+                    weight: nameValidationMessage == nil ? OBRitFontWeight.medium : OBRitFontWeight.semiBold,
+                    color: nameValidationMessage == nil ? OBRitColors.gray300 : OBRitColors.red300
+                )
+        }
     }
 
     private func helperText(
@@ -222,7 +404,7 @@ struct ItemDetailEditScaffoldView: View {
                 .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
 
             Text(prefix) +
-                Text(highlighted).foregroundColor(OBRitColors.green400) +
+                Text(highlighted).foregroundColor(OBRitColors.green500) +
                 Text(suffix)
         }
         .lineLimit(1)
@@ -231,8 +413,47 @@ struct ItemDetailEditScaffoldView: View {
     }
 }
 
+private struct ItemDetailEditImageOption: Identifiable, Equatable {
+    let id: Int
+    let assetName: String
+    let accessibilityLabel: String
+}
+
+private struct ItemDetailEditImageButton: View {
+    let assetName: String
+    let size: CGFloat
+    let selected: Bool
+    let accessibilityLabel: String
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            Image(assetName)
+                .resizable()
+                .scaledToFill()
+                .frame(
+                    width: size,
+                    height: size
+                )
+                .background(OBRitColors.gray750)
+                .clipShape(Circle())
+                .overlay {
+                    if selected {
+                        Circle()
+                            .stroke(OBRitColors.backgroundPositiveDefault, lineWidth: ItemDetailEditMetrics.selectedImageBorderWidth)
+                    }
+                }
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityValue(selected ? "선택됨" : "선택 안 됨")
+    }
+}
+
 private enum ItemDetailEditAssetCatalog {
-    static let defaultAssetNames = [
+    private static let baseAssetNames = [
         "home_orb_toothbrush",
         "home_orb_razor",
         "home_orb_shower_filter",
@@ -241,20 +462,29 @@ private enum ItemDetailEditAssetCatalog {
         "home_orb_sponge",
         "home_orb_towel"
     ]
+
+    static let defaultAssetNames = Array(
+        Array(repeating: baseAssetNames, count: 6)
+            .flatMap { $0 }
+            .prefix(40)
+    )
 }
 
 private enum ItemDetailEditMetrics {
-    static let topContentPadding: CGFloat = 16
+    static let allowedNamePattern = #"^[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9 _\-/()]+$"#
     static let sectionSpacing: CGFloat = 36
-    static let scrollBottomPadding: CGFloat = 132
     static let imageColumnCount = 5
-    static let imageSize: CGFloat = 60
-    static let imagePadding: CGFloat = 8
-    static let imageColumnSpacing: CGFloat = 18
+    static let referenceContentWidth: CGFloat = 372
+    static let imageWidthRatio: CGFloat = 60 / 372
+    static let minimumImageSize: CGFloat = 48
+    static let maximumImageSize: CGFloat = 60
     static let imageRowSpacing: CGFloat = 12
-    static let selectedImageBorderWidth: CGFloat = 2.3
-    static let homeIndicatorWidth: CGFloat = 108
-    static let homeIndicatorHeight: CGFloat = 4
+    static let selectedImageBorderWidth: CGFloat = 2
+    static let bottomButtonHeight: CGFloat = 60
+}
+
+private func dismissKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 }
 
 #Preview {
@@ -265,6 +495,7 @@ private enum ItemDetailEditMetrics {
         validation: .duplicateName,
         recommendedCycleDays: 30,
         averageCycleDays: 31,
+        existingConsumableNames: ItemDetailDomainSampleData.consumables.map(\.name),
         onClose: {},
         onSubmit: {}
     )

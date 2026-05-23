@@ -35,7 +35,7 @@ object AtomText {
 
     object S2xl {
         const val FontSize: Float = 18f
-        const val LineHeight: Float = 26f
+        const val LineHeight: Float = 24f
     }
 
     object S3xl {

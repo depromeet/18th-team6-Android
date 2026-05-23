@@ -13,7 +13,7 @@ struct ItemDetailReplacementHistoryChart: View {
                     Text("교체 기록은 ")
                         .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
                     Text("최근 5회")
-                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.green500)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.green450)
                     Text("까지 제공해요")
                         .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
                 }
@@ -25,7 +25,7 @@ struct ItemDetailReplacementHistoryChart: View {
                 GeometryReader { proxy in
                     chartBars(width: proxy.size.width)
                 }
-                .frame(height: 126)
+                .frame(height: ItemDetailHistoryChartMetrics.height)
 
                 Rectangle()
                     .fill(OBRitColors.gray800)
@@ -55,16 +55,17 @@ struct ItemDetailReplacementHistoryChart: View {
     private func chartBars(width: CGFloat) -> some View {
         let entries = Array(item.replacementHistory.prefix(5))
         let count = max(entries.count, 1)
-        let spacing = min(max(width * 0.03, OBRitSpacing.s2), OBRitSpacing.s3)
-        let barWidth = max(36, (width - spacing * CGFloat(count - 1)) / CGFloat(count))
+        let spacing = count > 1
+            ? max(0, (width - ItemDetailHistoryChartMetrics.barWidth * CGFloat(count)) / CGFloat(count - 1))
+            : 0
 
         return HStack(alignment: .bottom, spacing: spacing) {
             ForEach(entries) { entry in
                 ItemDetailHistoryBar(entry: entry, itemStatus: item.status)
-                    .frame(width: barWidth)
+                    .frame(width: ItemDetailHistoryChartMetrics.barWidth)
             }
         }
-        .frame(width: width, height: 126, alignment: .bottom)
+        .frame(width: width, height: ItemDetailHistoryChartMetrics.height, alignment: .bottom)
     }
 }
 
@@ -91,6 +92,7 @@ private struct ItemDetailHistoryBar: View {
                     RoundedRectangle(cornerRadius: OBRitRadius.small)
                         .fill(itemStatus.chartBarColor)
                         .frame(height: 86 * entry.ratio)
+                        .clipShape(ItemDetailBottomRoundedRectangle(radius: OBRitRadius.small))
                 }
             }
             .frame(height: 86)
@@ -106,4 +108,32 @@ private struct ItemDetailHistoryBar: View {
                 )
         }
     }
+}
+
+private struct ItemDetailBottomRoundedRectangle: Shape {
+    let radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let cornerRadius = min(radius, rect.width / 2, rect.height / 2)
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX - cornerRadius, y: rect.maxY),
+            control: CGPoint(x: rect.maxX, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX, y: rect.maxY - cornerRadius),
+            control: CGPoint(x: rect.minX, y: rect.maxY)
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
+private enum ItemDetailHistoryChartMetrics {
+    static let height: CGFloat = 130
+    static let barWidth: CGFloat = 58
 }

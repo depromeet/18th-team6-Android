@@ -21,8 +21,7 @@ struct ItemDetailBottomActionBar: View {
             )
         }
         .padding(.horizontal, ItemDetailLayout.horizontalPadding)
-        .padding(.top, OBRitSpacing.s4)
-        .padding(.bottom, OBRitSpacing.s4)
+        .padding(.vertical, ItemDetailLayout.actionBarVerticalPadding)
         .background(OBRitColors.backgroundDefaultDefault)
     }
 
@@ -37,7 +36,7 @@ struct ItemDetailBottomActionBar: View {
                 .lineLimit(1)
                 .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: foregroundColor)
                 .frame(maxWidth: .infinity)
-                .frame(height: ItemDetailLayout.actionBarButtonHeight)
+                .frame(height: ItemDetailLayout.actionBarButtonSize.height)
                 .background(backgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.large))
         }
