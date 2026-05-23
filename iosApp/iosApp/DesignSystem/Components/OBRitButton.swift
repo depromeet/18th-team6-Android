@@ -4,6 +4,17 @@ public enum OBRitFilledButtonSize {
     case large
     case middle
     case small
+
+    public var height: CGFloat {
+        switch self {
+        case .large:
+            return 60
+        case .middle:
+            return 46
+        case .small:
+            return 38
+        }
+    }
 }
 
 public enum OBRitFilledButtonColor {
@@ -41,7 +52,7 @@ public struct OBRitFilledButton<Content: View>: View {
             HStack(spacing: OBRitSpacing.s0_5) {
                 content(contentColor)
             }
-            .frame(minHeight: height)
+            .frame(minHeight: size.height)
             .padding(.horizontal, horizontalPadding)
             .frame(maxWidth: fillsWidth ? .infinity : nil)
             .background(containerColor)
@@ -54,17 +65,6 @@ public struct OBRitFilledButton<Content: View>: View {
 
     var textToken: OBRitTypography.TextToken {
         size == .small ? OBRitTypography.base : OBRitTypography.xl
-    }
-
-    private var height: CGFloat {
-        switch size {
-        case .large:
-            return OBRitSpacing.s14
-        case .middle:
-            return 46
-        case .small:
-            return 38
-        }
     }
 
     private var horizontalPadding: CGFloat {

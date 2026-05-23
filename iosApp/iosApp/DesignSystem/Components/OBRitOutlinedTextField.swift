@@ -188,7 +188,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                 trailingIcon()
                     .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
             }
-            .frame(minHeight: OBRitSpacing.s14)
+            .frame(minHeight: OBRitSpacing.s6)
             .padding(.horizontal, OBRitSpacing.s5)
             .padding(.vertical, OBRitSpacing.s4)
             .background(containerColor)

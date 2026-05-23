@@ -16,6 +16,7 @@ struct ItemDetailEditScaffoldView: View {
     @State private var originalName: String
     @State private var selectedImageOptionID: Int?
     @State private var imageGridWidth = ItemDetailEditMetrics.referenceContentWidth
+    @State private var hasAttemptedNameOverflow = false
 
     let validation: ItemDetailEditValidation
     let recommendedCycleDays: Int?
@@ -89,7 +90,7 @@ struct ItemDetailEditScaffoldView: View {
 
             OBRitOutlinedTextField(
                 text: clippedNameText,
-                inputResultState: nameValidationMessage == nil ? .default : .error,
+                inputResultState: nameHelperMessage == nil ? .default : .error,
                 maxLength: ItemDetailConfig.maximumNameLength,
                 supportingText: "",
                 singleLine: true
@@ -210,17 +211,27 @@ struct ItemDetailEditScaffoldView: View {
         Binding {
             draft.name
         } set: { newValue in
-            draft.name = String(newValue.prefix(ItemDetailConfig.maximumNameLength))
+            let clippedName = String(newValue.prefix(ItemDetailConfig.maximumNameLength))
+            if newValue.count > ItemDetailConfig.maximumNameLength {
+                hasAttemptedNameOverflow = true
+            } else if newValue.count < ItemDetailConfig.maximumNameLength {
+                hasAttemptedNameOverflow = false
+            }
+            draft.name = clippedName
         }
     }
 
-    private var nameValidationMessage: String? {
-        if normalizedName(draft.name).isEmpty {
-            return ItemDetailEditValidation.emptyName.nameErrorMessage
+    private var nameHelperMessage: String? {
+        if hasAttemptedNameOverflow {
+            return "\(ItemDetailConfig.maximumNameLength)자 이내로 입력해주세요"
         }
 
-        if normalizedName(draft.name).count > ItemDetailConfig.maximumNameLength {
-            return "\(ItemDetailConfig.maximumNameLength)자 이내로 입력해주세요"
+        return blockingNameValidationMessage
+    }
+
+    private var blockingNameValidationMessage: String? {
+        if normalizedName(draft.name).isEmpty {
+            return ItemDetailEditValidation.emptyName.nameErrorMessage
         }
 
         if hasInvalidNameCharacters {
@@ -301,7 +312,7 @@ struct ItemDetailEditScaffoldView: View {
         canSubmitOverride ?? (
             draft.isValid &&
                 isReplacementCycleInputValid &&
-                nameValidationMessage == nil &&
+                blockingNameValidationMessage == nil &&
                 !isProcessing
         )
     }
@@ -362,17 +373,17 @@ struct ItemDetailEditScaffoldView: View {
 
     private var nameHelperText: some View {
         HStack(alignment: .top, spacing: OBRitSpacing.s1_5) {
-            if nameValidationMessage != nil {
+            if nameHelperMessage != nil {
                 OBRitIcon(kind: .exclamation, color: OBRitColors.red300)
                     .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
             }
 
-            Text(nameValidationMessage ?? "소모품을 구분하기 쉬운 이름으로 입력해주세요")
+            Text(nameHelperMessage ?? "소모품을 구분하기 쉬운 이름으로 입력해주세요")
                 .fixedSize(horizontal: false, vertical: true)
                 .obritTextStyle(
                     OBRitTypography.base,
-                    weight: nameValidationMessage == nil ? OBRitFontWeight.medium : OBRitFontWeight.semiBold,
-                    color: nameValidationMessage == nil ? OBRitColors.gray300 : OBRitColors.red300
+                    weight: nameHelperMessage == nil ? OBRitFontWeight.medium : OBRitFontWeight.semiBold,
+                    color: nameHelperMessage == nil ? OBRitColors.gray300 : OBRitColors.red300
                 )
         }
     }
