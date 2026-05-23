@@ -16,6 +16,7 @@ fun HomeScreen(
     onSearchClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMoreClick: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
@@ -31,6 +32,7 @@ fun HomeScreen(
                 onProfileClick = viewModel::onProfileClick,
                 onListSortOrderChange = viewModel::onListSortOrderChange,
                 onMoreClick = viewModel::onMoreClick,
+                onRegisterClick = onRegisterClick,
             ),
         modifier = modifier,
     )
@@ -51,4 +53,5 @@ internal data class HomeScreenAction(
     val onProfileClick: () -> Unit,
     val onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
     val onMoreClick: () -> Unit,
+    val onRegisterClick: () -> Unit,
 )

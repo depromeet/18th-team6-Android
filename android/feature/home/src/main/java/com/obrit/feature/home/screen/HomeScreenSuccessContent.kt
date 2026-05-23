@@ -73,6 +73,7 @@ internal fun HomeScreenSuccessContent(
         HomeGnbBar(
             selectedTab = selectedTab,
             onTabSelect = { selectedTab = it },
+            onRegisterClick = action.onRegisterClick,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
@@ -82,6 +83,7 @@ internal fun HomeScreenSuccessContent(
 private fun HomeGnbBar(
     selectedTab: OBRitGnbTab,
     onTabSelect: (OBRitGnbTab) -> Unit,
+    onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -97,7 +99,7 @@ private fun HomeGnbBar(
             modifier = Modifier.align(Alignment.Center),
         )
         HomeFab(
-            onClick = {},
+            onClick = onRegisterClick,
             modifier = Modifier.align(Alignment.CenterEnd),
         )
     }
