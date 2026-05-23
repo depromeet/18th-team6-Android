@@ -1,6 +1,6 @@
 @file:Suppress("TooManyFunctions")
 
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,7 +43,7 @@ import java.time.temporal.ChronoUnit
 private const val LIST_PREVIEW_COUNT = 3
 
 @Composable
-internal fun ConsumableListPreviewSection(
+internal fun QuickItemSection(
     buckets: List<Bucket>,
     sortOrder: ConsumableListSortOrder,
     onSortOrderChange: (ConsumableListSortOrder) -> Unit,
@@ -52,7 +52,7 @@ internal fun ConsumableListPreviewSection(
 ) {
     val typography = LocalOBRitTypography.current
     var expanded by remember { mutableStateOf(false) }
-    val sortedBuckets = remember(buckets, sortOrder) { sortBuckets(buckets, sortOrder) }
+    val sortedBuckets = remember(buckets, sortOrder) { sortItems(buckets, sortOrder) }
 
     Column(
         modifier = modifier.padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S5.dp),
@@ -77,7 +77,7 @@ internal fun ConsumableListPreviewSection(
             )
         }
 
-        BucketList(buckets = sortedBuckets.take(LIST_PREVIEW_COUNT))
+        QuickItemList(buckets = sortedBuckets.take(LIST_PREVIEW_COUNT))
         OBRitLargeFilledButton(
             text = "더보기",
             onClick = onMoreClick,
@@ -125,7 +125,7 @@ private fun SortDropdown(
 }
 
 @Composable
-private fun BucketList(
+private fun QuickItemList(
     buckets: List<Bucket>,
     modifier: Modifier = Modifier,
 ) {
@@ -134,13 +134,13 @@ private fun BucketList(
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
     ) {
         buckets.forEach { bucket ->
-            BucketListItem(bucket = bucket)
+            QuickItemListItem(bucket = bucket)
         }
     }
 }
 
 @Composable
-internal fun BucketListItem(bucket: Bucket) {
+internal fun QuickItemListItem(bucket: Bucket) {
     val daysUntil = remember(bucket.replacementDate) { daysUntil(bucket.replacementDate) }
     OBRitCardList(
         level = bucketListLevel(bucket),
@@ -173,7 +173,7 @@ private fun daysUntil(replacementDate: String): Int =
         .between(LocalDate.now(), LocalDate.parse(replacementDate))
         .toInt()
 
-private fun sortBuckets(
+private fun sortItems(
     buckets: List<Bucket>,
     sortOrder: ConsumableListSortOrder,
 ): List<Bucket> =
@@ -187,9 +187,9 @@ private fun sortBuckets(
 @Suppress("MagicNumber")
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20, widthDp = 412)
 @Composable
-private fun ConsumableListPreviewSectionPreview() {
+private fun QuickItem() {
     OBRitTheme {
-        ConsumableListPreviewSection(
+        QuickItemSection(
             buckets =
                 listOf(
                     Bucket(

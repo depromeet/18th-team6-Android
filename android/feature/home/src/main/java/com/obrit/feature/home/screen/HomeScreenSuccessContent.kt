@@ -34,13 +34,13 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.feature.home.screen.section.ConsumableAlertSection
-import com.obrit.feature.home.screen.section.ConsumableIcon
-import com.obrit.feature.home.screen.section.ConsumableListPreviewSection
-import com.obrit.feature.home.screen.section.ConsumableOrbit
-import com.obrit.feature.home.screen.section.ConsumableStatusSection
-import com.obrit.feature.home.screen.section.ConsumableUsageStatusSection
-import com.obrit.feature.home.screen.section.HomeGraphSection
+import com.obrit.feature.home.screen.homeSection.ConsumableAlertSection
+import com.obrit.feature.home.screen.homeSection.ConsumableIcon
+import com.obrit.feature.home.screen.homeSection.QuickItemSection
+import com.obrit.feature.home.screen.homeSection.ConsumableOrbitSection
+import com.obrit.feature.home.screen.homeSection.ConsumableStatusSection
+import com.obrit.feature.home.screen.homeSection.ConsumableUsageStatusSection
+import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 
@@ -200,20 +200,20 @@ private fun HomeContents(
             replacementStatus = state.status.message.replacementStatus,
             stockStatus = state.status.message.stockStatus,
         )
-        ConsumableOrbit(
+        ConsumableOrbitSection(
             icons = homeConsumableIcons,
 //        positiveRatio = state.status.ratio.goodPercentage / 100f,
 //        positiveScore = state.status.ratio.goodPercentage,
 //        negativeScore = state.status.ratio.warningPercentage,
         )
-        HomeGraphSection(
+        MyStatusGraphSection(
             totalCount = state.status.graph.totalCount,
             needReplaceCount = state.status.graph.needReplaceCount,
             score = state.status.graph.score,
             averageScore = state.status.graph.averageScore,
         )
         ConsumableAlertSection(buckets = state.status.buckets)
-        ConsumableListPreviewSection(
+        QuickItemSection(
             buckets = state.status.buckets,
             sortOrder = state.listSortOrder,
             onSortOrderChange = onListSortOrderChange,

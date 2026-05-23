@@ -1,4 +1,4 @@
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.annotation.DrawableRes
 import androidx.compose.ui.unit.Dp

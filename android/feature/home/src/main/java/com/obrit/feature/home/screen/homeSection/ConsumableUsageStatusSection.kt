@@ -1,4 +1,4 @@
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

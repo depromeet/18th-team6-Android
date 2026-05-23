@@ -1,6 +1,6 @@
 @file:Suppress("TooManyFunctions")
 
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -46,7 +46,7 @@ import kotlin.math.sqrt
  * @param icons 볼 안에 표시할 소모품 아이콘 목록. 변경 시 물리 상태가 초기화된다.
  */
 @Composable
-internal fun ConsumableOrbit(
+internal fun ConsumableOrbitSection(
     icons: List<ConsumableIcon>,
     modifier: Modifier = Modifier,
 ) {
@@ -412,9 +412,9 @@ private val DetergentHeight = 54.dp
 
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
-private fun ConsumableOrbitPreview() {
+private fun ConsumableOrbitSectionPreview() {
     OBRitTheme {
-        ConsumableOrbit(
+        ConsumableOrbitSection(
             icons =
                 listOf(
                     ConsumableIcon(R.drawable.ic_towel, TowelWidth, TowelHeight),

@@ -51,7 +51,7 @@ import com.obrit.android.core.designsystem.component.slider.OBRitSlider
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
-import com.obrit.feature.home.screen.section.BucketListItem
+import com.obrit.feature.home.screen.homeSection.QuickItemListItem
 import com.obrit.feature.home.viewmodel.Bucket
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
@@ -99,7 +99,7 @@ internal fun ConsumableListScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            items(filtered) { bucket -> BucketListItem(bucket = bucket) }
+            items(filtered) { bucket -> QuickItemListItem(bucket = bucket) }
         }
         ListFilterBar(
             sortOrder = sortOrder,

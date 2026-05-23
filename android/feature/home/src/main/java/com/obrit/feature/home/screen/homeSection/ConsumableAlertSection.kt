@@ -1,6 +1,6 @@
 @file:Suppress("TooManyFunctions")
 
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

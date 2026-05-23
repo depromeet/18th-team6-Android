@@ -1,6 +1,6 @@
 @file:Suppress("TooManyFunctions")
 
-package com.obrit.feature.home.screen.section
+package com.obrit.feature.home.screen.homeSection
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -63,7 +63,7 @@ private data class BarGeometry(
 }
 
 @Composable
-internal fun HomeGraphSection(
+internal fun MyStatusGraphSection(
     totalCount: Int,
     needReplaceCount: Int,
     score: Float,
@@ -89,7 +89,7 @@ internal fun HomeGraphSection(
                 .background(colors.common1000)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        HomeGraphRow(
+        MyStatusGraphRow(
             totalCount = totalCount,
             needReplaceCount = needReplaceCount,
             score = score,
@@ -100,7 +100,7 @@ internal fun HomeGraphSection(
 }
 
 @Composable
-private fun HomeGraphRow(
+private fun MyStatusGraphRow(
     totalCount: Int,
     needReplaceCount: Int,
     score: Float,
@@ -264,9 +264,9 @@ private fun DrawScope.drawMarkerLabels(
 
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
-private fun HomeGraphSectionPreview() {
+private fun MyStatusGraphSectionPreview() {
     OBRitTheme {
-        HomeGraphSection(
+        MyStatusGraphSection(
             totalCount = 16,
             needReplaceCount = 4,
             score = 0.425f,
