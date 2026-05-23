@@ -31,8 +31,6 @@ public struct OBRitIcon: View {
             case .chevronDown:
                 ChevronDownShape()
                     .stroke(color, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-                    .padding(.horizontal, 2)
-                    .padding(.vertical, 4)
             case .exclamation:
                 Circle()
                     .fill(color)
@@ -76,9 +74,9 @@ struct CheckmarkShape: Shape {
 struct ChevronDownShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.height * 0.28))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY + rect.height * 0.72))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + rect.height * 0.28))
+        path.move(to: CGPoint(x: rect.minX + rect.width * 0.25, y: rect.minY + rect.height * 0.375))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY + rect.height * 0.625))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.75, y: rect.minY + rect.height * 0.375))
         return path
     }
 }

@@ -4,7 +4,9 @@ struct AppNavigation {
     @ViewBuilder
     static func destination(
         for route: AppRoute,
+        selectedMainTab: MainTab,
         onSetRoot: @escaping (AppRoute) -> Void,
+        onSelectMainTab: @escaping (MainTab) -> Void,
         onNavigateApp: @escaping (AppRoute) -> Void,
         onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
         onNavigateMyPage: @escaping (MyPageRoute) -> Void
@@ -46,11 +48,12 @@ struct AppNavigation {
                     onSetRoot(.main(.home))
                 }
             }
-        case let .main(selectedTab):
+        case .main:
             MainNavigation(
-                selectedTab: selectedTab,
+                selectedTab: selectedMainTab,
                 onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
+                onNavigateMyPage: onNavigateMyPage,
+                onSelectMainTab: onSelectMainTab
             )
             .navigationBarBackButtonHidden(true)
         }

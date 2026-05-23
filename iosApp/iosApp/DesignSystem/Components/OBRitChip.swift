@@ -31,6 +31,7 @@ public struct OBRitChip: View {
             .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Bold, color: contentColor)
             .padding(.horizontal, OBRitSpacing.s4)
             .padding(.vertical, OBRitSpacing.s2)
+            .frame(height: OBRitSpacing.s9 + OBRitSpacing.s0_5)
             .background(containerColor)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
             .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
