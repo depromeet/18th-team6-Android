@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
+import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.section.ConsumableAlertSection
 import com.obrit.feature.home.screen.section.ConsumableIcon
@@ -58,7 +59,7 @@ internal fun HomeScreenSuccessContent(
                 .background(colors.gray900),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            HomeTopBar(
+            OBRitHomeTopBar(
                 onSearchClick = action.onSearchClick,
                 onNotificationClick = action.onNotificationClick,
                 onProfileClick = action.onProfileClick,
