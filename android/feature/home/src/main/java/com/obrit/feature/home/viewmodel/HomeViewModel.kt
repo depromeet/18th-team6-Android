@@ -15,6 +15,15 @@ class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, Home
     fun onNotificationClick() = intent { postSideEffect(HomeSideEffect.OnNotificationClick) }
 
     fun onProfileClick() = intent { postSideEffect(HomeSideEffect.OnProfileClick) }
+
+    fun onListSortOrderChange(sortOrder: ConsumableListSortOrder) =
+        intent {
+            reduce {
+                (state as? HomeUiState.Success)?.copy(listSortOrder = sortOrder) ?: state
+            }
+        }
+
+    fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
 }
 
 sealed interface HomeUiState {
@@ -25,6 +34,7 @@ sealed interface HomeUiState {
     @Immutable
     data class Success(
         val status: HomeStatus,
+        val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
     ) : HomeUiState
 }
 
@@ -34,6 +44,8 @@ sealed interface HomeSideEffect {
     data object OnNotificationClick : HomeSideEffect
 
     data object OnProfileClick : HomeSideEffect
+
+    data object OnMoreClick : HomeSideEffect
 }
 
 // API 응답 형태를 임시로 ViewModel에 정의한다.
@@ -97,12 +109,19 @@ data class Bucket(
     val spare: Int,
     val replacementDate: String,
     val level: BucketLevel,
+    val daysInUse: Int,
 )
 
+enum class ConsumableListSortOrder(val displayName: String) {
+    REPLACE_IMMINENT("교체 임박 순"),
+    LEAST_SPARE("여분 적은 순"),
+    OLDEST_REPLACEMENT("교체 오래된 순"),
+    ALPHABETICAL("가나다 순"),
+}
+
 enum class BucketStatus {
-    REPLACE_DANGER,
-    SPARE_SHORTAGE,
-    REPLACE_WARN,
+    DANGER,
+    WARN,
 }
 
 enum class BucketLevel {
@@ -142,64 +161,42 @@ private fun createMockStatus() =
     )
 
 private fun createMockBuckets() =
-    mockReplaceDangerBuckets() + mockSpareShortBuckets() + mockReplaceWarnBuckets()
+    mockReplaceDangerBuckets()  + mockReplaceWarnBuckets()
 
 @Suppress("MagicNumber")
 private fun mockReplaceDangerBuckets() =
     listOf(
         Bucket(
-            status = BucketStatus.REPLACE_DANGER,
+            status = BucketStatus.DANGER,
             title = "면도기",
             spare = 0,
             replacementDate = "2026-05-23",
             level = BucketLevel.NONE_OVERDUE,
+            daysInUse = 30,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_DANGER,
+            status = BucketStatus.DANGER,
             title = "칫솔",
             spare = 1,
             replacementDate = "2026-05-26",
             level = BucketLevel.NONE_WARN,
+            daysInUse = 27,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_DANGER,
+            status = BucketStatus.DANGER,
             title = "수건",
             spare = 0,
             replacementDate = "2026-05-22",
             level = BucketLevel.HAS_OVERDUE,
+            daysInUse = 45,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_DANGER,
+            status = BucketStatus.DANGER,
             title = "세탁망",
             spare = 2,
             replacementDate = "2026-05-30",
             level = BucketLevel.HAS_WARN,
-        ),
-    )
-
-@Suppress("MagicNumber")
-private fun mockSpareShortBuckets() =
-    listOf(
-        Bucket(
-            status = BucketStatus.SPARE_SHORTAGE,
-            title = "샴푸",
-            spare = 0,
-            replacementDate = "2026-05-25",
-            level = BucketLevel.NONE_SAFE,
-        ),
-        Bucket(
-            status = BucketStatus.SPARE_SHORTAGE,
-            title = "치약",
-            spare = 1,
-            replacementDate = "2026-06-02",
-            level = BucketLevel.HAS_SAFE
-        ),
-        Bucket(
-            status = BucketStatus.SPARE_SHORTAGE,
-            title = "세제",
-            spare = 0,
-            replacementDate = "2026-05-20",
-            level = BucketLevel.HAS_SAFE
+            daysInUse = 18,
         ),
     )
 
@@ -207,31 +204,35 @@ private fun mockSpareShortBuckets() =
 private fun mockReplaceWarnBuckets() =
     listOf(
         Bucket(
-            status = BucketStatus.REPLACE_WARN,
+            status = BucketStatus.WARN,
             title = "필터",
             spare = 3,
             replacementDate = "2026-05-26",
-            level = BucketLevel.NONE_SAFE
+            level = BucketLevel.NONE_SAFE,
+            daysInUse = 10,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_WARN,
+            status = BucketStatus.WARN,
             title = "화장솜",
             spare = 5,
             replacementDate = "2026-06-06",
-            level = BucketLevel.NONE_SAFE
+            level = BucketLevel.NONE_SAFE,
+            daysInUse = 7,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_WARN,
+            status = BucketStatus.WARN,
             title = "청소포",
             spare = 2,
             replacementDate = "2026-05-21",
             level = BucketLevel.NONE_OVERDUE,
+            daysInUse = 35,
         ),
         Bucket(
-            status = BucketStatus.REPLACE_WARN,
+            status = BucketStatus.WARN,
             title = "욕실매트",
             spare = 4,
             replacementDate = "2026-06-10",
             level = BucketLevel.HAS_OVERDUE,
+            daysInUse = 50,
         ),
     )

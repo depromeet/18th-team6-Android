@@ -35,7 +35,7 @@ internal fun ConsumableAlertSection(
     modifier: Modifier = Modifier,
 ) {
     if (buckets.isEmpty()) return
-    var selectedStatus by remember { mutableStateOf(BucketStatus.REPLACE_DANGER) }
+    var selectedStatus by remember { mutableStateOf(BucketStatus.DANGER) }
     val filteredBuckets =
         remember(buckets, selectedStatus) {
             buckets.filter { it.status == selectedStatus }
@@ -112,9 +112,8 @@ private fun BucketCard(bucket: Bucket) {
 private val BucketStatus.displayName: String
     get() =
         when (this) {
-            BucketStatus.REPLACE_DANGER -> "교체 위험"
-            BucketStatus.SPARE_SHORTAGE -> "여분 부족"
-            BucketStatus.REPLACE_WARN -> "교체 경고"
+            BucketStatus.DANGER -> "위험"
+            BucketStatus.WARN -> "경고"
         }
 
 private fun bucketCardLevel(bucket: Bucket): OBRitCardLevel =
@@ -134,7 +133,8 @@ private fun daysLabel(daysUntil: Int): String =
         else -> "D+${-daysUntil}"
     }
 
-private fun daysUntil(replacementDate: String): Int = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
+private fun daysUntil(replacementDate: String): Int =
+    ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
 
 @Suppress("MagicNumber")
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
@@ -145,27 +145,29 @@ private fun ConsumableAlertSectionPreview() {
             buckets =
                 listOf(
                     Bucket(
-                        BucketStatus.REPLACE_DANGER,
+                        BucketStatus.DANGER,
                         "면도기",
                         0,
                         "2026-05-23",
                         BucketLevel.NONE_OVERDUE,
+                        30,
                     ),
                     Bucket(
-                        BucketStatus.REPLACE_DANGER,
+                        BucketStatus.DANGER,
                         "칫솔",
                         1,
                         "2026-05-26",
                         BucketLevel.NONE_SAFE,
+                        27,
                     ),
                     Bucket(
-                        BucketStatus.SPARE_SHORTAGE,
-                        "샴푸",
-                        0,
-                        "2026-05-25",
-                        BucketLevel.NONE_WARN,
+                        BucketStatus.WARN,
+                        "필터",
+                        3,
+                        "2026-05-26",
+                        BucketLevel.HAS_SAFE,
+                        10
                     ),
-                    Bucket(BucketStatus.REPLACE_WARN, "필터", 3, "2026-05-26", BucketLevel.HAS_SAFE),
                 ),
         )
     }
