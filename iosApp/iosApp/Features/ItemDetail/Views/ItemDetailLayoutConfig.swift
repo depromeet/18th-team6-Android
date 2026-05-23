@@ -87,16 +87,33 @@ enum ItemDetailStatus {
 
     func progressAccentColor(for progress: Double) -> Color {
         let clampedProgress = min(max(progress, 0), 1)
-        let start = (red: 0.145, green: 0.937, blue: 0.804)
-        let end = (red: 1.000, green: 0.349, blue: 0.133)
+        let colors = progressColorComponents
 
         return Color(
             .sRGB,
-            red: start.red + (end.red - start.red) * clampedProgress,
-            green: start.green + (end.green - start.green) * clampedProgress,
-            blue: start.blue + (end.blue - start.blue) * clampedProgress,
+            red: colors.start.red + (colors.end.red - colors.start.red) * clampedProgress,
+            green: colors.start.green + (colors.end.green - colors.start.green) * clampedProgress,
+            blue: colors.start.blue + (colors.end.blue - colors.start.blue) * clampedProgress,
             opacity: 1
         )
+    }
+
+    private var progressColorComponents: (
+        start: (red: Double, green: Double, blue: Double),
+        end: (red: Double, green: Double, blue: Double)
+    ) {
+        switch self {
+        case .good:
+            return (
+                start: (red: 0.145, green: 0.937, blue: 0.804),
+                end: (red: 0.137, green: 0.729, blue: 0.635)
+            )
+        case .warning:
+            return (
+                start: (red: 1.000, green: 0.478, blue: 0.306),
+                end: (red: 1.000, green: 0.349, blue: 0.133)
+            )
+        }
     }
 }
 

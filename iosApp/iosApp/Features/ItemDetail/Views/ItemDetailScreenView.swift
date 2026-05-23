@@ -62,7 +62,7 @@ private struct ItemDetailNativeMenuTopBar: View {
     @State private var isMoreMenuPresented = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack {
             HStack {
                 topBarIconButton(symbolName: "chevron.left", accessibilityLabel: "뒤로", action: action.onBack)
 
@@ -90,7 +90,10 @@ private struct ItemDetailNativeMenuTopBar: View {
                 .truncationMode(.tail)
                 .frame(width: ItemDetailNativeMenuTopBarMetrics.titleWidth)
                 .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: OBRitSpacing.s14)
+        .overlay(alignment: .topTrailing) {
             if isMoreMenuPresented {
                 ItemDetailMoreMenu(items: action.moreMenuItems) { item in
                     withAnimation(.easeOut(duration: 0.12)) {
@@ -98,14 +101,12 @@ private struct ItemDetailNativeMenuTopBar: View {
                     }
                     action.onSelectMoreMenuItem(item)
                 }
-                .padding(.top, OBRitSpacing.s12)
                 .padding(.trailing, OBRitSpacing.s3)
+                .offset(y: OBRitSpacing.s12)
                 .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topTrailing)))
                 .zIndex(2)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: OBRitSpacing.s14)
     }
 
     private func topBarIconButton(
