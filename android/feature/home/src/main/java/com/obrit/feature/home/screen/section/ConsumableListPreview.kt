@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +29,8 @@ import com.obrit.android.core.designsystem.component.card.OBRitCardLevel
 import com.obrit.android.core.designsystem.component.card.OBRitCardList
 import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdown
 import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdownMenu
+import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.home.viewmodel.Bucket
 import com.obrit.feature.home.viewmodel.BucketLevel
@@ -46,6 +50,7 @@ internal fun ConsumableListPreviewSection(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val typography = LocalOBRitTypography.current
     if (buckets.isEmpty()) return
     var expanded by remember { mutableStateOf(false) }
     val sortedBuckets = remember(buckets, sortOrder) { sortBuckets(buckets, sortOrder) }
@@ -54,15 +59,25 @@ internal fun ConsumableListPreviewSection(
         modifier = modifier.padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S5.dp),
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
     ) {
-        SortDropdown(
-            sortOrder = sortOrder,
-            expanded = expanded,
-            onExpand = { expanded = !expanded },
-            onSelect = { order ->
-                onSortOrderChange(order)
-                expanded = false
-            },
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SortDropdown(
+                sortOrder = sortOrder,
+                expanded = expanded,
+                onExpand = { expanded = !expanded },
+                onSelect = { order ->
+                    onSortOrderChange(order)
+                    expanded = false
+                },
+            )
+
+            Text(
+                text = "미리보기",
+                style = typography.xl,
+                color = LocalOBRitColor.current.common00,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            )
+        }
+
         BucketList(buckets = sortedBuckets.take(LIST_PREVIEW_COUNT))
         OBRitLargeFilledTextButton(
             text = "더보기",
