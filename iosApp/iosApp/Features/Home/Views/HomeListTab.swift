@@ -3,18 +3,15 @@ import SwiftUI
 struct HomeListTab: View {
     @StateObject private var viewModel: HomeListTabViewModel
 
-    let onNavigate: (ConsumableRoute) -> Void
-    let onNavigateMyPage: (MyPageRoute) -> Void
+    let onNavigate: (ItemRoute) -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
-        onNavigate: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void = { _ in },
+        onNavigate: @escaping (ItemRoute) -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeListTabViewModel())
         self.onNavigate = onNavigate
-        self.onNavigateMyPage = onNavigateMyPage
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
 
@@ -24,10 +21,9 @@ struct HomeListTab: View {
             action: HomeListTabAction(
                 onSearch: { onNavigate(.search) },
                 onNotification: {},
-                onProfile: { onNavigateMyPage(.myPage) },
-                onRegisterFromImage: { onNavigate(.receiptCaptureOrUpload) },
-                onRegisterDirect: { onNavigate(.manualRegistration) },
-                onSelectConsumable: { onNavigate(.detail(consumableId: $0)) },
+                onProfile: {},
+                onRegisterDirect: { onNavigate(.itemRegistration) },
+                onSelectItem: { onNavigate(.detail(itemId: $0)) },
                 onOpenFilterSheet: viewModel.openFilterSheet,
                 onOpenSortSheet: viewModel.openSortSheet,
                 onDismissBottomSheet: viewModel.dismissBottomSheet,

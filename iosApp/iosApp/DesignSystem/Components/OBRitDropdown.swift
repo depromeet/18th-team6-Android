@@ -245,6 +245,7 @@ public struct OBRitDropdownMenu: View {
     private let selectedIndex: Int?
     private let itemSize: OBRitDropdownMenuItemSize
     private let enabled: Bool
+    private let fillsWidth: Bool
     private let onItemClick: (Int) -> Void
 
     public init(
@@ -252,12 +253,14 @@ public struct OBRitDropdownMenu: View {
         selectedIndex: Int? = nil,
         itemSize: OBRitDropdownMenuItemSize = .large,
         enabled: Bool = true,
+        fillsWidth: Bool = false,
         onItemClick: @escaping (Int) -> Void
     ) {
         self.items = items
         self.selectedIndex = selectedIndex
         self.itemSize = itemSize
         self.enabled = enabled
+        self.fillsWidth = fillsWidth
         self.onItemClick = onItemClick
     }
 
@@ -273,7 +276,8 @@ public struct OBRitDropdownMenu: View {
                 )
             }
         }
-        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: fillsWidth ? .infinity : nil)
+        .fixedSize(horizontal: !fillsWidth, vertical: false)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
         .overlay(
             RoundedRectangle(cornerRadius: OBRitRadius.small)

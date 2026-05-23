@@ -3,12 +3,20 @@ import SwiftUI
 struct OBRitNavigation: View {
     @State private var rootRoute: AppRoute
     @State private var selectedMainTab: MainTab
-    @State private var path = NavigationPath()
+    @State private var path: NavigationPath
 
     init() {
-        let initialRootRoute = Self.initialRootRoute
+        #if DEBUG
+        let debugConfiguration = Self.debugInitialConfiguration
+        let initialRootRoute = debugConfiguration.rootRoute
+        let initialPath = debugConfiguration.path
+        #else
+        let initialRootRoute = AppRoute.main(.home)
+        let initialPath = NavigationPath()
+        #endif
         _rootRoute = State(initialValue: initialRootRoute)
         _selectedMainTab = State(initialValue: initialRootRoute.mainTab ?? .home)
+        _path = State(initialValue: initialPath)
     }
 
     var body: some View {
@@ -18,33 +26,34 @@ struct OBRitNavigation: View {
                 selectedMainTab: selectedMainTab,
                 onSetRoot: setRoot,
                 onSelectMainTab: selectMainTab,
+                onBack: popRoute,
                 onNavigateApp: { navigate(to: $0) },
-                onNavigateConsumable: { navigate(to: $0) },
-                onNavigateMyPage: { navigate(to: $0) }
+                onNavigateItem: { navigate(to: $0) }
             )
+            .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: AppRoute.self) { route in
                 AppNavigation.destination(
                     for: route,
                     selectedMainTab: selectedMainTab,
                     onSetRoot: setRoot,
                     onSelectMainTab: selectMainTab,
+                    onBack: popRoute,
                     onNavigateApp: { navigate(to: $0) },
-                    onNavigateConsumable: { navigate(to: $0) },
-                    onNavigateMyPage: { navigate(to: $0) }
+                    onNavigateItem: { navigate(to: $0) }
                 )
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
             }
-            .navigationDestination(for: ConsumableRoute.self) { route in
-                ConsumableNavigation.destination(
+            .navigationDestination(for: ItemRoute.self) { route in
+                ItemNavigation.destination(
                     for: route,
+                    onBack: popRoute,
                     onNavigate: { navigate(to: $0) },
                     onSetMainRoot: { setRoot(.main($0)) }
                 )
-            }
-            .navigationDestination(for: MyPageRoute.self) { route in
-                MyPageNavigation.destination(
-                    for: route,
-                    onNavigate: { navigate(to: $0) }
-                )
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
             }
         }
     }
@@ -66,17 +75,41 @@ struct OBRitNavigation: View {
         path.append(route)
     }
 
-    private func navigate(to route: ConsumableRoute) {
+    private func navigate(to route: ItemRoute) {
         path.append(route)
     }
 
-    private func navigate(to route: MyPageRoute) {
-        path.append(route)
+    private func popRoute() {
+        guard !path.isEmpty else {
+            setRoot(.main(.home))
+            return
+        }
+        path.removeLast()
     }
 
-    private static var initialRootRoute: AppRoute {
-        .main(.home)
+    #if DEBUG
+    private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
+        var initialPath = NavigationPath()
+        let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
+
+        switch route {
+        case "onboarding":
+            return (.onboarding, initialPath)
+        case "registrationPrompt":
+            return (.registrationPrompt, initialPath)
+        case "initialItemRegistration":
+            return (.initialItemRegistration, initialPath)
+        case "registrationMethod":
+            initialPath.append(ItemRoute.registrationMethod)
+            return (.main(.home), initialPath)
+        case "itemRegistration":
+            initialPath.append(ItemRoute.itemRegistration)
+            return (.main(.home), initialPath)
+        default:
+            return (.main(.home), initialPath)
+        }
     }
+    #endif
 }
 
 private extension AppRoute {

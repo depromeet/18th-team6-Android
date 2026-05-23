@@ -12,7 +12,7 @@ private enum HomeUsageListLayoutMetrics {
 }
 
 struct HomeUsageListSection: View {
-    let items: [HomeConsumableItem]
+    let items: [HomeItemItem]
     let onSelect: (Int) -> Void
 
     var body: some View {
@@ -37,7 +37,7 @@ struct HomeUsageListSection: View {
 }
 
 private struct HomeUsageRow: View {
-    let item: HomeConsumableItem
+    let item: HomeItemItem
 
     var body: some View {
         HStack(spacing: HomeUsageListLayoutMetrics.rowContentSpacing) {

@@ -30,7 +30,6 @@ public struct OBRitHomeTopBar: View {
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
                     TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
-                    TopBarIconButton(symbolName: "person", accessibilityLabel: "프로필", action: onProfileClick)
                 }
             }
             .padding(.leading, OBRitSpacing.s5)

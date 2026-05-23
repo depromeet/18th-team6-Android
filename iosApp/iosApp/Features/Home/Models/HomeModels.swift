@@ -2,8 +2,8 @@ import SwiftUI
 
 struct HomeDashboard {
     let summary: HomeSummary
-    let warningItems: [HomeConsumableItem]
-    let usageItems: [HomeConsumableItem]
+    let warningItems: [HomeItemItem]
+    let usageItems: [HomeItemItem]
 }
 
 struct HomeSummary {
@@ -44,7 +44,7 @@ struct HomeSummary {
         )
     }
 
-    init(items: [HomeConsumableItem], averageStatusHistory: [Double] = []) {
+    init(items: [HomeItemItem], averageStatusHistory: [Double] = []) {
         let metrics = HomeStatusMetrics(items: items)
         let ownStatusPercent = metrics.ownStatusPercent
         let positiveRatio = Int((ownStatusPercent * 100).rounded())
@@ -87,7 +87,7 @@ extension HomeSummary {
     }
 }
 
-struct HomeConsumableItem: Identifiable {
+struct HomeItemItem: Identifiable {
     let id: Int
     let title: String
     let daysInUse: Int
@@ -170,7 +170,7 @@ struct HomeOrbInteriorItem: Identifiable, Hashable {
     }
 }
 
-extension HomeConsumableItem {
+extension HomeItemItem {
     var orbInteriorItem: HomeOrbInteriorItem {
         HomeOrbInteriorItem(
             id: id,
@@ -237,7 +237,7 @@ private struct HomeStatusMetrics {
     let replacementDangerCount: Int
     let spareMissingRatio: Double
 
-    init(items: [HomeConsumableItem]) {
+    init(items: [HomeItemItem]) {
         totalCount = items.count
 
         guard !items.isEmpty else {
@@ -334,7 +334,7 @@ private enum HomeOverallStatus {
     }
 }
 
-private extension HomeConsumableItem {
+private extension HomeItemItem {
     var replacementScore: Int {
         if replacementDday <= 0 {
             return 0

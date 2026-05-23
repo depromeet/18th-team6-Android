@@ -5,8 +5,8 @@ struct HomeTab: View {
     let selectedStatusFilter: HomeStatusFilter
     let statusFilterCounts: [HomeStatusFilter: Int]
     let selectedWarningSort: HomeWarningSort
-    let quickItems: [HomeConsumableItem]
-    let previewItems: [HomeConsumableItem]
+    let quickItems: [HomeItemItem]
+    let previewItems: [HomeItemItem]
     let onOpenPreviewSortSheet: () -> Void
     let action: HomeViewAction
 
@@ -20,19 +20,19 @@ struct HomeTab: View {
                     selectedFilter: selectedStatusFilter,
                     filterCounts: statusFilterCounts,
                     onSelectFilter: action.onSelectStatusFilter,
-                    onSelect: action.onSelectConsumable
+                    onSelect: action.onSelectItem
                 )
                 HomePreviewSection(
                     items: previewItems,
                     selectedSort: selectedWarningSort,
                     onOpenSortSheet: onOpenPreviewSortSheet,
                     onShowList: action.onShowList,
-                    onSelect: action.onSelectConsumable
+                    onSelect: action.onSelectItem
                 )
             }
             HomeUsageListSection(
                 items: dashboard.usageItems,
-                onSelect: action.onSelectConsumable
+                onSelect: action.onSelectItem
             )
         }
     }

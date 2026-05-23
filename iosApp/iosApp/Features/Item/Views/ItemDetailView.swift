@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct ConsumableDetailView: View {
-    let consumableId: Int
-    let onNavigate: (ConsumableRoute) -> Void
+struct ItemDetailView: View {
+    let itemId: Int
+    let onNavigate: (ItemRoute) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ItemDetailViewModel
@@ -11,12 +11,12 @@ struct ConsumableDetailView: View {
     @State private var completionModal: ItemDetailCompletionModalData?
 
     init(
-        consumableId: Int,
-        onNavigate: @escaping (ConsumableRoute) -> Void
+        itemId: Int,
+        onNavigate: @escaping (ItemRoute) -> Void
     ) {
-        self.consumableId = consumableId
+        self.itemId = itemId
         self.onNavigate = onNavigate
-        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(consumableId: consumableId))
+        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(consumableId: itemId))
     }
 
     var body: some View {
@@ -199,11 +199,11 @@ struct ConsumableDetailView: View {
     private func handleNavigation(_ destination: ItemDetailDestination) {
         switch destination {
         case let .statusInfo(consumableId):
-            onNavigate(.statusInfo(consumableId: consumableId))
+            onNavigate(.statusInfo(itemId: consumableId))
         case let .edit(consumableId):
-            onNavigate(.edit(consumableId: consumableId))
+            onNavigate(.edit(itemId: consumableId))
         case let .spareEdit(consumableId):
-            onNavigate(.spareEdit(consumableId: consumableId))
+            onNavigate(.spareEdit(itemId: consumableId))
         case .notification:
             break
         }
