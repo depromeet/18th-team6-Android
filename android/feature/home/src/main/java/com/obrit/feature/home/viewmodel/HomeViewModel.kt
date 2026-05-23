@@ -3,11 +3,13 @@ package com.obrit.feature.home.viewmodel
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import org.orbitmvi.orbit.viewmodel.container
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
-            intent { reduce { HomeUiState.Success(createMockStatus()) } }
+            intent { reduce { createSuccessState(createMockStatus()) } }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -23,6 +25,20 @@ class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, Home
             }
         }
 
+    fun onDdayFilterChange(maxDays: Int) =
+        intent {
+            reduce {
+                (state as? HomeUiState.Success)?.copy(ddayFilterMax = maxDays) ?: state
+            }
+        }
+
+    fun onSpareFilterChange(maxSpare: Int) =
+        intent {
+            reduce {
+                (state as? HomeUiState.Success)?.copy(spareFilterMax = maxSpare) ?: state
+            }
+        }
+
     fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
 }
 
@@ -35,6 +51,10 @@ sealed interface HomeUiState {
     data class Success(
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
+        val ddayRange: IntRange,
+        val ddayFilterMax: Int,
+        val spareRange: IntRange,
+        val spareFilterMax: Int,
     ) : HomeUiState
 }
 
@@ -134,6 +154,25 @@ enum class BucketLevel {
     NONE_SAFE,
     HAS_SAFE,
 }
+
+@Suppress("MagicNumber")
+private fun createSuccessState(status: HomeStatus): HomeUiState.Success {
+    val ddayValues = status.buckets.map { daysUntil(it.replacementDate) }
+    val spareValues = status.buckets.map { it.spare }
+    val ddayMin = ddayValues.minOrNull() ?: DEFAULT_DDAY_MIN
+    val ddayMax = ddayValues.maxOrNull() ?: DEFAULT_DDAY_MAX
+    val spareMin = spareValues.minOrNull() ?: DEFAULT_SPARE_MIN
+    val spareMax = spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX
+    return HomeUiState.Success(
+        status = status,
+        ddayRange = ddayMin..ddayMax,
+        ddayFilterMax = ddayMax,
+        spareRange = spareMin..spareMax,
+        spareFilterMax = spareMax,
+    )
+}
+
+private fun daysUntil(replacementDate: String): Int = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
 
 @Suppress("MagicNumber")
 private fun createMockStatus() =
@@ -237,3 +276,8 @@ private fun mockReplaceWarnBuckets() =
             daysInUse = 50,
         ),
     )
+
+private const val DEFAULT_DDAY_MIN = 0
+private const val DEFAULT_DDAY_MAX = 30
+private const val DEFAULT_SPARE_MIN = 0
+private const val DEFAULT_SPARE_MAX = 10

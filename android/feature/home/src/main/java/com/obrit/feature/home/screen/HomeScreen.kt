@@ -31,6 +31,8 @@ fun HomeScreen(
                 onNotificationClick = viewModel::onNotificationClick,
                 onProfileClick = viewModel::onProfileClick,
                 onListSortOrderChange = viewModel::onListSortOrderChange,
+                onDdayFilterChange = viewModel::onDdayFilterChange,
+                onSpareFilterChange = viewModel::onSpareFilterChange,
                 onMoreClick = viewModel::onMoreClick,
                 onRegisterClick = onRegisterClick,
             ),
@@ -52,6 +54,8 @@ internal data class HomeScreenAction(
     val onNotificationClick: () -> Unit,
     val onProfileClick: () -> Unit,
     val onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
+    val onDdayFilterChange: (Int) -> Unit,
+    val onSpareFilterChange: (Int) -> Unit,
     val onMoreClick: () -> Unit,
     val onRegisterClick: () -> Unit,
 )

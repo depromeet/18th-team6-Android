@@ -44,6 +44,7 @@ import com.obrit.feature.home.screen.section.HomeGraphSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 
+@Suppress("LongMethod")
 @Composable
 internal fun HomeScreenSuccessContent(
     state: HomeUiState.Success,
@@ -65,11 +66,30 @@ internal fun HomeScreenSuccessContent(
                 onProfileClick = action.onProfileClick,
                 modifier = Modifier.statusBarsPadding(),
             )
-            HomeContents(
-                state = state,
-                onListSortOrderChange = action.onListSortOrderChange,
-                onMoreClick = action.onMoreClick,
-            )
+            if (selectedTab == OBRitGnbTab.Home) {
+                HomeContents(
+                    state = state,
+                    onListSortOrderChange = action.onListSortOrderChange,
+                    onMoreClick = action.onMoreClick,
+                )
+            } else {
+                ConsumableListScreen(
+                    buckets = state.status.buckets,
+                    sortOrder = state.listSortOrder,
+                    ddayRange = state.ddayRange,
+                    ddayFilterMax = state.ddayFilterMax,
+                    spareRange = state.spareRange,
+                    spareFilterMax = state.spareFilterMax,
+                    onSortOrderChange = action.onListSortOrderChange,
+                    onDdayFilterChange = action.onDdayFilterChange,
+                    onSpareFilterChange = action.onSpareFilterChange,
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+                            .padding(bottom = 80.dp),
+                )
+            }
         }
         HomeGnbBar(
             selectedTab = selectedTab,
