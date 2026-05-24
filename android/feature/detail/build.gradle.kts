@@ -7,5 +7,6 @@ plugins {
 
 dependencies {
     implementation(projects.shared.data)
+    implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
 }
