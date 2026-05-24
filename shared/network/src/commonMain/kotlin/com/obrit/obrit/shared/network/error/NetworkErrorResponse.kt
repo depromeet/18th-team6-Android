@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class NetworkErrorResponse(
-    @SerialName("code") val code: Int = 0,
+    @SerialName("code") val code: Int? = null,
     @SerialName("message") val message: String = "",
 )
