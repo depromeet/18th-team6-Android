@@ -97,7 +97,9 @@ enum HomeListTabSampleData {
             SeedItem("디퓨저", 82, 2, 18, .l5, "item_diffuser"),
             SeedItem("지퍼백", 15, 5, 24, .l6, "item_zip_bag"),
             SeedItem("키친타월", 8, 2, 28, .l6, "item_kitchen_towel"),
-            SeedItem("바디워시", 12, 1, 32, .l6, "item_body_wash")
+            SeedItem("바디워시", 12, 1, 32, .l6, "item_body_wash"),
+            SeedItem("주방 세제", 22, 0, -2, .l1, "item_dish_soap"),
+            SeedItem("쓰레기 봉투", 3, 6, 27, .l6, "item_trash_bag")
         ]
 
         return (0..<50).map { index in
