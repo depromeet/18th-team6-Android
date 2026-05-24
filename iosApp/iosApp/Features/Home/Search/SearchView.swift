@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
@@ -48,6 +49,7 @@ struct SearchView: View {
     }
 
     private func handleBack() {
+        dismissKeyboard()
         if let onBack {
             onBack()
         } else {
@@ -248,6 +250,7 @@ private struct SearchResultListView: View {
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(items) { item in
                         Button {
+                            dismissKeyboard()
                             onSelectItem(item.id)
                         } label: {
                             OBRitCardList(
@@ -271,6 +274,10 @@ private struct SearchResultListView: View {
             }
         }
     }
+}
+
+private func dismissKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 }
 
 private enum SearchMetrics {

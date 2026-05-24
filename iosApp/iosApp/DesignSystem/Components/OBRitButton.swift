@@ -52,7 +52,7 @@ public struct OBRitFilledButton<Content: View>: View {
             HStack(spacing: OBRitSpacing.s0_5) {
                 content(contentColor)
             }
-            .frame(minHeight: size.height)
+            .frame(height: size.height)
             .padding(.horizontal, horizontalPadding)
             .frame(maxWidth: fillsWidth ? .infinity : nil)
             .background(containerColor)
