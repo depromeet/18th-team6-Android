@@ -10,19 +10,19 @@ struct ItemDetailCompletionModalData: Equatable {
     let recordedAtText: String
 
     init(data: ItemDetailViewData) {
-        let intervalDays = data.consumable.replacementCycle.intervalDays
-        let records = data.consumable.replacementRecords.sorted { $0.replacedAt > $1.replacedAt }
+        let intervalDays = data.item.replacementCycle.intervalDays
+        let records = data.item.replacementRecords.sorted { $0.replacedAt > $1.replacedAt }
         let latestUsedDays = records.first?.usedDays() ?? intervalDays
         let previousUsedDays = records.dropFirst().first?.usedDays() ?? latestUsedDays
         let nextReplacementDate = Calendar.current.date(
             byAdding: .day,
             value: intervalDays,
-            to: data.consumable.currentCycleStartedAt
-        ) ?? data.consumable.currentCycleStartedAt
+            to: data.item.currentCycleStartedAt
+        ) ?? data.item.currentCycleStartedAt
 
-        self.itemName = data.consumable.name
-        self.imageAssetName = data.consumable.imageAssetName
-        self.remainingSpareQuantity = data.consumable.spareQuantity
+        self.itemName = data.item.name
+        self.imageAssetName = data.item.imageAssetName
+        self.remainingSpareQuantity = data.item.spareQuantity
         self.isLowStock = data.spareSummary.isLowStock
         self.daysComparedToPrevious = latestUsedDays - previousUsedDays
         self.nextReplacementLabel = "\(nextReplacementDate.itemDetailMonthDayText)(\(intervalDays)일 후)"

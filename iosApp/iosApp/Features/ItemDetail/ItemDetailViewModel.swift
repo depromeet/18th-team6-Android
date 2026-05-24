@@ -5,23 +5,23 @@ final class ItemDetailViewModel: ObservableObject {
     @Published private(set) var state: ItemDetailViewState = .loading
     @Published private(set) var effect: ItemDetailViewEffect?
 
-    private let consumableId: Int
+    private let itemId: Int
     private let repository: ItemDetailRepository
     private let dateProvider: () -> Date
     private let calendar: Calendar
 
-    private var consumable: ItemDetailConsumable?
+    private var item: ItemDetailItem?
     private var confirmationDialog: ItemDetailConfirmationDialog?
     private var isProcessing = false
 
     init(
-        consumableId: Int,
+        itemId: Int,
         repository: ItemDetailRepository = ItemDetailSampleRepository(),
         dateProvider: @escaping () -> Date = Date.init,
         calendar: Calendar = .current,
         automaticallyLoads: Bool = true
     ) {
-        self.consumableId = consumableId
+        self.itemId = itemId
         self.repository = repository
         self.dateProvider = dateProvider
         self.calendar = calendar
@@ -52,17 +52,17 @@ final class ItemDetailViewModel: ObservableObject {
     }
 
     func openStatusInfo() {
-        effect = .navigate(.statusInfo(consumableId: consumableId))
+        effect = .navigate(.statusInfo(itemId: itemId))
     }
 
     func selectMoreMenuItem(_ item: ItemDetailMoreMenuItem) {
         switch item {
         case .edit:
-            effect = .navigate(.edit(consumableId: consumableId))
+            effect = .navigate(.edit(itemId: itemId))
         case .spareEdit:
-            effect = .navigate(.spareEdit(consumableId: consumableId))
+            effect = .navigate(.spareEdit(itemId: itemId))
         case .notification:
-            effect = .navigate(.notification(consumableId: consumableId))
+            effect = .navigate(.notification(itemId: itemId))
         case .delete:
             confirmationDialog = .delete
             publishSuccess()
@@ -118,7 +118,7 @@ final class ItemDetailViewModel: ObservableObject {
         }
 
         do {
-            consumable = try await repository.detail(consumableId: consumableId)
+            item = try await repository.detail(itemId: itemId)
             isProcessing = false
             confirmationDialog = nil
             publishSuccess()
@@ -130,8 +130,8 @@ final class ItemDetailViewModel: ObservableObject {
 
     private func updateSpareQuantityTask(_ quantity: Int) async {
         do {
-            consumable = try await repository.updateSpareQuantity(
-                consumableId: consumableId,
+            item = try await repository.updateSpareQuantity(
+                itemId: itemId,
                 quantity: quantity,
                 updatedAt: dateProvider()
             )
@@ -145,14 +145,14 @@ final class ItemDetailViewModel: ObservableObject {
 
     private func completeReplacementTask() async {
         do {
-            consumable = try await repository.completeReplacement(
-                consumableId: consumableId,
+            item = try await repository.completeReplacement(
+                itemId: itemId,
                 completedAt: dateProvider()
             )
             confirmationDialog = nil
             isProcessing = false
             publishSuccess()
-            effect = .replacementCompleted(consumableId: consumableId)
+            effect = .replacementCompleted(itemId: itemId)
         } catch {
             handleMutationFailure(error)
         }
@@ -160,12 +160,12 @@ final class ItemDetailViewModel: ObservableObject {
 
     private func deleteTask() async {
         do {
-            try await repository.delete(consumableId: consumableId)
+            try await repository.delete(itemId: itemId)
             confirmationDialog = nil
             isProcessing = false
-            consumable = nil
+            item = nil
             state = .loadFailed(message: "삭제된 소모품이에요.")
-            effect = .itemDeleted(consumableId: consumableId)
+            effect = .itemDeleted(itemId: itemId)
         } catch {
             handleMutationFailure(error)
         }
@@ -178,14 +178,14 @@ final class ItemDetailViewModel: ObservableObject {
     }
 
     private func publishSuccess() {
-        guard let consumable else {
-            state = .loadFailed(message: ItemDetailRepositoryError.notFound(consumableId: consumableId).itemDetailMessage)
+        guard let item else {
+            state = .loadFailed(message: ItemDetailRepositoryError.notFound(itemId: itemId).itemDetailMessage)
             return
         }
 
         state = .success(
             ItemDetailViewData(
-                consumable: consumable,
+                item: item,
                 referenceDate: dateProvider(),
                 calendar: calendar,
                 confirmationDialog: confirmationDialog,

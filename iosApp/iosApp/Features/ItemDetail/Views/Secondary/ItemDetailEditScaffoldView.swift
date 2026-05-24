@@ -1,27 +1,18 @@
 import SwiftUI
 import UIKit
 
-struct ItemDetailEditValidation: Equatable {
-    var nameErrorMessage: String?
-
-    static let valid = ItemDetailEditValidation(nameErrorMessage: nil)
-    static let emptyName = ItemDetailEditValidation(nameErrorMessage: "소모품명을 입력해주세요")
-    static let duplicateName = ItemDetailEditValidation(nameErrorMessage: "다른 이름과 중복되지 않게 입력해주세요")
-    static let invalidNameCharacters = ItemDetailEditValidation(nameErrorMessage: "한글, 영문, 숫자, 공백, -, _, /, (, )만 사용할 수 있어요")
-}
-
 struct ItemDetailEditScaffoldView: View {
     @Binding var draft: ItemDetailEditDraft
     @State private var replacementCycleInput: String
-    @State private var originalName: String
     @State private var selectedImageOptionID: Int?
     @State private var imageGridWidth = ItemDetailEditMetrics.referenceContentWidth
     @State private var hasAttemptedNameOverflow = false
 
+    private let originalName: String
     let validation: ItemDetailEditValidation
     let recommendedCycleDays: Int?
     let averageCycleDays: Int?
-    let existingConsumableNames: [String]
+    let existingItemNames: [String]
     let imageAssetNames: [String]
     let isProcessing: Bool
     let canSubmitOverride: Bool?
@@ -33,8 +24,8 @@ struct ItemDetailEditScaffoldView: View {
         validation: ItemDetailEditValidation = .valid,
         recommendedCycleDays: Int? = nil,
         averageCycleDays: Int? = nil,
-        existingConsumableNames: [String] = [],
-        imageAssetNames: [String] = ConsumableItemAssetCatalog.assetNames,
+        existingItemNames: [String] = [],
+        imageAssetNames: [String] = ItemAssetCatalog.assetNames,
         isProcessing: Bool = false,
         canSubmit: Bool? = nil,
         onClose: @escaping () -> Void,
@@ -42,11 +33,11 @@ struct ItemDetailEditScaffoldView: View {
     ) {
         self._draft = draft
         self._replacementCycleInput = State(initialValue: "\(draft.wrappedValue.replacementCycleDays)")
-        self._originalName = State(initialValue: draft.wrappedValue.name)
+        self.originalName = draft.wrappedValue.name
         self.validation = validation
         self.recommendedCycleDays = recommendedCycleDays
         self.averageCycleDays = averageCycleDays
-        self.existingConsumableNames = existingConsumableNames
+        self.existingItemNames = existingItemNames
         self.imageAssetNames = imageAssetNames
         self.isProcessing = isProcessing
         self.canSubmitOverride = canSubmit
@@ -88,15 +79,17 @@ struct ItemDetailEditScaffoldView: View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s4) {
             sectionTitle("소모품명")
 
-            OBRitOutlinedTextField(
-                text: clippedNameText,
-                inputResultState: nameHelperMessage == nil ? .default : .error,
-                maxLength: ItemDetailConfig.maximumNameLength,
-                supportingText: "",
-                singleLine: true
-            )
+            VStack(alignment: .leading, spacing: OBRitSpacing.s2_5) {
+                OBRitOutlinedTextField(
+                    text: clippedNameText,
+                    inputResultState: nameHelperMessage == nil ? .default : .error,
+                    maxLength: ItemDetailConfig.maximumNameLength,
+                    supportingText: "",
+                    singleLine: true
+                )
 
-            nameHelperText
+                nameHelperText
+            }
         }
     }
 
@@ -196,14 +189,11 @@ struct ItemDetailEditScaffoldView: View {
         Binding {
             replacementCycleInput
         } set: { newValue in
-            let digits = newValue.filter(\.isNumber)
-            let maximumDigitCount = "\(ItemDetailConfig.maximumReplacementCycleDays)".count
-            let clippedDigits = String(digits.prefix(maximumDigitCount))
+            let input = ItemDetailEditInputPolicy.replacementCycleInput(from: newValue)
+            replacementCycleInput = input
 
-            replacementCycleInput = clippedDigits
-
-            guard let value = Int(clippedDigits) else { return }
-            draft.replacementCycleDays = clampedReplacementCycleDays(value)
+            guard let value = ItemDetailEditInputPolicy.replacementCycleDays(from: input) else { return }
+            draft.replacementCycleDays = value
         }
     }
 
@@ -211,57 +201,14 @@ struct ItemDetailEditScaffoldView: View {
         Binding {
             draft.name
         } set: { newValue in
-            let clippedName = String(newValue.prefix(ItemDetailConfig.maximumNameLength))
-            if newValue.count > ItemDetailConfig.maximumNameLength {
-                hasAttemptedNameOverflow = true
-            } else if newValue.count < ItemDetailConfig.maximumNameLength {
-                hasAttemptedNameOverflow = false
-            }
-            draft.name = clippedName
+            let input = ItemDetailEditInputPolicy.clippedName(newValue)
+            hasAttemptedNameOverflow = input.didOverflow
+            draft.name = input.text
         }
     }
 
     private var nameHelperMessage: String? {
-        if hasAttemptedNameOverflow {
-            return "\(ItemDetailConfig.maximumNameLength)자 이내로 입력해주세요"
-        }
-
-        return blockingNameValidationMessage
-    }
-
-    private var blockingNameValidationMessage: String? {
-        if normalizedName(draft.name).isEmpty {
-            return ItemDetailEditValidation.emptyName.nameErrorMessage
-        }
-
-        if hasInvalidNameCharacters {
-            return ItemDetailEditValidation.invalidNameCharacters.nameErrorMessage
-        }
-
-        if hasDuplicateName {
-            return ItemDetailEditValidation.duplicateName.nameErrorMessage
-        }
-
-        return validation.nameErrorMessage
-    }
-
-    private var hasDuplicateName: Bool {
-        let currentName = normalizedName(draft.name)
-        guard !currentName.isEmpty && !namesMatch(currentName, originalName) else {
-            return false
-        }
-
-        return existingConsumableNames.contains { namesMatch($0, currentName) }
-    }
-
-    private var hasInvalidNameCharacters: Bool {
-        let currentName = normalizedName(draft.name)
-        guard !currentName.isEmpty else { return false }
-
-        return currentName.range(
-            of: ItemDetailEditMetrics.allowedNamePattern,
-            options: .regularExpression
-        ) == nil
+        validationResult.nameHelperMessage
     }
 
     private var imageOptions: [ItemDetailEditImageOption] {
@@ -309,19 +256,7 @@ struct ItemDetailEditScaffoldView: View {
     }
 
     private var canSubmit: Bool {
-        canSubmitOverride ?? (
-            draft.isValid &&
-                isReplacementCycleInputValid &&
-                blockingNameValidationMessage == nil &&
-                !isProcessing
-        )
-    }
-
-    private var isReplacementCycleInputValid: Bool {
-        guard let value = Int(replacementCycleInput) else { return false }
-
-        return value >= ItemDetailConfig.minimumReplacementCycleDays &&
-            value <= ItemDetailConfig.maximumReplacementCycleDays
+        canSubmitOverride ?? validationResult.canSubmit
     }
 
     private func isSelectedImageOption(_ option: ItemDetailEditImageOption) -> Bool {
@@ -330,29 +265,25 @@ struct ItemDetailEditScaffoldView: View {
         return option.id == selectedID && option.assetName == draft.imageAssetName
     }
 
-    private func normalizeReplacementCycleInput() {
-        guard let value = Int(replacementCycleInput) else {
-            return
-        }
-
-        let clampedValue = clampedReplacementCycleDays(value)
-        replacementCycleInput = "\(clampedValue)"
-        draft.replacementCycleDays = clampedValue
-    }
-
-    private func clampedReplacementCycleDays(_ value: Int) -> Int {
-        min(
-            max(value, ItemDetailConfig.minimumReplacementCycleDays),
-            ItemDetailConfig.maximumReplacementCycleDays
+    private var validationResult: ItemDetailEditValidationResult {
+        ItemDetailEditInputPolicy.validate(
+            draft: draft,
+            originalName: originalName,
+            existingItemNames: existingItemNames,
+            replacementCycleInput: replacementCycleInput,
+            hasAttemptedNameOverflow: hasAttemptedNameOverflow,
+            externalValidation: validation,
+            isProcessing: isProcessing
         )
     }
 
-    private func normalizedName(_ name: String) -> String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+    private func normalizeReplacementCycleInput() {
+        guard let value = ItemDetailEditInputPolicy.replacementCycleDays(from: replacementCycleInput) else {
+            return
+        }
 
-    private func namesMatch(_ lhs: String, _ rhs: String) -> Bool {
-        normalizedName(lhs).localizedCaseInsensitiveCompare(normalizedName(rhs)) == .orderedSame
+        replacementCycleInput = "\(value)"
+        draft.replacementCycleDays = value
     }
 
     private func submitEdit() {
@@ -361,7 +292,7 @@ struct ItemDetailEditScaffoldView: View {
     }
 
     private func imageAccessibilityName(for assetName: String) -> String {
-        ConsumableItemAssetCatalog.accessibilityNames[assetName] ?? "소모품"
+        ItemAssetCatalog.accessibilityNames[assetName] ?? "소모품"
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -372,16 +303,17 @@ struct ItemDetailEditScaffoldView: View {
     }
 
     private var nameHelperText: some View {
-        HStack(alignment: .top, spacing: OBRitSpacing.s1_5) {
-            if nameHelperMessage != nil {
-                OBRitIcon(kind: .exclamation, color: OBRitColors.red300)
-                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
-            }
+        HStack(alignment: .center, spacing: OBRitSpacing.s1) {
+            OBRitIcon(
+                kind: nameHelperMessage == nil ? .success : .exclamation,
+                color: nameHelperMessage == nil ? OBRitColors.gray300 : OBRitColors.red300
+            )
+            .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
 
-            Text(nameHelperMessage ?? "소모품을 구분하기 쉬운 이름으로 입력해주세요")
+            Text(nameHelperMessage ?? "다른 이름과 중복되지 않게 입력해주세요")
                 .fixedSize(horizontal: false, vertical: true)
                 .obritTextStyle(
-                    OBRitTypography.base,
+                    OBRitTypography.s,
                     weight: nameHelperMessage == nil ? OBRitFontWeight.medium : OBRitFontWeight.semiBold,
                     color: nameHelperMessage == nil ? OBRitColors.gray300 : OBRitColors.red300
                 )
@@ -447,7 +379,6 @@ private struct ItemDetailEditImageButton: View {
 }
 
 private enum ItemDetailEditMetrics {
-    static let allowedNamePattern = #"^[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9 _\-/()]+$"#
     static let sectionSpacing: CGFloat = 36
     static let imageColumnCount = 5
     static let referenceContentWidth: CGFloat = 372
@@ -464,14 +395,14 @@ private func dismissKeyboard() {
 }
 
 #Preview {
-    @Previewable @State var draft = ItemDetailEditDraft(consumable: ItemDetailDomainSampleData.consumable(id: 1))
+    @Previewable @State var draft = ItemDetailEditDraft(item: ItemDetailDomainSampleData.item(id: 1))
 
     ItemDetailEditScaffoldView(
         draft: $draft,
         validation: .duplicateName,
         recommendedCycleDays: 30,
         averageCycleDays: 31,
-        existingConsumableNames: ItemDetailDomainSampleData.consumables.map(\.name),
+        existingItemNames: ItemDetailDomainSampleData.items.map(\.name),
         onClose: {},
         onSubmit: {}
     )

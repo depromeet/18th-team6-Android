@@ -1,4 +1,4 @@
-enum ConsumableItemAssetCatalog {
+enum ItemAssetCatalog {
     struct Entry: Equatable {
         let title: String
         let assetName: String
@@ -55,7 +55,7 @@ enum ConsumableItemAssetCatalog {
 
 enum ItemRegistrationSampleData {
     static let itemKinds: [ItemKind] = {
-        ConsumableItemAssetCatalog.entries.enumerated().map { index, entry in
+        ItemAssetCatalog.entries.enumerated().map { index, entry in
             ItemKind(
                 id: index + 1,
                 title: entry.title,
@@ -65,7 +65,7 @@ enum ItemRegistrationSampleData {
         }
     }()
 
-    static let imageOptions: [ItemImageOption] = ConsumableItemAssetCatalog.assetNames.enumerated().map { index, assetName in
+    static let imageOptions: [ItemImageOption] = ItemAssetCatalog.assetNames.enumerated().map { index, assetName in
         ItemImageOption(id: index, assetName: assetName)
     }
 }

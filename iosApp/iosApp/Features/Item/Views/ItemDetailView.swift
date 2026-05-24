@@ -18,7 +18,7 @@ struct ItemDetailView: View {
         self.itemId = itemId
         self.onBack = onBack
         self.onNavigate = onNavigate
-        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(consumableId: itemId))
+        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(itemId: itemId))
     }
 
     var body: some View {
@@ -68,7 +68,7 @@ struct ItemDetailView: View {
                 VStack {
                     Spacer(minLength: 0)
                     ItemDetailStockManagementSheet(
-                        itemName: data.consumable.name,
+                        itemName: data.item.name,
                         initialQuantity: data.spareDraft.quantity,
                         quantity: $stockDraftQuantity,
                         isProcessing: data.isProcessing,
@@ -172,14 +172,14 @@ struct ItemDetailView: View {
 
     private func handleNavigation(_ destination: ItemDetailDestination) {
         switch destination {
-        case let .statusInfo(consumableId):
-            onNavigate(.statusInfo(itemId: consumableId))
-        case let .edit(consumableId):
-            onNavigate(.edit(itemId: consumableId))
-        case let .spareEdit(consumableId):
-            onNavigate(.spareEdit(itemId: consumableId))
-        case let .notification(consumableId):
-            onNavigate(.notification(itemId: consumableId))
+        case let .statusInfo(itemId):
+            onNavigate(.statusInfo(itemId: itemId))
+        case let .edit(itemId):
+            onNavigate(.edit(itemId: itemId))
+        case let .spareEdit(itemId):
+            onNavigate(.spareEdit(itemId: itemId))
+        case let .notification(itemId):
+            onNavigate(.notification(itemId: itemId))
         }
     }
 }

@@ -25,12 +25,12 @@ enum ItemDetailLayout {
 }
 
 enum ItemDetailStatus {
-    case good
+    case normal
     case warning
 
     var accentColor: Color {
         switch self {
-        case .good:
+        case .normal:
             return OBRitColors.green300
         case .warning:
             return OBRitColors.textWarningDefault
@@ -39,7 +39,7 @@ enum ItemDetailStatus {
 
     var subduedAccentColor: Color {
         switch self {
-        case .good:
+        case .normal:
             return OBRitColors.green600
         case .warning:
             return OBRitColors.red600
@@ -48,7 +48,7 @@ enum ItemDetailStatus {
 
     var badgeBackgroundColor: Color {
         switch self {
-        case .good:
+        case .normal:
             return OBRitColors.green800
         case .warning:
             return OBRitColors.red800
@@ -57,7 +57,7 @@ enum ItemDetailStatus {
 
     var heroFillColor: Color {
         switch self {
-        case .good:
+        case .normal:
             return OBRitColors.green850
         case .warning:
             return OBRitColors.red850
@@ -66,7 +66,7 @@ enum ItemDetailStatus {
 
     var heroTrackColor: Color {
         switch self {
-        case .good:
+        case .normal:
             return OBRitColors.green800
         case .warning:
             return OBRitColors.red800
@@ -74,15 +74,25 @@ enum ItemDetailStatus {
     }
 
     var chartTrackColor: Color {
-        OBRitColors.green850
+        switch self {
+        case .normal:
+            return OBRitColors.green850
+        case .warning:
+            return OBRitColors.red850
+        }
     }
 
     var chartBarColor: Color {
-        OBRitColors.green800
+        switch self {
+        case .normal:
+            return OBRitColors.green800
+        case .warning:
+            return OBRitColors.red800
+        }
     }
 
     var chartCurrentColor: Color {
-        OBRitColors.green300
+        accentColor
     }
 
     func progressAccentColor(for progress: Double) -> Color {
@@ -103,7 +113,7 @@ enum ItemDetailStatus {
         end: (red: Double, green: Double, blue: Double)
     ) {
         switch self {
-        case .good:
+        case .normal:
             return (
                 start: (red: 0.145, green: 0.937, blue: 0.804),
                 end: (red: 0.137, green: 0.729, blue: 0.635)

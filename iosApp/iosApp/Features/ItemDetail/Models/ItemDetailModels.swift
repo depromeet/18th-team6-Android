@@ -1,6 +1,6 @@
 import Foundation
 
-struct ItemDetailConsumable: Identifiable, Equatable {
+struct ItemDetailItem: Identifiable, Equatable {
     let id: Int
     var name: String
     var kindName: String
@@ -24,10 +24,6 @@ struct ItemDetailConsumable: Identifiable, Equatable {
     func detailStatus(on referenceDate: Date, calendar: Calendar = .current) -> ItemDetailStatusLevel {
         let dday = replacementDday(on: referenceDate, calendar: calendar)
 
-        if dday <= 0 || spareQuantity == ItemDetailConfig.minimumSpareQuantity {
-            return .danger
-        }
-
         if dday <= ItemDetailConfig.replacementWarningRemainingDays ||
             spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold {
             return .warning
@@ -36,7 +32,7 @@ struct ItemDetailConsumable: Identifiable, Equatable {
         return .normal
     }
 
-    func completingReplacement(at completedAt: Date, calendar: Calendar = .current) -> ItemDetailConsumable {
+    func completingReplacement(at completedAt: Date, calendar: Calendar = .current) -> ItemDetailItem {
         let nextRecordID = (replacementRecords.map(\.id).max() ?? 0) + 1
         let record = ItemDetailReplacementRecord(
             id: nextRecordID,
@@ -54,7 +50,7 @@ struct ItemDetailConsumable: Identifiable, Equatable {
         return updated
     }
 
-    func updatingSpareQuantity(_ quantity: Int, at updatedAt: Date) -> ItemDetailConsumable {
+    func updatingSpareQuantity(_ quantity: Int, at updatedAt: Date) -> ItemDetailItem {
         var updated = self
         updated.spareQuantity = min(
             max(quantity, ItemDetailConfig.minimumSpareQuantity),
@@ -122,7 +118,6 @@ enum ItemDetailNotificationPermissionStatus: Equatable {
 enum ItemDetailStatusLevel: Equatable {
     case normal
     case warning
-    case danger
 
     var title: String {
         switch self {
@@ -130,8 +125,6 @@ enum ItemDetailStatusLevel: Equatable {
             return "양호"
         case .warning:
             return "경고"
-        case .danger:
-            return "위험"
         }
     }
 
@@ -141,8 +134,6 @@ enum ItemDetailStatusLevel: Equatable {
             return "상태 양호"
         case .warning:
             return "교체 경고"
-        case .danger:
-            return "교체 위험"
         }
     }
 
@@ -152,14 +143,12 @@ enum ItemDetailStatusLevel: Equatable {
             return .l6
         case .warning:
             return .l3
-        case .danger:
-            return .l1
         }
     }
 }
 
 struct ItemDetailViewData: Equatable {
-    let consumable: ItemDetailConsumable
+    let item: ItemDetailItem
     let statusSummary: ItemDetailStatusSummary
     let spareSummary: ItemDetailSpareSummary
     let replacementCycleSummary: ItemDetailReplacementCycleSummary
@@ -216,11 +205,11 @@ struct ItemDetailEditDraft: Equatable {
     var imageAssetName: String
     var spareQuantity: Int
 
-    init(consumable: ItemDetailConsumable) {
-        self.name = consumable.name
-        self.replacementCycleDays = consumable.replacementCycle.intervalDays
-        self.imageAssetName = consumable.imageAssetName
-        self.spareQuantity = consumable.spareQuantity
+    init(item: ItemDetailItem) {
+        self.name = item.name
+        self.replacementCycleDays = item.replacementCycle.intervalDays
+        self.imageAssetName = item.imageAssetName
+        self.spareQuantity = item.spareQuantity
     }
 
     var isValid: Bool {
@@ -244,6 +233,132 @@ struct ItemDetailSpareDraft: Equatable {
     var isValid: Bool {
         quantity >= ItemDetailConfig.minimumSpareQuantity &&
             quantity <= ItemDetailConfig.maximumSpareQuantity
+    }
+}
+
+struct ItemDetailEditValidation: Equatable {
+    var nameErrorMessage: String?
+
+    static let valid = ItemDetailEditValidation(nameErrorMessage: nil)
+    static let emptyName = ItemDetailEditValidation(nameErrorMessage: "소모품명을 입력해주세요")
+    static let duplicateName = ItemDetailEditValidation(nameErrorMessage: "다른 이름과 중복되지 않게 입력해주세요")
+    static let invalidNameCharacters = ItemDetailEditValidation(nameErrorMessage: "한글, 영문, 숫자, 공백, -, _, /, (, )만 사용할 수 있어요")
+}
+
+struct ItemDetailEditValidationResult: Equatable {
+    let nameHelperMessage: String?
+    let blockingNameMessage: String?
+    let canSubmit: Bool
+}
+
+enum ItemDetailEditInputPolicy {
+    static func clippedName(_ value: String) -> (text: String, didOverflow: Bool) {
+        (
+            text: String(value.prefix(ItemDetailConfig.maximumNameLength)),
+            didOverflow: value.count > ItemDetailConfig.maximumNameLength
+        )
+    }
+
+    static func replacementCycleInput(from value: String) -> String {
+        let maximumDigitCount = "\(ItemDetailConfig.maximumReplacementCycleDays)".count
+        return String(value.filter(\.isNumber).prefix(maximumDigitCount))
+    }
+
+    static func replacementCycleDays(from input: String) -> Int? {
+        Int(input).map(clampedReplacementCycleDays)
+    }
+
+    static func clampedReplacementCycleDays(_ value: Int) -> Int {
+        min(
+            max(value, ItemDetailConfig.minimumReplacementCycleDays),
+            ItemDetailConfig.maximumReplacementCycleDays
+        )
+    }
+
+    static func validate(
+        draft: ItemDetailEditDraft,
+        originalName: String,
+        existingItemNames: [String],
+        replacementCycleInput: String,
+        hasAttemptedNameOverflow: Bool,
+        externalValidation: ItemDetailEditValidation,
+        isProcessing: Bool
+    ) -> ItemDetailEditValidationResult {
+        let blockingNameMessage = Self.blockingNameMessage(
+            for: draft.name,
+            originalName: originalName,
+            existingItemNames: existingItemNames,
+            externalValidation: externalValidation
+        )
+        let nameHelperMessage = hasAttemptedNameOverflow
+            ? "\(ItemDetailConfig.maximumNameLength)자 이내로 입력해주세요"
+            : blockingNameMessage
+        let canSubmit = draft.isValid &&
+            isReplacementCycleInputValid(replacementCycleInput) &&
+            blockingNameMessage == nil &&
+            !isProcessing
+
+        return ItemDetailEditValidationResult(
+            nameHelperMessage: nameHelperMessage,
+            blockingNameMessage: blockingNameMessage,
+            canSubmit: canSubmit
+        )
+    }
+
+    private static func blockingNameMessage(
+        for name: String,
+        originalName: String,
+        existingItemNames: [String],
+        externalValidation: ItemDetailEditValidation
+    ) -> String? {
+        let currentName = normalizedName(name)
+        if currentName.isEmpty {
+            return ItemDetailEditValidation.emptyName.nameErrorMessage
+        }
+
+        if hasInvalidNameCharacters(currentName) {
+            return ItemDetailEditValidation.invalidNameCharacters.nameErrorMessage
+        }
+
+        if hasDuplicateName(currentName, originalName: originalName, existingItemNames: existingItemNames) {
+            return ItemDetailEditValidation.duplicateName.nameErrorMessage
+        }
+
+        return externalValidation.nameErrorMessage
+    }
+
+    private static func isReplacementCycleInputValid(_ input: String) -> Bool {
+        guard let value = Int(input) else { return false }
+
+        return value >= ItemDetailConfig.minimumReplacementCycleDays &&
+            value <= ItemDetailConfig.maximumReplacementCycleDays
+    }
+
+    private static func hasInvalidNameCharacters(_ name: String) -> Bool {
+        name.range(
+            of: #"^[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9 _\-/()]+$"#,
+            options: .regularExpression
+        ) == nil
+    }
+
+    private static func hasDuplicateName(
+        _ name: String,
+        originalName: String,
+        existingItemNames: [String]
+    ) -> Bool {
+        guard !namesMatch(name, originalName) else {
+            return false
+        }
+
+        return existingItemNames.contains { namesMatch($0, name) }
+    }
+
+    private static func normalizedName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func namesMatch(_ lhs: String, _ rhs: String) -> Bool {
+        normalizedName(lhs).localizedCaseInsensitiveCompare(normalizedName(rhs)) == .orderedSame
     }
 }
 
@@ -297,52 +412,52 @@ enum ItemDetailViewState: Equatable {
 
 enum ItemDetailViewEffect: Equatable {
     case navigate(ItemDetailDestination)
-    case itemDeleted(consumableId: Int)
-    case replacementCompleted(consumableId: Int)
+    case itemDeleted(itemId: Int)
+    case replacementCompleted(itemId: Int)
     case showMessage(String)
 }
 
 enum ItemDetailDestination: Equatable {
-    case statusInfo(consumableId: Int)
-    case edit(consumableId: Int)
-    case spareEdit(consumableId: Int)
-    case notification(consumableId: Int)
+    case statusInfo(itemId: Int)
+    case edit(itemId: Int)
+    case spareEdit(itemId: Int)
+    case notification(itemId: Int)
 }
 
 extension ItemDetailViewData {
     init(
-        consumable: ItemDetailConsumable,
+        item: ItemDetailItem,
         referenceDate: Date,
         calendar: Calendar = .current,
         confirmationDialog: ItemDetailConfirmationDialog? = nil,
         isProcessing: Bool = false
     ) {
-        let status = consumable.detailStatus(on: referenceDate, calendar: calendar)
-        let daysInUse = consumable.daysInUse(on: referenceDate, calendar: calendar)
-        let replacementDday = consumable.replacementDday(on: referenceDate, calendar: calendar)
+        let status = item.detailStatus(on: referenceDate, calendar: calendar)
+        let daysInUse = item.daysInUse(on: referenceDate, calendar: calendar)
+        let replacementDday = item.replacementDday(on: referenceDate, calendar: calendar)
 
-        self.consumable = consumable
+        self.item = item
         self.statusSummary = ItemDetailStatusSummary(
             level: status,
             title: status.badgeTitle,
-            message: Self.statusMessage(for: status, replacementDday: replacementDday, spareQuantity: consumable.spareQuantity),
+            message: Self.statusMessage(for: status, replacementDday: replacementDday, spareQuantity: item.spareQuantity),
             daysInUseLabel: "\(daysInUse)일째 사용중",
             replacementDday: replacementDday,
             replacementDdayLabel: replacementDday.itemDetailDdayText,
             cardLevel: status.cardLevel
         )
         self.spareSummary = ItemDetailSpareSummary(
-            quantity: consumable.spareQuantity,
-            quantityLabel: "여분 \(consumable.spareQuantity)개",
-            statusTitle: consumable.spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold ? "여분 부족" : "여분 충분",
-            isLowStock: consumable.spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold
+            quantity: item.spareQuantity,
+            quantityLabel: "여분 \(item.spareQuantity)개",
+            statusTitle: item.spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold ? "여분 부족" : "여분 충분",
+            isLowStock: item.spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold
         )
         self.replacementCycleSummary = ItemDetailReplacementCycleSummary(
-            intervalDays: consumable.replacementCycle.intervalDays,
-            intervalLabel: consumable.replacementCycle.title,
+            intervalDays: item.replacementCycle.intervalDays,
+            intervalLabel: item.replacementCycle.title,
             nextReplacementLabel: "다음 교체 \(replacementDday.itemDetailDdayText)"
         )
-        self.replacementRecords = consumable.replacementRecords
+        self.replacementRecords = item.replacementRecords
             .sorted { $0.replacedAt > $1.replacedAt }
             .prefix(ItemDetailConfig.visibleReplacementRecordLimit)
             .map {
@@ -354,9 +469,9 @@ extension ItemDetailViewData {
                     memo: $0.memo
                 )
             }
-        self.notificationSummary = ItemDetailNotificationSummary(setting: consumable.notification)
-        self.editDraft = ItemDetailEditDraft(consumable: consumable)
-        self.spareDraft = ItemDetailSpareDraft(quantity: consumable.spareQuantity)
+        self.notificationSummary = ItemDetailNotificationSummary(setting: item.notification)
+        self.editDraft = ItemDetailEditDraft(item: item)
+        self.spareDraft = ItemDetailSpareDraft(quantity: item.spareQuantity)
         self.moreMenuItems = [.edit, .delete]
         self.confirmationDialog = confirmationDialog
         self.isProcessing = isProcessing
@@ -371,15 +486,16 @@ extension ItemDetailViewData {
         case .normal:
             return "교체 주기와 여분 수량이 안정적이에요."
         case .warning:
+            if replacementDday <= 0 {
+                return "교체 예정일이 지났어요."
+            }
+            if spareQuantity == ItemDetailConfig.minimumSpareQuantity {
+                return "바로 사용할 여분이 없어요."
+            }
             if replacementDday <= ItemDetailConfig.replacementWarningRemainingDays {
                 return "교체일이 가까워지고 있어요."
             }
             return spareQuantity <= ItemDetailConfig.lowSpareQuantityThreshold ? "여분 수량을 확인해 주세요." : "상태를 확인해 주세요."
-        case .danger:
-            if replacementDday <= 0 {
-                return "교체 예정일이 지났어요."
-            }
-            return "바로 사용할 여분이 없어요."
         }
     }
 }

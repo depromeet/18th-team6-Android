@@ -17,28 +17,28 @@ extension ItemDetailDisplayData {
         viewData: ItemDetailViewData,
         calendar: Calendar = .current
     ) {
-        let consumable = viewData.consumable
-        let intervalDays = max(consumable.replacementCycle.intervalDays, 1)
+        let item = viewData.item
+        let intervalDays = max(item.replacementCycle.intervalDays, 1)
         let daysInUse = max(intervalDays - viewData.statusSummary.replacementDday, 0)
         let nextReplacementDate = calendar.date(
             byAdding: .day,
             value: intervalDays,
-            to: consumable.currentCycleStartedAt
-        ) ?? consumable.currentCycleStartedAt
+            to: item.currentCycleStartedAt
+        ) ?? item.currentCycleStartedAt
         let visualStatus = ItemDetailStatus(level: viewData.statusSummary.level)
 
         self.init(
-            id: consumable.id,
-            title: consumable.name,
-            imageAssetName: consumable.imageAssetName,
+            id: item.id,
+            title: item.name,
+            imageAssetName: item.imageAssetName,
             status: visualStatus,
             heroProgress: min(max(Double(daysInUse) / Double(intervalDays), 0), 1),
-            lastReplacementDateText: Self.koreanMonthDay(consumable.currentCycleStartedAt, calendar: calendar),
+            lastReplacementDateText: Self.koreanMonthDay(item.currentCycleStartedAt, calendar: calendar),
             nextReplacementDateText: Self.koreanMonthDay(nextReplacementDate, calendar: calendar),
             replacementDayBadgeText: viewData.statusSummary.replacementDdayLabel,
             stockCount: viewData.spareSummary.quantity,
             averageReplacementDaysText: Self.averageReplacementDaysText(
-                records: consumable.replacementRecords,
+                records: item.replacementRecords,
                 fallbackDays: intervalDays,
                 calendar: calendar,
                 allowsFraction: false
@@ -47,13 +47,13 @@ extension ItemDetailDisplayData {
             currentUsageDaysText: "\(daysInUse)일째",
             currentStatusBadgeText: viewData.statusSummary.level == .normal ? nil : viewData.statusSummary.replacementDdayLabel,
             replacementHistory: Self.replacementHistoryEntries(
-                records: consumable.replacementRecords,
+                records: item.replacementRecords,
                 currentDaysInUse: daysInUse,
                 intervalDays: intervalDays,
                 calendar: calendar
             ),
             replacementHistoryAverageText: Self.averageReplacementDaysText(
-                records: consumable.replacementRecords,
+                records: item.replacementRecords,
                 fallbackDays: intervalDays,
                 calendar: calendar,
                 allowsFraction: true
@@ -128,8 +128,8 @@ private extension ItemDetailStatus {
     init(level: ItemDetailStatusLevel) {
         switch level {
         case .normal:
-            self = .good
-        case .warning, .danger:
+            self = .normal
+        case .warning:
             self = .warning
         }
     }

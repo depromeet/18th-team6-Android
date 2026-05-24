@@ -49,15 +49,15 @@ struct ItemNavigation {
             case let .statusInfo(itemId):
                 RoutePlaceholderView(title: "상태 정보", subtitle: "소모품 ID \(itemId)")
             case let .edit(itemId):
-                ItemDetailEditRouteView(consumableId: itemId, onBack: onBack)
+                ItemDetailEditRouteView(itemId: itemId, onBack: onBack)
             case let .notification(itemId):
                 RoutePlaceholderView(title: "알림", subtitle: "소모품 ID \(itemId) 알림 설정")
             case let .delete(itemId):
                 RoutePlaceholderView(title: "삭제", subtitle: "소모품 ID \(itemId)")
             case let .spareEdit(itemId):
-                ItemDetailSpareRouteView(consumableId: itemId, onBack: onBack)
+                ItemDetailSpareRouteView(itemId: itemId, onBack: onBack)
             case let .replacementComplete(itemId):
-                ItemDetailReplacementCompleteRouteView(consumableId: itemId, onBack: onBack)
+                ItemDetailReplacementCompleteRouteView(itemId: itemId, onBack: onBack)
             }
         }
         .itemRouteBackAction(onBack)

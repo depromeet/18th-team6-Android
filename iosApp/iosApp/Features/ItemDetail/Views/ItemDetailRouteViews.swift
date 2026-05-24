@@ -4,26 +4,26 @@ struct ItemDetailEditRouteView: View {
     @State private var draft: ItemDetailEditDraft
     @State private var isExitConfirmationPresented = false
 
-    private let consumable: ItemDetailConsumable
+    private let item: ItemDetailItem
     private let onBack: () -> Void
 
     init(
-        consumableId: Int,
+        itemId: Int,
         onBack: @escaping () -> Void
     ) {
-        let consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
-        self.consumable = consumable
+        let item = ItemDetailDomainSampleData.item(id: itemId)
+        self.item = item
         self.onBack = onBack
-        _draft = State(initialValue: ItemDetailEditDraft(consumable: consumable))
+        _draft = State(initialValue: ItemDetailEditDraft(item: item))
     }
 
     var body: some View {
         ZStack {
             ItemDetailEditScaffoldView(
                 draft: $draft,
-                recommendedCycleDays: consumable.replacementCycle.intervalDays,
+                recommendedCycleDays: item.replacementCycle.intervalDays,
                 averageCycleDays: averageCycleDays,
-                existingConsumableNames: ItemDetailDomainSampleData.consumables.map(\.name),
+                existingItemNames: ItemDetailDomainSampleData.items.map(\.name),
                 onClose: {
                     isExitConfirmationPresented = true
                 },
@@ -52,7 +52,7 @@ struct ItemDetailEditRouteView: View {
     }
 
     private var averageCycleDays: Int? {
-        let usedDays = consumable.replacementRecords.map { $0.usedDays() }
+        let usedDays = item.replacementRecords.map { $0.usedDays() }
         guard !usedDays.isEmpty else { return nil }
         return Int((Double(usedDays.reduce(0, +)) / Double(usedDays.count)).rounded())
     }
@@ -61,17 +61,17 @@ struct ItemDetailEditRouteView: View {
 struct ItemDetailSpareRouteView: View {
     @State private var quantity: Int
 
-    private let consumable: ItemDetailConsumable
+    private let item: ItemDetailItem
     private let onBack: () -> Void
 
     init(
-        consumableId: Int,
+        itemId: Int,
         onBack: @escaping () -> Void
     ) {
-        let consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
-        self.consumable = consumable
+        let item = ItemDetailDomainSampleData.item(id: itemId)
+        self.item = item
         self.onBack = onBack
-        _quantity = State(initialValue: consumable.spareQuantity)
+        _quantity = State(initialValue: item.spareQuantity)
     }
 
     var body: some View {
@@ -80,8 +80,8 @@ struct ItemDetailSpareRouteView: View {
                 .ignoresSafeArea()
 
             ItemDetailStockManagementSheet(
-                itemName: consumable.name,
-                initialQuantity: consumable.spareQuantity,
+                itemName: item.name,
+                initialQuantity: item.spareQuantity,
                 quantity: $quantity,
                 onCommit: { _ in onBack() },
                 onDismiss: onBack
@@ -93,14 +93,14 @@ struct ItemDetailSpareRouteView: View {
 }
 
 struct ItemDetailReplacementCompleteRouteView: View {
-    private let consumable: ItemDetailConsumable
+    private let item: ItemDetailItem
     private let onBack: () -> Void
 
     init(
-        consumableId: Int,
+        itemId: Int,
         onBack: @escaping () -> Void
     ) {
-        consumable = ItemDetailDomainSampleData.consumable(id: consumableId)
+        item = ItemDetailDomainSampleData.item(id: itemId)
         self.onBack = onBack
     }
 
@@ -110,8 +110,8 @@ struct ItemDetailReplacementCompleteRouteView: View {
                 .ignoresSafeArea()
 
             ItemDetailReplacementCompletionModal(
-                itemName: consumable.name,
-                itemImageAssetName: consumable.imageAssetName,
+                itemName: item.name,
+                itemImageAssetName: item.imageAssetName,
                 daysComparedToPrevious: -2,
                 nextReplacementLabel: nextReplacementLabel,
                 recordedAtText: Date().itemDetailRecordedAtText,
@@ -126,9 +126,9 @@ struct ItemDetailReplacementCompleteRouteView: View {
     private var nextReplacementLabel: String {
         let nextDate = Calendar.current.date(
             byAdding: .day,
-            value: consumable.replacementCycle.intervalDays,
+            value: item.replacementCycle.intervalDays,
             to: Date()
         ) ?? Date()
-        return "\(nextDate.itemDetailMonthDayText)(\(consumable.replacementCycle.intervalDays)일 후)"
+        return "\(nextDate.itemDetailMonthDayText)(\(item.replacementCycle.intervalDays)일 후)"
     }
 }

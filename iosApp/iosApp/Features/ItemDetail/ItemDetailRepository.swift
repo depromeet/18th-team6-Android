@@ -1,62 +1,62 @@
 import Foundation
 
 protocol ItemDetailRepository {
-    func detail(consumableId: Int) async throws -> ItemDetailConsumable
-    func updateSpareQuantity(consumableId: Int, quantity: Int, updatedAt: Date) async throws -> ItemDetailConsumable
-    func completeReplacement(consumableId: Int, completedAt: Date) async throws -> ItemDetailConsumable
-    func delete(consumableId: Int) async throws
+    func detail(itemId: Int) async throws -> ItemDetailItem
+    func updateSpareQuantity(itemId: Int, quantity: Int, updatedAt: Date) async throws -> ItemDetailItem
+    func completeReplacement(itemId: Int, completedAt: Date) async throws -> ItemDetailItem
+    func delete(itemId: Int) async throws
 }
 
 enum ItemDetailRepositoryError: LocalizedError, Equatable {
-    case notFound(consumableId: Int)
+    case notFound(itemId: Int)
 
     var errorDescription: String? {
         switch self {
-        case let .notFound(consumableId):
-            return "소모품 ID \(consumableId)를 찾을 수 없어요."
+        case let .notFound(itemId):
+            return "소모품 ID \(itemId)를 찾을 수 없어요."
         }
     }
 }
 
 actor ItemDetailSampleRepository: ItemDetailRepository {
-    private var consumablesByID: [Int: ItemDetailConsumable]
+    private var itemsByID: [Int: ItemDetailItem]
 
-    init(consumables: [ItemDetailConsumable] = ItemDetailDomainSampleData.consumables) {
-        self.consumablesByID = Dictionary(uniqueKeysWithValues: consumables.map { ($0.id, $0) })
+    init(items: [ItemDetailItem] = ItemDetailDomainSampleData.items) {
+        self.itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
     }
 
-    func detail(consumableId: Int) async throws -> ItemDetailConsumable {
-        guard let consumable = consumablesByID[consumableId] else {
-            throw ItemDetailRepositoryError.notFound(consumableId: consumableId)
+    func detail(itemId: Int) async throws -> ItemDetailItem {
+        guard let item = itemsByID[itemId] else {
+            throw ItemDetailRepositoryError.notFound(itemId: itemId)
         }
 
-        return consumable
+        return item
     }
 
     func updateSpareQuantity(
-        consumableId: Int,
+        itemId: Int,
         quantity: Int,
         updatedAt: Date
-    ) async throws -> ItemDetailConsumable {
-        let consumable = try await detail(consumableId: consumableId)
-        let updated = consumable.updatingSpareQuantity(quantity, at: updatedAt)
-        consumablesByID[consumableId] = updated
+    ) async throws -> ItemDetailItem {
+        let item = try await detail(itemId: itemId)
+        let updated = item.updatingSpareQuantity(quantity, at: updatedAt)
+        itemsByID[itemId] = updated
         return updated
     }
 
     func completeReplacement(
-        consumableId: Int,
+        itemId: Int,
         completedAt: Date
-    ) async throws -> ItemDetailConsumable {
-        let consumable = try await detail(consumableId: consumableId)
-        let updated = consumable.completingReplacement(at: completedAt)
-        consumablesByID[consumableId] = updated
+    ) async throws -> ItemDetailItem {
+        let item = try await detail(itemId: itemId)
+        let updated = item.completingReplacement(at: completedAt)
+        itemsByID[itemId] = updated
         return updated
     }
 
-    func delete(consumableId: Int) async throws {
-        guard consumablesByID.removeValue(forKey: consumableId) != nil else {
-            throw ItemDetailRepositoryError.notFound(consumableId: consumableId)
+    func delete(itemId: Int) async throws {
+        guard itemsByID.removeValue(forKey: itemId) != nil else {
+            throw ItemDetailRepositoryError.notFound(itemId: itemId)
         }
     }
 }
