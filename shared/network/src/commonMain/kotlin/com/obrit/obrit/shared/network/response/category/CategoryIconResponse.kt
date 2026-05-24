@@ -7,13 +7,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CategoryIconResponse(
     @SerialName("id") val id: Long,
-    @SerialName("name") val name: String,
-    @SerialName("iconUrl") val iconUrl: String,
+    @SerialName("url") val url: String,
 )
 
 fun CategoryIconResponse.toCategoryIcon() =
     CategoryIcon(
         id = id,
-        name = name,
-        iconUrl = iconUrl,
+        url = url,
     )

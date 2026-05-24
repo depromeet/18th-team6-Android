@@ -47,10 +47,6 @@ internal fun HttpClientConfig<*>.configureOBRitHttpClient(
         url(normalizeBaseUrl(configuration.baseUrl))
         accept(ContentType.Application.Json)
         headers.append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-
-        if (configuration.deviceUuid.isNotBlank()) {
-            headers.append(USER_ID_HEADER, configuration.deviceUuid)
-        }
     }
 
     install(ContentNegotiation) {
@@ -82,8 +78,6 @@ internal fun HttpClientConfig<*>.configureOBRitHttpClient(
 }
 
 private fun normalizeBaseUrl(baseUrl: String): String = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
-
-private const val USER_ID_HEADER = "X-User-Id"
 
 private suspend fun HttpResponse.toRemoteError(json: Json): RemoteError {
     val rawErrorBody = bodyAsText()

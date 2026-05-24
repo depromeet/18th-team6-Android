@@ -1,29 +1,67 @@
 package com.obrit.obrit.shared.network.source
 
+import com.obrit.obrit.shared.network.client.userIdHeader
+import com.obrit.obrit.shared.network.config.UserIdProvider
+import com.obrit.obrit.shared.network.request.home.HomeItemsRequest
+import com.obrit.obrit.shared.network.response.ApiResponse
+import com.obrit.obrit.shared.network.response.home.CursorSliceResponseHomeItemCard
 import com.obrit.obrit.shared.network.response.home.HomeBucketsResponse
 import com.obrit.obrit.shared.network.response.home.MyStatusSummaryResponse
 import com.obrit.obrit.shared.network.response.home.OverallStatusResponse
+import com.obrit.obrit.shared.network.response.requireData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
 internal class HomeRemoteDataSourceImpl(
     private val httpClient: HttpClient,
+    private val userIdProvider: UserIdProvider,
 ) : HomeRemoteDataSource {
-    override suspend fun getOverallStatus(): OverallStatusResponse =
-        httpClient
-            .get("$HOME_PATH/overall-status")
-            .body()
+    override suspend fun getOverallStatus(): OverallStatusResponse {
+        val userId = userIdProvider.get()
 
-    override suspend fun getMyStatusSummary(): MyStatusSummaryResponse =
-        httpClient
-            .get("$HOME_PATH/my-summary")
-            .body()
+        return httpClient
+            .get("$HOME_PATH/overall-status") {
+                userIdHeader(userId)
+            }.body<ApiResponse<OverallStatusResponse>>()
+            .requireData()
+    }
 
-    override suspend fun getBuckets(): HomeBucketsResponse =
-        httpClient
-            .get("$HOME_PATH/buckets")
-            .body()
+    override suspend fun getMyStatusSummary(): MyStatusSummaryResponse {
+        val userId = userIdProvider.get()
+
+        return httpClient
+            .get("$HOME_PATH/my-summary") {
+                userIdHeader(userId)
+            }.body<ApiResponse<MyStatusSummaryResponse>>()
+            .requireData()
+    }
+
+    override suspend fun getItems(request: HomeItemsRequest): CursorSliceResponseHomeItemCard {
+        val userId = userIdProvider.get()
+
+        return httpClient
+            .get("$HOME_PATH/items") {
+                userIdHeader(userId)
+                request.order?.let { value -> parameter("order", value) }
+                request.dDay?.let { value -> parameter("dDay", value) }
+                request.spareQuantity?.let { value -> parameter("spareQuantity", value) }
+                request.cursor?.let { value -> parameter("cursor", value) }
+                request.size?.let { value -> parameter("size", value) }
+            }.body<ApiResponse<CursorSliceResponseHomeItemCard>>()
+            .requireData()
+    }
+
+    override suspend fun getBuckets(): HomeBucketsResponse {
+        val userId = userIdProvider.get()
+
+        return httpClient
+            .get("$HOME_PATH/buckets") {
+                userIdHeader(userId)
+            }.body<ApiResponse<HomeBucketsResponse>>()
+            .requireData()
+    }
 }
 
 private const val HOME_PATH = "home"

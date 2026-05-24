@@ -9,6 +9,8 @@ data class CategoryResponse(
     @SerialName("id") val id: Long,
     @SerialName("name") val name: String,
     @SerialName("iconUrl") val iconUrl: String,
+    @SerialName("userId") val userId: Long? = null,
+    @SerialName("createdAt") val createdAt: String? = null,
     @SerialName("defaultReplacementIntervalDays") val defaultReplacementIntervalDays: Int,
 )
 
@@ -17,5 +19,7 @@ fun CategoryResponse.toCategory() =
         id = id,
         name = name,
         iconUrl = iconUrl,
+        userId = userId,
+        createdAt = createdAt,
         defaultReplacementIntervalDays = defaultReplacementIntervalDays,
     )
