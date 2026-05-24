@@ -3,4 +3,10 @@ package com.obrit.obrit.navigation.route
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object HomeRoute : Route
+sealed interface HomeRoute : Route {
+    @Serializable
+    data object Home : HomeRoute
+
+    @Serializable
+    data object ConsumableList : HomeRoute
+}
