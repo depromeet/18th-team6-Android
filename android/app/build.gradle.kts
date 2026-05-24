@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(projects.shared)
     implementation(projects.android.feature.agent)
+    implementation(projects.android.feature.detail)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
 

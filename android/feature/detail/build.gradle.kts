@@ -6,7 +6,6 @@ plugins {
 }
 
 dependencies {
-    api(projects.shared.model)
     implementation(projects.shared.data)
     implementation(projects.android.core.ui)
 }
