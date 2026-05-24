@@ -34,7 +34,7 @@ struct ItemDetailEditScaffoldView: View {
         recommendedCycleDays: Int? = nil,
         averageCycleDays: Int? = nil,
         existingConsumableNames: [String] = [],
-        imageAssetNames: [String] = ItemDetailEditAssetCatalog.defaultAssetNames,
+        imageAssetNames: [String] = ConsumableItemAssetCatalog.assetNames,
         isProcessing: Bool = false,
         canSubmit: Bool? = nil,
         onClose: @escaping () -> Void,
@@ -361,7 +361,7 @@ struct ItemDetailEditScaffoldView: View {
     }
 
     private func imageAccessibilityName(for assetName: String) -> String {
-        ItemDetailEditAssetCatalog.accessibilityNames[assetName] ?? "소모품"
+        ConsumableItemAssetCatalog.accessibilityNames[assetName] ?? "소모품"
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -444,96 +444,6 @@ private struct ItemDetailEditImageButton: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityValue(selected ? "선택됨" : "선택 안 됨")
     }
-}
-
-private enum ItemDetailEditAssetCatalog {
-    static let defaultAssetNames = [
-        "item_razor",
-        "item_water_filter",
-        "item_toothbrush",
-        "item_detergent",
-        "item_towel",
-        "item_shower_filter",
-        "item_scrub_sponge",
-        "item_diffuser",
-        "item_kitchen_towel",
-        "item_body_wash",
-        "item_shampoo",
-        "item_treatment",
-        "item_hand_sanitizer",
-        "item_toothpaste",
-        "item_wet_wipes",
-        "item_toilet_paper",
-        "item_bandage",
-        "item_misc",
-        "item_air_purifier_filter",
-        "item_trash_bag",
-        "item_zip_bag",
-        "item_toothbrush_sanitizer_filter",
-        "item_clothespin",
-        "item_rubber_gloves",
-        "item_dish_soap",
-        "item_fabric_softener",
-        "item_cleaning_wipe",
-        "item_sponge",
-        "item_laundry_net",
-        "item_cotton_swab",
-        "item_cotton_pad",
-        "item_foam_cleanser",
-        "item_mask",
-        "item_diffuser_refill",
-        "item_drain_filter",
-        "item_bathroom_cleaner",
-        "item_dishcloth",
-        "item_wrap_foil",
-        "item_shower_ball",
-        "item_light_bulb",
-        "item_toilet_cleaner"
-    ]
-
-    static let accessibilityNames = [
-        "item_razor": "면도기",
-        "item_water_filter": "정수기 필터",
-        "item_toothbrush": "칫솔",
-        "item_detergent": "세제",
-        "item_towel": "수건",
-        "item_shower_filter": "샤워기 필터",
-        "item_scrub_sponge": "수세미",
-        "item_diffuser": "디퓨저",
-        "item_kitchen_towel": "키친타월",
-        "item_body_wash": "바디워시",
-        "item_shampoo": "샴푸",
-        "item_treatment": "트리트먼트",
-        "item_hand_sanitizer": "손소독제",
-        "item_toothpaste": "치약",
-        "item_wet_wipes": "물티슈",
-        "item_toilet_paper": "휴지",
-        "item_bandage": "밴드",
-        "item_misc": "생활용품",
-        "item_air_purifier_filter": "공기청정기 필터",
-        "item_trash_bag": "쓰레기 봉투",
-        "item_zip_bag": "지퍼백",
-        "item_toothbrush_sanitizer_filter": "칫솔 살균기 필터",
-        "item_clothespin": "빨래집게",
-        "item_rubber_gloves": "고무장갑",
-        "item_dish_soap": "주방 세제",
-        "item_fabric_softener": "섬유유연제",
-        "item_cleaning_wipe": "청소포",
-        "item_sponge": "스펀지",
-        "item_laundry_net": "세탁망",
-        "item_cotton_swab": "면봉",
-        "item_cotton_pad": "화장솜",
-        "item_foam_cleanser": "폼클렌저",
-        "item_mask": "마스크",
-        "item_diffuser_refill": "디퓨저 리필",
-        "item_drain_filter": "배수구 거름망",
-        "item_bathroom_cleaner": "욕실 세정제",
-        "item_dishcloth": "행주",
-        "item_wrap_foil": "랩/호일",
-        "item_shower_ball": "샤워볼",
-        "item_light_bulb": "전구",
-        "item_toilet_cleaner": "변기 세정제"
-    ]
 }
 
 private enum ItemDetailEditMetrics {

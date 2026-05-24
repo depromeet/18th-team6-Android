@@ -1,94 +1,61 @@
+enum ConsumableItemAssetCatalog {
+    struct Entry: Equatable {
+        let title: String
+        let assetName: String
+    }
+
+    static let entries: [Entry] = [
+        Entry(title: "면도기", assetName: "item_razor"),
+        Entry(title: "정수기 필터", assetName: "item_water_filter"),
+        Entry(title: "칫솔", assetName: "item_toothbrush"),
+        Entry(title: "세탁 세제", assetName: "item_detergent"),
+        Entry(title: "수건", assetName: "item_towel"),
+        Entry(title: "샤워기 필터", assetName: "item_shower_filter"),
+        Entry(title: "수세미", assetName: "item_scrub_sponge"),
+        Entry(title: "디퓨저", assetName: "item_diffuser"),
+        Entry(title: "키친타월", assetName: "item_kitchen_towel"),
+        Entry(title: "바디워시", assetName: "item_body_wash"),
+        Entry(title: "샴푸", assetName: "item_shampoo"),
+        Entry(title: "트리트먼트", assetName: "item_treatment"),
+        Entry(title: "손소독제", assetName: "item_hand_sanitizer"),
+        Entry(title: "치약", assetName: "item_toothpaste"),
+        Entry(title: "물티슈", assetName: "item_wet_wipes"),
+        Entry(title: "휴지", assetName: "item_toilet_paper"),
+        Entry(title: "밴드", assetName: "item_bandage"),
+        Entry(title: "생활용품", assetName: "item_misc"),
+        Entry(title: "공기청정기 필터", assetName: "item_air_purifier_filter"),
+        Entry(title: "쓰레기 봉투", assetName: "item_trash_bag"),
+        Entry(title: "지퍼백", assetName: "item_zip_bag"),
+        Entry(title: "칫솔 살균기 필터", assetName: "item_toothbrush_sanitizer_filter"),
+        Entry(title: "빨래집게", assetName: "item_clothespin"),
+        Entry(title: "고무장갑", assetName: "item_rubber_gloves"),
+        Entry(title: "주방 세제", assetName: "item_dish_soap"),
+        Entry(title: "섬유유연제", assetName: "item_fabric_softener"),
+        Entry(title: "청소포", assetName: "item_cleaning_wipe"),
+        Entry(title: "스펀지", assetName: "item_sponge"),
+        Entry(title: "세탁망", assetName: "item_laundry_net"),
+        Entry(title: "면봉", assetName: "item_cotton_swab"),
+        Entry(title: "화장솜", assetName: "item_cotton_pad"),
+        Entry(title: "폼클렌저", assetName: "item_foam_cleanser"),
+        Entry(title: "마스크", assetName: "item_mask"),
+        Entry(title: "디퓨저 리필", assetName: "item_diffuser_refill"),
+        Entry(title: "배수구 거름망", assetName: "item_drain_filter"),
+        Entry(title: "욕실 세정제", assetName: "item_bathroom_cleaner"),
+        Entry(title: "행주", assetName: "item_dishcloth"),
+        Entry(title: "랩/호일", assetName: "item_wrap_foil"),
+        Entry(title: "샤워볼", assetName: "item_shower_ball"),
+        Entry(title: "전구", assetName: "item_light_bulb"),
+        Entry(title: "변기 세정제", assetName: "item_toilet_cleaner")
+    ]
+
+    static let assetNames = entries.map(\.assetName)
+
+    static let accessibilityNames = Dictionary(uniqueKeysWithValues: entries.map { ($0.assetName, $0.title) })
+}
+
 enum ItemRegistrationSampleData {
-    private static let itemEntries: [(title: String, assetName: String)] = [
-        ("면도기", "item_razor"),
-        ("정수기 필터", "item_water_filter"),
-        ("칫솔", "item_toothbrush"),
-        ("세탁 세제", "item_detergent"),
-        ("수건", "item_towel"),
-        ("샤워기 필터", "item_shower_filter"),
-        ("수세미", "item_scrub_sponge"),
-        ("디퓨저", "item_diffuser"),
-        ("키친타월", "item_kitchen_towel"),
-        ("바디워시", "item_body_wash"),
-        ("샴푸", "item_shampoo"),
-        ("린스", "item_treatment"),
-        ("핸드워시", "item_hand_sanitizer"),
-        ("치약", "item_toothpaste"),
-        ("물티슈", "item_wet_wipes"),
-        ("휴지", "item_toilet_paper"),
-        ("건전지", "item_misc"),
-        ("공기청정기 필터", "item_air_purifier_filter"),
-        ("쓰레기 봉투", "item_trash_bag"),
-        ("지퍼백", "item_zip_bag"),
-        ("종이컵", "item_misc"),
-        ("고무장갑", "item_rubber_gloves"),
-        ("주방 세제", "item_dish_soap"),
-        ("섬유유연제", "item_fabric_softener"),
-        ("청소포", "item_cleaning_wipe"),
-        ("스펀지", "item_sponge"),
-        ("칫솔모", "item_toothbrush"),
-        ("면봉", "item_cotton_swab"),
-        ("화장솜", "item_cotton_pad"),
-        ("클렌징 티슈", "item_wet_wipes"),
-        ("비누", "item_foam_cleanser"),
-        ("로션", "item_misc"),
-        ("선크림", "item_misc"),
-        ("마스크", "item_mask"),
-        ("반려동물 패드", "item_misc"),
-        ("방향제", "item_diffuser_refill"),
-        ("제습제", "item_misc"),
-        ("세면대 필터", "item_drain_filter"),
-        ("욕실 세정제", "item_bathroom_cleaner"),
-        ("행주", "item_dishcloth"),
-        ("랩", "item_wrap_foil")
-    ]
-
-    private static let imageOptionAssetNames = [
-        "item_razor",
-        "item_water_filter",
-        "item_toothbrush",
-        "item_detergent",
-        "item_towel",
-        "item_shower_filter",
-        "item_scrub_sponge",
-        "item_diffuser",
-        "item_kitchen_towel",
-        "item_body_wash",
-        "item_shampoo",
-        "item_treatment",
-        "item_hand_sanitizer",
-        "item_toothpaste",
-        "item_wet_wipes",
-        "item_toilet_paper",
-        "item_bandage",
-        "item_misc",
-        "item_air_purifier_filter",
-        "item_trash_bag",
-        "item_zip_bag",
-        "item_toothbrush_sanitizer_filter",
-        "item_clothespin",
-        "item_rubber_gloves",
-        "item_dish_soap",
-        "item_fabric_softener",
-        "item_cleaning_wipe",
-        "item_sponge",
-        "item_laundry_net",
-        "item_cotton_swab",
-        "item_cotton_pad",
-        "item_foam_cleanser",
-        "item_mask",
-        "item_diffuser_refill",
-        "item_drain_filter",
-        "item_bathroom_cleaner",
-        "item_dishcloth",
-        "item_wrap_foil",
-        "item_shower_ball",
-        "item_light_bulb",
-        "item_toilet_cleaner"
-    ]
-
     static let itemKinds: [ItemKind] = {
-        itemEntries.enumerated().map { index, entry in
+        ConsumableItemAssetCatalog.entries.enumerated().map { index, entry in
             ItemKind(
                 id: index + 1,
                 title: entry.title,
@@ -98,7 +65,7 @@ enum ItemRegistrationSampleData {
         }
     }()
 
-    static let imageOptions: [ItemImageOption] = imageOptionAssetNames.enumerated().map { index, assetName in
+    static let imageOptions: [ItemImageOption] = ConsumableItemAssetCatalog.assetNames.enumerated().map { index, assetName in
         ItemImageOption(id: index, assetName: assetName)
     }
 }
