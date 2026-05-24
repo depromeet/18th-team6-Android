@@ -209,11 +209,12 @@ private struct ItemRegistrationFormView: View {
                                 )
                             }
 
-                            ItemRequiredField(title: "소모품 명") {
+                            ItemRequiredField(title: "소모품명") {
                                 ItemTextInputField(
                                     text: data.draft.itemName,
-                                    placeholder: "구분을 위한 이름을 입력해주세요",
+                                    placeholder: "소모품명을 입력해주세요",
                                     maxLength: ItemRegistrationConfig.itemNameMaxLength,
+                                    helperText: "\(ItemRegistrationConfig.itemNameMaxLength)자 이내로 입력해주세요",
                                     singleLine: true,
                                     onTextChange: action.onUpdateItemName
                                 )
@@ -289,11 +290,12 @@ private struct ItemDirectKindRegistrationView: View {
                         )
 
                         VStack(alignment: .leading, spacing: ItemRegistrationLayoutConfig.fieldGroupGap) {
-                            ItemRequiredField(title: "소모품 종류 이름") {
+                            ItemRequiredField(title: "소모품 종류명") {
                                 ItemTextInputField(
                                     text: data.draft.directKindName,
-                                    placeholder: "소모품의 종류 이름을 입력해주세요",
+                                    placeholder: "소모품 종류명을 입력해주세요",
                                     maxLength: ItemRegistrationConfig.kindNameMaxLength,
+                                    helperText: "\(ItemRegistrationConfig.kindNameMaxLength)자 이내로 입력해주세요",
                                     singleLine: true,
                                     onTextChange: action.onUpdateDirectKindName
                                 )
@@ -561,6 +563,7 @@ private struct ItemTextInputField: View {
     let text: String
     let placeholder: String
     let maxLength: Int
+    let helperText: String
     let singleLine: Bool
     let onTextChange: (String) -> Void
 
@@ -568,6 +571,7 @@ private struct ItemTextInputField: View {
         text: String,
         placeholder: String,
         maxLength: Int,
+        helperText: String,
         singleLine: Bool,
         onTextChange: @escaping (String) -> Void
     ) {
@@ -575,52 +579,67 @@ private struct ItemTextInputField: View {
         self.text = text
         self.placeholder = placeholder
         self.maxLength = maxLength
+        self.helperText = helperText
         self.singleLine = singleLine
         self.onTextChange = onTextChange
     }
 
     var body: some View {
-        HStack(spacing: OBRitSpacing.s2) {
-            ZStack(alignment: .leading) {
-                if localText.isEmpty {
-                    Text(placeholder)
-                        .lineLimit(1)
+        VStack(alignment: .leading, spacing: OBRitSpacing.s2_5) {
+            HStack(spacing: OBRitSpacing.s2) {
+                ZStack(alignment: .leading) {
+                    if localText.isEmpty {
+                        Text(placeholder)
+                            .lineLimit(1)
+                            .obritTextStyle(
+                                OBRitTypography.xl,
+                                weight: OBRitFontWeight.medium,
+                                color: OBRitColors.gray700
+                            )
+                    }
+
+                    TextField("", text: $localText, axis: singleLine ? .horizontal : .vertical)
+                        .lineLimit(singleLine ? 1 : nil)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .focused($isFocused)
+                        .tint(OBRitColors.common00)
                         .obritTextStyle(
                             OBRitTypography.xl,
                             weight: OBRitFontWeight.medium,
-                            color: OBRitColors.gray700
+                            color: OBRitColors.common00
                         )
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                TextField("", text: $localText, axis: singleLine ? .horizontal : .vertical)
-                    .lineLimit(singleLine ? 1 : nil)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .focused($isFocused)
-                    .tint(OBRitColors.common00)
+                Text("\(min(localText.count, maxLength))/\(maxLength)")
+                    .lineLimit(1)
                     .obritTextStyle(
-                        OBRitTypography.xl,
+                        OBRitTypography.small,
                         weight: OBRitFontWeight.medium,
                         color: OBRitColors.common00
                     )
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
+            .padding(.horizontal, OBRitSpacing.s5)
+            .background(OBRitColors.gray800)
+            .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
+            .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
+            .onTapGesture {
+                isFocused = true
+            }
 
-            Text("\(min(localText.count, maxLength))/\(maxLength)")
-                .lineLimit(1)
-                .obritTextStyle(
-                    OBRitTypography.small,
-                    weight: OBRitFontWeight.medium,
-                    color: OBRitColors.common00
-                )
-        }
-        .frame(height: ItemRegistrationLayoutConfig.fieldHeight)
-        .padding(.horizontal, OBRitSpacing.s5)
-        .background(OBRitColors.gray800)
-        .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
-        .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
-        .onTapGesture {
-            isFocused = true
+            HStack(alignment: .center, spacing: OBRitSpacing.s1) {
+                OBRitIcon(kind: .success, color: OBRitColors.gray300)
+                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+                Text(helperText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .obritTextStyle(
+                        OBRitTypography.s,
+                        weight: OBRitFontWeight.medium,
+                        color: OBRitColors.gray300
+                    )
+            }
         }
         .onChange(of: localText) { _, newValue in
             let clippedText = String(newValue.prefix(maxLength))
