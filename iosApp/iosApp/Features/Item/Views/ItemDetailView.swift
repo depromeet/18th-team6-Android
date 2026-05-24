@@ -9,6 +9,8 @@ struct ItemDetailView: View {
     @State private var stockDraftQuantity = 0
     @State private var isStockSheetPresented = false
     @State private var completionModal: ItemDetailCompletionModalData?
+    @State private var snackbar: ItemDetailSnackbarPresentation?
+    @State private var snackbarDismissTask: Task<Void, Never>?
 
     init(
         itemId: Int,
@@ -25,9 +27,13 @@ struct ItemDetailView: View {
         ZStack {
             content
             overlay
+            snackbarOverlay
         }
         .onChange(of: viewModel.effect) { _, effect in
             handleEffect(effect)
+        }
+        .onDisappear {
+            snackbarDismissTask?.cancel()
         }
     }
 
@@ -127,6 +133,22 @@ struct ItemDetailView: View {
     }
 
     @ViewBuilder
+    private var snackbarOverlay: some View {
+        if let snackbar {
+            VStack {
+                Spacer(minLength: 0)
+
+                OBRitSnackbar(message: snackbar.message, icon: snackbar.icon)
+                    .padding(.horizontal, OBRitSpacing.s5)
+                    .padding(.bottom, ItemDetailLayout.actionBarHeight + OBRitSpacing.s5)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            .allowsHitTesting(false)
+            .animation(.easeOut(duration: 0.18), value: snackbar.id)
+        }
+    }
+
+    @ViewBuilder
     private func completionModalView(
         _ modal: ItemDetailCompletionModalData
     ) -> some View {
@@ -165,9 +187,26 @@ struct ItemDetailView: View {
             if case let .success(data) = viewModel.state {
                 completionModal = ItemDetailCompletionModalData(data: data)
             }
-        case .showMessage:
-            break
+        case let .showMessage(message):
+            showSnackbar(message)
         }
+    }
+
+    private func showSnackbar(_ message: String) {
+        snackbarDismissTask?.cancel()
+        snackbar = ItemDetailSnackbarPresentation(
+            message: message,
+            icon: snackbarIcon(for: message)
+        )
+        snackbarDismissTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: ItemDetailSnackbarMetrics.displayDurationNanoseconds)
+            guard !Task.isCancelled else { return }
+            snackbar = nil
+        }
+    }
+
+    private func snackbarIcon(for message: String) -> OBRitSnackbarIcon {
+        message.hasSuffix("했어요.") ? .success : .error
     }
 
     private func handleNavigation(_ destination: ItemDetailDestination) {
@@ -182,6 +221,16 @@ struct ItemDetailView: View {
             onNavigate(.notification(itemId: itemId))
         }
     }
+}
+
+private struct ItemDetailSnackbarPresentation: Identifiable {
+    let id = UUID()
+    let message: String
+    let icon: OBRitSnackbarIcon
+}
+
+private enum ItemDetailSnackbarMetrics {
+    static let displayDurationNanoseconds: UInt64 = 2_400_000_000
 }
 
 private struct ItemDetailMessageView: View {
