@@ -36,11 +36,11 @@ import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.feature.home.screen.homeSection.ConsumableAlertSection
 import com.obrit.feature.home.screen.homeSection.ConsumableIcon
-import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.screen.homeSection.ConsumableOrbitSection
 import com.obrit.feature.home.screen.homeSection.ConsumableStatusSection
 import com.obrit.feature.home.screen.homeSection.ConsumableUsageStatusSection
 import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
+import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 
@@ -73,16 +73,20 @@ internal fun HomeScreenSuccessContent(
                     onMoreClick = action.onMoreClick,
                 )
             } else {
-                ConsumableListScreen(
+                ConsumableListScreenContent(
                     buckets = state.status.buckets,
                     sortOrder = state.listSortOrder,
                     ddayRange = state.ddayRange,
                     ddayFilterMax = state.ddayFilterMax,
                     spareRange = state.spareRange,
                     spareFilterMax = state.spareFilterMax,
-                    onSortOrderChange = action.onListSortOrderChange,
-                    onDdayFilterChange = action.onDdayFilterChange,
-                    onSpareFilterChange = action.onSpareFilterChange,
+                    action =
+                        ConsumableListScreenAction(
+                            onBack = {},
+                            onSortOrderChange = action.onListSortOrderChange,
+                            onDdayFilterChange = action.onDdayFilterChange,
+                            onSpareFilterChange = action.onSpareFilterChange,
+                        ),
                     modifier =
                         Modifier
                             .fillMaxSize()
