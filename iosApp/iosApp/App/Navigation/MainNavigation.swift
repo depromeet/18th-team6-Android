@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainNavigation: View {
     @State private var isGnbHiddenByContent = false
+    @State private var isGnbDisabledByContent = false
 
     let selectedTab: MainTab
     let dependencies: AppDependencies
@@ -29,7 +30,8 @@ struct MainNavigation: View {
             }
             .padding(.bottom, OBRitSpacing.s6)
             .opacity(gnbOpacity)
-            .allowsHitTesting(!isGnbHiddenByContent)
+            .disabled(isGnbDisabledByContent)
+            .allowsHitTesting(!isGnbInteractionDisabled)
             .accessibilityHidden(isGnbHiddenByContent)
             .zIndex(1)
         }
@@ -52,6 +54,9 @@ struct MainNavigation: View {
                 },
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
+                },
+                onRegisteredItemsAvailabilityChange: { hasRegisteredItems in
+                    isGnbDisabledByContent = !hasRegisteredItems
                 }
             )
         case .homeListTab:
@@ -66,8 +71,16 @@ struct MainNavigation: View {
         }
     }
 
+    private var isGnbInteractionDisabled: Bool {
+        isGnbHiddenByContent || isGnbDisabledByContent
+    }
+
     private var gnbOpacity: Double {
-        isGnbHiddenByContent ? 0 : 1
+        if isGnbHiddenByContent {
+            return 0
+        }
+
+        return isGnbDisabledByContent ? 0.45 : 1
     }
 }
 
