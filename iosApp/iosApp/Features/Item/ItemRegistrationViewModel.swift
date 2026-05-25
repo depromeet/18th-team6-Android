@@ -39,7 +39,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             selectedKind: nil,
             itemName: "",
             lastReplacementDateOption: nil,
-            quantity: 1,
+            quantity: ItemRegistrationConfig.defaultQuantity,
             directKindName: "",
             selectedImageOption: imageOptions.first
         )
@@ -47,29 +47,29 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     #if DEBUG
     private func applyDebugInitialState() {
-        switch ProcessInfo.processInfo.environment["OBRIT_MANUAL_REGISTRATION_STATE"] {
-        case "filled":
+        switch ProcessInfo.processInfo.environment[ItemRegistrationDebugConfig.stateEnvironmentKey] {
+        case ItemRegistrationDebugConfig.filledState:
             update { data in
                 data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
                 data.draft.lastReplacementDateOption = .today
-                data.draft.quantity = 1
+                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
             }
-        case "kindSheet":
+        case ItemRegistrationDebugConfig.kindSheetState:
             update { data in
                 data.bottomSheet = .kind
                 data.selectedKindCandidate = data.itemKinds.first
             }
-        case "dateSheet":
+        case ItemRegistrationDebugConfig.dateSheetState:
             update { data in
                 data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
                 data.draft.lastReplacementDateOption = .today
-                data.draft.quantity = 1
+                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
             }
-        case "directKind":
+        case ItemRegistrationDebugConfig.directKindState:
             update { $0.mode = .directKind }
-        case "complete":
+        case ItemRegistrationDebugConfig.completeState:
             update { $0.mode = .complete }
         default:
             break
@@ -164,12 +164,13 @@ final class ItemRegistrationViewModel: ObservableObject {
 
         update { data in
             let kind = ItemKind(
-                id: (data.itemKinds.map(\.id).max() ?? 0) + 1,
+                id: (data.itemKinds.map(\.id).max() ?? ItemRegistrationConfig.emptyIDBase) +
+                    ItemRegistrationConfig.nextIDIncrement,
                 title: trimmedName,
-                addedCount: 0,
+                addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
                 imageAssetName: selectedImageOption.assetName
             )
-            data.itemKinds.insert(kind, at: 0)
+            data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
             data.draft.selectedKind = kind
             data.draft.itemName = trimmedName
             data.draft.directKindName = ""
@@ -201,11 +202,4 @@ final class ItemRegistrationViewModel: ObservableObject {
         transform(&nextData)
         data = nextData
     }
-}
-
-enum ItemRegistrationConfig {
-    static let itemNameMaxLength = 15
-    static let kindNameMaxLength = 15
-    static let quantityMinimum = 0
-    static let quantityMaximum = 99
 }

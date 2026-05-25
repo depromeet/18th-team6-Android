@@ -1,7 +1,9 @@
 import Shared
 import SwiftUI
 
+// UNDERSCORE_ALLOW: generated design token names may mirror Figma token names.
 public enum OBRitColors {
+    // Atom Colors
     public static let common00 = color(AtomColors.Common.shared.S00)
     public static let common1000 = color(AtomColors.Common.shared.S1000)
     public static let commonBlack00_80 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_80)
@@ -93,6 +95,8 @@ public enum OBRitColors {
     public static let blue800 = color(AtomColors.Blue.shared.S800)
     public static let blue850 = color(AtomColors.Blue.shared.S850)
     public static let blue900 = color(AtomColors.Blue.shared.S900)
+
+    // Semantic Colors
     public static let backgroundDefaultDefault = color(SemanticColors.BackgroundDefault.shared.Default)
     public static let backgroundDefaultDefaultHover = color(SemanticColors.BackgroundDefault.shared.DefaultHover)
     public static let backgroundDefaultSecondary = color(SemanticColors.BackgroundDefault.shared.Secondary)
