@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeListTab: View {
     @StateObject private var viewModel: HomeListTabViewModel
+    @ObservedObject private var refreshCenter: AppRefreshCenter
 
     let onNavigate: (ItemRoute) -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
@@ -9,10 +10,12 @@ struct HomeListTab: View {
     @MainActor
     init(
         viewModelFactory: @MainActor @escaping () -> HomeListTabViewModel,
+        refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigate: @escaping (ItemRoute) -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.refreshCenter = refreshCenter
         self.onNavigate = onNavigate
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
@@ -24,6 +27,7 @@ struct HomeListTab: View {
     ) {
         self.init(
             viewModelFactory: AppDependencies.preview.makeHomeListTabViewModel,
+            refreshCenter: AppDependencies.preview.refreshCenter,
             onNavigate: onNavigate,
             onBottomSheetVisibleChange: onBottomSheetVisibleChange
         )
@@ -38,6 +42,7 @@ struct HomeListTab: View {
                 onProfile: {},
                 onRegisterDirect: { onNavigate(.itemRegistration) },
                 onSelectItem: { onNavigate(.detail(itemId: $0)) },
+                onRetry: viewModel.reload,
                 onOpenFilterSheet: viewModel.openFilterSheet,
                 onOpenSortSheet: viewModel.openSortSheet,
                 onDismissBottomSheet: viewModel.dismissBottomSheet,
@@ -57,6 +62,9 @@ struct HomeListTab: View {
         }
         .onChange(of: viewModel.state.isBottomSheetPresented) { _, isPresented in
             onBottomSheetVisibleChange(isPresented)
+        }
+        .onChange(of: refreshCenter.itemRefreshToken) { _, _ in
+            viewModel.reload()
         }
         .onDisappear {
             onBottomSheetVisibleChange(false)

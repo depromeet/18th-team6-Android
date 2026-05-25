@@ -5,20 +5,7 @@ struct HomeListTabContentView: View {
     let action: HomeListTabAction
 
     var body: some View {
-        switch state {
-        case .loading:
-            ProgressView()
-                .tint(OBRitColors.green300)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(OBRitColors.backgroundDefaultDefault)
-        case .loadFailed:
-            Text("소모품 목록을 불러오지 못했어요")
-                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(OBRitColors.backgroundDefaultDefault)
-        case let .success(viewData):
-            HomeListTabSuccessView(viewData: viewData, action: action)
-        }
+        HomeListTabShellView(state: state, action: action)
     }
 }
 
@@ -28,6 +15,7 @@ struct HomeListTabAction {
     let onProfile: () -> Void
     let onRegisterDirect: () -> Void
     let onSelectItem: (Int) -> Void
+    let onRetry: () -> Void
     let onOpenFilterSheet: () -> Void
     let onOpenSortSheet: () -> Void
     let onDismissBottomSheet: () -> Void
@@ -42,10 +30,10 @@ struct HomeListTabAction {
     let onFilterBarVisibleChange: (Bool) -> Void
 }
 
-private struct HomeListTabSuccessView: View {
+private struct HomeListTabShellView: View {
     @State private var isFabMenuPresented = false
 
-    let viewData: HomeListTabViewData
+    let state: HomeListTabState
     let action: HomeListTabAction
 
     var body: some View {
@@ -62,15 +50,20 @@ private struct HomeListTabSuccessView: View {
                         onNotificationClick: action.onNotification,
                         onProfileClick: action.onProfile
                     )
-                    if viewData.totalItemCount > 0 {
+
+                    if case let .success(viewData) = state,
+                       viewData.totalItemCount > 0 {
                         HomeListFilterSortBar(viewData: viewData, action: action)
                             .transition(.move(edge: .top).combined(with: .opacity))
                             .opacity(viewData.isFilterBarVisible ? 1 : 0)
                             .frame(height: viewData.isFilterBarVisible ? HomeListTabMetrics.filterBarHeight : 0)
                             .clipped()
                     }
-                    HomeListScrollableContent(viewData: viewData, action: action)
+
+                    content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .ignoresSafeArea(edges: .top)
 
                 VStack {
@@ -93,7 +86,8 @@ private struct HomeListTabSuccessView: View {
                     }
                 }
 
-                if let bottomSheet = viewData.bottomSheet {
+                if case let .success(viewData) = state,
+                   let bottomSheet = viewData.bottomSheet {
                     HomeListBottomSheetOverlay(
                         bottomSheet: bottomSheet,
                         viewData: viewData,
@@ -103,7 +97,58 @@ private struct HomeListTabSuccessView: View {
             }
             .background(OBRitColors.backgroundDefaultDefault)
         }
-        .animation(.easeOut(duration: 0.2), value: viewData.isFilterBarVisible)
+        .animation(.easeOut(duration: 0.2), value: filterBarAnimationValue)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch state {
+        case .loading:
+            HomeListDataStateView(
+                title: "소모품 목록을 불러오는 중이에요",
+                showsProgress: true
+            )
+        case .loadFailed:
+            HomeListDataStateView(
+                title: "소모품 목록을 불러오지 못했어요",
+                buttonTitle: "다시 시도",
+                action: action.onRetry
+            )
+        case let .success(viewData):
+            HomeListScrollableContent(viewData: viewData, action: action)
+        }
+    }
+
+    private var filterBarAnimationValue: Bool {
+        guard case let .success(viewData) = state else { return false }
+        return viewData.isFilterBarVisible
+    }
+}
+
+private struct HomeListDataStateView: View {
+    let title: String
+    var showsProgress = false
+    var buttonTitle: String?
+    var action: (() -> Void)?
+
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s5) {
+            if showsProgress {
+                ProgressView()
+                    .tint(OBRitColors.green300)
+                    .accessibilityLabel(title)
+            }
+
+            Text(title)
+                .multilineTextAlignment(.center)
+                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+
+            if let buttonTitle, let action {
+                OBRitFilledTextButton(text: buttonTitle, size: .middle, action: action)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.horizontal, OBRitSpacing.s5)
     }
 }
 

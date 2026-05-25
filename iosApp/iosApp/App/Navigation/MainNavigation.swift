@@ -45,6 +45,7 @@ struct MainNavigation: View {
         case .home:
             HomeView(
                 viewModelFactory: dependencies.makeHomeViewModel,
+                refreshCenter: dependencies.refreshCenter,
                 onNavigateItem: onNavigateItem,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
@@ -56,6 +57,7 @@ struct MainNavigation: View {
         case .homeListTab:
             HomeListTab(
                 viewModelFactory: dependencies.makeHomeListTabViewModel,
+                refreshCenter: dependencies.refreshCenter,
                 onNavigate: onNavigateItem,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
