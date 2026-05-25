@@ -2,14 +2,19 @@
 
 package com.obrit.feature.home.screen.homeSection
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,17 +23,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import com.obrit.android.core.designsystem.R
+import com.obrit.android.core.designsystem.component.bottomsheet.OBRitBottomSheet
 import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults
 import com.obrit.android.core.designsystem.component.button.OBRitLargeFilledButton
 import com.obrit.android.core.designsystem.component.card.OBRitCardLevel
 import com.obrit.android.core.designsystem.component.card.OBRitCardList
-import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdown
-import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdownMenu
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
@@ -36,9 +49,11 @@ import com.obrit.feature.home.viewmodel.Bucket
 import com.obrit.feature.home.viewmodel.BucketLevel
 import com.obrit.feature.home.viewmodel.BucketStatus
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
+import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import kotlin.math.roundToInt
 
 private const val LIST_PREVIEW_COUNT = 3
 
@@ -51,7 +66,7 @@ internal fun QuickItemSection(
     modifier: Modifier = Modifier,
 ) {
     val typography = LocalOBRitTypography.current
-    var expanded by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
     val sortedBuckets = remember(buckets, sortOrder) { sortItems(buckets, sortOrder) }
 
     Column(
@@ -61,12 +76,7 @@ internal fun QuickItemSection(
         Row(verticalAlignment = Alignment.CenterVertically) {
             SortDropdown(
                 sortOrder = sortOrder,
-                expanded = expanded,
-                onExpand = { expanded = !expanded },
-                onSelect = { order ->
-                    onSortOrderChange(order)
-                    expanded = false
-                },
+                onClick = { showSortSheet = true },
             )
 
             Text(
@@ -85,40 +95,136 @@ internal fun QuickItemSection(
             modifier = Modifier.fillMaxWidth(),
         )
     }
+
+    if (showSortSheet) {
+        SortBottomSheet(
+            sortOrder = sortOrder,
+            onSortOrderChange = {
+                onSortOrderChange(it)
+                showSortSheet = false
+            },
+            onDismiss = { showSortSheet = false },
+        )
+    }
 }
 
 @Composable
 private fun SortDropdown(
     sortOrder: ConsumableListSortOrder,
-    expanded: Boolean,
-    onExpand: () -> Unit,
-    onSelect: (ConsumableListSortOrder) -> Unit,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+) {
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    val context = LocalContext.current
+    val backgroundDrawable =
+        ContextCompat.getDrawable(context, R.drawable.ic_filter_chip_background)
+    Row(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(AtomRadius.Small.dp))
+                .drawBehind {
+                    backgroundDrawable?.let { drawable ->
+                        drawable.setBounds(0, 0, size.width.roundToInt(), size.height.roundToInt())
+                        drawIntoCanvas { drawable.draw(it.nativeCanvas) }
+                    }
+                }.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(horizontal = AtomSpacing.S3.dp, vertical = AtomSpacing.S2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
+    ) {
+        Text(
+            text = sortOrder.displayName,
+            style = typography.base.copy(fontWeight = FontWeight.SemiBold),
+            color = colors.common00,
+            maxLines = 1,
+        )
+
+        Icon(
+            painter = painterResource(id = R.drawable.ic_dropdown_chevron_down),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(AtomSpacing.S4.dp),
+        )
+    }
+}
+
+@Composable
+private fun SortBottomSheet(
+    sortOrder: ConsumableListSortOrder,
+    onSortOrderChange: (ConsumableListSortOrder) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        SheetContainer(onDismiss = onDismiss) {
+            SortBottomSheetContent(
+                sortOrder = sortOrder,
+                onSortOrderChange = onSortOrderChange,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SheetContainer(
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(SORT_SHEET_SCRIM_COLOR)
+                .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        OBRitBottomSheet(
+            modifier = Modifier.clickable(onClick = {}),
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun SortBottomSheetContent(
+    sortOrder: ConsumableListSortOrder,
+    onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val items = remember { ConsumableListSortOrder.entries.map { it.displayName } }
-    val selectedIndex = ConsumableListSortOrder.entries.indexOf(sortOrder)
-    val density = LocalDensity.current
-    val triggerHeightPx = remember(density) { with(density) { AtomSpacing.S14.dp.roundToPx() } }
-
-    Box(modifier = modifier.width(IntrinsicSize.Max)) {
-        OBRitDropdown(
-            value = sortOrder.displayName,
-            onClick = onExpand,
-            expanded = expanded,
-        )
-        if (expanded) {
-            Popup(
-                alignment = Alignment.TopStart,
-                offset = IntOffset(x = 0, y = triggerHeightPx),
-                onDismissRequest = onExpand,
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = AtomSpacing.S4.dp, horizontal = AtomSpacing.S5.dp),
+    ) {
+        ConsumableListSortOrder.entries.forEach { order ->
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = AtomSpacing.S4.dp)
+                        .clickable { onSortOrderChange(order) },
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                OBRitDropdownMenu(
-                    items = items,
-                    selectedIndex = selectedIndex,
-                    onItemClick = { index ->
-                        onSelect(ConsumableListSortOrder.entries[index])
-                    },
+                Text(
+                    text = order.displayName,
+                    style = typography.xl.copy(fontWeight = FontWeight.Bold),
+                    color = colors.common00,
+                    modifier = Modifier.weight(1f),
                 )
+                if (sortOrder == order) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_sort_selected),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(AtomSpacing.S6.dp),
+                    )
+                }
             }
         }
     }
@@ -183,6 +289,9 @@ private fun sortItems(
         ConsumableListSortOrder.OLDEST_REPLACEMENT -> buckets.sortedByDescending { it.daysInUse }
         ConsumableListSortOrder.ALPHABETICAL -> buckets.sortedBy { it.title }
     }
+
+@Suppress("MagicNumber")
+private val SORT_SHEET_SCRIM_COLOR = Color(0x99000000)
 
 @Suppress("MagicNumber")
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20, widthDp = 412)

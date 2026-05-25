@@ -2,7 +2,6 @@
 
 package com.obrit.feature.home.screen.homeSection
 
-import android.graphics.BlurMaskFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -21,9 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -33,18 +30,15 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -81,8 +75,6 @@ internal fun ConsumableOrbitSection(
     // 물리 상태 전체를 density와 iconCount 기준으로 관리한다.
     val physicsState = remember(density, iconCount) { GlassBallPhysicsState(density, iconCount) }
 
-    // Compose 재구성을 유발하는 상태. 물리 루프에서 매 프레임 업데이트한다.
-    val ballAngleState = remember { mutableFloatStateOf(0f) }
     val iconOffsets =
         remember(density, iconCount) {
             Array(iconCount) { i -> mutableStateOf(physicsState.initOffsets.getOrNull(i) ?: Offset.Zero) }
@@ -96,7 +88,7 @@ internal fun ConsumableOrbitSection(
                 // 프레임 간 경과 시간(초). 첫 프레임은 기본값 사용, 이후 실제 경과 시간을 사용한다.
                 val dt = if (lastTime == 0L) DEFAULT_DT else ((time - lastTime) / NANOS_PER_SECOND).coerceIn(0f, MAX_DT)
                 lastTime = time
-                stepPhysicsFrame(physicsState, dt, iconOffsets, ballAngleState)
+                stepPhysicsFrame(physicsState, dt, iconOffsets)
             }
         }
     }
@@ -109,11 +101,13 @@ internal fun ConsumableOrbitSection(
         GlassBallContent(
             icons = icons,
             state = physicsState,
-            normalRatio = normalRatio,
-            warningRatio = warningRatio,
-            ballAngle = ballAngleState.floatValue,
+            visualState =
+                GlassBallVisualState(
+                    normalRatio = normalRatio,
+                    warningRatio = warningRatio,
+                    tilt = tilt,
+                ),
             iconOffsets = iconOffsets,
-            tilt = tilt,
         )
     }
 }
@@ -147,7 +141,10 @@ private fun rememberGlassBallTilt(): Offset {
                         )
                 }
 
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+                override fun onAccuracyChanged(
+                    sensor: Sensor?,
+                    accuracy: Int,
+                ) = Unit
             }
 
         sensorManager.registerListener(listener, gravitySensor, SensorManager.SENSOR_DELAY_GAME)
@@ -162,11 +159,7 @@ private fun stepPhysicsFrame(
     state: GlassBallPhysicsState,
     dt: Float,
     iconOffsets: Array<MutableState<Offset>>,
-    ballAngleState: MutableFloatState,
 ) {
-    // --- 볼 회전 업데이트 ---
-    stepBallRotation(state, dt)
-
     // --- 아이콘 선형 충격량 반영 ---
     // 아이콘마다 다른 질량 계수(MassFactorCycle)를 적용해 같은 힘에도 다르게 반응하게 한다.
     // 이를 통해 아이콘들이 동일한 속도로 뭉쳐 움직이지 않고 자연스럽게 분산된다.
@@ -186,19 +179,6 @@ private fun stepPhysicsFrame(
     for (i in 0 until state.iconCount) {
         iconOffsets[i].value = Offset(state.posX[i], state.posY[i])
     }
-    ballAngleState.floatValue = state.ball[0]
-}
-
-/** 드래그에서 쌓인 각도 충격량을 각속도에 반영하고, 각속도로 볼 각도를 적분한다. */
-private fun stepBallRotation(
-    state: GlassBallPhysicsState,
-    dt: Float,
-) {
-    state.ball[1] += state.pendingAngImpulse[0]
-    state.pendingAngImpulse[0] = 0f
-    state.ball[0] += state.ball[1] * dt
-    // 각속도에 감쇠를 적용해 서서히 멈춘다.
-    state.ball[1] *= ANGULAR_DAMPING
 }
 
 /** 버퍼에 쌓인 선형 충격량을 각 아이콘의 속도에 반영한다. */
@@ -276,11 +256,8 @@ private fun applyIconRepulsion(state: GlassBallPhysicsState) {
 private fun GlassBallContent(
     icons: List<ConsumableIcon>,
     state: GlassBallPhysicsState,
-    normalRatio: Float,
-    warningRatio: Float,
-    ballAngle: Float,
+    visualState: GlassBallVisualState,
     iconOffsets: Array<MutableState<Offset>>,
-    tilt: Offset,
 ) {
     val density = LocalDensity.current
     // 드래그 시작점 기준 누적 이동거리 (iOS: DragGesture.Value.translation)
@@ -288,135 +265,104 @@ private fun GlassBallContent(
     val maxDragPx = with(density) { GlassBallSize.toPx() * MAX_DRAG_RATIO }
 
     // iOS: pitchDegrees = -translation.height * 0.032 - screenTilt.height * 2.6
-    val pitchDeg = -dragTrans.value.y * DRAG_ROT_SCALE - tilt.y * TILT_ROT_SCALE
+    val pitchDeg = -dragTrans.value.y * DRAG_ROT_SCALE - visualState.tilt.y * TILT_ROT_SCALE
 
     // iOS: yawDegrees = translation.width * 0.032 + screenTilt.width * 2.6
-    val yawDeg = dragTrans.value.x * DRAG_ROT_SCALE + tilt.x * TILT_ROT_SCALE
+    val yawDeg = dragTrans.value.x * DRAG_ROT_SCALE + visualState.tilt.x * TILT_ROT_SCALE
 
     // 외부 Box: 터치 영역 (클립 없이 전체 크기)
     Box(
         modifier =
             Modifier
                 .size(GlassBallSize)
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            state.prevDrag[0] = 0f
-                            state.prevDrag[1] = 0f
-                            dragTrans.value = Offset.Zero
-                        },
-                        onDragEnd = {
-                            state.pendingImpulse[0] += state.prevDrag[0] * LINEAR_IMPULSE_SCALE
-                            state.pendingImpulse[1] += state.prevDrag[1] * LINEAR_IMPULSE_SCALE
-                            dragTrans.value = Offset.Zero
-                        },
-                    ) { change, dragAmount ->
-                        change.consume()
-                        // 가속도 = 이번 프레임 델타 - 이전 프레임 델타 (속도 변화량)
-                        val accelX = dragAmount.x - state.prevDrag[0]
-                        val accelY = dragAmount.y - state.prevDrag[1]
-                        state.prevDrag[0] = dragAmount.x
-                        state.prevDrag[1] = dragAmount.y
-                        state.pendingAngImpulse[0] += dragAmount.x * ROTATION_SENSITIVITY
-                        state.pendingImpulse[0] += accelX * LINEAR_IMPULSE_SCALE
-                        state.pendingImpulse[1] += accelY * LINEAR_IMPULSE_SCALE
-
-                        // 누적 이동거리 갱신 (iOS: DragGesture.clamped(value.translation))
-                        val rawX = dragTrans.value.x + dragAmount.x
-                        val rawY = dragTrans.value.y + dragAmount.y
-                        val dist = hypot(rawX, rawY)
-                        val scale = if (dist > maxDragPx) maxDragPx / dist else 1f
-                        dragTrans.value = Offset(rawX * scale, rawY * scale)
-                    }
-                },
+                .glassBallDrag(state = state, dragTrans = dragTrans, maxDragPx = maxDragPx),
         contentAlignment = Alignment.Center,
     ) {
-        // 내부 Box: 3D 회전 + 원형 클립 적용 (iOS: .clipShape(Circle()).rotation3DEffect(…))
-        // clip은 graphicsLayer 안에서 지정해야 한다. Modifier.clip(CircleShape)은 내부적으로 별도의
-        // graphicsLayer를 생성하기 때문에, 그 레이어에 CompositingStrategy.Offscreen이 없으면
-        // BlendMode.Hardlight가 sphere가 아닌 화면 배경을 기준으로 합성되어 구체 색상이 사라진다.
-        Box(
-            modifier =
-                Modifier
-                    .size(GlassBallSize)
-                    .graphicsLayer {
-                        rotationX = pitchDeg
-                        rotationY = yawDeg
-                        cameraDistance = CAMERA_DISTANCE_SCALE * this.density
-                        compositingStrategy = CompositingStrategy.Offscreen
-                        clip = true
-                        shape = CircleShape
-                    },
-            contentAlignment = Alignment.Center,
-        ) {
-            // 상태 비율에 따라 색이 달라지는 구체 배경 (iOS: HomeOrbInternalShadow)
-            GlassBallInternalShadow(normalRatio = normalRatio, warningRatio = warningRatio)
-            // 유리 질감 텍스처 오버레이 (iOS: HomeOrbGlassTextureOverlay, .hardLight)
-            //GlassBallTextureOverlay()
-            GlassBallIconLayer(icons = icons, iconOffsets = iconOffsets)
-        }
+        GlassBallLayer(
+            visualState = visualState,
+            rotationState = GlassBallRotationState(pitchDeg = pitchDeg, yawDeg = yawDeg),
+            icons = icons,
+            iconOffsets = iconOffsets,
+        )
     }
 }
 
-/**
- * 유리 질감 텍스처를 HardLight 블렌드 모드로 합성한다 (iOS: HomeOrbGlassTextureOverlay).
- * textureCoverageMask: DstIn 레이어로 마스킹한 뒤 Hardlight로 합성.
- */
 @Composable
-private fun GlassBallTextureOverlay() {
+private fun GlassBallLayer(
+    visualState: GlassBallVisualState,
+    rotationState: GlassBallRotationState,
+    icons: List<ConsumableIcon>,
+    iconOffsets: Array<MutableState<Offset>>,
+) {
     Box(
         modifier =
             Modifier
                 .size(GlassBallSize)
                 .graphicsLayer {
-                    blendMode = BlendMode.Hardlight
+                    rotationX = rotationState.pitchDeg
+                    rotationY = rotationState.yawDeg
+                    cameraDistance = CAMERA_DISTANCE_SCALE * this.density
                     compositingStrategy = CompositingStrategy.Offscreen
+                    clip = true
+                    shape = CircleShape
                 },
+        contentAlignment = Alignment.Center,
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_glass_plus_lighter),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize(),
+        // clip은 graphicsLayer 안에서 지정해야 한다. Modifier.clip(CircleShape)은 내부적으로 별도의
+        // graphicsLayer를 생성하기 때문에, 그 레이어에 CompositingStrategy.Offscreen이 없으면
+        // sphere가 아닌 화면 배경을 기준으로 합성될 수 있다.
+        GlassBallInternalShadow(
+            normalRatio = visualState.normalRatio,
+            warningRatio = visualState.warningRatio,
         )
-        Canvas(
-            modifier =
-                Modifier
-                    .size(GlassBallSize)
-                    .graphicsLayer {
-                        blendMode = BlendMode.DstIn
-                        compositingStrategy = CompositingStrategy.Offscreen
-                    },
-        ) {
-            val diam = size.minDimension
-            val rimWidth = diam * TEXTURE_RIM_WIDTH_RATIO
-            val rimBlurPx = diam * TEXTURE_RIM_BLUR_RATIO
-
-            // 1. 수직 그래디언트 (iOS: textureMaskStops)
-            drawCircle(
-                brush = Brush.verticalGradient(
-                    0f to Color.White,
-                    0.38f to Color.White.copy(alpha = 0.56f),
-                    0.68f to Color.White.copy(alpha = 0.18f),
-                    1f to Color.White.copy(alpha = 0.06f),
-                ),
-            )
-
-            // 2. 블러 림 스트로크 (iOS: Circle().strokeBorder(.white).blur())
-            drawContext.canvas.drawCircle(
-                center = Offset(size.width / 2f, size.height / 2f),
-                radius = diam / 2f - rimWidth / 2f,
-                paint = Paint().apply {
-                    color = Color.White
-                    style = PaintingStyle.Stroke
-                    strokeWidth = rimWidth
-                    asFrameworkPaint().maskFilter =
-                        BlurMaskFilter(rimBlurPx, BlurMaskFilter.Blur.NORMAL)
-                },
-            )
-        }
+        GlassBallIconLayer(icons = icons, iconOffsets = iconOffsets)
     }
 }
+
+private data class GlassBallVisualState(
+    val normalRatio: Float,
+    val warningRatio: Float,
+    val tilt: Offset,
+)
+
+private data class GlassBallRotationState(
+    val pitchDeg: Float,
+    val yawDeg: Float,
+)
+
+private fun Modifier.glassBallDrag(
+    state: GlassBallPhysicsState,
+    dragTrans: MutableState<Offset>,
+    maxDragPx: Float,
+): Modifier =
+    pointerInput(state, maxDragPx) {
+        detectDragGestures(
+            onDragStart = {
+                state.prevDrag[0] = 0f
+                state.prevDrag[1] = 0f
+                dragTrans.value = Offset.Zero
+            },
+            onDragEnd = {
+                state.pendingImpulse[0] += state.prevDrag[0] * LINEAR_IMPULSE_SCALE
+                state.pendingImpulse[1] += state.prevDrag[1] * LINEAR_IMPULSE_SCALE
+                dragTrans.value = Offset.Zero
+            },
+        ) { change, dragAmount ->
+            change.consume()
+            val accelX = dragAmount.x - state.prevDrag[0]
+            val accelY = dragAmount.y - state.prevDrag[1]
+            state.prevDrag[0] = dragAmount.x
+            state.prevDrag[1] = dragAmount.y
+            state.pendingImpulse[0] += accelX * LINEAR_IMPULSE_SCALE
+            state.pendingImpulse[1] += accelY * LINEAR_IMPULSE_SCALE
+
+            val rawX = dragTrans.value.x + dragAmount.x
+            val rawY = dragTrans.value.y + dragAmount.y
+            val dist = hypot(rawX, rawY)
+            val scale = if (dist > maxDragPx) maxDragPx / dist else 1f
+            dragTrans.value = Offset(rawX * scale, rawY * scale)
+        }
+    }
 
 /** 물리 시뮬레이션 결과로 계산된 offset에 따라 각 아이콘을 볼 내부에 배치한다. */
 @Composable
@@ -471,116 +417,138 @@ private fun BoxScope.PhysicsIcon(
  * 중심부 어두운 그림자와 우상단 하이라이트로 3D 구체 느낌을 준다.
  */
 @Composable
-private fun GlassBallInternalShadow(normalRatio: Float, warningRatio: Float) {
+private fun GlassBallInternalShadow(
+    normalRatio: Float,
+    warningRatio: Float,
+) {
     val sphereBrush = remember(normalRatio, warningRatio) { buildSphereBrush(normalRatio, warningRatio) }
     Canvas(
-        modifier = Modifier
-            .size(GlassBallInternalShadowSize)
-            .alpha(INTERNAL_SHADOW_OPACITY),
+        modifier =
+            Modifier
+                .size(GlassBallInternalShadowSize)
+                .alpha(INTERNAL_SHADOW_OPACITY),
     ) {
         val diam = size.minDimension
 
         // 1. 수평 그래디언트 배경 구체 (양호=초록/왼쪽, 경고=빨강/오른쪽)
         drawCircle(brush = sphereBrush)
+        drawInnerDarkShadow(diam)
+        drawInnerLightHighlight(diam)
+        drawTrailingHighlight(diam)
+        drawTopHighlight(diam)
+        drawBottomShadow(diam)
+    }
+}
 
-        // 2. 중앙에서 퍼지는 어두운 내부 그림자 → 구체의 깊이감 표현
-        // flat stop까지 완전 불투명, 이후 blur 영역에서 점점 투명해진다 (iOS: .fill + .blur 근사)
-        val darkCircleR = diam * INNER_DARK_DIAMETER_RATIO / 2f
-        val darkR = darkCircleR + diam * INNER_DARK_BLUR_RATIO
-        val darkFlatStop = darkCircleR / darkR
-        drawCircle(
-            brush = Brush.radialGradient(
+private fun DrawScope.drawInnerDarkShadow(diameter: Float) {
+    val darkCircleRadius = diameter * INNER_DARK_DIAMETER_RATIO / 2f
+    val darkRadius = darkCircleRadius + diameter * INNER_DARK_BLUR_RATIO
+    val darkFlatStop = darkCircleRadius / darkRadius
+    drawCircle(
+        brush =
+            Brush.radialGradient(
                 0f to InnerShadowCoreColor,
                 darkFlatStop to InnerShadowCoreColor,
                 1f to Color.Transparent,
-                radius = darkR,
+                radius = darkRadius,
             ),
-            radius = darkR,
-        )
+        radius = darkRadius,
+    )
+}
 
-        // 3. 우상단 → 좌하단 방향 흰색 내부 하이라이트 → 광원을 받는 유리 질감 표현
-        val lightR = diam * INNER_LIGHT_DIAMETER_RATIO / 2f + diam * INNER_LIGHT_BLUR_RATIO
-        drawCircle(
-            brush = Brush.linearGradient(
+private fun DrawScope.drawInnerLightHighlight(diameter: Float) {
+    val lightRadius = diameter * INNER_LIGHT_DIAMETER_RATIO / 2f + diameter * INNER_LIGHT_BLUR_RATIO
+    drawCircle(
+        brush =
+            Brush.linearGradient(
                 colors = listOf(Color.White, Color.Transparent),
                 start = Offset(size.width * INNER_LIGHT_START_X, size.height * INNER_LIGHT_START_Y),
                 end = Offset(size.width * INNER_LIGHT_END_X, size.height * INNER_LIGHT_END_Y),
             ),
-            radius = lightR,
-        )
+        radius = lightRadius,
+    )
+}
 
-        // 4. 우측 세로 하이라이트 → 글래스 구체의 오른쪽 유리 반사광 (iOS: trailingHighlight, .screen)
-        val trailW = diam * TRAILING_HIGHLIGHT_WIDTH_RATIO
-        val trailH = diam * TRAILING_HIGHLIGHT_HEIGHT_RATIO
-        val trailCX = diam * TRAILING_HIGHLIGHT_CENTER_X_RATIO
-        val trailCY = diam * TRAILING_HIGHLIGHT_CENTER_Y_RATIO
-        drawOval(
-            brush = Brush.radialGradient(
+private fun DrawScope.drawTrailingHighlight(diameter: Float) {
+    val highlightWidth = diameter * TRAILING_HIGHLIGHT_WIDTH_RATIO
+    val highlightHeight = diameter * TRAILING_HIGHLIGHT_HEIGHT_RATIO
+    val centerX = diameter * TRAILING_HIGHLIGHT_CENTER_X_RATIO
+    val centerY = diameter * TRAILING_HIGHLIGHT_CENTER_Y_RATIO
+    drawOval(
+        brush =
+            Brush.radialGradient(
                 colors = listOf(Color.White.copy(alpha = TRAILING_HIGHLIGHT_OPACITY), Color.Transparent),
-                center = Offset(trailCX, trailCY),
-                radius = maxOf(trailW, trailH) / 2f + diam * TRAILING_HIGHLIGHT_BLUR_RATIO,
+                center = Offset(centerX, centerY),
+                radius = maxOf(highlightWidth, highlightHeight) / 2f + diameter * TRAILING_HIGHLIGHT_BLUR_RATIO,
             ),
-            topLeft = Offset(trailCX - trailW / 2f, trailCY - trailH / 2f),
-            size = Size(trailW, trailH),
-        )
+        topLeft = Offset(centerX - highlightWidth / 2f, centerY - highlightHeight / 2f),
+        size = Size(highlightWidth, highlightHeight),
+    )
+}
 
-        // 5. 상단 가로 하이라이트 → 글래스 구체의 윗부분 유리 반사광 (iOS: topHighlight, .screen)
-        val topW = diam * TOP_HIGHLIGHT_WIDTH_RATIO
-        val topH = diam * TOP_HIGHLIGHT_HEIGHT_RATIO
-        val topCX = diam * TOP_HIGHLIGHT_CENTER_X_RATIO
-        val topCY = diam * TOP_HIGHLIGHT_CENTER_Y_RATIO
-        drawOval(
-            brush = Brush.radialGradient(
+private fun DrawScope.drawTopHighlight(diameter: Float) {
+    val highlightWidth = diameter * TOP_HIGHLIGHT_WIDTH_RATIO
+    val highlightHeight = diameter * TOP_HIGHLIGHT_HEIGHT_RATIO
+    val centerX = diameter * TOP_HIGHLIGHT_CENTER_X_RATIO
+    val centerY = diameter * TOP_HIGHLIGHT_CENTER_Y_RATIO
+    drawOval(
+        brush =
+            Brush.radialGradient(
                 colors = listOf(Color.White.copy(alpha = TOP_HIGHLIGHT_OPACITY), Color.Transparent),
-                center = Offset(topCX, topCY),
-                radius = maxOf(topW, topH) / 2f + diam * TOP_HIGHLIGHT_BLUR_RATIO,
+                center = Offset(centerX, centerY),
+                radius = maxOf(highlightWidth, highlightHeight) / 2f + diameter * TOP_HIGHLIGHT_BLUR_RATIO,
             ),
-            topLeft = Offset(topCX - topW / 2f, topCY - topH / 2f),
-            size = Size(topW, topH),
-        )
+        topLeft = Offset(centerX - highlightWidth / 2f, centerY - highlightHeight / 2f),
+        size = Size(highlightWidth, highlightHeight),
+    )
+}
 
-        // 6. 하단 타원형 어두운 그림자 → 볼 아래쪽이 굴러가는 형태의 입체감 표현
-        val bsDiam = diam * BOTTOM_SHADOW_WIDTH_RATIO
-        val bsHeight = diam * BOTTOM_SHADOW_HEIGHT_RATIO
-        val bsCenterX = size.width * BOTTOM_SHADOW_CENTER_X
-        val bsCenterY = size.height + bsHeight * BOTTOM_SHADOW_OFFSET_Y_RATIO
-        drawOval(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    Color.Black.copy(alpha = BOTTOM_SHADOW_PEAK_ALPHA),
-                    Color.Transparent,
-                ),
-                center = Offset(bsCenterX, bsCenterY),
-                radius = bsDiam * BOTTOM_SHADOW_BLUR_RATIO + bsDiam / 2f,
+private fun DrawScope.drawBottomShadow(diameter: Float) {
+    val shadowDiameter = diameter * BOTTOM_SHADOW_WIDTH_RATIO
+    val shadowHeight = diameter * BOTTOM_SHADOW_HEIGHT_RATIO
+    val centerX = size.width * BOTTOM_SHADOW_CENTER_X
+    val centerY = size.height + shadowHeight * BOTTOM_SHADOW_OFFSET_Y_RATIO
+    drawOval(
+        brush =
+            Brush.radialGradient(
+                colors = listOf(Color.Black.copy(alpha = BOTTOM_SHADOW_PEAK_ALPHA), Color.Transparent),
+                center = Offset(centerX, centerY),
+                radius = shadowDiameter * BOTTOM_SHADOW_BLUR_RATIO + shadowDiameter / 2f,
             ),
-            topLeft = Offset(bsCenterX - bsDiam / 2f, bsCenterY - bsHeight / 2f),
-            size = Size(bsDiam, bsHeight),
-        )
-    }
+        topLeft = Offset(centerX - shadowDiameter / 2f, centerY - shadowHeight / 2f),
+        size = Size(shadowDiameter, shadowHeight),
+    )
 }
 
 /** normalRatio/warningRatio 비율에 따라 좌(양호=초록) → 우(경고=빨강) 수평 그래디언트를 만든다. */
-private fun buildSphereBrush(normalRatio: Float, warningRatio: Float): Brush {
+private fun buildSphereBrush(
+    normalRatio: Float,
+    warningRatio: Float,
+): Brush {
     val total = maxOf(normalRatio + warningRatio, MIN_RATIO_TOTAL)
     val positiveShare = (normalRatio / total).coerceIn(0f, 1f)
     val warningShare = 1f - positiveShare
-
-    if (warningShare <= 0f) return SolidColor(GlassBallPositiveColor)
-    if (positiveShare <= 0f) return SolidColor(GlassBallWarningColor)
-
-    val transition = minOf(GRADIENT_TRANSITION_WIDTH, positiveShare / 2f, warningShare / 2f)
-
-    return Brush.horizontalGradient(
-        0f to GlassBallPositiveColor,
-        maxOf(0f, positiveShare - transition) to GlassBallPositiveColor,
-        minOf(1f, positiveShare + transition) to GlassBallWarningColor,
-        1f to GlassBallWarningColor,
-    )
+    return when {
+        warningShare <= 0f -> SolidColor(GlassBallPositiveColor)
+        positiveShare <= 0f -> SolidColor(GlassBallWarningColor)
+        else -> {
+            val transition = minOf(GRADIENT_TRANSITION_WIDTH, positiveShare / 2f, warningShare / 2f)
+            Brush.horizontalGradient(
+                0f to GlassBallPositiveColor,
+                maxOf(0f, positiveShare - transition) to GlassBallPositiveColor,
+                minOf(1f, positiveShare + transition) to GlassBallWarningColor,
+                1f to GlassBallWarningColor,
+            )
+        }
+    }
 }
 
 /** 상태 비율에 따라 경고/양호 색상의 스윕 그래디언트로 링을 렌더링한다. */
 @Composable
-private fun GlassBallStatusRing(normalRatio: Float, warningRatio: Float) {
+private fun GlassBallStatusRing(
+    normalRatio: Float,
+    warningRatio: Float,
+) {
     val ringBrush = remember(normalRatio, warningRatio) { buildRingBrush(normalRatio, warningRatio) }
     Canvas(modifier = Modifier.size(GlassBallOuterDiameter)) {
         val strokeWidth = RingLineWidth.toPx()
@@ -600,11 +568,12 @@ private fun GlassBallGroundShadow() {
         val shadowRadius = diam * GROUND_SHADOW_DIAMETER_RATIO / 2f + diam * GROUND_SHADOW_BLUR_RATIO
         val shadowCenter = Offset(diam * GROUND_SHADOW_CENTER_X_RATIO, diam * GROUND_SHADOW_CENTER_Y_RATIO)
         drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(GroundShadowColor, Color.Transparent),
-                center = shadowCenter,
-                radius = shadowRadius,
-            ),
+            brush =
+                Brush.radialGradient(
+                    colors = listOf(GroundShadowColor, Color.Transparent),
+                    center = shadowCenter,
+                    radius = shadowRadius,
+                ),
             center = shadowCenter,
             radius = shadowRadius,
         )
@@ -612,26 +581,29 @@ private fun GlassBallGroundShadow() {
 }
 
 /** normalRatio/warningRatio 비율에 맞춰 경고(빨강)와 양호(초록) 영역이 전환되는 스윕 그래디언트를 만든다. */
-private fun buildRingBrush(normalRatio: Float, warningRatio: Float): Brush {
+private fun buildRingBrush(
+    normalRatio: Float,
+    warningRatio: Float,
+): Brush {
     val total = maxOf(normalRatio + warningRatio, MIN_RATIO_TOTAL)
     val positiveShare = (normalRatio / total).coerceIn(0f, 1f)
     val warningShare = 1f - positiveShare
-
-    if (warningShare <= 0f) return SolidColor(GlassBallPositiveColor)
-    if (positiveShare <= 0f) return SolidColor(GlassBallWarningColor)
-
-    val transitionArc = minOf(STATUS_RING_TRANSITION_ARC, warningShare / 2f, positiveShare / 2f)
-    val warningArcHalf = warningShare / 2f
-
-    // 경고 영역은 0°(3시) 기준으로 대칭 배치, 양호 영역이 나머지를 채운다.
-    return Brush.sweepGradient(
-        0f to GlassBallWarningColor,
-        (warningArcHalf - transitionArc) to GlassBallWarningColor,
-        (warningArcHalf + transitionArc) to GlassBallPositiveColor,
-        (1f - warningArcHalf - transitionArc) to GlassBallPositiveColor,
-        (1f - warningArcHalf + transitionArc) to GlassBallWarningColor,
-        1f to GlassBallWarningColor,
-    )
+    return when {
+        warningShare <= 0f -> SolidColor(GlassBallPositiveColor)
+        positiveShare <= 0f -> SolidColor(GlassBallWarningColor)
+        else -> {
+            val transitionArc = minOf(STATUS_RING_TRANSITION_ARC, warningShare / 2f, positiveShare / 2f)
+            val warningArcHalf = warningShare / 2f
+            Brush.sweepGradient(
+                0f to GlassBallWarningColor,
+                (warningArcHalf - transitionArc) to GlassBallWarningColor,
+                (warningArcHalf + transitionArc) to GlassBallPositiveColor,
+                (1f - warningArcHalf - transitionArc) to GlassBallPositiveColor,
+                (1f - warningArcHalf + transitionArc) to GlassBallWarningColor,
+                1f to GlassBallWarningColor,
+            )
+        }
+    }
 }
 
 /** 아이콘들의 초기 위치를 원 위에 균등하게 배치한다. */
@@ -669,12 +641,6 @@ private class GlassBallPhysicsState(
     // 아이콘들의 초기 위치 (원 위에 균등 배치). Compose state 초기화에도 사용된다.
     val initOffsets = buildInitialOffsets(iconCount, with(density) { 22.dp.toPx() })
 
-    // ball[0] = 현재 회전 각도(도), ball[1] = 각속도(도/s)
-    val ball = floatArrayOf(0f, 0f)
-
-    // 다음 프레임에 반영할 각도 충격량. 드래그 스레드 → 물리 루프 전달용 버퍼.
-    val pendingAngImpulse = floatArrayOf(0f)
-
     // 다음 프레임에 반영할 선형 충격량 (x, y). 드래그 스레드 → 물리 루프 전달용 버퍼.
     val pendingImpulse = floatArrayOf(0f, 0f)
 
@@ -709,7 +675,8 @@ private val GlassBallPositiveColor = Color(SemanticColors.Background.Positive.De
 private val GlassBallWarningColor = Color(SemanticColors.Background.Warning.Default)
 
 // 그라운드 섀도 중심/크기 비율 (iOS: HomeOrbGlassMetrics)
-private val GroundShadowColor = Color(0x661C1C21)
+private const val GROUND_SHADOW_COLOR_HEX = 0x661C1C21
+private val GroundShadowColor = Color(GROUND_SHADOW_COLOR_HEX)
 private const val GROUND_SHADOW_DIAMETER_RATIO = 0.7112f
 private const val GROUND_SHADOW_CENTER_X_RATIO = 0.4978f
 private const val GROUND_SHADOW_CENTER_Y_RATIO = 0.8756f
@@ -725,40 +692,41 @@ private const val INTERNAL_SHADOW_OPACITY = 0.62f
 private const val GRADIENT_TRANSITION_WIDTH = 0.12f
 
 // 내부 어두운 그림자 비율 (iOS: HomeOrbGlassMetrics inner dark circle)
-private val InnerShadowCoreColor = Color(0xFF1C1C21)
-private const val INNER_DARK_DIAMETER_RATIO = 0.804f   // 159.289 / 198
-private const val INNER_DARK_BLUR_RATIO = 0.201f        // 39.822 / 198
+private const val INNER_SHADOW_CORE_COLOR_HEX = 0xFF1C1C21
+private val InnerShadowCoreColor = Color(INNER_SHADOW_CORE_COLOR_HEX)
+private const val INNER_DARK_DIAMETER_RATIO = 0.804f // 159.289 / 198
+private const val INNER_DARK_BLUR_RATIO = 0.201f // 39.822 / 198
 
 // 내부 밝은 하이라이트 비율 (iOS: HomeOrbGlassMetrics inner light circle)
-private const val INNER_LIGHT_DIAMETER_RATIO = 0.854f  // 169.244 / 198
-private const val INNER_LIGHT_BLUR_RATIO = 0.060f      // 11.947 / 198
-private const val INNER_LIGHT_START_X = 1f             // UnitPoint(x:1, y:0.13)
+private const val INNER_LIGHT_DIAMETER_RATIO = 0.854f // 169.244 / 198
+private const val INNER_LIGHT_BLUR_RATIO = 0.060f // 11.947 / 198
+private const val INNER_LIGHT_START_X = 1f // UnitPoint(x:1, y:0.13)
 private const val INNER_LIGHT_START_Y = 0.13f
-private const val INNER_LIGHT_END_X = 0.22f            // UnitPoint(x:0.22, y:1)
+private const val INNER_LIGHT_END_X = 0.22f // UnitPoint(x:0.22, y:1)
 private const val INNER_LIGHT_END_Y = 1f
 
 // 우측 세로 하이라이트 비율 (iOS: HomeOrbGlassMetrics trailingHighlight)
 private const val TRAILING_HIGHLIGHT_OPACITY = 0.30f
-private const val TRAILING_HIGHLIGHT_WIDTH_RATIO = 70f / 198f   // 0.354
+private const val TRAILING_HIGHLIGHT_WIDTH_RATIO = 70f / 198f // 0.354
 private const val TRAILING_HIGHLIGHT_HEIGHT_RATIO = 162f / 198f // 0.818
 private const val TRAILING_HIGHLIGHT_CENTER_X_RATIO = 181f / 198f // 198-35+18=181
 private const val TRAILING_HIGHLIGHT_CENTER_Y_RATIO = 107f / 198f // 99+8=107
-private const val TRAILING_HIGHLIGHT_BLUR_RATIO = 18f / 198f    // 0.091
+private const val TRAILING_HIGHLIGHT_BLUR_RATIO = 18f / 198f // 0.091
 
 // 상단 가로 하이라이트 비율 (iOS: HomeOrbGlassMetrics topHighlight)
 private const val TOP_HIGHLIGHT_OPACITY = 0.18f
-private const val TOP_HIGHLIGHT_WIDTH_RATIO = 104f / 198f  // 0.525
-private const val TOP_HIGHLIGHT_HEIGHT_RATIO = 54f / 198f  // 0.273
+private const val TOP_HIGHLIGHT_WIDTH_RATIO = 104f / 198f // 0.525
+private const val TOP_HIGHLIGHT_HEIGHT_RATIO = 54f / 198f // 0.273
 private const val TOP_HIGHLIGHT_CENTER_X_RATIO = 0.5f
 private const val TOP_HIGHLIGHT_CENTER_Y_RATIO = 39f / 198f // 27+12=39
-private const val TOP_HIGHLIGHT_BLUR_RATIO = 16f / 198f    // 0.081
+private const val TOP_HIGHLIGHT_BLUR_RATIO = 16f / 198f // 0.081
 
 // 하단 타원형 그림자 비율 (iOS: HomeOrbGlassMetrics bottomShadow*)
-private const val BOTTOM_SHADOW_WIDTH_RATIO = 0.758f   // 150 / 198
-private const val BOTTOM_SHADOW_HEIGHT_RATIO = 0.434f  // 86 / 198
+private const val BOTTOM_SHADOW_WIDTH_RATIO = 0.758f // 150 / 198
+private const val BOTTOM_SHADOW_HEIGHT_RATIO = 0.434f // 86 / 198
 private const val BOTTOM_SHADOW_CENTER_X = 0.46f
 private const val BOTTOM_SHADOW_OFFSET_Y_RATIO = -0.091f // -18 / 198
-private const val BOTTOM_SHADOW_BLUR_RATIO = 0.071f    // 14 / 198
+private const val BOTTOM_SHADOW_BLUR_RATIO = 0.071f // 14 / 198
 private const val BOTTOM_SHADOW_PEAK_ALPHA = 0.58f
 
 // 볼 이미지 중 아이콘이 실제로 존재하는 내부 영역 비율 (이미지 테두리 공간 제외)
@@ -773,14 +741,8 @@ private const val REPULSION_MIN_DIST_DP = 48f
 // 반발력 세기. 클수록 아이콘이 더 강하게 튕겨나간다.
 private const val REPULSION_STRENGTH = 0.3f
 
-// 수평 드래그 → 볼 회전 변환 비율
-private const val ROTATION_SENSITIVITY = 0.3f
-
 // 드래그 가속도 → 아이콘 속도 변환 비율
 private const val LINEAR_IMPULSE_SCALE = 5f
-
-// 볼 회전 감쇠 계수. 매 프레임 각속도에 곱해 마찰로 멈추게 한다. (0~1, 1에 가까울수록 느리게 멈춤)
-private const val ANGULAR_DAMPING = 0.90f
 
 // 아이콘 선형 감쇠 계수. 매 프레임 속도에 곱해 마찰로 멈추게 한다. (0~1, 1에 가까울수록 느리게 멈춤)
 private const val LINEAR_DAMPING = 0.97f
@@ -818,12 +780,6 @@ private const val MAX_DRAG_RATIO = 0.46f
 
 // 3D 원근 카메라 거리 배율. density를 곱해 px 단위로 사용 (iOS: perspective = 0.55 근사)
 private const val CAMERA_DISTANCE_SCALE = 12f
-
-// 텍스처 마스크 림 스트로크 폭 비율 (iOS: HomeOrbGlassMetrics.textureRimWidthRatio = 0.11)
-private const val TEXTURE_RIM_WIDTH_RATIO = 0.11f
-
-// 텍스처 마스크 림 블러 반경 비율 (iOS: HomeOrbGlassMetrics.textureRimBlurRatio = 0.025)
-private const val TEXTURE_RIM_BLUR_RATIO = 0.025f
 
 // 아이콘에 순환 적용할 고정 기울기(도). 아이콘 수에 관계없이 인덱스 % 4로 적용된다.
 @Suppress("MagicNumber")
