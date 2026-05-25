@@ -102,8 +102,8 @@ private fun rememberSheetDragState(onDismissRequest: () -> Unit): AnchoredDragga
 
 @Composable
 private fun CategorySheetScrim(
-    modifier: Modifier,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit,        
+    modifier: Modifier = Modifier, 
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -142,8 +142,7 @@ private fun CategorySheetContainer(
                     state = state,
                     orientation = Orientation.Vertical,
                     flingBehavior = flingBehavior,
-                )
-                .onSizeChanged { size ->
+                ).onSizeChanged { size ->
                     val sheetHeightPx = size.height.toFloat()
                     state.updateAnchors(
                         DraggableAnchors {
@@ -151,8 +150,7 @@ private fun CategorySheetContainer(
                             SheetDragValue.Hidden at sheetHeightPx
                         },
                     )
-                }
-                .clickable(
+                }.clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = {},
@@ -164,6 +162,7 @@ private fun CategorySheetContainer(
 internal enum class SheetDragValue { Expanded, Hidden }
 
 @Composable
+@Suppress("LongMethod")
 private fun CategorySelectionBottomSheetContent(
     initialSelected: String,
     onConfirm: (String) -> Unit,
@@ -177,7 +176,11 @@ private fun CategorySelectionBottomSheetContent(
     val suggestions = rememberCategorySuggestions(query, confirmedQuery)
     val isEmptyResult = confirmedQuery.isNotBlank() && displayList.isEmpty()
     var searchFieldBottomPx by remember { mutableIntStateOf(0) }
-    val commitSearch: (String) -> Unit = { v -> query = v; confirmedQuery = v; keyboard?.hide() }
+    val commitSearch: (String) -> Unit = { v ->
+        query = v
+        confirmedQuery = v
+        keyboard?.hide()
+    }
     OBRitBottomSheet(modifier = Modifier.fillMaxHeight()) {
         CategorySheetBody(
             state =
@@ -321,4 +324,3 @@ private val CATEGORY_SHEET_TOP_GAP_FROM_STATUS_BAR = 33.dp
 private val CATEGORY_SHEET_SCRIM_COLOR = Color.Black.copy(alpha = SCRIM_ALPHA)
 private val CATEGORY_SHEET_SECTION_GAP = AtomSpacing.S8.dp
 private val CATEGORY_SHEET_TITLE_GAP = AtomSpacing.S3.dp
-

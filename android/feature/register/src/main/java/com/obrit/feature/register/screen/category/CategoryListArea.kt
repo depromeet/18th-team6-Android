@@ -90,7 +90,11 @@ private fun CategoryList(
 // LazyColumn이 스크롤 가능한 동안엔 fling을 전부 소비해 sheet의 nestedScroll로 전파하지 않음.
 private fun listFlingGuardConnection(listState: LazyListState): NestedScrollConnection =
     object : NestedScrollConnection {
-        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset = Offset.Zero
+        override fun onPreScroll(
+            available: Offset,
+            source: NestedScrollSource,
+        ): Offset = Offset.Zero
+
         override suspend fun onPreFling(available: Velocity): Velocity =
             if (listState.canScrollForward || listState.canScrollBackward) available else Velocity.Zero
     }

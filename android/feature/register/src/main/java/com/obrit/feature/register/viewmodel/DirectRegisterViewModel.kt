@@ -4,8 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
-class DirectRegisterViewModel :
-    BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
+class DirectRegisterViewModel : BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
     override val container =
         container<DirectRegisterUiState, DirectRegisterSideEffect>(
             DirectRegisterUiState(),

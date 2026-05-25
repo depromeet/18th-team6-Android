@@ -84,5 +84,6 @@ internal fun CategoryConfirmButton(
 
 private const val CATEGORY_SHEET_CTA_LABEL = "소모품 종류 선택하기"
 private val CATEGORY_CTA_ICON_SIZE = AtomSpacing.S6.dp
+
 // CTA 아래 ~ 시트 바닥 총 40dp. OBRitBottomSheet 자체가 pb=20을 가지므로 여기서 20dp만 추가.
 private val CATEGORY_CTA_BOTTOM_PADDING = AtomSpacing.S5.dp

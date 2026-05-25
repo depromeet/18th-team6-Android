@@ -17,6 +17,7 @@ import com.obrit.feature.register.screen.manual.PendingCategory
 import com.obrit.obrit.navigation.route.RegisterRoute
 
 @Composable
+@Suppress("LongMethod")
 fun RegisterNavigation(
     onExit: () -> Unit,
     modifier: Modifier = Modifier,

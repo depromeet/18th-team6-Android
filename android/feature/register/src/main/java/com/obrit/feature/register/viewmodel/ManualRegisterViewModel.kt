@@ -4,8 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
-class ManualRegisterViewModel :
-    BaseContainerHost<ManualRegisterUiState, ManualRegisterSideEffect>() {
+class ManualRegisterViewModel : BaseContainerHost<ManualRegisterUiState, ManualRegisterSideEffect>() {
     override val container =
         container<ManualRegisterUiState, ManualRegisterSideEffect>(
             ManualRegisterUiState(),
