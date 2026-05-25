@@ -4,6 +4,8 @@ import Foundation
 final class ItemRegistrationViewModel: ObservableObject {
     @Published private(set) var state: ItemRegistrationViewState
 
+    private let catalogRepository: ItemRegistrationCatalogRepository?
+
     private var data: ItemRegistrationViewData {
         didSet {
             guard data != oldValue else { return }
@@ -24,8 +26,37 @@ final class ItemRegistrationViewModel: ObservableObject {
             bottomSheet: nil,
             selectedKindCandidate: nil
         )
+        self.catalogRepository = nil
         self.data = initialData
         self.state = .success(initialData)
+
+        #if DEBUG
+            applyDebugInitialState()
+        #endif
+    }
+
+    init(
+        catalogRepository: ItemRegistrationCatalogRepository,
+        fallbackItemKinds: [ItemKind] = ItemRegistrationSampleData.itemKinds,
+        fallbackImageOptions: [ItemImageOption] = ItemRegistrationSampleData.imageOptions,
+        automaticallyLoads: Bool = true
+    ) {
+        let initialData = ItemRegistrationViewData(
+            mode: .form,
+            draft: Self.initialDraft(imageOptions: fallbackImageOptions),
+            kindSearchQuery: "",
+            itemKinds: fallbackItemKinds,
+            imageOptions: fallbackImageOptions,
+            bottomSheet: nil,
+            selectedKindCandidate: nil
+        )
+        self.catalogRepository = catalogRepository
+        self.data = initialData
+        self.state = automaticallyLoads ? .loading : .success(initialData)
+
+        if automaticallyLoads {
+            load()
+        }
 
         #if DEBUG
             applyDebugInitialState()
@@ -76,6 +107,21 @@ final class ItemRegistrationViewModel: ObservableObject {
             }
         }
     #endif
+
+    func load() {
+        guard let catalogRepository else {
+            state = .success(data)
+            return
+        }
+
+        Task {
+            await loadCatalog(using: catalogRepository, showLoading: true)
+        }
+    }
+
+    func retry() {
+        load()
+    }
 
     func updateItemName(_ itemName: String) {
         let clippedName = String(itemName.prefix(ItemRegistrationConfig.itemNameMaxLength))
@@ -200,5 +246,40 @@ final class ItemRegistrationViewModel: ObservableObject {
         var nextData = data
         transform(&nextData)
         data = nextData
+    }
+
+    private func loadCatalog(
+        using repository: ItemRegistrationCatalogRepository,
+        showLoading: Bool
+    ) async {
+        if showLoading {
+            state = .loading
+        }
+
+        do {
+            let catalog = try await repository.catalog()
+            update { data in
+                data.itemKinds = catalog.itemKinds
+                data.draft.selectedKind = nil
+                data.draft.selectedImageOption = catalog.imageOptions.first
+                data.kindSearchQuery = ""
+                data.imageOptions = catalog.imageOptions
+                data.bottomSheet = nil
+                data.selectedKindCandidate = nil
+            }
+        } catch {
+            state = .loadFailed(message: error.itemRegistrationMessage)
+        }
+    }
+}
+
+private extension Error {
+    var itemRegistrationMessage: String {
+        if let localizedError = self as? LocalizedError,
+           let description = localizedError.errorDescription {
+            return description
+        }
+
+        return "소모품 등록 정보를 불러오지 못했어요."
     }
 }

@@ -85,6 +85,21 @@ struct HomeListTabViewData: Equatable {
     let isFilterBarVisible: Bool
 }
 
+struct HomeListTabPageRequest: Equatable {
+    let filters: HomeListTabFilters
+    let sortOption: HomeListTabSortOption
+    let cursor: Int64?
+    let size: Int
+}
+
+struct HomeListTabPage: Equatable {
+    let items: [HomeListTabItem]
+    let totalItemCount: Int
+    let nextCursor: Int64?
+    let hasNext: Bool
+    let allItemsForBounds: [HomeListTabItem]
+}
+
 enum HomeListTabSampleData {
     static let items: [HomeListTabItem] = {
         let seedItems = [
@@ -155,5 +170,23 @@ extension Int {
         }
 
         return "D-\(self)"
+    }
+}
+
+extension HomeListTabSortOption {
+    func sortsInAscendingOrder(_ lhs: HomeListTabItem, _ rhs: HomeListTabItem) -> Bool {
+        switch self {
+        case .replacementDueSoon:
+            return lhs.replacementDday < rhs.replacementDday
+        case .lowStock:
+            if lhs.stockCount == rhs.stockCount {
+                return lhs.replacementDday < rhs.replacementDday
+            }
+            return lhs.stockCount < rhs.stockCount
+        case .oldestReplacement:
+            return lhs.lastReplacementOrder > rhs.lastReplacementOrder
+        case .alphabetical:
+            return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+        }
     }
 }

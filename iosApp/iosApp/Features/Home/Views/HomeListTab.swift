@@ -6,13 +6,27 @@ struct HomeListTab: View {
     let onNavigate: (ItemRoute) -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
+    @MainActor
+    init(
+        viewModelFactory: @MainActor @escaping () -> HomeListTabViewModel,
+        onNavigate: @escaping (ItemRoute) -> Void,
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.onNavigate = onNavigate
+        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
+    }
+
+    @MainActor
     init(
         onNavigate: @escaping (ItemRoute) -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
-        _viewModel = StateObject(wrappedValue: HomeListTabViewModel())
-        self.onNavigate = onNavigate
-        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
+        self.init(
+            viewModelFactory: AppDependencies.preview.makeHomeListTabViewModel,
+            onNavigate: onNavigate,
+            onBottomSheetVisibleChange: onBottomSheetVisibleChange
+        )
     }
 
     var body: some View {

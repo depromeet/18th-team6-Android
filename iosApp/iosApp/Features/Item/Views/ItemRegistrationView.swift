@@ -7,17 +7,34 @@ struct ItemRegistrationView: View {
     let onClose: () -> Void
     let onComplete: () -> Void
 
+    @MainActor
     init(
+        viewModelFactory: @MainActor @escaping () -> ItemRegistrationViewModel,
         onBack: @escaping () -> Void,
         onClose: @escaping () -> Void,
         onComplete: @escaping () -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: ItemRegistrationViewModel())
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.onBack = onBack
         self.onClose = onClose
         self.onComplete = onComplete
     }
 
+    @MainActor
+    init(
+        onBack: @escaping () -> Void,
+        onClose: @escaping () -> Void,
+        onComplete: @escaping () -> Void
+    ) {
+        self.init(
+            viewModelFactory: AppDependencies.preview.makeItemRegistrationViewModel,
+            onBack: onBack,
+            onClose: onClose,
+            onComplete: onComplete
+        )
+    }
+
+    @MainActor
     init(
         viewModel: ItemRegistrationViewModel,
         onBack: @escaping () -> Void,
@@ -32,6 +49,10 @@ struct ItemRegistrationView: View {
 
     var body: some View {
         switch viewModel.state {
+        case .loading:
+            ItemRegistrationMessageView(title: "소모품 등록 정보를 불러오는 중이에요")
+        case let .loadFailed(message):
+            ItemRegistrationMessageView(title: message, buttonTitle: "다시 시도", action: viewModel.retry)
         case let .success(data):
             ItemRegistrationContentView(
                 data: data,
@@ -63,6 +84,27 @@ struct ItemRegistrationView: View {
                 )
             )
         }
+    }
+}
+
+private struct ItemRegistrationMessageView: View {
+    let title: String
+    var buttonTitle: String?
+    var action: (() -> Void)?
+
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s5) {
+            Text(title)
+                .multilineTextAlignment(.center)
+                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.textDefaultDefault)
+
+            if let buttonTitle, let action {
+                OBRitFilledTextButton(text: buttonTitle, size: .middle, action: action)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(OBRitSpacing.s5)
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
     }
 }
 

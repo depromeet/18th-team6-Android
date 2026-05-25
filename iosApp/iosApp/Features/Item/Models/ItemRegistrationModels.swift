@@ -56,6 +56,8 @@ enum ItemRegistrationBottomSheet: Equatable {
 }
 
 enum ItemRegistrationViewState: Equatable {
+    case loading
+    case loadFailed(message: String)
     case success(ItemRegistrationViewData)
 }
 
@@ -64,7 +66,7 @@ struct ItemRegistrationViewData: Equatable {
     var draft: ItemRegistrationDraft
     var kindSearchQuery: String
     var itemKinds: [ItemKind]
-    let imageOptions: [ItemImageOption]
+    var imageOptions: [ItemImageOption]
     var bottomSheet: ItemRegistrationBottomSheet?
     var selectedKindCandidate: ItemKind?
 
