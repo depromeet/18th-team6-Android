@@ -4,8 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
-class DirectRegisterViewModel :
-    BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
+class DirectRegisterViewModel : BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
     override val container =
         container<DirectRegisterUiState, DirectRegisterSideEffect>(
             DirectRegisterUiState(),
@@ -50,7 +49,7 @@ data class DirectRegisterUiState(
     val isSubmitEnabled: Boolean
         get() =
             name.isNotBlank() &&
-                name.length <= DirectRegisterNameMaxLength &&
+                name.length <= DIRECT_REGISTER_NAME_MAX_LENGTH &&
                 selectedIconIndex != null
 }
 
@@ -63,7 +62,7 @@ sealed interface DirectRegisterSideEffect {
     data object OnBack : DirectRegisterSideEffect
 }
 
-internal const val DirectRegisterNameMaxLength = 15
+internal const val DIRECT_REGISTER_NAME_MAX_LENGTH = 15
 
 // 추후 GET /categories/icons 응답으로 교체. 일단 placeholder 41개 (5x8 + 1).
-internal const val DirectRegisterIconPlaceholderCount = 41
+internal const val DIRECT_REGISTER_ICON_PLACEHOLDER_COUNT = 41
