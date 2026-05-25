@@ -20,12 +20,6 @@ struct OBRitNavigation: View {
         _path = State(initialValue: initialPath)
     }
 
-    init() {
-        let initialRootRoute = Self.initialRootRoute
-        _rootRoute = State(initialValue: initialRootRoute)
-        _selectedMainTab = State(initialValue: initialRootRoute.mainTab ?? .home)
-    }
-
     var body: some View {
         NavigationStack(path: $path) {
             AppNavigation.destination(
@@ -143,6 +137,44 @@ private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable 
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
+}
+
+private extension UIViewController {
+    var nearestNavigationController: UINavigationController? {
+        if let navigationController {
+            return navigationController
+        }
+
+        if let parentNavigationController = parent?.nearestNavigationController {
+            return parentNavigationController
+        }
+
+        guard let rootViewController = view.window?.rootViewController,
+              rootViewController !== self else {
+            return nil
+        }
+
+        return rootViewController.firstNavigationControllerInHierarchy
+    }
+
+    var firstNavigationControllerInHierarchy: UINavigationController? {
+        if let navigationController = self as? UINavigationController {
+            return navigationController
+        }
+
+        for child in children {
+            if let navigationController = child.firstNavigationControllerInHierarchy {
+                return navigationController
+            }
+        }
+
+        return presentedViewController?.firstNavigationControllerInHierarchy
+    }
+
+    private static var initialRootRoute: AppRoute {
+        .main(.home)
+    }
+}
 
     func makeUIViewController(context: Context) -> UIViewController {
         UIViewController()
@@ -207,16 +239,5 @@ private extension UIViewController {
         }
 
         return presentedViewController?.firstNavigationControllerInHierarchy
-    }
-
-    private static var initialRootRoute: AppRoute {
-        .main(.home)
-    }
-}
-
-private extension AppRoute {
-    var mainTab: MainTab? {
-        guard case let .main(tab) = self else { return nil }
-        return tab
     }
 }
