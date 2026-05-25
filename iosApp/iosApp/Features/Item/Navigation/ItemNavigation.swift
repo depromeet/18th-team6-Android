@@ -5,6 +5,7 @@ struct ItemNavigation {
     @ViewBuilder
     static func destination(
         for route: ItemRoute,
+        dependencies: AppDependencies,
         onBack: @escaping () -> Void,
         onNavigate: @escaping (ItemRoute) -> Void,
         onSetMainRoot: @escaping (MainTab) -> Void
@@ -18,6 +19,7 @@ struct ItemNavigation {
                 )
             case .itemRegistration:
                 ItemRegistrationView(
+                    viewModelFactory: dependencies.makeItemRegistrationViewModel,
                     onBack: onBack,
                     onClose: {
                         onSetMainRoot(.home)
@@ -28,6 +30,7 @@ struct ItemNavigation {
                 )
             case .itemDetailInput:
                 ItemRegistrationView(
+                    viewModelFactory: dependencies.makeItemRegistrationViewModel,
                     onBack: onBack,
                     onClose: {
                         onSetMainRoot(.home)
@@ -45,7 +48,12 @@ struct ItemNavigation {
             case .sort:
                 RoutePlaceholderView(title: "정렬", subtitle: "소모품 목록 정렬")
             case let .detail(itemId):
-                ItemDetailView(itemId: itemId, onBack: onBack, onNavigate: onNavigate)
+                ItemDetailView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailViewModel,
+                    onBack: onBack,
+                    onNavigate: onNavigate
+                )
             case let .statusInfo(itemId):
                 RoutePlaceholderView(title: "상태 정보", subtitle: "소모품 ID \(itemId)")
             case let .edit(itemId):

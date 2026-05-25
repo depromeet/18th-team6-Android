@@ -12,15 +12,31 @@ struct ItemDetailView: View {
     @State private var snackbar: ItemDetailSnackbarPresentation?
     @State private var snackbarDismissTask: Task<Void, Never>?
 
+    @MainActor
     init(
         itemId: Int,
+        viewModelFactory: @MainActor @escaping (Int) -> ItemDetailViewModel,
         onBack: @escaping () -> Void,
         onNavigate: @escaping (ItemRoute) -> Void
     ) {
         self.itemId = itemId
         self.onBack = onBack
         self.onNavigate = onNavigate
-        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(itemId: itemId))
+        _viewModel = StateObject(wrappedValue: viewModelFactory(itemId))
+    }
+
+    @MainActor
+    init(
+        itemId: Int,
+        onBack: @escaping () -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void
+    ) {
+        self.init(
+            itemId: itemId,
+            viewModelFactory: AppDependencies.preview.makeItemDetailViewModel,
+            onBack: onBack,
+            onNavigate: onNavigate
+        )
     }
 
     var body: some View {

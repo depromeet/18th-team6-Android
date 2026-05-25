@@ -4,19 +4,30 @@ import Foundation
 final class HomeListTabViewModel: ObservableObject {
     @Published private(set) var state: HomeListTabState = .loading
 
-    private let sourceItems: [HomeListTabItem]
+    private let repository: HomeListTabRepository
     private var filters: HomeListTabFilters = .empty
     private var draftFilters: HomeListTabFilters = .empty
     private var sortOption: HomeListTabSortOption = .replacementDueSoon
     private var bottomSheet: HomeListTabBottomSheet?
-    private var page = 1
     private var isFilterBarVisible = true
+    private var items: [HomeListTabItem] = []
+    private var itemsForBounds: [HomeListTabItem] = []
+    private var totalItemCount = 0
+    private var nextCursor: Int64?
+    private var hasNext = false
+    private var isLoadingMore = false
 
     private let pageSize = 20
 
-    init(sourceItems: [HomeListTabItem] = HomeListTabSampleData.items) {
-        self.sourceItems = sourceItems
-        reload()
+    init(
+        repository: HomeListTabRepository = HomeListTabSampleRepository(),
+        automaticallyLoads: Bool = true
+    ) {
+        self.repository = repository
+
+        if automaticallyLoads {
+            reload()
+        }
     }
 
     func openFilterSheet() {
@@ -48,8 +59,7 @@ final class HomeListTabViewModel: ObservableObject {
     func applyFilters() {
         filters = draftFilters.removingDefaults(bounds: filterBounds)
         bottomSheet = nil
-        page = 1
-        publish()
+        reload()
     }
 
     func resetDraftFilters() {
@@ -59,30 +69,30 @@ final class HomeListTabViewModel: ObservableObject {
 
     func clearReplacementDdayFilter() {
         filters.maxReplacementDday = nil
-        page = 1
-        publish()
+        reload()
     }
 
     func clearStockCountFilter() {
         filters.maxStockCount = nil
-        page = 1
-        publish()
+        reload()
     }
 
     func selectSortOption(_ option: HomeListTabSortOption) {
         sortOption = option
         bottomSheet = nil
-        page = 1
-        publish()
+        reload()
     }
 
     func loadNextPageIfNeeded(currentItemID: Int?) {
         guard let currentItemID else { return }
-        let allItems = filteredAndSortedItems
-        let visibleItems = Array(allItems.prefix(page * pageSize))
-        guard visibleItems.last?.id == currentItemID, visibleItems.count < allItems.count else { return }
-        page += 1
+        guard items.last?.id == currentItemID, hasNext, !isLoadingMore else { return }
+
+        isLoadingMore = true
         publish()
+
+        Task {
+            await loadNextPage()
+        }
     }
 
     func setFilterBarVisible(_ visible: Bool) {
@@ -91,8 +101,12 @@ final class HomeListTabViewModel: ObservableObject {
         publish()
     }
 
-    private func reload() {
-        state = .success(viewData)
+    func reload() {
+        state = .loading
+
+        Task {
+            await loadFirstPage()
+        }
     }
 
     private func publish() {
@@ -100,35 +114,24 @@ final class HomeListTabViewModel: ObservableObject {
     }
 
     private var viewData: HomeListTabViewData {
-        let allItems = filteredAndSortedItems
-        let visibleItems = Array(allItems.prefix(page * pageSize))
-
         return HomeListTabViewData(
-            items: visibleItems,
-            totalItemCount: allItems.count,
+            items: items,
+            totalItemCount: totalItemCount,
             filters: filters,
             draftFilters: draftFilters,
             filterBounds: filterBounds,
             sortOption: sortOption,
             bottomSheet: bottomSheet,
-            hasMore: visibleItems.count < allItems.count,
-            isLoadingMore: false,
+            hasMore: hasNext,
+            isLoadingMore: isLoadingMore,
             isFilterBarVisible: isFilterBarVisible
         )
     }
 
-    private var filteredAndSortedItems: [HomeListTabItem] {
-        sourceItems
-            .filter { item in
-                let matchesDday = filters.maxReplacementDday.map { item.replacementDday <= $0 } ?? true
-                let matchesStock = filters.maxStockCount.map { item.stockCount <= $0 } ?? true
-                return matchesDday && matchesStock
-            }
-            .sorted(by: sortComparator)
-    }
-
     private var filterBounds: HomeListTabFilterBounds {
-        HomeListTabFilterBounds(
+        let sourceItems = itemsForBounds.isEmpty ? items : itemsForBounds
+
+        return HomeListTabFilterBounds(
             minReplacementDday: sourceItems.map(\.replacementDday).min() ?? 0,
             maxReplacementDday: sourceItems.map(\.replacementDday).max() ?? 0,
             minStockCount: sourceItems.map(\.stockCount).min() ?? 0,
@@ -136,19 +139,54 @@ final class HomeListTabViewModel: ObservableObject {
         )
     }
 
-    private func sortComparator(_ lhs: HomeListTabItem, _ rhs: HomeListTabItem) -> Bool {
-        switch sortOption {
-        case .replacementDueSoon:
-            return lhs.replacementDday < rhs.replacementDday
-        case .lowStock:
-            if lhs.stockCount == rhs.stockCount {
-                return lhs.replacementDday < rhs.replacementDday
-            }
-            return lhs.stockCount < rhs.stockCount
-        case .oldestReplacement:
-            return lhs.lastReplacementOrder > rhs.lastReplacementOrder
-        case .alphabetical:
-            return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+    private func loadFirstPage() async {
+        do {
+            let page = try await repository.items(
+                request: HomeListTabPageRequest(
+                    filters: filters,
+                    sortOption: sortOption,
+                    cursor: nil,
+                    size: pageSize
+                )
+            )
+            items = page.items
+            itemsForBounds = page.allItemsForBounds
+            totalItemCount = page.totalItemCount
+            nextCursor = page.nextCursor
+            hasNext = page.hasNext
+            isLoadingMore = false
+            publish()
+        } catch {
+            items = []
+            itemsForBounds = []
+            totalItemCount = 0
+            nextCursor = nil
+            hasNext = false
+            isLoadingMore = false
+            state = .loadFailed
+        }
+    }
+
+    private func loadNextPage() async {
+        do {
+            let page = try await repository.items(
+                request: HomeListTabPageRequest(
+                    filters: filters,
+                    sortOption: sortOption,
+                    cursor: nextCursor,
+                    size: pageSize
+                )
+            )
+            items.append(contentsOf: page.items)
+            itemsForBounds = page.allItemsForBounds.isEmpty ? itemsForBounds : page.allItemsForBounds
+            totalItemCount = page.totalItemCount
+            nextCursor = page.nextCursor
+            hasNext = page.hasNext
+            isLoadingMore = false
+            publish()
+        } catch {
+            isLoadingMore = false
+            publish()
         }
     }
 }

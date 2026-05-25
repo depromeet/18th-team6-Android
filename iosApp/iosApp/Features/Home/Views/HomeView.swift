@@ -7,12 +7,14 @@ struct HomeView: View {
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
+    @MainActor
     init(
+        viewModelFactory: @MainActor @escaping () -> HomeViewModel,
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel())
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.onNavigateItem = onNavigateItem
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange

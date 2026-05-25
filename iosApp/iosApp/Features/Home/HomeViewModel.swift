@@ -6,13 +6,23 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var selectedStatusFilter: HomeStatusFilter
     @Published private(set) var selectedWarningSort: HomeWarningSort
 
-    private let dashboard: HomeDashboard
+    private let repository: HomeDashboardRepository
+    private var dashboard: HomeDashboard
 
-    init(dashboard: HomeDashboard = HomeSampleData.dashboard) {
-        self.dashboard = dashboard
-        self.state = .success(dashboard)
-        self.selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
+    init(
+        repository: HomeDashboardRepository = HomeSampleDashboardRepository(),
+        initialDashboard: HomeDashboard = HomeSampleData.dashboard,
+        automaticallyLoads: Bool = true
+    ) {
+        self.repository = repository
+        self.dashboard = initialDashboard
+        self.state = .success(initialDashboard)
+        self.selectedStatusFilter = Self.firstVisibleStatusFilter(in: initialDashboard) ?? .replacementDanger
         self.selectedWarningSort = .replacementRisk
+
+        if automaticallyLoads {
+            load()
+        }
     }
 
     var statusFilterCounts: [HomeStatusFilter: Int] {
@@ -59,6 +69,29 @@ final class HomeViewModel: ObservableObject {
 
     func selectWarningSort(_ sort: HomeWarningSort) {
         selectedWarningSort = sort
+    }
+
+    func load() {
+        Task {
+            await loadDashboard()
+        }
+    }
+
+    func retry() {
+        load()
+    }
+
+    private func loadDashboard() async {
+        do {
+            let dashboard = try await repository.dashboard()
+            self.dashboard = dashboard
+            if statusFilterCounts[selectedStatusFilter, default: 0] == 0 {
+                selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
+            }
+            state = .success(dashboard)
+        } catch {
+            state = .success(dashboard)
+        }
     }
 
     private static func firstVisibleStatusFilter(in dashboard: HomeDashboard) -> HomeStatusFilter? {

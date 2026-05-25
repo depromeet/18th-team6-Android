@@ -9,11 +9,14 @@ protocol ItemDetailRepository {
 
 enum ItemDetailRepositoryError: LocalizedError, Equatable {
     case notFound(itemId: Int)
+    case unsupportedMutation
 
     var errorDescription: String? {
         switch self {
         case let .notFound(itemId):
             return "소모품 ID \(itemId)를 찾을 수 없어요."
+        case .unsupportedMutation:
+            return "이 기능은 아직 준비 중이에요."
         }
     }
 }

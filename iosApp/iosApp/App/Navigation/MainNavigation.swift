@@ -4,15 +4,18 @@ struct MainNavigation: View {
     @State private var isGnbHiddenByContent = false
 
     let selectedTab: MainTab
+    let dependencies: AppDependencies
     let onNavigateItem: (ItemRoute) -> Void
     let onSelectMainTab: (MainTab) -> Void
 
     init(
         selectedTab: MainTab,
+        dependencies: AppDependencies,
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void
     ) {
         self.selectedTab = selectedTab
+        self.dependencies = dependencies
         self.onNavigateItem = onNavigateItem
         self.onSelectMainTab = onSelectMainTab
     }
@@ -41,6 +44,7 @@ struct MainNavigation: View {
         switch selectedTab {
         case .home:
             HomeView(
+                viewModelFactory: dependencies.makeHomeViewModel,
                 onNavigateItem: onNavigateItem,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
@@ -51,6 +55,7 @@ struct MainNavigation: View {
             )
         case .homeListTab:
             HomeListTab(
+                viewModelFactory: dependencies.makeHomeListTabViewModel,
                 onNavigate: onNavigateItem,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
