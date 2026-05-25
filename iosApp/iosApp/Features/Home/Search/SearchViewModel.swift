@@ -8,7 +8,23 @@ final class SearchViewModel: ObservableObject {
     private var sourceItems: [HomeListTabItem]
     private var query = ""
     private var recentKeywords: [String]
+    private var isLoading = false
+    private var automaticallyLoads: Bool
+    private var didStartInitialLoad = false
     private let pageSize = 100
+    private let maxBootstrapPageCount = 5
+
+    var currentQuery: String {
+        query
+    }
+
+    var canRequestInitialFocus: Bool {
+        if case .loading = state {
+            return false
+        }
+
+        return true
+    }
 
     init(
         sourceItems: [HomeListTabItem] = HomeListTabSampleData.items,
@@ -17,6 +33,7 @@ final class SearchViewModel: ObservableObject {
         self.repository = nil
         self.sourceItems = sourceItems.uniqueByTitle()
         self.recentKeywords = recentKeywords
+        self.automaticallyLoads = false
         self.state = .success(
             SearchViewData(
                 query: "",
@@ -37,6 +54,7 @@ final class SearchViewModel: ObservableObject {
         self.repository = repository
         self.sourceItems = []
         self.recentKeywords = recentKeywords
+        self.automaticallyLoads = automaticallyLoads
         self.state = automaticallyLoads ? .loading : .success(
             SearchViewData(
                 query: "",
@@ -46,19 +64,29 @@ final class SearchViewModel: ObservableObject {
                 displayMode: recentKeywords.isEmpty ? .emptyRecent : .recentKeywords
             )
         )
+    }
 
-        if automaticallyLoads {
-            load()
-        }
+    func loadIfNeeded() {
+        guard automaticallyLoads, !didStartInitialLoad else { return }
+        didStartInitialLoad = true
+        load()
     }
 
     func load() {
         guard let repository else {
+            AppLog.enter(AppLog.searchViewModel, "SearchViewModel.load", "repository=sample")
             publish()
             return
         }
 
+        guard !isLoading else {
+            AppLog.success(AppLog.searchViewModel, "SearchViewModel.load", "skipped=alreadyLoading")
+            return
+        }
+
+        isLoading = true
         state = .loading
+        AppLog.enter(AppLog.searchViewModel, "SearchViewModel.load", "pageSize=\(pageSize)")
         Task {
             await loadItems(using: repository)
         }
@@ -69,8 +97,15 @@ final class SearchViewModel: ObservableObject {
     }
 
     func updateQuery(_ query: String) {
+        guard self.query != query else { return }
+
         self.query = query
         publish()
+        AppLog.success(
+            AppLog.searchViewModel,
+            "SearchViewModel.updateQuery",
+            "queryLength=\(query.count) sourceCount=\(sourceItems.count)"
+        )
     }
 
     func selectKeyword(_ keyword: String) {
@@ -150,19 +185,31 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func loadItems(using repository: HomeListTabRepository) async {
+        AppLog.enter(AppLog.searchViewModel, "SearchViewModel.loadItems")
         do {
             sourceItems = try await fetchAllItems(using: repository).uniqueByTitle()
+            isLoading = false
             publish()
+            AppLog.success(AppLog.searchViewModel, "SearchViewModel.loadItems", "sourceCount=\(sourceItems.count)")
         } catch {
+            isLoading = false
             state = .loadFailed(message: error.searchMessage)
+            AppLog.failure(AppLog.searchViewModel, "SearchViewModel.loadItems", error)
         }
     }
 
     private func fetchAllItems(using repository: HomeListTabRepository) async throws -> [HomeListTabItem] {
         var cursor: Int64?
         var allItems: [HomeListTabItem] = []
+        var loadedPageCount = 0
 
         repeat {
+            loadedPageCount += 1
+            AppLog.enter(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems.page",
+                "page=\(loadedPageCount) cursor=\(String(describing: cursor))"
+            )
             let page = try await repository.items(
                 request: HomeListTabPageRequest(
                     filters: .empty,
@@ -172,10 +219,45 @@ final class SearchViewModel: ObservableObject {
                 )
             )
             allItems.append(contentsOf: page.items)
-            cursor = page.nextCursor
-        } while cursor != nil
+            AppLog.success(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems.page",
+                "page=\(loadedPageCount) items=\(page.items.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+            )
+
+            let previousCursor = cursor
+            cursor = page.hasNext ? page.nextCursor : nil
+            if cursor == previousCursor {
+                AppLog.failure(
+                    AppLog.searchViewModel,
+                    "SearchViewModel.fetchAllItems.page",
+                    SearchBootstrapError.repeatedCursor,
+                    "cursor=\(String(describing: cursor))"
+                )
+                break
+            }
+        } while cursor != nil && loadedPageCount < maxBootstrapPageCount
+
+        if cursor != nil {
+            AppLog.success(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems",
+                "stopped=maxBootstrapPageCount max=\(maxBootstrapPageCount) loadedItems=\(allItems.count)"
+            )
+        }
 
         return allItems
+    }
+}
+
+private enum SearchBootstrapError: LocalizedError {
+    case repeatedCursor
+
+    var errorDescription: String? {
+        switch self {
+        case .repeatedCursor:
+            return "검색 목록 페이지 cursor가 반복되어 로드를 중단했어요."
+        }
     }
 }
 
