@@ -226,8 +226,13 @@ final class SearchViewModel: ObservableObject {
             )
 
             let previousCursor = cursor
-            cursor = page.hasNext ? page.nextCursor : nil
-            if cursor == previousCursor {
+            if !page.hasNext {
+                cursor = nil
+                break
+            }
+
+            cursor = page.nextCursor
+            if cursor == nil || cursor == previousCursor {
                 AppLog.failure(
                     AppLog.searchViewModel,
                     "SearchViewModel.fetchAllItems.page",
