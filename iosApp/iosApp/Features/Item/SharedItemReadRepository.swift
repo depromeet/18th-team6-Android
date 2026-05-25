@@ -36,13 +36,23 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
     }
 
     func detail(itemId: Int) async throws -> ItemDetailItem {
-        let items = try await readService.getItems()
-        guard let item = items.first(where: { $0.id == Int64(itemId) }) else {
-            throw ItemDetailRepositoryError.notFound(itemId: itemId)
-        }
+        let event = "SharedItemReadRepository.detail"
+        let details = "itemId=\(itemId)"
+        AppLog.enter(AppLog.swiftRepository, event, details)
+        do {
+            let items = try await readService.getItems()
+            guard let item = items.first(where: { $0.id == Int64(itemId) }) else {
+                throw ItemDetailRepositoryError.notFound(itemId: itemId)
+            }
 
-        let histories = try await readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
-        return makeDetailItem(from: item, histories: histories)
+            let histories = try await readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
+            let detail = makeDetailItem(from: item, histories: histories)
+            AppLog.success(AppLog.swiftRepository, event, "\(details) historyCount=\(histories.count)")
+            return detail
+        } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error, details)
+            throw error
+        }
     }
 
     func updateSpareQuantity(
@@ -50,13 +60,19 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         quantity: Int,
         updatedAt: Date
     ) async throws -> ItemDetailItem {
+        let event = "SharedItemReadRepository.updateSpareQuantity"
+        let details = "itemId=\(itemId) quantity=\(quantity)"
+        AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             let item = try await writeService.patchSpareCount(
                 itemId: Int64(itemId),
                 count: Int32(quantity)
             )
-            return try await makeDetailItem(from: item, updatedAt: updatedAt)
+            let detail = try await makeDetailItem(from: item, updatedAt: updatedAt)
+            AppLog.success(AppLog.swiftRepository, event, details)
+            return detail
         } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw presentationError(
                 from: error,
                 fallbackMessage: "여분 수량을 수정하지 못했어요."
@@ -68,13 +84,19 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         itemId: Int,
         completedAt: Date
     ) async throws -> ItemDetailItem {
+        let event = "SharedItemReadRepository.completeReplacement"
+        let details = "itemId=\(itemId)"
+        AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             let item = try await writeService.createReplacement(
                 itemId: Int64(itemId),
                 replacedDate: replacementDateString(from: completedAt)
             )
-            return try await makeDetailItem(from: item, updatedAt: completedAt)
+            let detail = try await makeDetailItem(from: item, updatedAt: completedAt)
+            AppLog.success(AppLog.swiftRepository, event, details)
+            return detail
         } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw presentationError(
                 from: error,
                 fallbackMessage: "교체 완료를 기록하지 못했어요."
@@ -83,9 +105,14 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
     }
 
     func delete(itemId: Int) async throws {
+        let event = "SharedItemReadRepository.delete"
+        let details = "itemId=\(itemId)"
+        AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             try await writeService.deleteItem(itemId: Int64(itemId))
+            AppLog.success(AppLog.swiftRepository, event, details)
         } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw presentationError(
                 from: error,
                 fallbackMessage: "소모품을 삭제하지 못했어요."

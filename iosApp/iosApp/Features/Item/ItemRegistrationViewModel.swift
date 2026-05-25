@@ -308,15 +308,26 @@ final class ItemRegistrationViewModel: ObservableObject {
         imageOption: ItemImageOption,
         repository: ItemRegistrationWriteRepository
     ) async {
+        AppLog.enter(
+            AppLog.itemRegistrationViewModel,
+            "ItemRegistrationViewModel.submitDirectKindTask",
+            "iconId=\(imageOption.id) nameLength=\(name.count)"
+        )
         do {
             let kind = try await repository.createKind(name: name, imageOption: imageOption)
             update { data in
                 insert(kind: kind, into: &data)
             }
             effect = .showMessage("소모품 종류를 등록했어요.")
+            AppLog.success(
+                AppLog.itemRegistrationViewModel,
+                "ItemRegistrationViewModel.submitDirectKindTask",
+                "kindId=\(kind.id)"
+            )
         } catch {
             update { $0.isProcessing = false }
             effect = .showMessage(error.itemRegistrationMessage)
+            AppLog.failure(AppLog.itemRegistrationViewModel, "ItemRegistrationViewModel.submitDirectKindTask", error)
         }
     }
 
@@ -324,6 +335,11 @@ final class ItemRegistrationViewModel: ObservableObject {
         request: ItemRegistrationCreateItemRequest,
         repository: ItemRegistrationWriteRepository
     ) async {
+        AppLog.enter(
+            AppLog.itemRegistrationViewModel,
+            "ItemRegistrationViewModel.submitFormTask",
+            "categoryId=\(request.categoryId) quantity=\(request.quantity) hasLastReplacementDate=\(request.lastReplacementDate != nil)"
+        )
         do {
             try await repository.createItem(request: request)
             update { data in
@@ -332,9 +348,20 @@ final class ItemRegistrationViewModel: ObservableObject {
                 data.selectedKindCandidate = nil
                 data.isProcessing = false
             }
+            AppLog.success(
+                AppLog.itemRegistrationViewModel,
+                "ItemRegistrationViewModel.submitFormTask",
+                "categoryId=\(request.categoryId)"
+            )
         } catch {
             update { $0.isProcessing = false }
             effect = .showMessage(error.itemRegistrationMessage)
+            AppLog.failure(
+                AppLog.itemRegistrationViewModel,
+                "ItemRegistrationViewModel.submitFormTask",
+                error,
+                "categoryId=\(request.categoryId)"
+            )
         }
     }
 
@@ -348,6 +375,11 @@ final class ItemRegistrationViewModel: ObservableObject {
         using repository: ItemRegistrationCatalogRepository,
         showLoading: Bool
     ) async {
+        AppLog.enter(
+            AppLog.itemRegistrationViewModel,
+            "ItemRegistrationViewModel.loadCatalog",
+            "showLoading=\(showLoading)"
+        )
         if showLoading {
             state = .loading
         }
@@ -364,8 +396,14 @@ final class ItemRegistrationViewModel: ObservableObject {
                 data.selectedKindCandidate = nil
                 data.isProcessing = false
             }
+            AppLog.success(
+                AppLog.itemRegistrationViewModel,
+                "ItemRegistrationViewModel.loadCatalog",
+                "itemKinds=\(catalog.itemKinds.count) imageOptions=\(catalog.imageOptions.count)"
+            )
         } catch {
             state = .loadFailed(message: error.itemRegistrationMessage)
+            AppLog.failure(AppLog.itemRegistrationViewModel, "ItemRegistrationViewModel.loadCatalog", error)
         }
     }
 }

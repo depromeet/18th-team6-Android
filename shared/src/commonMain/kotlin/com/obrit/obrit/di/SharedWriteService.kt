@@ -23,9 +23,14 @@ class SharedWriteService(
 
     @Throws(Throwable::class)
     suspend fun createItem(params: CreateItemParams): Item =
-        repositoryProvider.itemRepository()
-            .createItem(params = params)
-            .getOrThrow()
+        logged(
+            event = "SharedWriteService.createItem",
+            details = "categoryId=${params.categoryId} count=${params.count} interval=${params.replacementIntervalDays}",
+        ) {
+            repositoryProvider.itemRepository()
+                .createItem(params = params)
+                .getOrThrow()
+        }
 
     @Throws(Throwable::class)
     suspend fun createItem(
@@ -50,9 +55,14 @@ class SharedWriteService(
         itemId: Long,
         count: Int,
     ): Item =
-        repositoryProvider.itemRepository()
-            .patchSpareCount(itemId = itemId, count = count)
-            .getOrThrow()
+        logged(
+            event = "SharedWriteService.patchSpareCount",
+            details = "itemId=$itemId count=$count",
+        ) {
+            repositoryProvider.itemRepository()
+                .patchSpareCount(itemId = itemId, count = count)
+                .getOrThrow()
+        }
 
     @Throws(Throwable::class)
     suspend fun patchItem(
@@ -78,16 +88,46 @@ class SharedWriteService(
         itemId: Long,
         replacedDate: String?,
     ): Item =
-        repositoryProvider.itemRepository()
-            .createReplacement(
-                itemId = itemId,
-                replacedDate = replacedDate?.let(::ReplacementDate),
-            ).getOrThrow()
+        logged(
+            event = "SharedWriteService.createReplacement",
+            details = "itemId=$itemId replacedDate=$replacedDate",
+        ) {
+            repositoryProvider.itemRepository()
+                .createReplacement(
+                    itemId = itemId,
+                    replacedDate = replacedDate?.let(::ReplacementDate),
+                ).getOrThrow()
+        }
 
     @Throws(Throwable::class)
     suspend fun deleteItem(itemId: Long) {
-        repositoryProvider.itemRepository()
-            .deleteItem(itemId = itemId)
-            .getOrThrow()
+        logged(
+            event = "SharedWriteService.deleteItem",
+            details = "itemId=$itemId",
+        ) {
+            repositoryProvider.itemRepository()
+                .deleteItem(itemId = itemId)
+                .getOrThrow()
+        }
+    }
+
+    private suspend fun <T> logged(
+        event: String,
+        details: String,
+        block: suspend () -> T,
+    ): T {
+        SharedLog.enter(scope = LOG_SCOPE, event = event, details = details)
+        return try {
+            val value = block()
+            SharedLog.success(scope = LOG_SCOPE, event = event, details = details)
+            value
+        } catch (throwable: Throwable) {
+            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = details)
+            throw throwable
+        }
+    }
+
+    private companion object {
+        const val LOG_SCOPE = "SharedWriteService"
     }
 }

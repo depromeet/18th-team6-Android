@@ -31,6 +31,7 @@ val networkModule =
         single<NetworkConfiguration> {
             NetworkConfiguration(
                 baseUrl = NETWORK_BASE_URL,
+                enableLogging = true,
             )
         }
         single<Json> { createJson() }

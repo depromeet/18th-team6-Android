@@ -91,6 +91,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func loadDashboard() async {
+        AppLog.enter(AppLog.homeViewModel, "HomeViewModel.loadDashboard")
         do {
             let dashboard = try await repository.dashboard()
             self.dashboard = dashboard
@@ -98,11 +99,23 @@ final class HomeViewModel: ObservableObject {
                 selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
             }
             state = .success(dashboard)
+            AppLog.success(
+                AppLog.homeViewModel,
+                "HomeViewModel.loadDashboard",
+                "warningCount=\(dashboard.warningItems.count) usageCount=\(dashboard.usageItems.count)"
+            )
         } catch {
             if let dashboard {
                 state = .success(dashboard)
+                AppLog.failure(
+                    AppLog.homeViewModel,
+                    "HomeViewModel.loadDashboard",
+                    error,
+                    "usingCachedDashboard=true warningCount=\(dashboard.warningItems.count)"
+                )
             } else {
                 state = .loadFailed(message: error.homeMessage)
+                AppLog.failure(AppLog.homeViewModel, "HomeViewModel.loadDashboard", error)
             }
         }
     }
