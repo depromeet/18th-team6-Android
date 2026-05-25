@@ -5,7 +5,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.obrit.feature.agent.screen.AgentScreen
 import com.obrit.obrit.navigation.route.AgentRoute
 
 @Composable
@@ -18,12 +17,12 @@ fun AgentNavigation(modifier: Modifier = Modifier) {
         entryProvider =
             entryProvider {
                 entry<AgentRoute.Agents> {
-                    AgentScreen(
-                        onAgentClick = { agent ->
-                            agentBackStack.add(AgentRoute.AgentDetail(agent.id))
-                        },
-                        modifier = Modifier,
-                    )
+//                    AgentScreen(
+//                        onAgentClick = { agent ->
+//                            agentBackStack.add(AgentRoute.AgentDetail(agent.id))
+//                        },
+//                        modifier = Modifier,
+//                    )
                 }
                 entry<AgentRoute.AgentDetail> {
                     // AgentDetailScreen(modifier = Modifier)

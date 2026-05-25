@@ -6,11 +6,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.obrit.obrit.navigation.route.AgentRoute
+import com.obrit.obrit.navigation.route.HomeRoute
 import com.obrit.obrit.navigation.route.RegisterRoute
 
 @Composable
 fun OBRitNavigation(modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack()
+    val backStack = rememberNavBackStack(HomeRoute.Home)
 
     NavDisplay(
         backStack = backStack,
@@ -18,16 +19,18 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
         onBack = backStack::removeLastOrNull,
         entryProvider =
             entryProvider {
-                entry<AgentRoute> {
-                    AgentNavigation(modifier = Modifier)
-                }
-                entry<RegisterRoute.ManualRegister> {
-                    RegisterNavigation(
-                        onExit = { backStack.removeLastOrNull() },
+                entry<HomeRoute.Home> {
+                    HomeNavigation(
+                        onRegisterClick = {
+                            backStack.add(RegisterRoute.ManualRegister)
+                        },
                         modifier = Modifier,
                     )
                 }
-                entry<RegisterRoute.DirectRegister> {
+                entry<AgentRoute.Agents> {
+                    AgentNavigation(modifier = Modifier)
+                }
+                entry<RegisterRoute.ManualRegister> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
                         modifier = Modifier,
