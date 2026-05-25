@@ -52,7 +52,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             update { data in
                 data.draft.selectedKind = data.itemKinds.first
                 data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
-                data.draft.lastReplacementDateOption = .today
+                data.draft.lastReplacementDateOption = .withinOneWeek
                 data.draft.quantity = ItemRegistrationConfig.defaultQuantity
             }
         case ItemRegistrationDebugConfig.kindSheetState:
@@ -64,7 +64,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             update { data in
                 data.draft.selectedKind = data.itemKinds.first
                 data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
-                data.draft.lastReplacementDateOption = .today
+                data.draft.lastReplacementDateOption = .withinOneWeek
                 data.draft.quantity = ItemRegistrationConfig.defaultQuantity
             }
         case ItemRegistrationDebugConfig.directKindState:

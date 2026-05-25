@@ -52,7 +52,7 @@ struct ItemRequiredField<Content: View>: View {
                     .obritTextStyle(
                         OBRitTypography.base,
                         weight: OBRitFontWeight.bold,
-                        color: OBRitColors.red300
+                        color: OBRitColors.textWarningDefault
                     )
                     .padding(.top, ItemRegistrationLayout.requiredMarkerTopPadding)
             }
@@ -170,6 +170,7 @@ struct ItemTextInputField: View {
     let placeholder: String
     let maxLength: Int
     let helperText: String
+    let showsMaxLengthWarning: Bool
     let singleLine: Bool
     let onTextChange: (String) -> Void
 
@@ -178,6 +179,7 @@ struct ItemTextInputField: View {
         placeholder: String,
         maxLength: Int,
         helperText: String,
+        showsMaxLengthWarning: Bool = false,
         singleLine: Bool,
         onTextChange: @escaping (String) -> Void
     ) {
@@ -186,11 +188,16 @@ struct ItemTextInputField: View {
         self.placeholder = placeholder
         self.maxLength = maxLength
         self.helperText = helperText
+        self.showsMaxLengthWarning = showsMaxLengthWarning
         self.singleLine = singleLine
         self.onTextChange = onTextChange
     }
 
     var body: some View {
+        let isMaxLengthWarning = showsMaxLengthWarning && localText.count >= maxLength
+        let helperTextColor = isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.gray300
+        let helperIconColor = isMaxLengthWarning ? OBRitColors.iconWarningDefault : OBRitColors.gray300
+
         VStack(alignment: .leading, spacing: OBRitSpacing.s2_5) {
             HStack(spacing: OBRitSpacing.s2) {
                 ZStack(alignment: .leading) {
@@ -223,27 +230,33 @@ struct ItemTextInputField: View {
                     .obritTextStyle(
                         OBRitTypography.small,
                         weight: OBRitFontWeight.medium,
-                        color: OBRitColors.common00
+                        color: isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.common00
                     )
             }
             .frame(height: ItemRegistrationLayout.fieldHeight)
             .padding(.horizontal, OBRitSpacing.s5)
             .background(OBRitColors.gray800)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
+            .overlay {
+                if isMaxLengthWarning {
+                    RoundedRectangle(cornerRadius: OBRitRadius.middle)
+                        .stroke(OBRitColors.borderWarningDefault, lineWidth: OBRitSpacing.px)
+                }
+            }
             .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
             .onTapGesture {
                 isFocused = true
             }
 
             HStack(alignment: .center, spacing: OBRitSpacing.s1) {
-                OBRitIcon(kind: .success, color: OBRitColors.gray300)
+                OBRitIcon(kind: isMaxLengthWarning ? .exclamation : .success, color: helperIconColor)
                     .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                 Text(helperText)
                     .fixedSize(horizontal: false, vertical: true)
                     .obritTextStyle(
                         OBRitTypography.s,
                         weight: OBRitFontWeight.medium,
-                        color: OBRitColors.gray300
+                        color: helperTextColor
                     )
             }
         }
