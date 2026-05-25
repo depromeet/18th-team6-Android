@@ -43,26 +43,35 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
     }
 
     func dashboard() async throws -> HomeDashboard {
-        async let overallStatus = readService.getOverallStatus()
-        async let summary = readService.getMyStatusSummary()
-        async let itemsSlice = readService.getHomeItems(
-            params: HomeItemsParams(
-                order: HomeItemOrder.replacementUrgent,
-                dDay: nil,
-                spareQuantity: nil,
-                cursor: nil,
-                size: KotlinInt(int: pageSize)
+        let event = "SharedHomeDashboardRepository.dashboard"
+        AppLog.enter(AppLog.swiftRepository, event, "pageSize=\(pageSize)")
+        do {
+            async let overallStatus = readService.getOverallStatus()
+            async let summary = readService.getMyStatusSummary()
+            async let itemsSlice = readService.getHomeItems(
+                params: HomeItemsParams(
+                    order: HomeItemOrder.replacementUrgent,
+                    dDay: nil,
+                    spareQuantity: nil,
+                    cursor: nil,
+                    size: KotlinInt(int: pageSize)
+                )
             )
-        )
 
-        let (status, mySummary, slice) = try await (overallStatus, summary, itemsSlice)
-        let warningItems = slice.content.map(SharedHomeReadMapper.homeItem)
+            let (status, mySummary, slice) = try await (overallStatus, summary, itemsSlice)
+            let warningItems = slice.content.map(SharedHomeReadMapper.homeItem)
 
-        return HomeDashboard(
-            summary: SharedHomeReadMapper.summary(status: status, summary: mySummary),
-            warningItems: warningItems,
-            usageItems: warningItems.sorted { $0.daysInUse > $1.daysInUse }
-        )
+            let dashboard = HomeDashboard(
+                summary: SharedHomeReadMapper.summary(status: status, summary: mySummary),
+                warningItems: warningItems,
+                usageItems: warningItems.sorted { $0.daysInUse > $1.daysInUse }
+            )
+            AppLog.success(AppLog.swiftRepository, event, "warningCount=\(warningItems.count)")
+            return dashboard
+        } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error)
+            throw error
+        }
     }
 }
 
@@ -117,29 +126,43 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
     }
 
     func items(request: HomeListTabPageRequest) async throws -> HomeListTabPage {
-        let slice = try await readService.getHomeItems(
-            params: HomeItemsParams(
-                order: request.sortOption.homeItemOrder,
-                dDay: request.filters.maxReplacementDday.kotlinInt,
-                spareQuantity: request.filters.maxStockCount.kotlinInt,
-                cursor: request.cursor.kotlinLong,
-                size: KotlinInt(int: Int32(request.size))
+        let event = "SharedHomeListTabRepository.items"
+        let details = "cursor=\(String(describing: request.cursor)) size=\(request.size) sort=\(request.sortOption)"
+        AppLog.enter(AppLog.swiftRepository, event, details)
+        do {
+            let slice = try await readService.getHomeItems(
+                params: HomeItemsParams(
+                    order: request.sortOption.homeItemOrder,
+                    dDay: request.filters.maxReplacementDday.kotlinInt,
+                    spareQuantity: request.filters.maxStockCount.kotlinInt,
+                    cursor: request.cursor.kotlinLong,
+                    size: KotlinInt(int: Int32(request.size))
+                )
             )
-        )
 
-        let items = slice.content
-            .map(SharedHomeReadMapper.homeListItem)
-            .sorted { lhs, rhs in
-                request.sortOption.sortsInAscendingOrder(lhs, rhs)
-            }
+            let items = slice.content
+                .map(SharedHomeReadMapper.homeListItem)
+                .sorted { lhs, rhs in
+                    request.sortOption.sortsInAscendingOrder(lhs, rhs)
+                }
 
-        return HomeListTabPage(
-            items: items,
-            totalItemCount: items.count + (slice.hasNext ? 1 : 0),
-            nextCursor: slice.nextCursor?.int64Value,
-            hasNext: slice.hasNext,
-            allItemsForBounds: items
-        )
+            let page = HomeListTabPage(
+                items: items,
+                totalItemCount: items.count + (slice.hasNext ? 1 : 0),
+                nextCursor: slice.nextCursor?.int64Value,
+                hasNext: slice.hasNext,
+                allItemsForBounds: items
+            )
+            AppLog.success(
+                AppLog.swiftRepository,
+                event,
+                "\(details) items=\(items.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+            )
+            return page
+        } catch {
+            AppLog.failure(AppLog.swiftRepository, event, error, details)
+            throw error
+        }
     }
 }
 

@@ -140,6 +140,11 @@ final class HomeListTabViewModel: ObservableObject {
     }
 
     private func loadFirstPage() async {
+        AppLog.enter(
+            AppLog.homeListTabViewModel,
+            "HomeListTabViewModel.loadFirstPage",
+            "size=\(pageSize) sort=\(sortOption)"
+        )
         do {
             let page = try await repository.items(
                 request: HomeListTabPageRequest(
@@ -156,6 +161,11 @@ final class HomeListTabViewModel: ObservableObject {
             hasNext = page.hasNext
             isLoadingMore = false
             publish()
+            AppLog.success(
+                AppLog.homeListTabViewModel,
+                "HomeListTabViewModel.loadFirstPage",
+                "items=\(page.items.count) total=\(page.totalItemCount) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+            )
         } catch {
             items = []
             itemsForBounds = []
@@ -164,10 +174,16 @@ final class HomeListTabViewModel: ObservableObject {
             hasNext = false
             isLoadingMore = false
             state = .loadFailed
+            AppLog.failure(AppLog.homeListTabViewModel, "HomeListTabViewModel.loadFirstPage", error)
         }
     }
 
     private func loadNextPage() async {
+        AppLog.enter(
+            AppLog.homeListTabViewModel,
+            "HomeListTabViewModel.loadNextPage",
+            "cursor=\(String(describing: nextCursor)) size=\(pageSize) sort=\(sortOption)"
+        )
         do {
             let page = try await repository.items(
                 request: HomeListTabPageRequest(
@@ -184,9 +200,15 @@ final class HomeListTabViewModel: ObservableObject {
             hasNext = page.hasNext
             isLoadingMore = false
             publish()
+            AppLog.success(
+                AppLog.homeListTabViewModel,
+                "HomeListTabViewModel.loadNextPage",
+                "items=\(page.items.count) total=\(page.totalItemCount) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+            )
         } catch {
             isLoadingMore = false
             publish()
+            AppLog.failure(AppLog.homeListTabViewModel, "HomeListTabViewModel.loadNextPage", error)
         }
     }
 }
