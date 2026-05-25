@@ -25,6 +25,7 @@ struct ItemNavigation {
                         onSetMainRoot(.home)
                     },
                     onComplete: {
+                        dependencies.refreshCenter.refreshItems()
                         onSetMainRoot(.home)
                     }
                 )
@@ -36,11 +37,15 @@ struct ItemNavigation {
                         onSetMainRoot(.home)
                     },
                     onComplete: {
+                        dependencies.refreshCenter.refreshItems()
                         onSetMainRoot(.home)
                     }
                 )
             case .search:
-                SearchView(onBack: onBack) { itemId in
+                SearchView(
+                    viewModelFactory: dependencies.makeSearchViewModel,
+                    onBack: onBack
+                ) { itemId in
                     onNavigate(.detail(itemId: itemId))
                 }
             case .filter:
@@ -52,20 +57,31 @@ struct ItemNavigation {
                     itemId: itemId,
                     viewModelFactory: dependencies.makeItemDetailViewModel,
                     onBack: onBack,
-                    onNavigate: onNavigate
+                    onNavigate: onNavigate,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
                 )
             case let .statusInfo(itemId):
                 RoutePlaceholderView(title: "상태 정보", subtitle: "소모품 ID \(itemId)")
             case let .edit(itemId):
-                ItemDetailEditRouteView(itemId: itemId, onBack: onBack)
+                ItemDetailEditRouteView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailEditViewModel,
+                    onBack: onBack,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
+                )
             case let .notification(itemId):
                 RoutePlaceholderView(title: "알림", subtitle: "소모품 ID \(itemId) 알림 설정")
             case let .delete(itemId):
                 RoutePlaceholderView(title: "삭제", subtitle: "소모품 ID \(itemId)")
             case let .spareEdit(itemId):
-                ItemDetailSpareRouteView(itemId: itemId, onBack: onBack)
-            case let .replacementComplete(itemId):
-                ItemDetailReplacementCompleteRouteView(itemId: itemId, onBack: onBack)
+                ItemDetailSpareRouteView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailViewModel,
+                    onBack: onBack,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
+                )
+            case .replacementComplete:
+                RoutePlaceholderView(title: "교체 완료", subtitle: "상세 화면에서 교체 완료를 기록해주세요")
             }
         }
         .itemRouteBackAction(onBack)

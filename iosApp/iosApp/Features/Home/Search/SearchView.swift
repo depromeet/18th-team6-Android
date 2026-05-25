@@ -12,7 +12,20 @@ struct SearchView: View {
         onBack: (() -> Void)? = nil,
         onSelectItem: @escaping (Int) -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: SearchViewModel())
+        self.init(
+            viewModelFactory: { SearchViewModel() },
+            onBack: onBack,
+            onSelectItem: onSelectItem
+        )
+    }
+
+    @MainActor
+    init(
+        viewModelFactory: @MainActor @escaping () -> SearchViewModel,
+        onBack: (() -> Void)? = nil,
+        onSelectItem: @escaping (Int) -> Void
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.onBack = onBack
         self.onSelectItem = onSelectItem
     }
@@ -40,6 +53,7 @@ struct SearchView: View {
                 onSelectKeyword: viewModel.selectKeyword,
                 onRemoveRecentKeyword: viewModel.removeRecentKeyword,
                 onSubmitSearch: viewModel.submitSearch,
+                onRetry: viewModel.retry,
                 onSelectItem: onSelectItem
             )
         )
@@ -62,6 +76,7 @@ struct SearchViewAction {
     let onSelectKeyword: (String) -> Void
     let onRemoveRecentKeyword: (String) -> Void
     let onSubmitSearch: () -> Void
+    let onRetry: () -> Void
     let onSelectItem: (Int) -> Void
 }
 
@@ -71,25 +86,65 @@ private struct SearchContentView: View {
     let action: SearchViewAction
 
     var body: some View {
-        switch state {
-        case let .success(viewData):
-            VStack(spacing: 0) {
-                OBRitSearchTopBar(
-                    query: $query,
-                    backgroundColor: false,
-                    focusOnAppear: true,
-                    onBackClick: action.onBack,
-                    onSubmit: action.onSubmitSearch
-                )
+        VStack(spacing: 0) {
+            OBRitSearchTopBar(
+                query: $query,
+                backgroundColor: false,
+                focusOnAppear: true,
+                onBackClick: action.onBack,
+                onSubmit: action.onSubmitSearch
+            )
 
+            switch state {
+            case .loading:
+                SearchLoadingView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            case let .loadFailed(message):
+                SearchLoadFailedView(message: message, onRetry: action.onRetry)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            case let .success(viewData):
                 SearchBodyView(
                     viewData: viewData,
                     action: action
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
-            .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
         }
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
+    }
+}
+
+private struct SearchLoadingView: View {
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s3) {
+            ProgressView()
+                .tint(OBRitColors.green300)
+                .accessibilityLabel("검색 목록 불러오는 중")
+
+            Text("소모품 목록을 불러오는 중이에요")
+                .multilineTextAlignment(.center)
+                .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray500)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+        .padding(.top, SearchMetrics.emptyMessageTopPadding)
+        .padding(.horizontal, OBRitSpacing.s5)
+    }
+}
+
+private struct SearchLoadFailedView: View {
+    let message: String
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s4) {
+            SearchEmptyMessageView(
+                title: message,
+                description: "잠시 후 다시 시도해주세요"
+            )
+
+            OBRitFilledTextButton(text: "다시 시도", size: .middle, action: onRetry)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }
 
@@ -299,7 +354,14 @@ private extension SearchViewModel {
             )
         ),
         query: .constant(""),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
+        action: SearchViewAction(
+            onBack: {},
+            onSelectKeyword: { _ in },
+            onRemoveRecentKeyword: { _ in },
+            onSubmitSearch: {},
+            onRetry: {},
+            onSelectItem: { _ in }
+        )
     )
 }
 
@@ -315,6 +377,13 @@ private extension SearchViewModel {
             )
         ),
         query: .constant("샤워기"),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
+        action: SearchViewAction(
+            onBack: {},
+            onSelectKeyword: { _ in },
+            onRemoveRecentKeyword: { _ in },
+            onSubmitSearch: {},
+            onRetry: {},
+            onSelectItem: { _ in }
+        )
     )
 }
