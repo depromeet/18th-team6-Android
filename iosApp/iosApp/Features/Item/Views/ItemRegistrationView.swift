@@ -141,7 +141,8 @@ struct ItemRegistrationView: View {
     ) -> CGFloat {
         let availableHeight = geometry.size.height
             - geometry.safeAreaInsets.top
-            - OBRitSpacing.s5
+            - ItemRegistrationLayout.topBarHeight
+            - ItemRegistrationLayout.bottomSheetTopPadding
             - ItemRegistrationLayout.bottomSheetHeaderHeight
             - bottomPadding
         return min(

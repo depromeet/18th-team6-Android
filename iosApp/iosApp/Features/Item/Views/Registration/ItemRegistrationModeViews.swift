@@ -40,6 +40,7 @@ struct ItemRegistrationFormView: View {
                                     placeholder: "소모품명을 입력해주세요",
                                     maxLength: ItemRegistrationConfig.itemNameMaxLength,
                                     helperText: ItemRegistrationText.maxLengthHelper(ItemRegistrationConfig.itemNameMaxLength),
+                                    showsMaxLengthWarning: true,
                                     singleLine: true,
                                     onTextChange: action.onUpdateItemName
                                 )

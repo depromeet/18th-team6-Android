@@ -57,7 +57,13 @@ struct OBRitNavigation: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
         }
-        .background(OBRitInteractivePopGestureEnabler(canPop: !path.isEmpty))
+        .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
+        .background(
+            OBRitInteractivePopGestureEnabler(
+                canPop: !path.isEmpty,
+                backgroundColor: OBRitNavigationBackground.uiColor
+            )
+        )
     }
 
     private func setRoot(_ route: AppRoute) {
@@ -131,8 +137,17 @@ private enum OBRitNavigationAnimation {
     static let slide = Animation.easeInOut(duration: 0.28)
 }
 
+private enum OBRitNavigationBackground {
+    static let swiftUIColor = OBRitColors.backgroundDefaultDefault
+
+    static var uiColor: UIColor {
+        UIColor(swiftUIColor)
+    }
+}
+
 private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable {
     let canPop: Bool
+    let backgroundColor: UIColor
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -177,18 +192,25 @@ private extension UIViewController {
 }
 
     func makeUIViewController(context: Context) -> UIViewController {
-        UIViewController()
+        let viewController = UIViewController()
+        viewController.view.backgroundColor = backgroundColor
+        return viewController
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        context.coordinator.configure(canPop: canPop, from: uiViewController)
+        uiViewController.view.backgroundColor = backgroundColor
+        context.coordinator.configure(
+            canPop: canPop,
+            backgroundColor: backgroundColor,
+            from: uiViewController
+        )
     }
 
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         private weak var navigationController: UINavigationController?
         private var canPop = false
 
-        func configure(canPop: Bool, from viewController: UIViewController) {
+        func configure(canPop: Bool, backgroundColor: UIColor, from viewController: UIViewController) {
             self.canPop = canPop
 
             DispatchQueue.main.async { [weak self, weak viewController] in
@@ -198,6 +220,8 @@ private extension UIViewController {
                 }
 
                 self.navigationController = navigationController
+                viewController?.view.window?.backgroundColor = backgroundColor
+                navigationController.view.backgroundColor = backgroundColor
                 navigationController.interactivePopGestureRecognizer?.isEnabled = true
                 navigationController.interactivePopGestureRecognizer?.delegate = self
             }

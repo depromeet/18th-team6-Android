@@ -12,6 +12,8 @@ enum ItemRegistrationLayout {
     static let bottomSheetDimOpacity: CGFloat = 0.8
     static let bottomSheetAnimationDuration: Double = 0.24
     static let bottomSheetMaximumSafeAreaPadding = OBRitSpacing.s12
+    static let topBarHeight = OBRitSpacing.s14
+    static let bottomSheetTopAreaHeight: CGFloat = 85
     static let minimumVisibleHeight: CGFloat = 0
     static let zeroSpacing: CGFloat = 0
     static let spacerMinimumLength: CGFloat = 0
@@ -40,6 +42,10 @@ enum ItemRegistrationLayout {
 
     static var bottomSheetHeaderHeight: CGFloat {
         OBRitSpacing.s1 + OBRitSpacing.s8 + OBRitSpacing.s2_5
+    }
+
+    static var bottomSheetTopPadding: CGFloat {
+        bottomSheetTopAreaHeight - topBarHeight
     }
 
     static func horizontalPadding(for width: CGFloat) -> CGFloat {
