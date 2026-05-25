@@ -1,4 +1,4 @@
-package com.obrit.feature.register.screen
+package com.obrit.feature.register.screen.manual
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,20 +12,19 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun ManualRegisterScreen(
-    onBack: () -> Unit,
-    onRegistered: () -> Unit,
-    onDirectRegister: () -> Unit,
+    navigation: ManualRegisterNavigation,
     modifier: Modifier = Modifier,
-    pendingCategoryName: String? = null,
-    onPendingCategoryConsumed: () -> Unit = {},
+    pendingCategory: PendingCategory? = null,
     viewModel: ManualRegisterViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
 
-    LaunchedEffect(pendingCategoryName) {
-        if (!pendingCategoryName.isNullOrBlank()) {
-            viewModel.onCategoryChange(pendingCategoryName)
-            onPendingCategoryConsumed()
+    LaunchedEffect(pendingCategory?.name) {
+        val handle = pendingCategory ?: return@LaunchedEffect
+        val name = handle.name
+        if (!name.isNullOrBlank()) {
+            viewModel.onCategoryChange(name)
+            handle.onConsumed()
         }
     }
 
@@ -46,12 +45,23 @@ fun ManualRegisterScreen(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is ManualRegisterSideEffect.OnRegistered -> onRegistered()
-            is ManualRegisterSideEffect.OnBack -> onBack()
-            is ManualRegisterSideEffect.OnNavigateToDirectRegister -> onDirectRegister()
+            is ManualRegisterSideEffect.OnRegistered -> navigation.onRegistered()
+            is ManualRegisterSideEffect.OnBack -> navigation.onBack()
+            is ManualRegisterSideEffect.OnNavigateToDirectRegister -> navigation.onDirectRegister()
         }
     }
 }
+
+data class ManualRegisterNavigation(
+    val onBack: () -> Unit,
+    val onRegistered: () -> Unit,
+    val onDirectRegister: () -> Unit,
+)
+
+data class PendingCategory(
+    val name: String?,
+    val onConsumed: () -> Unit,
+)
 
 internal data class ManualRegisterScreenAction(
     val onCategoryChange: (String) -> Unit,

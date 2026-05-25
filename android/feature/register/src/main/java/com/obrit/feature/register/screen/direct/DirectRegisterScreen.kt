@@ -1,4 +1,4 @@
-package com.obrit.feature.register.screen
+package com.obrit.feature.register.screen.direct
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,3 +38,10 @@ fun DirectRegisterScreen(
         }
     }
 }
+
+internal data class DirectRegisterScreenAction(
+    val onNameChange: (String) -> Unit,
+    val onIconSelect: (Int) -> Unit,
+    val onSubmit: () -> Unit,
+    val onBack: () -> Unit,
+)
