@@ -37,6 +37,10 @@
 - SwiftUI code는 shared domain API를 호출하되, Android Compose code나 Android ViewModel에 의존하지 않는다.
 - shared Kotlin API를 Swift에서 사용할 때는 Kotlin/Native export 이름과 nullability를 확인한다.
 - sample UI를 수정할 때도 `ContentView_Previews`가 깨지지 않도록 유지한다.
+- 파일을 나누기 전에는 분리가 과한 추상화가 아닌지 먼저 판단한다.
+  - 단순 wrapper, 한 곳에서만 쓰는 얇은 pass-through view, 이름만 바꾼 content view는 별도 파일로 분리하지 않는다.
+  - 화면 진입점과 content view를 분리할 때는 preview/test 재사용, 상태별 렌더링 독립성, 파일 크기 감소 같은 명확한 이점이 있어야 한다.
+  - 분리 후에도 각 파일이 독립적인 책임을 갖지 못하거나 호출 단계만 늘어난다면 기존 파일 안의 private helper/view로 유지한다.
 
 ## Git 커밋 규칙
 

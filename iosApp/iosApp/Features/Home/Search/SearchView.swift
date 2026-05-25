@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
@@ -274,10 +273,6 @@ private struct SearchResultListView: View {
             }
         }
     }
-}
-
-private func dismissKeyboard() {
-    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 }
 
 private enum SearchMetrics {
