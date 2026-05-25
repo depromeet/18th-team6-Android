@@ -26,9 +26,8 @@ struct HomeListTabAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
-    let onRegisterFromImage: () -> Void
     let onRegisterDirect: () -> Void
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
     let onOpenFilterSheet: () -> Void
     let onOpenSortSheet: () -> Void
     let onDismissBottomSheet: () -> Void
@@ -82,12 +81,7 @@ private struct HomeListTabSuccessView: View {
                             isPresented: $isFabMenuPresented,
                             items: [
                                 OBRitFloatingActionMenuItem(
-                                    id: "image",
-                                    title: "이미지 등록",
-                                    action: action.onRegisterFromImage
-                                ),
-                                OBRitFloatingActionMenuItem(
-                                    id: "manual",
+                                    id: "itemRegistration",
                                     title: "직접 등록",
                                     action: action.onRegisterDirect
                                 )
@@ -136,7 +130,7 @@ private struct HomeListScrollableContent: View {
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(viewData.items) { item in
                         Button {
-                            action.onSelectConsumable(item.id)
+                            action.onSelectItem(item.id)
                         } label: {
                             OBRitCardList(
                                 level: item.cardLevel,

@@ -35,7 +35,7 @@ fix/#57-crash-on-startup
 
 ## 커밋 규칙
 
-커밋 메시지는 Conventional Commits를 따른다.
+커밋 메시지는 Conventional Commits를 따른다. type은 영문 convention을 유지하고, summary는 한글로 작성한다.
 
 ```text
 <type>: <summary>
@@ -106,4 +106,3 @@ build: compose compiler 설정 정리
 - dirty worktree에서는 내가 수정한 파일과 기존 변경분을 구분한다.
 - `git reset --hard`, `git checkout --`, 강제 push 같은 파괴적 명령은 사용자가 명시적으로 요청한 경우에만 수행한다.
 - PR, issue, push 등 원격 작업에는 `gh` CLI를 사용하되, 필요한 권한이나 네트워크 문제가 있으면 사용자에게 알린다.
-

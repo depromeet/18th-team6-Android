@@ -79,6 +79,7 @@ lint/style 확인이 관련된 경우 다음 명령을 사용한다.
 ## Git 위생
 
 - Git 작업을 수행할 때는 [docs/ruleset/Git.md](docs/ruleset/Git.md)를 먼저 참고한다.
+- 커밋 메시지는 Conventional Commits 형식을 따르되 summary는 한글로 작성한다.
 - 사용자 요청과 관련된 파일만 stage한다.
 - 사용자가 명시적으로 요청하지 않는 한 branch, commit, tag, pull request를 만들지 않는다.
 - 수정 후에는 변경한 파일과 수행한 검증을 보고한다.

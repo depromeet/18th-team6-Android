@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitTooltipDirection: Sendable {
     case top
@@ -57,7 +56,7 @@ public struct OBRitTooltip: View {
     private var popup: some View {
         Text(text)
             .lineLimit(1)
-            .obritTextStyle(OBRitTypography.small, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common100)
+            .obritTextStyle(OBRitTypography.small, weight: OBRitFontWeight.medium, color: OBRitColors.common100)
             .padding(.horizontal, 14)
             .padding(.vertical, OBRitSpacing.s1_5)
             .background(OBRitColors.common00)
