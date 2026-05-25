@@ -295,7 +295,7 @@ private struct HomeListToolbarChip: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }
 
@@ -422,7 +422,7 @@ private struct HomeListFilterBottomSheet: View {
 
                 Button(action: action.onApplyFilters) {
                     Text("적용")
-                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common100)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common1000)
                         .frame(maxWidth: .infinity)
                         .frame(height: OBRitSpacing.s14)
                         .background(OBRitColors.common00)
