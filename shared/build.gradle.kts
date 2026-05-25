@@ -10,6 +10,8 @@ kotlin {
             baseName = "Shared"
             isStatic = true
             export(projects.shared.designSystem)
+            export(projects.shared.model)
+            export(projects.shared.data)
         }
     }
 
@@ -19,8 +21,9 @@ kotlin {
             implementation(libs.koin.core)
 
             api(projects.shared.designSystem)
+            api(projects.shared.model)
+            api(projects.shared.data)
             implementation(projects.shared.network)
-            implementation(projects.shared.data)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
