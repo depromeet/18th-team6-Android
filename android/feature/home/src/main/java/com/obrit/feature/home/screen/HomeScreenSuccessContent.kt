@@ -70,7 +70,7 @@ internal fun HomeScreenSuccessContent(
                 HomeContents(
                     state = state,
                     onListSortOrderChange = action.onListSortOrderChange,
-                    onMoreClick = action.onMoreClick,
+                    onMoreClick = { selectedTab = OBRitGnbTab.List },
                 )
             } else {
                 ConsumableListScreenContent(
