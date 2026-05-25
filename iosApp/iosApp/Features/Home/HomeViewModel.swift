@@ -21,7 +21,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    var visibleQuickItems: [HomeConsumableItem] {
+    var visibleQuickItems: [HomeItemItem] {
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -29,7 +29,7 @@ final class HomeViewModel: ObservableObject {
         return Self.sortedQuickItems(filteredItems, for: selectedStatusFilter)
     }
 
-    var visibleWarningItems: [HomeConsumableItem] {
+    var visibleWarningItems: [HomeItemItem] {
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -68,9 +68,9 @@ final class HomeViewModel: ObservableObject {
     }
 
     private static func sortedQuickItems(
-        _ items: [HomeConsumableItem],
+        _ items: [HomeItemItem],
         for filter: HomeStatusFilter
-    ) -> [HomeConsumableItem] {
+    ) -> [HomeItemItem] {
         switch filter {
         case .replacementDanger, .replacementWarning:
             return items.sorted {

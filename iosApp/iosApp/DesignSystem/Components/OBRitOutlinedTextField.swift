@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 import UIKit
 
 public enum OBRitInputResultState {
@@ -124,6 +123,8 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
     private let inputType: OBRitTextInputType
     private let submitLabel: SubmitLabel
     private let onSubmit: () -> Void
+    private let hasLeadingIcon: Bool
+    private let hasTrailingIcon: Bool
     private let leadingIcon: () -> LeadingIcon
     private let trailingIcon: () -> TrailingIcon
 
@@ -142,6 +143,8 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
         inputType: OBRitTextInputType = .text,
         submitLabel: SubmitLabel = .done,
         onSubmit: @escaping () -> Void = {},
+        hasLeadingIcon: Bool = true,
+        hasTrailingIcon: Bool = true,
         @ViewBuilder leadingIcon: @escaping () -> LeadingIcon,
         @ViewBuilder trailingIcon: @escaping () -> TrailingIcon
     ) {
@@ -159,6 +162,8 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
         self.inputType = inputType
         self.submitLabel = submitLabel
         self.onSubmit = onSubmit
+        self.hasLeadingIcon = hasLeadingIcon
+        self.hasTrailingIcon = hasTrailingIcon
         self.leadingIcon = leadingIcon
         self.trailingIcon = trailingIcon
     }
@@ -166,14 +171,16 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
     public var body: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s2) {
-                leadingIcon()
-                    .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                if hasLeadingIcon {
+                    leadingIcon()
+                        .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                }
 
                 ZStack(alignment: .leading) {
                     if text.isEmpty && !placeholder.isEmpty {
                         Text(placeholder)
                             .lineLimit(singleLine ? 1 : nil)
-                            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray700)
+                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.gray700)
                     }
 
                     inputField
@@ -183,13 +190,15 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                 if let maxLength {
                     Text("\(min(text.count, maxLength))/\(maxLength)")
                         .lineLimit(1)
-                        .obritTextStyle(OBRitTypography.small, weight: AtomFontWeight.shared.Medium, color: counterColor)
+                        .obritTextStyle(OBRitTypography.small, weight: OBRitFontWeight.medium, color: counterColor)
                 }
 
-                trailingIcon()
-                    .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                if hasTrailingIcon {
+                    trailingIcon()
+                        .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                }
             }
-            .frame(minHeight: OBRitSpacing.s14)
+            .frame(minHeight: OBRitSpacing.s6)
             .padding(.horizontal, OBRitSpacing.s5)
             .padding(.vertical, OBRitSpacing.s4)
             .background(containerColor)
@@ -201,7 +210,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
                     OBRitIcon(kind: statusIconKind, color: statusColor)
                         .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                     Text(supportingText)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: statusColor)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: statusColor)
                 }
             }
         }
@@ -230,7 +239,7 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
             .submitLabel(submitLabel)
             .onSubmit(onSubmit)
             .tint(OBRitColors.common00)
-            .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: contentColor)
+            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: contentColor)
     }
 
     @ViewBuilder
@@ -327,6 +336,8 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView, Trailing
             inputType: inputType,
             submitLabel: submitLabel,
             onSubmit: onSubmit,
+            hasLeadingIcon: false,
+            hasTrailingIcon: false,
             leadingIcon: { EmptyView() },
             trailingIcon: { EmptyView() }
         )
@@ -365,7 +376,9 @@ public extension OBRitOutlinedTextField where LeadingIcon == EmptyView {
             forceFocused: forceFocused,
             inputType: inputType,
             submitLabel: submitLabel,
-            onSubmit: onSubmit
+            onSubmit: onSubmit,
+            hasLeadingIcon: false,
+            hasTrailingIcon: true
         ) {
             EmptyView()
         } trailingIcon: {
@@ -408,6 +421,8 @@ public extension OBRitOutlinedTextField where TrailingIcon == EmptyView {
             inputType: inputType,
             submitLabel: submitLabel,
             onSubmit: onSubmit,
+            hasLeadingIcon: true,
+            hasTrailingIcon: false,
             leadingIcon: {
                 leadingIcon()
             },

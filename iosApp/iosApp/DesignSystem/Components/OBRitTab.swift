@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public struct OBRitTabItem: Hashable {
     let text: String
@@ -71,7 +70,7 @@ public struct OBRitTab: View {
                 }
             }
             .lineLimit(1)
-            .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+            .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
             .padding(.horizontal, OBRitSpacing.s4)
             .padding(.vertical, OBRitSpacing.s3)
             .background(OBRitTabBackdropBlur())
