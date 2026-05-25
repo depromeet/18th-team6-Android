@@ -54,7 +54,7 @@ fun RegisterNavigation(
                 entry<RegisterRoute.DirectRegister> {
                     DirectRegisterScreen(
                         onBack = { registerBackStack.removeLastOrNull() },
-                        onRegistered = { name, _ ->
+                        onRegister = { name, _ ->
                             pendingCategoryName = name
                             registerBackStack.removeLastOrNull()
                         },

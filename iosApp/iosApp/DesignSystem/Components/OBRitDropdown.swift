@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitDropdownInputState {
     case `default`
@@ -11,6 +10,11 @@ public enum OBRitDropdownMenuItemSize {
     case large
 }
 
+public enum OBRitDropdownVariant {
+    case input
+    case chip
+}
+
 public struct OBRitDropdown: View {
     private let value: String
     private let placeholder: String
@@ -18,6 +22,7 @@ public struct OBRitDropdown: View {
     private let supportingText: String
     private let enabled: Bool
     private let expanded: Bool
+    private let variant: OBRitDropdownVariant
     private let containerColor: Color
     private let onClick: () -> Void
 
@@ -28,6 +33,7 @@ public struct OBRitDropdown: View {
         supportingText: String = "",
         enabled: Bool = true,
         expanded: Bool = false,
+        variant: OBRitDropdownVariant = .input,
         containerColor: Color = OBRitColors.gray800,
         onClick: @escaping () -> Void
     ) {
@@ -37,18 +43,28 @@ public struct OBRitDropdown: View {
         self.supportingText = supportingText
         self.enabled = enabled
         self.expanded = expanded
+        self.variant = variant
         self.containerColor = containerColor
         self.onClick = onClick
     }
 
     public var body: some View {
+        switch variant {
+        case .input:
+            inputBody
+        case .chip:
+            chipBody
+        }
+    }
+
+    private var inputBody: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             Button(action: onClick) {
                 HStack(spacing: OBRitSpacing.s2) {
                     Text(displayedText)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: displayedTextColor)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: displayedTextColor)
 
                     OBRitIcon(kind: .chevronDown, color: OBRitColors.common00)
                         .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
@@ -69,10 +85,36 @@ public struct OBRitDropdown: View {
                     OBRitIcon(kind: .exclamation, color: OBRitColors.red300)
                         .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                     Text(supportingText)
-                        .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: OBRitColors.red300)
+                        .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: OBRitColors.red300)
                 }
             }
         }
+    }
+
+    private var chipBody: some View {
+        Button(action: onClick) {
+            HStack(spacing: OBRitSpacing.s0_5) {
+                Text(displayedText)
+                    .lineLimit(1)
+                    .obritTextStyle(
+                        OBRitTypography.base,
+                        weight: OBRitFontWeight.semiBold,
+                        color: chipTextColor
+                    )
+
+                OBRitIcon(kind: .chevronDown, color: chipTextColor)
+                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+            }
+            .padding(.horizontal, OBRitSpacing.s3)
+            .padding(.vertical, OBRitSpacing.s2)
+            .overlay {
+                RoundedRectangle(cornerRadius: OBRitRadius.small)
+                    .stroke(chipBorderColor, lineWidth: OBRitSpacing.px)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
     }
 
     private var displayedText: String {
@@ -102,6 +144,14 @@ public struct OBRitDropdown: View {
             return OBRitColors.gray700
         }
         return nil
+    }
+
+    private var chipTextColor: Color {
+        enabled ? OBRitColors.textDefaultDefault : OBRitColors.textDisabledDefault
+    }
+
+    private var chipBorderColor: Color {
+        enabled ? OBRitColors.borderDefaultSecondary : OBRitColors.borderDisabledDefault
     }
 }
 
@@ -148,7 +198,7 @@ public struct OBRitDropdownMenuItem: View {
             .padding(.vertical, verticalPadding)
             .frame(width: fixedWidth)
             .background(selected ? OBRitColors.gray750 : OBRitColors.gray800)
-            .obritTextStyle(textStyle, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+            .obritTextStyle(textStyle, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
             .contentShape(Rectangle())
     }
 
@@ -194,6 +244,7 @@ public struct OBRitDropdownMenu: View {
     private let selectedIndex: Int?
     private let itemSize: OBRitDropdownMenuItemSize
     private let enabled: Bool
+    private let fillsWidth: Bool
     private let onItemClick: (Int) -> Void
 
     public init(
@@ -201,12 +252,14 @@ public struct OBRitDropdownMenu: View {
         selectedIndex: Int? = nil,
         itemSize: OBRitDropdownMenuItemSize = .large,
         enabled: Bool = true,
+        fillsWidth: Bool = false,
         onItemClick: @escaping (Int) -> Void
     ) {
         self.items = items
         self.selectedIndex = selectedIndex
         self.itemSize = itemSize
         self.enabled = enabled
+        self.fillsWidth = fillsWidth
         self.onItemClick = onItemClick
     }
 
@@ -222,7 +275,8 @@ public struct OBRitDropdownMenu: View {
                 )
             }
         }
-        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: fillsWidth ? .infinity : nil)
+        .fixedSize(horizontal: !fillsWidth, vertical: false)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
         .overlay(
             RoundedRectangle(cornerRadius: OBRitRadius.small)

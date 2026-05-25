@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 private let obritCardListImageBackgroundColor = Color(red: 48.0 / 255.0, green: 51.0 / 255.0, blue: 62.0 / 255.0)
 
@@ -38,25 +37,24 @@ public struct OBRitCardGrid<ImageContent: View>: View {
             CardImageBox {
                 image()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .aspectRatio(1, contentMode: .fit)
+            .frame(width: OBRitSpacing.s11, height: OBRitSpacing.s11, alignment: .leading)
 
             VStack(alignment: .leading, spacing: OBRitSpacing.s0_5) {
                 Text(title)
                     .lineLimit(1)
-                    .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                    .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 HStack(spacing: OBRitSpacing.s1) {
                     Text("\(stockCount)개")
-                        .obritTextStyle(OBRitTypography.xs, weight: AtomFontWeight.shared.Bold, color: gridStockCountColor)
+                        .obritTextStyle(OBRitTypography.xs, weight: OBRitFontWeight.bold, color: gridStockCountColor)
                     Text("남음")
-                        .obritTextStyle(OBRitTypography.xs, weight: AtomFontWeight.shared.Medium, color: gridStockSuffixColor)
+                        .obritTextStyle(OBRitTypography.xs, weight: OBRitFontWeight.medium, color: gridStockSuffixColor)
                 }
             }
 
             CardBadge(text: daysLabel, containerColor: gridBadgeContainerColor, contentColor: gridBadgeContentColor)
         }
         .padding(OBRitSpacing.s4)
-        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40)
+        .frame(width: OBRitSpacing.s40, height: OBRitSpacing.s40, alignment: .topLeading)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
@@ -153,12 +151,12 @@ public struct OBRitCardList<ImageContent: View>: View {
             VStack(alignment: .leading, spacing: OBRitSpacing.s0_5) {
                 Text(title)
                     .lineLimit(1)
-                    .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                    .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 HStack(spacing: OBRitSpacing.s0_5) {
                     Text(daysInUseLabel)
-                        .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                     Text("째 사용중")
-                        .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Medium, color: listInUseSuffixColor)
+                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.medium, color: listInUseSuffixColor)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -167,9 +165,11 @@ public struct OBRitCardList<ImageContent: View>: View {
                 CardBadge(text: replaceLabel, containerColor: listFirstBadgeContainerColor, contentColor: listFirstBadgeContentColor)
                 CardBadge(text: sparesLabel, containerColor: listSecondBadgeContainerColor, contentColor: OBRitColors.common00)
             }
+            .fixedSize(horizontal: true, vertical: true)
         }
         .padding(.horizontal, OBRitSpacing.s5)
         .padding(.vertical, OBRitSpacing.s4)
+        .frame(maxWidth: .infinity)
         .background(cardContainerColor)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
     }
@@ -267,10 +267,11 @@ private struct CardBadge: View {
     var body: some View {
         Text(text)
             .lineLimit(1)
-            .obritTextStyle(OBRitTypography.xs, weight: AtomFontWeight.shared.Bold, color: contentColor)
+            .obritTextStyle(OBRitTypography.xs, weight: OBRitFontWeight.bold, color: contentColor)
             .padding(.horizontal, OBRitSpacing.s2)
             .padding(.vertical, OBRitSpacing.s1)
             .background(containerColor)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
+            .fixedSize(horizontal: true, vertical: true)
     }
 }

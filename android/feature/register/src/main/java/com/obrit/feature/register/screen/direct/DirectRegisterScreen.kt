@@ -12,7 +12,7 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 @Composable
 fun DirectRegisterScreen(
     onBack: () -> Unit,
-    onRegistered: (name: String, selectedIconIndex: Int?) -> Unit,
+    onRegister: (name: String, selectedIconIndex: Int?) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DirectRegisterViewModel = koinViewModel(),
 ) {
@@ -33,7 +33,7 @@ fun DirectRegisterScreen(
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
             is DirectRegisterSideEffect.OnRegistered ->
-                onRegistered(sideEffect.name, sideEffect.selectedIconIndex)
+                onRegister(sideEffect.name, sideEffect.selectedIconIndex)
             is DirectRegisterSideEffect.OnBack -> onBack()
         }
     }

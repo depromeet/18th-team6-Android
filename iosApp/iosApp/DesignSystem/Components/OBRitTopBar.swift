@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public struct OBRitHomeTopBar: View {
     private let backgroundColor: Bool
@@ -22,18 +21,14 @@ public struct OBRitHomeTopBar: View {
     public var body: some View {
         TopBarRoot(backgroundColor: backgroundColor) {
             HStack {
-                Text("OBRit")
-                    .font(.custom("Pretendard-ExtraBold", size: 25))
-                    .foregroundStyle(Color(red: 0.94, green: 0.99, blue: 0.98))
-                    .lineLimit(1)
-                    .accessibilityLabel("OBRit")
+                OBRitLogo()
+                    .frame(width: 80, height: 25, alignment: .leading)
 
                 Spacer()
 
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
                     TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
-                    TopBarIconButton(symbolName: "person", accessibilityLabel: "프로필", action: onProfileClick)
                 }
             }
             .padding(.leading, OBRitSpacing.s5)
@@ -120,20 +115,27 @@ public struct OBRitDepthTopBar: View {
 
 public struct OBRitSearchTopBar: View {
     @Binding private var query: String
+    @FocusState private var isSearchFocused: Bool
     private let placeholder: String
     private let backgroundColor: Bool
+    private let focusOnAppear: Bool
     private let onBackClick: () -> Void
+    private let onSubmit: () -> Void
 
     public init(
         query: Binding<String>,
         placeholder: String = "원하시는 소모품을 검색해보세요",
         backgroundColor: Bool = true,
-        onBackClick: @escaping () -> Void
+        focusOnAppear: Bool = false,
+        onBackClick: @escaping () -> Void,
+        onSubmit: @escaping () -> Void = {}
     ) {
         self._query = query
         self.placeholder = placeholder
         self.backgroundColor = backgroundColor
+        self.focusOnAppear = focusOnAppear
         self.onBackClick = onBackClick
+        self.onSubmit = onSubmit
     }
 
     public var body: some View {
@@ -145,7 +147,10 @@ public struct OBRitSearchTopBar: View {
                     TextField("", text: $query, prompt: Text(placeholder).foregroundStyle(OBRitColors.gray700))
                         .lineLimit(1)
                         .tint(OBRitColors.common00)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                        .submitLabel(.search)
+                        .focused($isSearchFocused)
+                        .onSubmit(onSubmit)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: OBRitSpacing.s5, weight: .regular))
                         .foregroundStyle(OBRitColors.common00)
@@ -159,6 +164,10 @@ public struct OBRitSearchTopBar: View {
             }
             .padding(.leading, OBRitSpacing.s3)
             .padding(.trailing, OBRitSpacing.s3)
+        }
+        .onAppear {
+            guard focusOnAppear else { return }
+            isSearchFocused = true
         }
     }
 }
@@ -195,7 +204,7 @@ private struct TopBarWithTitle: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(width: 277)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 }
             }
         }

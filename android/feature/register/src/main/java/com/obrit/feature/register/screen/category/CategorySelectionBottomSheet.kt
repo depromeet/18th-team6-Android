@@ -102,8 +102,8 @@ private fun rememberSheetDragState(onDismissRequest: () -> Unit): AnchoredDragga
 
 @Composable
 private fun CategorySheetScrim(
-    onDismiss: () -> Unit,        
-    modifier: Modifier = Modifier, 
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(

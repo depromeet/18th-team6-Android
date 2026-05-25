@@ -3,6 +3,6 @@ enum AppRoute: OBRitRoute {
     case appIntro
     case onboarding
     case registrationPrompt
-    case initialConsumableRegistration
+    case initialItemRegistration
     case main(MainTab)
 }
