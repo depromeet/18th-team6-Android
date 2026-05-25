@@ -107,7 +107,7 @@ public struct OBRitFilledButton<Content: View>: View {
         case .gray:
             return enabled ? OBRitColors.common00 : OBRitColors.gray700
         case .white:
-            return enabled ? OBRitColors.common1000 : OBRitColors.color(0xFF24242A)
+            return enabled ? OBRitColors.common1000 : OBRitColors.gray850
         }
     }
 }
