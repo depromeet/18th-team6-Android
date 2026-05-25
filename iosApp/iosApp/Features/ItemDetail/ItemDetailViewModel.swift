@@ -137,7 +137,7 @@ final class ItemDetailViewModel: ObservableObject {
             )
             isProcessing = false
             publishSuccess()
-            effect = .showMessage("여분 수량을 수정했어요.")
+            effect = .itemUpdated(message: "여분 수량을 수정했어요.")
         } catch {
             handleMutationFailure(error)
         }
