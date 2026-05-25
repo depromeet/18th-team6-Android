@@ -7,6 +7,7 @@ struct HomeView: View {
     let onNavigateItem: (ItemRoute) -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
+    let onRegisteredItemsAvailabilityChange: (Bool) -> Void
 
     @MainActor
     init(
@@ -14,13 +15,15 @@ struct HomeView: View {
         refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowListTab: @escaping () -> Void,
-        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in },
+        onRegisteredItemsAvailabilityChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.refreshCenter = refreshCenter
         self.onNavigateItem = onNavigateItem
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
+        self.onRegisteredItemsAvailabilityChange = onRegisteredItemsAvailabilityChange
     }
 
     var body: some View {
@@ -52,6 +55,10 @@ struct HomeView: View {
         .onChange(of: refreshCenter.itemRefreshToken) { _, _ in
             viewModel.refresh()
         }
+        .onAppear(perform: notifyRegisteredItemsAvailability)
+        .onChange(of: registeredItemsAvailability) { _, _ in
+            notifyRegisteredItemsAvailability()
+        }
     }
 
     private var homeAction: HomeViewAction {
@@ -65,6 +72,16 @@ struct HomeView: View {
             onSelectStatusFilter: viewModel.selectStatusFilter,
             onSelectWarningSort: viewModel.selectWarningSort
         )
+    }
+
+    private var registeredItemsAvailability: Bool? {
+        guard case let .success(dashboard) = viewModel.state else { return nil }
+        return dashboard.hasRegisteredItems
+    }
+
+    private func notifyRegisteredItemsAvailability() {
+        guard let registeredItemsAvailability else { return }
+        onRegisteredItemsAvailabilityChange(registeredItemsAvailability)
     }
 }
 

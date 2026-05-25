@@ -46,8 +46,18 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
         let event = "SharedHomeDashboardRepository.dashboard"
         AppLog.enter(AppLog.swiftRepository, event, "pageSize=\(pageSize)")
         do {
+            let mySummary = try await readService.getMyStatusSummary()
+            if mySummary.totalCount == 0 {
+                let dashboard = HomeDashboard(
+                    summary: SharedHomeReadMapper.emptySummary(summary: mySummary),
+                    warningItems: [],
+                    usageItems: []
+                )
+                AppLog.success(AppLog.swiftRepository, event, "warningCount=0 totalCount=0 skipped=empty")
+                return dashboard
+            }
+
             async let overallStatus = readService.getOverallStatus()
-            async let summary = readService.getMyStatusSummary()
             async let itemsSlice = readService.getHomeItems(
                 params: HomeItemsParams(
                     order: HomeItemOrder.replacementUrgent,
@@ -58,7 +68,7 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
                 )
             )
 
-            let (status, mySummary, slice) = try await (overallStatus, summary, itemsSlice)
+            let (status, slice) = try await (overallStatus, itemsSlice)
             let warningItems = slice.content.map(SharedHomeReadMapper.homeItem)
 
             let dashboard = HomeDashboard(
@@ -167,6 +177,25 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
 }
 
 private enum SharedHomeReadMapper {
+    static func emptySummary(summary: MyStatusSummary) -> HomeSummary {
+        let ownPercent = normalizedPercent(summary.score)
+        let averagePercent = normalizedPercent(summary.averageScore)
+        let positiveRatio = Int((ownPercent * 100).rounded())
+
+        return HomeSummary(
+            status: "",
+            replacementStatus: "",
+            stockStatus: "",
+            positiveRatio: positiveRatio,
+            warningRatio: 100 - positiveRatio,
+            totalCount: Int(summary.totalCount),
+            warningCount: Int(summary.needReplaceCount),
+            history: [averagePercent],
+            ownStatusPercent: ownPercent,
+            averageStatusPercent: averagePercent
+        )
+    }
+
     static func summary(status: HomeOverallStatus, summary: MyStatusSummary) -> HomeSummary {
         let ownPercent = normalizedPercent(summary.score)
         let averagePercent = normalizedPercent(summary.averageScore)

@@ -4,6 +4,10 @@ struct HomeDashboard {
     let summary: HomeSummary
     let warningItems: [HomeItemItem]
     let usageItems: [HomeItemItem]
+
+    var hasRegisteredItems: Bool {
+        summary.totalCount > 0
+    }
 }
 
 struct HomeSummary {
