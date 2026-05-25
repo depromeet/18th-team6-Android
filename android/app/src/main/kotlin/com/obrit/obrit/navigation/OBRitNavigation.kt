@@ -21,7 +21,13 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
                 entry<AgentRoute> {
                     AgentNavigation(modifier = Modifier)
                 }
-                entry<RegisterRoute> {
+                entry<RegisterRoute.ManualRegister> {
+                    RegisterNavigation(
+                        onExit = { backStack.removeLastOrNull() },
+                        modifier = Modifier,
+                    )
+                }
+                entry<RegisterRoute.DirectRegister> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
                         modifier = Modifier,
