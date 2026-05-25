@@ -20,8 +20,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
@@ -123,6 +126,7 @@ fun OBRitSearchTopBar(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = OBRIT_TOP_BAR_SEARCH_PLACEHOLDER,
+    focusRequester: FocusRequester = remember { FocusRequester() },
 ) {
     TopBarRoot(modifier = modifier) {
         TopBarIconButton(
@@ -138,6 +142,7 @@ fun OBRitSearchTopBar(
             query = query,
             onQueryChange = onQueryChange,
             placeholder = placeholder,
+            focusRequester = focusRequester,
             modifier =
                 Modifier
                     .padding(
@@ -254,6 +259,7 @@ private fun TopBarSearchInput(
     query: String,
     onQueryChange: (String) -> Unit,
     placeholder: String,
+    focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -270,6 +276,7 @@ private fun TopBarSearchInput(
         onValueChange = onQueryChange,
         modifier =
             modifier
+                .focusRequester(focusRequester)
                 .clip(RoundedCornerShape(AtomRadius.Middle.dp))
                 .border(
                     width = OBRitTopBarSearchBorderWidth,
