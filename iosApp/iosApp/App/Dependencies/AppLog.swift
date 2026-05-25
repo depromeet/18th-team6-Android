@@ -10,6 +10,7 @@ enum AppLog {
     static let itemRegistrationViewModel = Logger(subsystem: subsystem, category: "ItemRegistrationViewModel")
     static let itemDetailViewModel = Logger(subsystem: subsystem, category: "ItemDetailViewModel")
     static let swiftRepository = Logger(subsystem: subsystem, category: "SwiftRepositoryAdapter")
+    static let appBootstrap = Logger(subsystem: subsystem, category: "AppBootstrap")
 
     static func enter(_ logger: Logger, _ event: String, _ details: String = "") {
         logger.info("[enter] \(event, privacy: .public) \(details, privacy: .public)")

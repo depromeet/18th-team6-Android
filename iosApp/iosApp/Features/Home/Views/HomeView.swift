@@ -55,6 +55,9 @@ struct HomeView: View {
         .onChange(of: refreshCenter.itemRefreshToken) { _, _ in
             viewModel.refresh()
         }
+        .task {
+            await viewModel.loadInitialDashboardIfNeeded()
+        }
         .onAppear(perform: notifyRegisteredItemsAvailability)
         .onChange(of: registeredItemsAvailability) { _, _ in
             notifyRegisteredItemsAvailability()

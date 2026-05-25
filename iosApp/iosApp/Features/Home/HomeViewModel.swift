@@ -8,21 +8,18 @@ final class HomeViewModel: ObservableObject {
 
     private let repository: HomeDashboardRepository
     private var dashboard: HomeDashboard?
+    private var didStartInitialLoad: Bool
 
     init(
         repository: HomeDashboardRepository = HomeSampleDashboardRepository(),
-        initialDashboard: HomeDashboard? = nil,
-        automaticallyLoads: Bool = true
+        initialDashboard: HomeDashboard? = nil
     ) {
         self.repository = repository
         self.dashboard = initialDashboard
+        self.didStartInitialLoad = initialDashboard != nil
         self.state = initialDashboard.map(HomeViewState.success) ?? .loading
         self.selectedStatusFilter = initialDashboard.flatMap(Self.firstVisibleStatusFilter(in:)) ?? .replacementDanger
         self.selectedWarningSort = .replacementRisk
-
-        if automaticallyLoads {
-            load()
-        }
     }
 
     var statusFilterCounts: [HomeStatusFilter: Int] {
@@ -74,14 +71,16 @@ final class HomeViewModel: ObservableObject {
         selectedWarningSort = sort
     }
 
-    func load() {
-        Task {
-            await loadDashboard()
-        }
+    func loadInitialDashboardIfNeeded() async {
+        guard !didStartInitialLoad else { return }
+        didStartInitialLoad = true
+        await loadDashboard()
     }
 
     func retry() {
-        load()
+        Task {
+            await loadDashboard()
+        }
     }
 
     func refresh() {
