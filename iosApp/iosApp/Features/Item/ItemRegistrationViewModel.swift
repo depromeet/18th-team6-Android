@@ -28,7 +28,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         self.state = .success(initialData)
 
         #if DEBUG
-        applyDebugInitialState()
+            applyDebugInitialState()
         #endif
     }
 
@@ -46,35 +46,35 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     #if DEBUG
-    private func applyDebugInitialState() {
-        switch ProcessInfo.processInfo.environment["OBRIT_MANUAL_REGISTRATION_STATE"] {
-        case "filled":
-            update { data in
-                data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
-                data.draft.lastReplacementDateOption = .today
-                data.draft.quantity = 1
+        private func applyDebugInitialState() {
+            switch ProcessInfo.processInfo.environment["OBRIT_MANUAL_REGISTRATION_STATE"] {
+            case "filled":
+                update { data in
+                    data.draft.selectedKind = data.itemKinds.first
+                    data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                    data.draft.lastReplacementDateOption = .withinOneWeek
+                    data.draft.quantity = 1
+                }
+            case "kindSheet":
+                update { data in
+                    data.bottomSheet = .kind
+                    data.selectedKindCandidate = data.itemKinds.first
+                }
+            case "dateSheet":
+                update { data in
+                    data.draft.selectedKind = data.itemKinds.first
+                    data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                    data.draft.lastReplacementDateOption = .withinOneWeek
+                    data.draft.quantity = 1
+                }
+            case "directKind":
+                update { $0.mode = .directKind }
+            case "complete":
+                update { $0.mode = .complete }
+            default:
+                break
             }
-        case "kindSheet":
-            update { data in
-                data.bottomSheet = .kind
-                data.selectedKindCandidate = data.itemKinds.first
-            }
-        case "dateSheet":
-            update { data in
-                data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
-                data.draft.lastReplacementDateOption = .today
-                data.draft.quantity = 1
-            }
-        case "directKind":
-            update { $0.mode = .directKind }
-        case "complete":
-            update { $0.mode = .complete }
-        default:
-            break
         }
-    }
     #endif
 
     func updateItemName(_ itemName: String) {
@@ -201,11 +201,4 @@ final class ItemRegistrationViewModel: ObservableObject {
         transform(&nextData)
         data = nextData
     }
-}
-
-enum ItemRegistrationConfig {
-    static let itemNameMaxLength = 15
-    static let kindNameMaxLength = 15
-    static let quantityMinimum = 0
-    static let quantityMaximum = 99
 }

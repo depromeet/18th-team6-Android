@@ -295,7 +295,7 @@ private struct HomeListToolbarChip: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }
 
@@ -395,7 +395,7 @@ private struct HomeListFilterBottomSheet: View {
                     valueText: (viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday).ddayText,
                     suffix: "이하",
                     value: Double(viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday),
-                    range: Double(viewData.filterBounds.minReplacementDday)...Double(viewData.filterBounds.maxReplacementDday),
+                    range: Double(viewData.filterBounds.minReplacementDday) ... Double(viewData.filterBounds.maxReplacementDday),
                     onValueChange: action.onUpdateDraftReplacementDday
                 )
                 HomeListFilterSliderSection(
@@ -403,7 +403,7 @@ private struct HomeListFilterBottomSheet: View {
                     valueText: "\(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount)개",
                     suffix: "이하",
                     value: Double(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount),
-                    range: Double(viewData.filterBounds.minStockCount)...Double(viewData.filterBounds.maxStockCount),
+                    range: Double(viewData.filterBounds.minStockCount) ... Double(viewData.filterBounds.maxStockCount),
                     onValueChange: action.onUpdateDraftStockCount
                 )
             }
@@ -422,7 +422,7 @@ private struct HomeListFilterBottomSheet: View {
 
                 Button(action: action.onApplyFilters) {
                     Text("적용")
-                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common100)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common1000)
                         .frame(maxWidth: .infinity)
                         .frame(height: OBRitSpacing.s14)
                         .background(OBRitColors.common00)

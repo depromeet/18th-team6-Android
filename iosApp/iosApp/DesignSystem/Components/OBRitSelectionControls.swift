@@ -27,7 +27,7 @@ public struct OBRitNumber: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }
 
@@ -59,7 +59,7 @@ public struct OBRitPageIndicator: View {
 
     public var body: some View {
         HStack(spacing: OBRitSpacing.s2_5) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(0 ..< count, id: \.self) { index in
                 OBRitIndicatorDot(active: index == selectedIndex)
             }
         }

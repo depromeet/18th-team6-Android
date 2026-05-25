@@ -57,9 +57,9 @@ enum ItemRegistrationSampleData {
     static let itemKinds: [ItemKind] = {
         ItemAssetCatalog.entries.enumerated().map { index, entry in
             ItemKind(
-                id: index + 1,
+                id: index + ItemRegistrationConfig.nextIDIncrement,
                 title: entry.title,
-                addedCount: 0,
+                addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
                 imageAssetName: entry.assetName
             )
         }

@@ -22,10 +22,10 @@ struct ItemRegistrationDraft: Equatable {
 }
 
 enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
-    case today
-    case oneWeekAgo
-    case twoWeeksAgo
-    case oneMonthAgo
+    case withinOneWeek
+    case twoToFourWeeksAgo
+    case oneToThreeMonthsAgo
+    case unknown
 
     var id: Int {
         rawValue
@@ -33,14 +33,14 @@ enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
 
     var title: String {
         switch self {
-        case .today:
-            return "오늘"
-        case .oneWeekAgo:
-            return "7일 전"
-        case .twoWeeksAgo:
-            return "14일 전"
-        case .oneMonthAgo:
-            return "30일 전"
+        case .withinOneWeek:
+            return "1주일 이내"
+        case .twoToFourWeeksAgo:
+            return "2~4주 전"
+        case .oneToThreeMonthsAgo:
+            return "1~3개월 전"
+        case .unknown:
+            return "잘 모르겠어요"
         }
     }
 }

@@ -103,11 +103,11 @@ public struct OBRitFilledButton<Content: View>: View {
     private var contentColor: Color {
         switch color {
         case .green:
-            return OBRitColors.common100
+            return OBRitColors.common1000
         case .gray:
             return enabled ? OBRitColors.common00 : OBRitColors.gray700
         case .white:
-            return enabled ? OBRitColors.common100 : OBRitColors.color(0xFF24242A)
+            return enabled ? OBRitColors.common1000 : OBRitColors.gray850
         }
     }
 }
