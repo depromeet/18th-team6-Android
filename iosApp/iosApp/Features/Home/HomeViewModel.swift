@@ -7,17 +7,17 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var selectedWarningSort: HomeWarningSort
 
     private let repository: HomeDashboardRepository
-    private var dashboard: HomeDashboard
+    private var dashboard: HomeDashboard?
 
     init(
         repository: HomeDashboardRepository = HomeSampleDashboardRepository(),
-        initialDashboard: HomeDashboard = HomeSampleData.dashboard,
+        initialDashboard: HomeDashboard? = nil,
         automaticallyLoads: Bool = true
     ) {
         self.repository = repository
         self.dashboard = initialDashboard
-        self.state = .success(initialDashboard)
-        self.selectedStatusFilter = Self.firstVisibleStatusFilter(in: initialDashboard) ?? .replacementDanger
+        self.state = initialDashboard.map(HomeViewState.success) ?? .loading
+        self.selectedStatusFilter = initialDashboard.flatMap(Self.firstVisibleStatusFilter(in:)) ?? .replacementDanger
         self.selectedWarningSort = .replacementRisk
 
         if automaticallyLoads {
@@ -26,12 +26,14 @@ final class HomeViewModel: ObservableObject {
     }
 
     var statusFilterCounts: [HomeStatusFilter: Int] {
-        HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
+        guard let dashboard else { return [:] }
+        return HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
             result[filter] = dashboard.warningItems.filter { $0.quickStatusFilters.contains(filter) }.count
         }
     }
 
     var visibleQuickItems: [HomeItemItem] {
+        guard let dashboard else { return [] }
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -40,6 +42,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var visibleWarningItems: [HomeItemItem] {
+        guard let dashboard else { return [] }
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -81,6 +84,12 @@ final class HomeViewModel: ObservableObject {
         load()
     }
 
+    func refresh() {
+        Task {
+            await loadDashboard()
+        }
+    }
+
     private func loadDashboard() async {
         do {
             let dashboard = try await repository.dashboard()
@@ -90,7 +99,11 @@ final class HomeViewModel: ObservableObject {
             }
             state = .success(dashboard)
         } catch {
-            state = .success(dashboard)
+            if let dashboard {
+                state = .success(dashboard)
+            } else {
+                state = .loadFailed(message: error.homeMessage)
+            }
         }
     }
 
@@ -124,5 +137,18 @@ final class HomeViewModel: ObservableObject {
 }
 
 enum HomeViewState {
+    case loading
+    case loadFailed(message: String)
     case success(HomeDashboard)
+}
+
+private extension Error {
+    var homeMessage: String {
+        if let localizedError = self as? LocalizedError,
+           let description = localizedError.errorDescription {
+            return description
+        }
+
+        return "홈 정보를 불러오지 못했어요."
+    }
 }

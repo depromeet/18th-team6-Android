@@ -3,8 +3,12 @@ import Foundation
 @MainActor
 final class ItemRegistrationViewModel: ObservableObject {
     @Published private(set) var state: ItemRegistrationViewState
+    @Published private(set) var effect: ItemRegistrationViewEffect?
 
     private let catalogRepository: ItemRegistrationCatalogRepository?
+    private let writeRepository: ItemRegistrationWriteRepository?
+    private let dateProvider: () -> Date
+    private let calendar: Calendar
 
     private var data: ItemRegistrationViewData {
         didSet {
@@ -24,9 +28,13 @@ final class ItemRegistrationViewModel: ObservableObject {
             itemKinds: itemKinds,
             imageOptions: imageOptions,
             bottomSheet: nil,
-            selectedKindCandidate: nil
+            selectedKindCandidate: nil,
+            isProcessing: false
         )
         self.catalogRepository = nil
+        self.writeRepository = nil
+        self.dateProvider = Date.init
+        self.calendar = .current
         self.data = initialData
         self.state = .success(initialData)
 
@@ -37,8 +45,11 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     init(
         catalogRepository: ItemRegistrationCatalogRepository,
-        fallbackItemKinds: [ItemKind] = ItemRegistrationSampleData.itemKinds,
-        fallbackImageOptions: [ItemImageOption] = ItemRegistrationSampleData.imageOptions,
+        writeRepository: ItemRegistrationWriteRepository,
+        fallbackItemKinds: [ItemKind] = [],
+        fallbackImageOptions: [ItemImageOption] = [],
+        dateProvider: @escaping () -> Date = Date.init,
+        calendar: Calendar = .current,
         automaticallyLoads: Bool = true
     ) {
         let initialData = ItemRegistrationViewData(
@@ -48,9 +59,13 @@ final class ItemRegistrationViewModel: ObservableObject {
             itemKinds: fallbackItemKinds,
             imageOptions: fallbackImageOptions,
             bottomSheet: nil,
-            selectedKindCandidate: nil
+            selectedKindCandidate: nil,
+            isProcessing: false
         )
         self.catalogRepository = catalogRepository
+        self.writeRepository = writeRepository
+        self.dateProvider = dateProvider
+        self.calendar = calendar
         self.data = initialData
         self.state = automaticallyLoads ? .loading : .success(initialData)
 
@@ -121,6 +136,10 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     func retry() {
         load()
+    }
+
+    func clearEffect() {
+        effect = nil
     }
 
     func updateItemName(_ itemName: String) {
@@ -207,30 +226,36 @@ final class ItemRegistrationViewModel: ObservableObject {
     func submitDirectKind() {
         let trimmedName = data.draft.directKindName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty, let selectedImageOption = data.draft.selectedImageOption else { return }
+        guard let writeRepository else {
+            insertDirectKind(name: trimmedName, imageOption: selectedImageOption)
+            return
+        }
 
-        update { data in
-            let kind = ItemKind(
-                id: (data.itemKinds.map(\.id).max() ?? 0) + 1,
-                title: trimmedName,
-                addedCount: 0,
-                imageAssetName: selectedImageOption.assetName
+        update { $0.isProcessing = true }
+        Task {
+            await submitDirectKindTask(
+                name: trimmedName,
+                imageOption: selectedImageOption,
+                repository: writeRepository
             )
-            data.itemKinds.insert(kind, at: 0)
-            data.draft.selectedKind = kind
-            data.draft.itemName = trimmedName
-            data.draft.directKindName = ""
-            data.kindSearchQuery = ""
-            data.selectedKindCandidate = nil
-            data.mode = .form
         }
     }
 
     func submitForm() {
-        guard data.canSubmitForm else { return }
-        update { data in
-            data.mode = .complete
-            data.bottomSheet = nil
-            data.selectedKindCandidate = nil
+        guard data.canSubmitForm,
+              let request = makeCreateItemRequest() else { return }
+        guard let writeRepository else {
+            update { data in
+                data.mode = .complete
+                data.bottomSheet = nil
+                data.selectedKindCandidate = nil
+            }
+            return
+        }
+
+        update { $0.isProcessing = true }
+        Task {
+            await submitFormTask(request: request, repository: writeRepository)
         }
     }
 
@@ -239,6 +264,77 @@ final class ItemRegistrationViewModel: ObservableObject {
             data.mode = .form
             data.bottomSheet = nil
             data.selectedKindCandidate = nil
+        }
+    }
+
+    private func insertDirectKind(name: String, imageOption: ItemImageOption) {
+        update { data in
+            insert(kind: ItemKind(
+                id: (data.itemKinds.map(\.id).max() ?? 0) + ItemRegistrationConfig.nextIDIncrement,
+                title: name,
+                addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
+                imageAssetName: imageOption.assetName
+            ), into: &data)
+        }
+    }
+
+    private func insert(kind: ItemKind, into data: inout ItemRegistrationViewData) {
+        data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
+        data.draft.selectedKind = kind
+        data.draft.itemName = kind.title
+        data.draft.directKindName = ""
+        data.kindSearchQuery = ""
+        data.selectedKindCandidate = nil
+        data.mode = .form
+        data.isProcessing = false
+    }
+
+    private func makeCreateItemRequest() -> ItemRegistrationCreateItemRequest? {
+        guard let selectedKind = data.draft.selectedKind else { return nil }
+
+        return ItemRegistrationCreateItemRequest(
+            categoryId: selectedKind.id,
+            name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
+            quantity: data.draft.quantity,
+            lastReplacementDate: data.draft.lastReplacementDateOption?.replacementDateString(
+                referenceDate: dateProvider(),
+                calendar: calendar
+            )
+        )
+    }
+
+    private func submitDirectKindTask(
+        name: String,
+        imageOption: ItemImageOption,
+        repository: ItemRegistrationWriteRepository
+    ) async {
+        do {
+            let kind = try await repository.createKind(name: name, imageOption: imageOption)
+            update { data in
+                insert(kind: kind, into: &data)
+            }
+            effect = .showMessage("소모품 종류를 등록했어요.")
+        } catch {
+            update { $0.isProcessing = false }
+            effect = .showMessage(error.itemRegistrationMessage)
+        }
+    }
+
+    private func submitFormTask(
+        request: ItemRegistrationCreateItemRequest,
+        repository: ItemRegistrationWriteRepository
+    ) async {
+        do {
+            try await repository.createItem(request: request)
+            update { data in
+                data.mode = .complete
+                data.bottomSheet = nil
+                data.selectedKindCandidate = nil
+                data.isProcessing = false
+            }
+        } catch {
+            update { $0.isProcessing = false }
+            effect = .showMessage(error.itemRegistrationMessage)
         }
     }
 
@@ -266,11 +362,43 @@ final class ItemRegistrationViewModel: ObservableObject {
                 data.imageOptions = catalog.imageOptions
                 data.bottomSheet = nil
                 data.selectedKindCandidate = nil
+                data.isProcessing = false
             }
         } catch {
             state = .loadFailed(message: error.itemRegistrationMessage)
         }
     }
+}
+
+enum ItemRegistrationViewEffect: Equatable {
+    case showMessage(String)
+}
+
+private extension ItemReplacementDateOption {
+    func replacementDateString(referenceDate: Date, calendar: Calendar) -> String? {
+        let dayOffset: Int
+        switch self {
+        case .withinOneWeek:
+            dayOffset = -3
+        case .twoToFourWeeksAgo:
+            dayOffset = -21
+        case .oneToThreeMonthsAgo:
+            dayOffset = -60
+        case .unknown:
+            return nil
+        }
+
+        let date = calendar.date(byAdding: .day, value: dayOffset, to: referenceDate) ?? referenceDate
+        return Self.dateFormatter.string(from: date)
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }
 
 private extension Error {
@@ -280,6 +408,6 @@ private extension Error {
             return description
         }
 
-        return "소모품 등록 정보를 불러오지 못했어요."
+        return "소모품 등록 정보를 저장하지 못했어요."
     }
 }

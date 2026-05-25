@@ -21,6 +21,13 @@ struct ItemRegistrationDraft: Equatable {
     var selectedImageOption: ItemImageOption?
 }
 
+struct ItemRegistrationCreateItemRequest: Equatable {
+    let categoryId: Int
+    let name: String
+    let quantity: Int
+    let lastReplacementDate: String?
+}
+
 enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
     case withinOneWeek
     case twoToFourWeeksAgo
@@ -69,6 +76,7 @@ struct ItemRegistrationViewData: Equatable {
     var imageOptions: [ItemImageOption]
     var bottomSheet: ItemRegistrationBottomSheet?
     var selectedKindCandidate: ItemKind?
+    var isProcessing: Bool
 
     var filteredKinds: [ItemKind] {
         let query = kindSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -82,12 +90,14 @@ struct ItemRegistrationViewData: Equatable {
         draft.selectedKind != nil &&
             !draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             draft.lastReplacementDateOption != nil &&
-            draft.quantity >= ItemRegistrationConfig.quantityMinimum
+            draft.quantity >= ItemRegistrationConfig.quantityMinimum &&
+            !isProcessing
     }
 
     var canSubmitDirectKind: Bool {
         !draft.directKindName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.selectedImageOption != nil
+            draft.selectedImageOption != nil &&
+            !isProcessing
     }
 
     var kindCandidateForDisplay: ItemKind? {

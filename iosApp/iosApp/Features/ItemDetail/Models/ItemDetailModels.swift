@@ -413,6 +413,7 @@ enum ItemDetailViewState: Equatable {
 enum ItemDetailViewEffect: Equatable {
     case navigate(ItemDetailDestination)
     case itemDeleted(itemId: Int)
+    case itemUpdated(message: String)
     case replacementCompleted(itemId: Int)
     case showMessage(String)
 }
