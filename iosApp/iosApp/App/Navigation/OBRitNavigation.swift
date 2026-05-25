@@ -152,44 +152,6 @@ private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable 
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
-}
-
-private extension UIViewController {
-    var nearestNavigationController: UINavigationController? {
-        if let navigationController {
-            return navigationController
-        }
-
-        if let parentNavigationController = parent?.nearestNavigationController {
-            return parentNavigationController
-        }
-
-        guard let rootViewController = view.window?.rootViewController,
-              rootViewController !== self else {
-            return nil
-        }
-
-        return rootViewController.firstNavigationControllerInHierarchy
-    }
-
-    var firstNavigationControllerInHierarchy: UINavigationController? {
-        if let navigationController = self as? UINavigationController {
-            return navigationController
-        }
-
-        for child in children {
-            if let navigationController = child.firstNavigationControllerInHierarchy {
-                return navigationController
-            }
-        }
-
-        return presentedViewController?.firstNavigationControllerInHierarchy
-    }
-
-    private static var initialRootRoute: AppRoute {
-        .main(.home)
-    }
-}
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = UIViewController()

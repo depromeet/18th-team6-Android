@@ -52,7 +52,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                 update { data in
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
-                    data.draft.lastReplacementDateOption = .today
+                    data.draft.lastReplacementDateOption = .withinOneWeek
                     data.draft.quantity = 1
                 }
             case "kindSheet":
@@ -64,7 +64,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                 update { data in
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
-                    data.draft.lastReplacementDateOption = .today
+                    data.draft.lastReplacementDateOption = .withinOneWeek
                     data.draft.quantity = 1
                 }
             case "directKind":
@@ -201,11 +201,4 @@ final class ItemRegistrationViewModel: ObservableObject {
         transform(&nextData)
         data = nextData
     }
-}
-
-enum ItemRegistrationConfig {
-    static let itemNameMaxLength = 15
-    static let kindNameMaxLength = 15
-    static let quantityMinimum = 0
-    static let quantityMaximum = 99
 }
