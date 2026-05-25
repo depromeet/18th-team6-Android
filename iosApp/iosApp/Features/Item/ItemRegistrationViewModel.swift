@@ -28,7 +28,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         self.state = .success(initialData)
 
         #if DEBUG
-        applyDebugInitialState()
+            applyDebugInitialState()
         #endif
     }
 
@@ -39,42 +39,42 @@ final class ItemRegistrationViewModel: ObservableObject {
             selectedKind: nil,
             itemName: "",
             lastReplacementDateOption: nil,
-            quantity: ItemRegistrationConfig.defaultQuantity,
+            quantity: 1,
             directKindName: "",
             selectedImageOption: imageOptions.first
         )
     }
 
     #if DEBUG
-    private func applyDebugInitialState() {
-        switch ProcessInfo.processInfo.environment[ItemRegistrationDebugConfig.stateEnvironmentKey] {
-        case ItemRegistrationDebugConfig.filledState:
-            update { data in
-                data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
-                data.draft.lastReplacementDateOption = .withinOneWeek
-                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
+        private func applyDebugInitialState() {
+            switch ProcessInfo.processInfo.environment["OBRIT_MANUAL_REGISTRATION_STATE"] {
+            case "filled":
+                update { data in
+                    data.draft.selectedKind = data.itemKinds.first
+                    data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                    data.draft.lastReplacementDateOption = .today
+                    data.draft.quantity = 1
+                }
+            case "kindSheet":
+                update { data in
+                    data.bottomSheet = .kind
+                    data.selectedKindCandidate = data.itemKinds.first
+                }
+            case "dateSheet":
+                update { data in
+                    data.draft.selectedKind = data.itemKinds.first
+                    data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
+                    data.draft.lastReplacementDateOption = .today
+                    data.draft.quantity = 1
+                }
+            case "directKind":
+                update { $0.mode = .directKind }
+            case "complete":
+                update { $0.mode = .complete }
+            default:
+                break
             }
-        case ItemRegistrationDebugConfig.kindSheetState:
-            update { data in
-                data.bottomSheet = .kind
-                data.selectedKindCandidate = data.itemKinds.first
-            }
-        case ItemRegistrationDebugConfig.dateSheetState:
-            update { data in
-                data.draft.selectedKind = data.itemKinds.first
-                data.draft.itemName = data.itemKinds.first?.title ?? ItemRegistrationDebugConfig.fallbackItemName
-                data.draft.lastReplacementDateOption = .withinOneWeek
-                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
-            }
-        case ItemRegistrationDebugConfig.directKindState:
-            update { $0.mode = .directKind }
-        case ItemRegistrationDebugConfig.completeState:
-            update { $0.mode = .complete }
-        default:
-            break
         }
-    }
     #endif
 
     func updateItemName(_ itemName: String) {
@@ -164,13 +164,12 @@ final class ItemRegistrationViewModel: ObservableObject {
 
         update { data in
             let kind = ItemKind(
-                id: (data.itemKinds.map(\.id).max() ?? ItemRegistrationConfig.emptyIDBase) +
-                    ItemRegistrationConfig.nextIDIncrement,
+                id: (data.itemKinds.map(\.id).max() ?? 0) + 1,
                 title: trimmedName,
-                addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
+                addedCount: 0,
                 imageAssetName: selectedImageOption.assetName
             )
-            data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
+            data.itemKinds.insert(kind, at: 0)
             data.draft.selectedKind = kind
             data.draft.itemName = trimmedName
             data.draft.directKindName = ""
@@ -202,4 +201,11 @@ final class ItemRegistrationViewModel: ObservableObject {
         transform(&nextData)
         data = nextData
     }
+}
+
+enum ItemRegistrationConfig {
+    static let itemNameMaxLength = 15
+    static let kindNameMaxLength = 15
+    static let quantityMinimum = 0
+    static let quantityMaximum = 99
 }

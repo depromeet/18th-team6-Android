@@ -8,12 +8,12 @@ struct OBRitNavigation: View {
 
     init() {
         #if DEBUG
-        let debugConfiguration = Self.debugInitialConfiguration
-        let initialRootRoute = debugConfiguration.rootRoute
-        let initialPath = debugConfiguration.path
+            let debugConfiguration = Self.debugInitialConfiguration
+            let initialRootRoute = debugConfiguration.rootRoute
+            let initialPath = debugConfiguration.path
         #else
-        let initialRootRoute = AppRoute.main(.home)
-        let initialPath = NavigationPath()
+            let initialRootRoute = AppRoute.main(.home)
+            let initialPath = NavigationPath()
         #endif
         _rootRoute = State(initialValue: initialRootRoute)
         _selectedMainTab = State(initialValue: initialRootRoute.mainTab ?? .home)
@@ -102,27 +102,27 @@ struct OBRitNavigation: View {
     }
 
     #if DEBUG
-    private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
-        var initialPath = NavigationPath()
-        let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
+        private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
+            var initialPath = NavigationPath()
+            let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
 
-        switch route {
-        case "onboarding":
-            return (.onboarding, initialPath)
-        case "registrationPrompt":
-            return (.registrationPrompt, initialPath)
-        case "initialItemRegistration":
-            return (.initialItemRegistration, initialPath)
-        case "registrationMethod":
-            initialPath.append(ItemRoute.registrationMethod)
-            return (.main(.home), initialPath)
-        case "itemRegistration":
-            initialPath.append(ItemRoute.itemRegistration)
-            return (.main(.home), initialPath)
-        default:
-            return (.main(.home), initialPath)
+            switch route {
+            case "onboarding":
+                return (.onboarding, initialPath)
+            case "registrationPrompt":
+                return (.registrationPrompt, initialPath)
+            case "initialItemRegistration":
+                return (.initialItemRegistration, initialPath)
+            case "registrationMethod":
+                initialPath.append(ItemRoute.registrationMethod)
+                return (.main(.home), initialPath)
+            case "itemRegistration":
+                initialPath.append(ItemRoute.itemRegistration)
+                return (.main(.home), initialPath)
+            default:
+                return (.main(.home), initialPath)
+            }
         }
-    }
     #endif
 }
 

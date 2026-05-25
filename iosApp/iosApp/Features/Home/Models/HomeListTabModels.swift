@@ -102,7 +102,7 @@ enum HomeListTabSampleData {
             SeedItem("쓰레기 봉투", 3, 6, 27, .l6, "item_trash_bag")
         ]
 
-        return (0..<50).map { index in
+        return (0 ..< 50).map { index in
             let seed = seedItems[index % seedItems.count]
             let batch = index / seedItems.count
             return HomeListTabItem(

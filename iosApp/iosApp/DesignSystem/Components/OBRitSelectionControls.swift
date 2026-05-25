@@ -59,7 +59,7 @@ public struct OBRitPageIndicator: View {
 
     public var body: some View {
         HStack(spacing: OBRitSpacing.s2_5) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(0 ..< count, id: \.self) { index in
                 OBRitIndicatorDot(active: index == selectedIndex)
             }
         }

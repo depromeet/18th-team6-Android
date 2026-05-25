@@ -189,7 +189,7 @@ private struct HomeStatusOverviewMeterBars: View {
                         )
                     )
 
-                ForEach(0..<dividerCount, id: \.self) { index in
+                ForEach(0 ..< dividerCount, id: \.self) { index in
                     // 검은색 divider
                     RoundedRectangle(cornerRadius: 0)
                         .fill(OBRitColors.common1000)

@@ -395,7 +395,7 @@ private struct HomeListFilterBottomSheet: View {
                     valueText: (viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday).ddayText,
                     suffix: "이하",
                     value: Double(viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday),
-                    range: Double(viewData.filterBounds.minReplacementDday)...Double(viewData.filterBounds.maxReplacementDday),
+                    range: Double(viewData.filterBounds.minReplacementDday) ... Double(viewData.filterBounds.maxReplacementDday),
                     onValueChange: action.onUpdateDraftReplacementDday
                 )
                 HomeListFilterSliderSection(
@@ -403,7 +403,7 @@ private struct HomeListFilterBottomSheet: View {
                     valueText: "\(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount)개",
                     suffix: "이하",
                     value: Double(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount),
-                    range: Double(viewData.filterBounds.minStockCount)...Double(viewData.filterBounds.maxStockCount),
+                    range: Double(viewData.filterBounds.minStockCount) ... Double(viewData.filterBounds.maxStockCount),
                     onValueChange: action.onUpdateDraftStockCount
                 )
             }
