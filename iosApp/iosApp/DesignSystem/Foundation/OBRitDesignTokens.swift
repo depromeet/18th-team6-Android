@@ -5,7 +5,7 @@ import SwiftUI
 
 public enum OBRitColors {
     public static let common00 = color(0xFFFFFFFF)
-    public static let common100 = color(0xFF101213)
+    public static let common1000 = color(0xFF101213)
     public static let commonBlack00_80 = color(0xCC000000)
     public static let commonBlack00_60 = color(0x99000000)
     public static let commonBlack00_40 = color(0x66000000)
