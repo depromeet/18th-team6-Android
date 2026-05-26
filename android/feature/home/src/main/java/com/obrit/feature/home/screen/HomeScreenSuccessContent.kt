@@ -205,7 +205,7 @@ private fun HomeContents(
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
         MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
-        ConsumableAlertSection(buckets = state.status.buckets)
+        ConsumableAlertSection(buckets = state.buckets)
         QuickItemSection(
             buckets = state.status.buckets,
             sortOrder = state.listSortOrder,

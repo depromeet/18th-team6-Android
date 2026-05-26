@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.HomeRepository
+import com.obrit.obrit.shared.model.home.HomeBucketGroup
 import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import com.obrit.obrit.shared.model.home.MyStatusSummary
 import org.orbitmvi.orbit.viewmodel.container
@@ -17,16 +18,18 @@ class HomeViewModel internal constructor(
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
             val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
             val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
+            val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
 
             val overallStatus = overallStatusDeferred.await().getOrNull()
             val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
+            val buckets = bucketsDeferred.await().getOrNull()
 
-            if (overallStatus == null || myStatusSummary == null) {
+            if (overallStatus == null || myStatusSummary == null || buckets == null) {
                 reduce { HomeUiState.LoadFailed }
                 return@container
             }
 
-            reduce { createSuccessState(overallStatus, myStatusSummary, createMockStatus()) }
+            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, createMockStatus()) }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -62,6 +65,7 @@ sealed interface HomeUiState {
     data class Success(
         val overallStatus: HomeOverallStatus,
         val myStatusSummary: MyStatusSummary,
+        val buckets: List<HomeBucketGroup>,
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
         val ddayRange: IntRange,
@@ -135,6 +139,7 @@ enum class BucketLevel {
 private fun createSuccessState(
     overallStatus: HomeOverallStatus,
     myStatusSummary: MyStatusSummary,
+    buckets: List<HomeBucketGroup>,
     status: HomeStatus,
 ): HomeUiState.Success {
     val ddayValues = status.buckets.map { daysUntil(it.replacementDate) }
@@ -146,6 +151,7 @@ private fun createSuccessState(
     return HomeUiState.Success(
         overallStatus = overallStatus,
         myStatusSummary = myStatusSummary,
+        buckets = buckets,
         status = status,
         ddayRange = ddayMin..ddayMax,
         ddayFilterMax = ddayMax,

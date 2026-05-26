@@ -22,23 +22,25 @@ import com.obrit.android.core.designsystem.component.card.OBRitCardGrid
 import com.obrit.android.core.designsystem.component.card.OBRitCardLevel
 import com.obrit.android.core.designsystem.component.chip.OBRitChip
 import com.obrit.android.core.designsystem.theme.OBRitTheme
-import com.obrit.feature.home.viewmodel.Bucket
-import com.obrit.feature.home.viewmodel.BucketLevel
-import com.obrit.feature.home.viewmodel.BucketStatus
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.ReplacementDate
+import com.obrit.obrit.shared.model.home.HomeBucketGroup
+import com.obrit.obrit.shared.model.home.HomeBucketItem
+import com.obrit.obrit.shared.model.home.HomeBucketType
+import com.obrit.obrit.shared.model.home.HomeStatusLevel
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 @Composable
 internal fun ConsumableAlertSection(
-    buckets: List<Bucket>,
+    buckets: List<HomeBucketGroup>,
     modifier: Modifier = Modifier,
 ) {
     if (buckets.isEmpty()) return
-    var selectedStatus by remember { mutableStateOf(BucketStatus.DANGER) }
-    val filteredBuckets =
-        remember(buckets, selectedStatus) {
-            buckets.filter { it.status == selectedStatus }
+    var selectedType by remember { mutableStateOf(buckets.first().bucket) }
+    val selectedItems =
+        remember(buckets, selectedType) {
+            buckets.find { it.bucket == selectedType }?.items ?: emptyList()
         }
 
     Column(
@@ -47,18 +49,18 @@ internal fun ConsumableAlertSection(
     ) {
         BucketFilterChipRow(
             buckets = buckets,
-            selectedStatus = selectedStatus,
-            onStatusSelect = { selectedStatus = it },
+            selectedType = selectedType,
+            onTypeSelect = { selectedType = it },
         )
-        BucketCardRow(buckets = filteredBuckets)
+        BucketCardRow(items = selectedItems)
     }
 }
 
 @Composable
 private fun BucketFilterChipRow(
-    buckets: List<Bucket>,
-    selectedStatus: BucketStatus,
-    onStatusSelect: (BucketStatus) -> Unit,
+    buckets: List<HomeBucketGroup>,
+    selectedType: HomeBucketType,
+    onTypeSelect: (HomeBucketType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -68,23 +70,20 @@ private fun BucketFilterChipRow(
                 .padding(horizontal = AtomSpacing.S5.dp),
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
     ) {
-        BucketStatus.entries.forEach { status ->
-            val count = buckets.count { it.status == status }
-            if (count > 0) {
-                OBRitChip(
-                    text = status.displayName,
-                    number = count,
-                    selected = status == selectedStatus,
-                    onClick = { onStatusSelect(status) },
-                )
-            }
+        buckets.filter { it.count > 0 }.forEach { group ->
+            OBRitChip(
+                text = group.bucket.displayName,
+                number = group.count,
+                selected = group.bucket == selectedType,
+                onClick = { onTypeSelect(group.bucket) },
+            )
         }
     }
 }
 
 @Composable
 private fun BucketCardRow(
-    buckets: List<Bucket>,
+    items: List<HomeBucketItem>,
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
@@ -92,85 +91,94 @@ private fun BucketCardRow(
         contentPadding = PaddingValues(horizontal = AtomSpacing.S5.dp),
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
     ) {
-        items(buckets) { bucket ->
-            BucketCard(bucket = bucket)
+        items(items) { item ->
+            BucketCard(item = item)
         }
     }
 }
 
 @Composable
-private fun BucketCard(bucket: Bucket) {
-    val daysUntil = remember(bucket.replacementDate) { daysUntil(bucket.replacementDate) }
+private fun BucketCard(item: HomeBucketItem) {
     OBRitCardGrid(
-        level = bucketCardLevel(bucket = bucket),
-        title = bucket.title,
-        stockCount = bucket.spare,
-        daysLabel = daysLabel(daysUntil),
+        level = itemCardLevel(item.status),
+        title = item.name,
+        stockCount = item.count,
+        daysLabel = daysLabel(item.nextReplacementDate),
     )
 }
 
-private val BucketStatus.displayName: String
+private val HomeBucketType.displayName: String
     get() =
         when (this) {
-            BucketStatus.DANGER -> "위험"
-            BucketStatus.WARN -> "경고"
+            HomeBucketType.DANGER -> "위험"
+            HomeBucketType.WARNING -> "경고"
+            HomeBucketType.UNKNOWN -> ""
         }
 
-private fun bucketCardLevel(bucket: Bucket): OBRitCardLevel =
-    when (bucket.level) {
-        BucketLevel.HAS_OVERDUE -> OBRitCardLevel.L1
-        BucketLevel.NONE_OVERDUE -> OBRitCardLevel.L2
-        BucketLevel.HAS_OVERDUE -> OBRitCardLevel.L3
-        BucketLevel.HAS_WARN -> OBRitCardLevel.L4
-        BucketLevel.NONE_SAFE -> OBRitCardLevel.L5
+private fun itemCardLevel(status: HomeStatusLevel): OBRitCardLevel =
+    when (status) {
+        HomeStatusLevel.DANGER -> OBRitCardLevel.L1
+        HomeStatusLevel.WARNING -> OBRitCardLevel.L4
         else -> OBRitCardLevel.L6
     }
 
-private fun daysLabel(daysUntil: Int): String =
-    when {
-        daysUntil == 0 -> "D-day"
-        daysUntil > 0 -> "D-$daysUntil"
-        else -> "D+${-daysUntil}"
+private fun daysLabel(replacementDate: ReplacementDate?): String {
+    replacementDate ?: return "-"
+    val days =
+        ChronoUnit.DAYS
+            .between(LocalDate.now(), LocalDate.parse(replacementDate.value))
+            .toInt()
+    return when {
+        days == 0 -> "D-day"
+        days > 0 -> "D-$days"
+        else -> "D+${-days}"
     }
-
-private fun daysUntil(replacementDate: String): Int =
-    ChronoUnit.DAYS
-        .between(LocalDate.now(), LocalDate.parse(replacementDate))
-        .toInt()
+}
 
 @Suppress("MagicNumber")
+private val previewBuckets =
+    listOf(
+        HomeBucketGroup(
+            bucket = HomeBucketType.DANGER,
+            count = 2,
+            items =
+                listOf(
+                    HomeBucketItem(
+                        id = 1,
+                        name = "면도기",
+                        count = 0,
+                        nextReplacementDate = ReplacementDate("2026-05-23"),
+                        status = HomeStatusLevel.DANGER,
+                    ),
+                    HomeBucketItem(
+                        id = 2,
+                        name = "칫솔",
+                        count = 1,
+                        nextReplacementDate = ReplacementDate("2026-05-26"),
+                        status = HomeStatusLevel.DANGER,
+                    ),
+                ),
+        ),
+        HomeBucketGroup(
+            bucket = HomeBucketType.WARNING,
+            count = 1,
+            items =
+                listOf(
+                    HomeBucketItem(
+                        id = 3,
+                        name = "필터",
+                        count = 3,
+                        nextReplacementDate = ReplacementDate("2026-05-26"),
+                        status = HomeStatusLevel.WARNING,
+                    ),
+                ),
+        ),
+    )
+
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
 private fun ConsumableAlertSectionPreview() {
     OBRitTheme {
-        ConsumableAlertSection(
-            buckets =
-                listOf(
-                    Bucket(
-                        BucketStatus.DANGER,
-                        "면도기",
-                        0,
-                        "2026-05-23",
-                        BucketLevel.NONE_OVERDUE,
-                        30,
-                    ),
-                    Bucket(
-                        BucketStatus.DANGER,
-                        "칫솔",
-                        1,
-                        "2026-05-26",
-                        BucketLevel.NONE_SAFE,
-                        27,
-                    ),
-                    Bucket(
-                        BucketStatus.WARN,
-                        "필터",
-                        3,
-                        "2026-05-26",
-                        BucketLevel.HAS_SAFE,
-                        10,
-                    ),
-                ),
-        )
+        ConsumableAlertSection(buckets = previewBuckets)
     }
 }
