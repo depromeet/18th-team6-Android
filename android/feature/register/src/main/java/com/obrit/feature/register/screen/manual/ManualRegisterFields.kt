@@ -288,5 +288,5 @@ private val LAST_REPLACE_DATE_OPTIONS =
         "1주일 이내",
         "2-4주 전",
         "1-3개월 전",
-        "잘 모르겠어요",
+        "3개월 이전",
     )
