@@ -7,7 +7,9 @@ import com.obrit.obrit.shared.network.config.DeviceUuidProvider
 import com.obrit.obrit.shared.network.config.NETWORK_BASE_URL
 import com.obrit.obrit.shared.network.config.NetworkConfiguration
 import com.obrit.obrit.shared.network.config.UserIdProvider
+import com.obrit.obrit.shared.network.config.UserIdStorage
 import com.obrit.obrit.shared.network.config.deviceUuidModule
+import com.obrit.obrit.shared.network.config.userIdStorageModule
 import com.obrit.obrit.shared.network.source.AgentRemoteDataSource
 import com.obrit.obrit.shared.network.source.AgentRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.AgentSessionRemoteDataSource
@@ -26,7 +28,7 @@ import org.koin.dsl.module
 
 val networkModule =
     module {
-        includes(deviceUuidModule)
+        includes(deviceUuidModule, userIdStorageModule)
 
         single<NetworkConfiguration> {
             NetworkConfiguration(
@@ -37,7 +39,7 @@ val networkModule =
         single<Json> { createJson() }
         single<HttpClient> { createHttpClient(get(), get()) }
         single<UserRemoteDataSource> { UserRemoteDataSourceImpl(get()) }
-        single<UserIdProvider> { DefaultUserIdProvider(get<DeviceUuidProvider>(), get()) }
+        single<UserIdProvider> { DefaultUserIdProvider(get<DeviceUuidProvider>(), get(), get<UserIdStorage>()) }
         single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
         single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
         single<ItemRemoteDataSource> { ItemRemoteDataSourceImpl(get(), get()) }
