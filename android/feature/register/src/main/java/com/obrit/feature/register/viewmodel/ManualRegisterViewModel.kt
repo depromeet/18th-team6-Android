@@ -40,6 +40,7 @@ class ManualRegisterViewModel : BaseContainerHost<ManualRegisterUiState, ManualR
 
     fun onSubmit() =
         intent {
+            reduce { ManualRegisterUiState() }
             postSideEffect(ManualRegisterSideEffect.OnRegistered)
         }
 
