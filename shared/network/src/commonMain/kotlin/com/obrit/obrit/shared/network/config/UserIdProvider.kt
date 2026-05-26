@@ -24,8 +24,8 @@ internal class DefaultUserIdProvider(
                 ),
             )
 
-        cachedUserId = registeredUser.id
-        return registeredUser.id
+        cachedUserId = registeredUser.userId
+        return registeredUser.userId
     }
 }
 
