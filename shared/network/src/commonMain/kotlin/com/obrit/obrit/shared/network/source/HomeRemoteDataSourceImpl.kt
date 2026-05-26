@@ -20,7 +20,6 @@ internal class HomeRemoteDataSourceImpl(
 ) : HomeRemoteDataSource {
     override suspend fun getOverallStatus(): OverallStatusResponse {
         val userId = userIdProvider.get()
-
         return httpClient
             .get("$HOME_PATH/overall-status") {
                 userIdHeader(userId)

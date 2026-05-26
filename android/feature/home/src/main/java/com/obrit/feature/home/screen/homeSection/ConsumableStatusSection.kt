@@ -17,27 +17,23 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
-import com.obrit.feature.home.viewmodel.ManagementStatusLevel
-import com.obrit.feature.home.viewmodel.StockStatusLevel
+import com.obrit.obrit.shared.model.home.HomeOverallLevel
+import com.obrit.obrit.shared.model.home.HomeOverallStatus
+import com.obrit.obrit.shared.model.home.HomeStatusLevel
 
 @Composable
 internal fun ConsumableStatusSection(
-    title: String,
-    highlightWord: String,
-    replacementStatus: ManagementStatusLevel,
-    stockStatus: StockStatusLevel,
+    overallStatus: HomeOverallStatus,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+    val highlightWord = overallStatus.overall.displayText()
+    val suffix = overallStatus.overall.titleSuffix()
     val highlightColor =
-        when (highlightWord) {
-            "완벽", "양호" -> colors.green300
+        when (overallStatus.overall) {
+            HomeOverallLevel.PERFECT, HomeOverallLevel.GOOD -> colors.green300
             else -> colors.red300
-        }
-    val suffix =
-        title.indexOf(highlightWord).let { index ->
-            if (index >= 0) title.substring(index + highlightWord.length) else ""
         }
 
     Column(
@@ -61,8 +57,8 @@ internal fun ConsumableStatusSection(
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ManagementStatusBox(label = "교체 관리", statusText = replacementStatus.displayName)
-            ManagementStatusBox(label = "여분 관리", statusText = stockStatus.displayName)
+            ManagementStatusBox(label = "교체 관리", statusText = overallStatus.replacement.displayText())
+            ManagementStatusBox(label = "여분 관리", statusText = overallStatus.spare.displayText())
         }
     }
 }
@@ -94,15 +90,42 @@ private fun ManagementStatusBox(
     }
 }
 
+private fun HomeOverallLevel.displayText(): String =
+    when (this) {
+        HomeOverallLevel.PERFECT -> "완벽"
+        HomeOverallLevel.GOOD -> "양호"
+        HomeOverallLevel.WARNING -> "경고"
+        HomeOverallLevel.DANGER -> "위험"
+        HomeOverallLevel.UNKNOWN -> "경고"
+    }
+
+private fun HomeOverallLevel.titleSuffix(): String =
+    when (this) {
+        HomeOverallLevel.PERFECT, HomeOverallLevel.GOOD -> "해요"
+        HomeOverallLevel.WARNING -> "예요"
+        HomeOverallLevel.DANGER -> "해요"
+        HomeOverallLevel.UNKNOWN -> "예요"
+    }
+
+private fun HomeStatusLevel.displayText(): String =
+    when (this) {
+        HomeStatusLevel.GOOD -> "양호"
+        HomeStatusLevel.WARNING -> "경고"
+        HomeStatusLevel.DANGER -> "위험"
+        HomeStatusLevel.UNKNOWN -> "경고"
+    }
+
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
 private fun ConsumableStatusSectionPreview() {
     OBRitTheme {
         ConsumableStatusSection(
-            title = "오늘의 소모품 관리 상태는 경고예요",
-            highlightWord = "경고",
-            replacementStatus = ManagementStatusLevel.WARNING,
-            stockStatus = StockStatusLevel.WARNING,
+            overallStatus =
+                HomeOverallStatus(
+                    overall = HomeOverallLevel.WARNING,
+                    replacement = HomeStatusLevel.WARNING,
+                    spare = HomeStatusLevel.WARNING,
+                ),
         )
     }
 }

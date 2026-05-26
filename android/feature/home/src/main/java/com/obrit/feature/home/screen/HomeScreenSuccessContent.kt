@@ -198,12 +198,7 @@ private fun HomeContents(
                 .navigationBarsPadding()
                 .padding(bottom = 80.dp),
     ) {
-        ConsumableStatusSection(
-            title = state.status.message.title,
-            highlightWord = state.status.message.highlightWord,
-            replacementStatus = state.status.message.replacementStatus,
-            stockStatus = state.status.message.stockStatus,
-        )
+        ConsumableStatusSection(overallStatus = state.overallStatus)
         ConsumableOrbitSection(
             icons = homeConsumableIcons,
             normalRatio = state.status.ratio.goodPercentage / 100f,

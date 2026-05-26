@@ -2,14 +2,29 @@ package com.obrit.feature.home.viewmodel
 
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
+import com.obrit.obrit.shared.data.repository.HomeRepository
+import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import org.orbitmvi.orbit.viewmodel.container
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, HomeSideEffect>() {
+class HomeViewModel internal constructor(
+    private val homeRepository: HomeRepository,
+) : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
-            intent { reduce { createSuccessState(createMockStatus()) } }
+            loadOverallStatus()
+        }
+
+    private fun loadOverallStatus() =
+        intent {
+            homeRepository
+                .getOverallStatus()
+                .onSuccess { overallStatus ->
+                    reduce { createSuccessState(overallStatus, createMockStatus()) }
+                }.onFailure {
+                    reduce { HomeUiState.LoadFailed }
+                }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -20,23 +35,17 @@ class HomeViewModel internal constructor() : BaseContainerHost<HomeUiState, Home
 
     fun onListSortOrderChange(sortOrder: ConsumableListSortOrder) =
         intent {
-            reduce {
-                (state as? HomeUiState.Success)?.copy(listSortOrder = sortOrder) ?: state
-            }
+            reduceOn<HomeUiState.Success> { state.copy(listSortOrder = sortOrder) }
         }
 
     fun onDdayFilterChange(maxDays: Int) =
         intent {
-            reduce {
-                (state as? HomeUiState.Success)?.copy(ddayFilterMax = maxDays) ?: state
-            }
+            reduceOn<HomeUiState.Success> { state.copy(ddayFilterMax = maxDays) }
         }
 
     fun onSpareFilterChange(maxSpare: Int) =
         intent {
-            reduce {
-                (state as? HomeUiState.Success)?.copy(spareFilterMax = maxSpare) ?: state
-            }
+            reduceOn<HomeUiState.Success> { state.copy(spareFilterMax = maxSpare) }
         }
 
     fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
@@ -49,6 +58,7 @@ sealed interface HomeUiState {
 
     @Immutable
     data class Success(
+        val overallStatus: HomeOverallStatus,
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
         val ddayRange: IntRange,
@@ -72,19 +82,9 @@ sealed interface HomeSideEffect {
 // shared/model에 HomeStatus가 선언되면 해당 타입으로 교체한다.
 @Immutable
 data class HomeStatus(
-    val overallStatus: ConsumableStatusLevel,
-    val message: HomeMessage,
     val ratio: HomeRatio,
     val graph: HomeGraph,
     val buckets: List<Bucket>,
-)
-
-@Immutable
-data class HomeMessage(
-    val title: String,
-    val highlightWord: String,
-    val replacementStatus: ManagementStatusLevel,
-    val stockStatus: StockStatusLevel,
 )
 
 @Immutable
@@ -101,24 +101,6 @@ data class HomeGraph(
     val score: Float,
     val averageScore: Float,
 )
-
-enum class ConsumableStatusLevel { PERFECT, GOOD, WARNING, DANGER }
-
-enum class ManagementStatusLevel(
-    val displayName: String,
-) {
-    GOOD("완벽"),
-    WARNING("경고"),
-    DANGER("위험"),
-}
-
-enum class StockStatusLevel(
-    val displayName: String,
-) {
-    GOOD("완벽"),
-    WARNING("경고"),
-    LOW_STOCK("위험"),
-}
 
 enum class IllustrationType { POSITIVE, NEGATIVE }
 
@@ -156,7 +138,10 @@ enum class BucketLevel {
 }
 
 @Suppress("MagicNumber")
-private fun createSuccessState(status: HomeStatus): HomeUiState.Success {
+private fun createSuccessState(
+    overallStatus: HomeOverallStatus,
+    status: HomeStatus,
+): HomeUiState.Success {
     val ddayValues = status.buckets.map { daysUntil(it.replacementDate) }
     val spareValues = status.buckets.map { it.spare }
     val ddayMin = ddayValues.minOrNull() ?: DEFAULT_DDAY_MIN
@@ -164,6 +149,7 @@ private fun createSuccessState(status: HomeStatus): HomeUiState.Success {
     val spareMin = spareValues.minOrNull() ?: DEFAULT_SPARE_MIN
     val spareMax = spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX
     return HomeUiState.Success(
+        overallStatus = overallStatus,
         status = status,
         ddayRange = ddayMin..ddayMax,
         ddayFilterMax = ddayMax,
@@ -177,14 +163,6 @@ private fun daysUntil(replacementDate: String): Int = ChronoUnit.DAYS.between(Lo
 @Suppress("MagicNumber")
 private fun createMockStatus() =
     HomeStatus(
-        overallStatus = ConsumableStatusLevel.WARNING,
-        message =
-            HomeMessage(
-                title = "오늘의 소모품 관리 상태는 경고예요",
-                highlightWord = "경고",
-                replacementStatus = ManagementStatusLevel.WARNING,
-                stockStatus = StockStatusLevel.WARNING,
-            ),
         ratio =
             HomeRatio(
                 goodPercentage = 77.0f,
