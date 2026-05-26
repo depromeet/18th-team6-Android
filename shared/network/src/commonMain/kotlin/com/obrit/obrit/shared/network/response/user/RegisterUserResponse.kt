@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RegisterUserResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("userId") val id: Long,
     @SerialName("uuid") val uuid: String,
 )
