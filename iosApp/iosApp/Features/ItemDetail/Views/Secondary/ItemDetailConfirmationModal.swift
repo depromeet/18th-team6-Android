@@ -89,7 +89,7 @@ struct ItemDetailConfirmationModal: View {
                 confirmationButton(
                     title: isProcessing ? "처리 중" : kind.primaryTitle,
                     backgroundColor: OBRitColors.backgroundPositiveDefault,
-                    foregroundColor: OBRitColors.common100,
+                    foregroundColor: OBRitColors.common1000,
                     fillsWidth: true,
                     action: onConfirm
                 )

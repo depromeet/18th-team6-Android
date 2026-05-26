@@ -43,6 +43,6 @@ public struct OBRitChip: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }

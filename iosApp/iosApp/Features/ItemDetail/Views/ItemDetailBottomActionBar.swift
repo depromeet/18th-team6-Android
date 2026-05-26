@@ -16,7 +16,7 @@ struct ItemDetailBottomActionBar: View {
             actionButton(
                 title: "교체 완료",
                 backgroundColor: OBRitColors.backgroundPositiveDefault,
-                foregroundColor: OBRitColors.common100,
+                foregroundColor: OBRitColors.common1000,
                 action: onCompleteReplacement
             )
         }

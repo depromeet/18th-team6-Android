@@ -223,7 +223,7 @@ private struct OBRitModalButton: View {
     private var contentColor: Color {
         switch style {
         case .primary:
-            return OBRitColors.common100
+            return OBRitColors.common1000
         case .secondary:
             return OBRitColors.gray300
         }

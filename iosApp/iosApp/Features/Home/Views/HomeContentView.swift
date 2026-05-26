@@ -60,8 +60,8 @@ struct HomeContentView: View {
                             ],
                             accessibilityLabel: "소모품 등록"
                         )
-                            .padding(.trailing, OBRitSpacing.s5)
-                            .padding(.bottom, OBRitSpacing.s6)
+                        .padding(.trailing, OBRitSpacing.s5)
+                        .padding(.bottom, OBRitSpacing.s6)
                     }
                 }
 

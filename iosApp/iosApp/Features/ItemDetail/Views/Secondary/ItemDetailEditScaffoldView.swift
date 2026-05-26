@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct ItemDetailEditScaffoldView: View {
     @Binding var draft: ItemDetailEditDraft
@@ -388,10 +387,6 @@ private enum ItemDetailEditMetrics {
     static let imageRowSpacing: CGFloat = 12
     static let selectedImageBorderWidth: CGFloat = 2
     static let bottomButtonHeight: CGFloat = 60
-}
-
-private func dismissKeyboard() {
-    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 }
 
 #Preview {
