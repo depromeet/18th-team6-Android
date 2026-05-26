@@ -204,12 +204,7 @@ private fun HomeContents(
             normalRatio = state.status.ratio.goodPercentage / 100f,
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
-        MyStatusGraphSection(
-            totalCount = state.status.graph.totalCount,
-            needReplaceCount = state.status.graph.needReplaceCount,
-            score = state.status.graph.score,
-            averageScore = state.status.graph.averageScore,
-        )
+        MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
         ConsumableAlertSection(buckets = state.status.buckets)
         QuickItemSection(
             buckets = state.status.buckets,

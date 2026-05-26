@@ -2,8 +2,10 @@ package com.obrit.feature.home.viewmodel
 
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
+import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.model.home.HomeOverallStatus
+import com.obrit.obrit.shared.model.home.MyStatusSummary
 import org.orbitmvi.orbit.viewmodel.container
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -13,18 +15,18 @@ class HomeViewModel internal constructor(
 ) : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
-            loadOverallStatus()
-        }
+            val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
+            val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
 
-    private fun loadOverallStatus() =
-        intent {
-            homeRepository
-                .getOverallStatus()
-                .onSuccess { overallStatus ->
-                    reduce { createSuccessState(overallStatus, createMockStatus()) }
-                }.onFailure {
-                    reduce { HomeUiState.LoadFailed }
-                }
+            val overallStatus = overallStatusDeferred.await().getOrNull()
+            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
+
+            if (overallStatus == null || myStatusSummary == null) {
+                reduce { HomeUiState.LoadFailed }
+                return@container
+            }
+
+            reduce { createSuccessState(overallStatus, myStatusSummary, createMockStatus()) }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -59,6 +61,7 @@ sealed interface HomeUiState {
     @Immutable
     data class Success(
         val overallStatus: HomeOverallStatus,
+        val myStatusSummary: MyStatusSummary,
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
         val ddayRange: IntRange,
@@ -83,7 +86,6 @@ sealed interface HomeSideEffect {
 @Immutable
 data class HomeStatus(
     val ratio: HomeRatio,
-    val graph: HomeGraph,
     val buckets: List<Bucket>,
 )
 
@@ -92,14 +94,6 @@ data class HomeRatio(
     val goodPercentage: Float,
     val warningPercentage: Float,
     val illustrationType: IllustrationType,
-)
-
-@Immutable
-data class HomeGraph(
-    val totalCount: Int,
-    val needReplaceCount: Int,
-    val score: Float,
-    val averageScore: Float,
 )
 
 enum class IllustrationType { POSITIVE, NEGATIVE }
@@ -140,6 +134,7 @@ enum class BucketLevel {
 @Suppress("MagicNumber")
 private fun createSuccessState(
     overallStatus: HomeOverallStatus,
+    myStatusSummary: MyStatusSummary,
     status: HomeStatus,
 ): HomeUiState.Success {
     val ddayValues = status.buckets.map { daysUntil(it.replacementDate) }
@@ -150,6 +145,7 @@ private fun createSuccessState(
     val spareMax = spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX
     return HomeUiState.Success(
         overallStatus = overallStatus,
+        myStatusSummary = myStatusSummary,
         status = status,
         ddayRange = ddayMin..ddayMax,
         ddayFilterMax = ddayMax,
@@ -168,13 +164,6 @@ private fun createMockStatus() =
                 goodPercentage = 77.0f,
                 warningPercentage = 23.0f,
                 illustrationType = IllustrationType.NEGATIVE,
-            ),
-        graph =
-            HomeGraph(
-                totalCount = 16,
-                needReplaceCount = 4,
-                score = 0.425f,
-                averageScore = 0.65f,
             ),
         buckets = createMockBuckets(),
     )
