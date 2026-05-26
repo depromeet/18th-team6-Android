@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -63,14 +63,16 @@ private fun BoxScope.RegisterCompleteHero() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(REGISTER_COMPLETE_HERO_TO_TEXT_GAP),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.img_register_complete),
-            contentDescription = null,
-            modifier =
-                Modifier
-                    .width(REGISTER_COMPLETE_HERO_WIDTH)
-                    .height(REGISTER_COMPLETE_HERO_HEIGHT),
-        )
+        Box(
+            modifier = Modifier.size(REGISTER_COMPLETE_HERO_SLOT),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.img_register_complete),
+                contentDescription = null,
+                modifier = Modifier.requiredSize(REGISTER_COMPLETE_HERO_IMAGE_SIZE),
+            )
+        }
         RegisterCompleteHeroText()
     }
 }
@@ -130,9 +132,9 @@ private const val REGISTER_COMPLETE_CTA_LABEL = "홈 화면으로 돌아가기"
 // Hero를 화면 정중앙보다 살짝 위로 띄워 CTA와 시각적 균형을 맞춘다.
 private const val REGISTER_COMPLETE_CENTER_OFFSET_DP = -60
 private val REGISTER_COMPLETE_CENTER_OFFSET_Y = REGISTER_COMPLETE_CENTER_OFFSET_DP.dp
-private val REGISTER_COMPLETE_HERO_WIDTH = 227.4.dp
-private val REGISTER_COMPLETE_HERO_HEIGHT = 215.4.dp
-private val REGISTER_COMPLETE_HERO_TO_TEXT_GAP = 36.dp
+private val REGISTER_COMPLETE_HERO_SLOT = 152.dp
+private val REGISTER_COMPLETE_HERO_IMAGE_SIZE = 360.dp
+private val REGISTER_COMPLETE_HERO_TO_TEXT_GAP = 54.5.dp
 private val REGISTER_COMPLETE_TITLE_TO_DESCRIPTION_GAP = 16.dp
 private val REGISTER_COMPLETE_CTA_BOTTOM_PADDING = 40.dp
 
