@@ -9,6 +9,7 @@ public struct OBRitStepper: View {
     private let valueText: String
     private let size: OBRitStepperSize
     private let isMinimum: Bool
+    private let isEnabled: Bool
     private let onDecrement: (() -> Void)?
     private let onIncrement: (() -> Void)?
 
@@ -16,12 +17,14 @@ public struct OBRitStepper: View {
         valueText: String = "N",
         size: OBRitStepperSize = .small,
         isMinimum: Bool = false,
+        isEnabled: Bool = true,
         onDecrement: (() -> Void)? = nil,
         onIncrement: (() -> Void)? = nil
     ) {
         self.valueText = valueText
         self.size = size
         self.isMinimum = isMinimum
+        self.isEnabled = isEnabled
         self.onDecrement = onDecrement
         self.onIncrement = onIncrement
     }
@@ -30,12 +33,14 @@ public struct OBRitStepper: View {
         value: Int,
         size: OBRitStepperSize = .small,
         minimumValue: Int = 0,
+        isEnabled: Bool = true,
         onDecrement: (() -> Void)? = nil,
         onIncrement: (() -> Void)? = nil
     ) {
         self.valueText = "\(value)"
         self.size = size
         self.isMinimum = value <= minimumValue
+        self.isEnabled = isEnabled
         self.onDecrement = onDecrement
         self.onIncrement = onIncrement
     }
@@ -51,9 +56,9 @@ public struct OBRitStepper: View {
 
     private var smallStepper: some View {
         HStack(spacing: OBRitStepperMetrics.smallGap) {
-            stepperButton(symbol: .minus, size: .small, disabled: isMinimum, action: onDecrement)
+            stepperButton(symbol: .minus, size: .small, disabled: !isEnabled || isMinimum, action: onDecrement)
             smallValue
-            stepperButton(symbol: .plus, size: .small, disabled: false, action: onIncrement)
+            stepperButton(symbol: .plus, size: .small, disabled: !isEnabled, action: onIncrement)
         }
         .padding(.vertical, OBRitSpacing.s1)
         .background(OBRitColors.gray750)
@@ -72,13 +77,13 @@ public struct OBRitStepper: View {
 
     private var largeStepper: some View {
         HStack(spacing: OBRitSpacing.s8) {
-            stepperButton(symbol: .minus, size: .large, disabled: isMinimum, action: onDecrement)
+            stepperButton(symbol: .minus, size: .large, disabled: !isEnabled || isMinimum, action: onDecrement)
             Text(valueText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .obritTextStyle(OBRitStepperTypography.xl7, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 .frame(minWidth: 21)
-            stepperButton(symbol: .plus, size: .large, disabled: false, action: onIncrement)
+            stepperButton(symbol: .plus, size: .large, disabled: !isEnabled, action: onIncrement)
         }
         .frame(width: OBRitStepperMetrics.largeWidth)
     }
