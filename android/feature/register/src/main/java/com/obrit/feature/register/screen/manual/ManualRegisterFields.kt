@@ -184,13 +184,14 @@ private class LastReplaceDateMenuPositionProvider(
 internal fun QuantityField(
     title: String,
     quantity: Int,
+    totalCount: Int,
     onQuantityChange: (Int) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         FieldSectionHeader(label = MANUAL_REGISTER_QUANTITY_LABEL)
         QuantityCard(
             title = title.ifEmpty { MANUAL_REGISTER_QUANTITY_TITLE_PLACEHOLDER },
-            totalCount = 0,
+            totalCount = totalCount,
             quantity = quantity,
             onQuantityChange = onQuantityChange,
         )
@@ -274,7 +275,7 @@ private const val MANUAL_REGISTER_NAME_OVER_LIMIT_MESSAGE = "소모품 명은 15
 private const val MANUAL_REGISTER_LAST_REPLACE_DATE_LABEL = "마지막 교체 일자"
 private const val MANUAL_REGISTER_LAST_REPLACE_DATE_PLACEHOLDER = "마지막 교체 일자를 등록해주세요"
 private const val MANUAL_REGISTER_QUANTITY_LABEL = "등록할 수량"
-private const val MANUAL_REGISTER_QUANTITY_TITLE_PLACEHOLDER = "{title}"
+private const val MANUAL_REGISTER_QUANTITY_TITLE_PLACEHOLDER = "-"
 private const val MANUAL_REGISTER_QUANTITY_HELP = "소모품의 전체 수량은 추후 수정할 수 있어요."
 
 private val SELECTABLE_FIELD_MIN_HEIGHT = AtomSpacing.S14.dp
