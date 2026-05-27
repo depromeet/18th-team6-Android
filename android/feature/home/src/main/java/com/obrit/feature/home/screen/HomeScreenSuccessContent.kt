@@ -15,9 +15,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,13 +36,13 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.screen.homeSection.ConsumableIcon
+import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
 import com.obrit.feature.home.screen.homeSection.ItemOrbitSection
 import com.obrit.feature.home.screen.homeSection.ItemStatusSection
 import com.obrit.feature.home.screen.homeSection.ItemUsageStatusSection
 import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
-import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
+import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 
@@ -71,6 +73,7 @@ internal fun HomeScreenSuccessContent(
                     state = state,
                     onListSortOrderChange = action.onListSortOrderChange,
                     onMoreClick = { selectedTab = OBRitGnbTab.List },
+                    onLoadMoreItems = action.onLoadMoreItems,
                 )
             } else {
                 ConsumableListScreenContent(
@@ -188,13 +191,21 @@ private fun HomeContents(
     state: HomeUiState.Success,
     onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
     onMoreClick: () -> Unit,
+    onLoadMoreItems: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+    val currentOnLoadMoreItems by rememberUpdatedState(onLoadMoreItems)
+    LaunchedEffect(scrollState.value) {
+        if (scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue && state.items.hasNext) {
+            currentOnLoadMoreItems()
+        }
+    }
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .navigationBarsPadding()
                 .padding(bottom = 80.dp),
     ) {
@@ -212,7 +223,7 @@ private fun HomeContents(
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,
         )
-        ItemUsageStatusSection(buckets = state.status.buckets)
+        ItemUsageStatusSection(items = state.items.content)
     }
 }
 

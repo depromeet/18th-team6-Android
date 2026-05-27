@@ -26,17 +26,15 @@ import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
-import com.obrit.feature.home.viewmodel.Bucket
-import com.obrit.feature.home.viewmodel.BucketLevel
-import com.obrit.feature.home.viewmodel.BucketStatus
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.home.HomeItemCard
 
 @Composable
 internal fun ItemUsageStatusSection(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     modifier: Modifier = Modifier,
 ) {
-    if (buckets.isEmpty()) return
+    if (items.isEmpty()) return
     val typography = LocalOBRitTypography.current
     val colors = LocalOBRitColor.current
 
@@ -50,8 +48,8 @@ internal fun ItemUsageStatusSection(
             color = colors.common00,
         )
         Column {
-            buckets.forEach { bucket ->
-                UsageStatusItem(bucket = bucket)
+            items.forEach { item ->
+                UsageStatusItem(item = item)
             }
         }
     }
@@ -59,7 +57,7 @@ internal fun ItemUsageStatusSection(
 
 @Composable
 private fun UsageStatusItem(
-    bucket: Bucket,
+    item: HomeItemCard,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -81,13 +79,13 @@ private fun UsageStatusItem(
         )
 
         Text(
-            text = bucket.title,
+            text = item.name,
             style = typography.base.copy(fontWeight = FontWeight.Medium),
             color = colors.common00,
             modifier = Modifier.weight(1f),
         )
 
-        DaysInUseText(daysInUse = bucket.daysInUse)
+        DaysInUseText(daysInUse = item.daysInUse)
 
         Spacer(modifier = Modifier.size(AtomSpacing.S4.dp))
 
@@ -124,24 +122,13 @@ private fun DaysInUseText(daysInUse: Int) {
 private fun ItemUsageStatusSectionPreview() {
     OBRitTheme {
         ItemUsageStatusSection(
-            buckets =
+            items =
                 listOf(
-                    Bucket(
-                        BucketStatus.DANGER,
-                        "면도기",
-                        0,
-                        "2026-05-23",
-                        BucketLevel.NONE_OVERDUE,
-                        82,
-                    ),
-                    Bucket(BucketStatus.DANGER, "칫솔", 1, "2026-05-26", BucketLevel.NONE_WARN, 82),
-                    Bucket(BucketStatus.WARN, "수건", 0, "2026-05-22", BucketLevel.HAS_OVERDUE, 82),
-                    Bucket(BucketStatus.WARN, "세탁망", 2, "2026-05-30", BucketLevel.HAS_WARN, 82),
-                    Bucket(BucketStatus.WARN, "필터", 3, "2026-05-26", BucketLevel.NONE_SAFE, 82),
-                    Bucket(BucketStatus.WARN, "화장솜", 5, "2026-06-06", BucketLevel.NONE_SAFE, 82),
-                    Bucket(BucketStatus.WARN, "청소포", 2, "2026-05-21", BucketLevel.NONE_OVERDUE, 82),
-                    Bucket(BucketStatus.WARN, "욕실매트", 4, "2026-06-10", BucketLevel.HAS_OVERDUE, 82),
-                    Bucket(BucketStatus.WARN, "샴푸", 1, "2026-06-15", BucketLevel.HAS_SAFE, 82),
+                    HomeItemCard(1L, "면도기", 82, "교체 D-3", 0, ""),
+                    HomeItemCard(2L, "칫솔", 82, "교체 D-day", 1, ""),
+                    HomeItemCard(3L, "수건", 82, "교체 D+5", 0, ""),
+                    HomeItemCard(4L, "세탁망", 82, "교체 D-7", 2, ""),
+                    HomeItemCard(5L, "필터", 82, "교체 D-10", 3, ""),
                 ),
         )
     }

@@ -1,4 +1,5 @@
-@file:Suppress("TooManyFunctions") @file:JvmName("QuickItemSectionKt")
+@file:Suppress("TooManyFunctions")
+@file:JvmName("QuickItemSectionKt")
 
 package com.obrit.feature.home.screen.homeSection
 

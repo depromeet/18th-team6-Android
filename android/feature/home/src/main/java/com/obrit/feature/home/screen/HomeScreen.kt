@@ -34,6 +34,7 @@ fun HomeScreen(
                 onDdayFilterChange = viewModel::onDdayFilterChange,
                 onSpareFilterChange = viewModel::onSpareFilterChange,
                 onMoreClick = viewModel::onMoreClick,
+                onLoadMoreItems = viewModel::onLoadMoreItems,
                 onRegisterClick = onRegisterClick,
             ),
         modifier = modifier,
@@ -57,5 +58,6 @@ internal data class HomeScreenAction(
     val onDdayFilterChange: (Int) -> Unit,
     val onSpareFilterChange: (Int) -> Unit,
     val onMoreClick: () -> Unit,
+    val onLoadMoreItems: () -> Unit,
     val onRegisterClick: () -> Unit,
 )
