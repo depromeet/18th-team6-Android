@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CategoryResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("categoryId") val id: Long,
     @SerialName("name") val name: String,
     @SerialName("iconUrl") val iconUrl: String,
     @SerialName("userId") val userId: Long? = null,

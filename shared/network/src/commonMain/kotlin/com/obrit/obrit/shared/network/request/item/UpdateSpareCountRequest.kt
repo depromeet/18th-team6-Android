@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateSpareCountRequest(
-    @SerialName("count") val count: Int,
+    @SerialName("spareQuantity") val count: Int,
 )
