@@ -26,7 +26,7 @@ fun ConsumableListScreen(
     val success = state as? HomeUiState.Success ?: return
 
     ConsumableListScreenContent(
-        buckets = success.status.buckets,
+        items = success.items.content,
         sortOrder = success.listSortOrder,
         ddayRange = success.ddayRange,
         ddayFilterMax = success.ddayFilterMax,

@@ -74,7 +74,7 @@ internal fun HomeScreenSuccessContent(
                 )
             } else {
                 ConsumableListScreenContent(
-                    buckets = state.status.buckets,
+                    items = state.items.content,
                     sortOrder = state.listSortOrder,
                     ddayRange = state.ddayRange,
                     ddayFilterMax = state.ddayFilterMax,
@@ -207,7 +207,7 @@ private fun HomeContents(
         MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
         ConsumableAlertSection(buckets = state.buckets)
         QuickItemSection(
-            buckets = state.status.buckets,
+            items = state.items.content,
             sortOrder = state.listSortOrder,
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,

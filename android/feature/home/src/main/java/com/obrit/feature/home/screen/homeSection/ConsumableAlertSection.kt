@@ -37,7 +37,8 @@ internal fun ConsumableAlertSection(
     modifier: Modifier = Modifier,
 ) {
     if (buckets.isEmpty()) return
-    var selectedType by remember { mutableStateOf(buckets.first().bucket) }
+    val hasDangerItems = buckets.find { it.bucket == HomeBucketType.DANGER }?.items?.isNotEmpty() == true
+    var selectedType by remember { mutableStateOf(if (hasDangerItems) buckets.first().bucket else buckets.last().bucket) }
     val selectedItems =
         remember(buckets, selectedType) {
             buckets.find { it.bucket == selectedType }?.items ?: emptyList()
@@ -102,7 +103,7 @@ private fun BucketCard(item: HomeBucketItem) {
     OBRitCardGrid(
         level = itemCardLevel(item.status),
         title = item.name,
-        stockCount = item.count,
+        stockCount = item.spareQuantity,
         daysLabel = daysLabel(item.nextReplacementDate),
     )
 }
@@ -144,16 +145,16 @@ private val previewBuckets =
             items =
                 listOf(
                     HomeBucketItem(
-                        id = 1,
+                        itemId = 1,
                         name = "면도기",
-                        count = 0,
+                        spareQuantity = 0,
                         nextReplacementDate = ReplacementDate("2026-05-23"),
                         status = HomeStatusLevel.DANGER,
                     ),
                     HomeBucketItem(
-                        id = 2,
+                        itemId = 2,
                         name = "칫솔",
-                        count = 1,
+                        spareQuantity = 1,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.DANGER,
                     ),
@@ -165,9 +166,9 @@ private val previewBuckets =
             items =
                 listOf(
                     HomeBucketItem(
-                        id = 3,
+                        itemId = 3,
                         name = "필터",
-                        count = 3,
+                        spareQuantity = 3,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.WARNING,
                     ),

@@ -53,18 +53,16 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.home.screen.homeSection.QuickItemListItem
-import com.obrit.feature.home.viewmodel.Bucket
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import kotlin.math.roundToInt
 
 @Suppress("LongMethod", "LongParameterList")
 @Composable
 internal fun ConsumableListScreenContent(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     sortOrder: ConsumableListSortOrder,
     ddayRange: IntRange,
     ddayFilterMax: Int,
@@ -74,9 +72,9 @@ internal fun ConsumableListScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val filtered =
-        remember(buckets, sortOrder, ddayRange, ddayFilterMax, spareRange, spareFilterMax) {
+        remember(items, sortOrder, ddayRange, ddayFilterMax, spareRange, spareFilterMax) {
             applyFiltersAndSort(
-                buckets,
+                items,
                 sortOrder,
                 ddayRange,
                 ddayFilterMax,
@@ -98,7 +96,7 @@ internal fun ConsumableListScreenContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            items(filtered) { bucket -> QuickItemListItem(bucket = bucket) }
+            items(filtered) { item -> QuickItemListItem(item = item) }
         }
         ListFilterBar(
             sortOrder = sortOrder,
@@ -534,32 +532,40 @@ private fun FilterButtonRow(
 
 @Suppress("LongParameterList")
 private fun applyFiltersAndSort(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     sortOrder: ConsumableListSortOrder,
     ddayRange: IntRange,
     ddayFilterMax: Int,
     spareRange: IntRange,
     spareFilterMax: Int,
-): List<Bucket> {
+): List<HomeItemCard> {
     val ddayFiltered =
         if (ddayFilterMax >= ddayRange.last) {
-            buckets
+            items
         } else {
-            buckets.filter { daysUntil(it.replacementDate) <= ddayFilterMax }
+            items.filter { parseDaysUntil(it.replacementDday) <= ddayFilterMax }
         }
     val spareFiltered =
         if (spareFilterMax >= spareRange.last) {
             ddayFiltered
         } else {
-            ddayFiltered.filter { it.spare <= spareFilterMax }
+            ddayFiltered.filter { it.spareQuantity <= spareFilterMax }
         }
     return when (sortOrder) {
-        ConsumableListSortOrder.REPLACE_IMMINENT -> spareFiltered.sortedBy { daysUntil(it.replacementDate) }
-        ConsumableListSortOrder.LEAST_SPARE -> spareFiltered.sortedBy { it.spare }
+        ConsumableListSortOrder.REPLACE_IMMINENT -> spareFiltered.sortedBy { parseDaysUntil(it.replacementDday) }
+        ConsumableListSortOrder.LEAST_SPARE -> spareFiltered.sortedBy { it.spareQuantity }
         ConsumableListSortOrder.OLDEST_REPLACEMENT -> spareFiltered.sortedByDescending { it.daysInUse }
-        ConsumableListSortOrder.ALPHABETICAL -> spareFiltered.sortedBy { it.title }
+        ConsumableListSortOrder.ALPHABETICAL -> spareFiltered.sortedBy { it.name }
     }
 }
+
+private fun parseDaysUntil(replacementDday: String): Int =
+    when {
+        replacementDday.contains("D-day") -> 0
+        replacementDday.contains("D+") -> -(replacementDday.substringAfter("D+").toIntOrNull() ?: 0)
+        replacementDday.contains("D-") -> replacementDday.substringAfter("D-").toIntOrNull() ?: 0
+        else -> 0
+    }
 
 @Composable
 private fun SortBottomSheet(
@@ -638,8 +644,6 @@ private fun SortBottomSheetContentPreview() {
         )
     }
 }
-
-private fun daysUntil(replacementDate: String): Int = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
 
 private fun ddayLabel(days: Int): String = if (days >= 0) "D-$days 이하" else "D+${-days} 이하"
 

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.bottomsheet.OBRitBottomSheet
 import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults
@@ -45,21 +46,17 @@ import com.obrit.android.core.designsystem.component.card.OBRitCardList
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
-import com.obrit.feature.home.viewmodel.Bucket
-import com.obrit.feature.home.viewmodel.BucketLevel
-import com.obrit.feature.home.viewmodel.BucketStatus
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import kotlin.math.roundToInt
 
 private const val LIST_PREVIEW_COUNT = 3
 
 @Composable
 internal fun QuickItemSection(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     sortOrder: ConsumableListSortOrder,
     onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     onMoreClick: () -> Unit,
@@ -67,7 +64,6 @@ internal fun QuickItemSection(
 ) {
     val typography = LocalOBRitTypography.current
     var showSortSheet by remember { mutableStateOf(false) }
-    val sortedBuckets = remember(buckets, sortOrder) { sortItems(buckets, sortOrder) }
 
     Column(
         modifier = modifier.padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S5.dp),
@@ -87,7 +83,7 @@ internal fun QuickItemSection(
             )
         }
 
-        QuickItemList(buckets = sortedBuckets.take(LIST_PREVIEW_COUNT))
+        QuickItemList(items = items.take(LIST_PREVIEW_COUNT))
         OBRitLargeFilledButton(
             text = "더보기",
             onClick = onMoreClick,
@@ -232,63 +228,43 @@ private fun SortBottomSheetContent(
 
 @Composable
 private fun QuickItemList(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
     ) {
-        buckets.forEach { bucket ->
-            QuickItemListItem(bucket = bucket)
+        items.forEach { item ->
+            QuickItemListItem(item = item)
         }
     }
 }
 
 @Composable
-internal fun QuickItemListItem(bucket: Bucket) {
-    val daysUntil = remember(bucket.replacementDate) { daysUntil(bucket.replacementDate) }
+internal fun QuickItemListItem(item: HomeItemCard) {
     OBRitCardList(
-        level = bucketListLevel(bucket),
-        title = bucket.title,
-        daysInUseLabel = "${bucket.daysInUse}일",
-        replaceLabel = replaceLabel(daysUntil),
-        sparesLabel = "여분 ${bucket.spare}개",
+        level = homeItemCardLevel(item),
+        title = item.name,
+        daysInUseLabel = "${item.daysInUse}일",
+        replaceLabel = item.replacementDday,
+        sparesLabel = "여분 ${item.spareQuantity}개",
+        image = {
+            if (item.iconUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = item.iconUrl,
+                    contentDescription = item.name,
+                )
+            }
+        },
     )
 }
 
-private fun bucketListLevel(bucket: Bucket): OBRitCardLevel =
-    when (bucket.level) {
-        BucketLevel.HAS_OVERDUE -> OBRitCardLevel.L1
-        BucketLevel.NONE_OVERDUE -> OBRitCardLevel.L2
-        BucketLevel.NONE_WARN -> OBRitCardLevel.L3
-        BucketLevel.HAS_WARN -> OBRitCardLevel.L4
-        BucketLevel.NONE_SAFE -> OBRitCardLevel.L5
-        BucketLevel.HAS_SAFE -> OBRitCardLevel.L6
-    }
-
-private fun replaceLabel(daysUntil: Int): String =
-    when {
-        daysUntil == 0 -> "교체 D-day"
-        daysUntil > 0 -> "교체 D-$daysUntil"
-        else -> "교체 D+${-daysUntil}"
-    }
-
-private fun daysUntil(replacementDate: String): Int =
-    ChronoUnit.DAYS
-        .between(LocalDate.now(), LocalDate.parse(replacementDate))
-        .toInt()
-
-private fun sortItems(
-    buckets: List<Bucket>,
-    sortOrder: ConsumableListSortOrder,
-): List<Bucket> =
-    when (sortOrder) {
-        ConsumableListSortOrder.REPLACE_IMMINENT -> buckets.sortedBy { daysUntil(it.replacementDate) }
-        ConsumableListSortOrder.LEAST_SPARE -> buckets.sortedBy { it.spare }
-        ConsumableListSortOrder.OLDEST_REPLACEMENT -> buckets.sortedByDescending { it.daysInUse }
-        ConsumableListSortOrder.ALPHABETICAL -> buckets.sortedBy { it.title }
-    }
+@Suppress("MagicNumber")
+private fun homeItemCardLevel(item: HomeItemCard): OBRitCardLevel {
+    val hasSpare = item.spareQuantity > 0
+    return if (hasSpare) OBRitCardLevel.L1 else OBRitCardLevel.L2
+}
 
 @Suppress("MagicNumber")
 private val SORT_SHEET_SCRIM_COLOR = Color(0x99000000)
@@ -299,19 +275,12 @@ private val SORT_SHEET_SCRIM_COLOR = Color(0x99000000)
 private fun QuickItem() {
     OBRitTheme {
         QuickItemSection(
-            buckets =
+            items =
                 listOf(
-                    Bucket(
-                        BucketStatus.DANGER,
-                        "면도기",
-                        0,
-                        "2026-05-20",
-                        BucketLevel.HAS_OVERDUE,
-                        30,
-                    ),
-                    Bucket(BucketStatus.DANGER, "칫솔", 1, "2026-05-26", BucketLevel.NONE_WARN, 27),
-                    Bucket(BucketStatus.WARN, "샴푸", 0, "2026-05-25", BucketLevel.NONE_SAFE, 22),
-                    Bucket(BucketStatus.WARN, "필터", 3, "2026-05-30", BucketLevel.HAS_SAFE, 10),
+                    HomeItemCard(1L, "면도기", 30, "교체 D+7", 0, ""),
+                    HomeItemCard(2L, "칫솔", 27, "교체 D-day", 1, ""),
+                    HomeItemCard(3L, "샴푸", 22, "교체 D-2", 0, ""),
+                    HomeItemCard(4L, "필터", 10, "교체 D-10", 3, ""),
                 ),
             sortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
             onSortOrderChange = {},

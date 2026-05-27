@@ -5,6 +5,9 @@ import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.model.home.HomeBucketGroup
+import com.obrit.obrit.shared.model.home.HomeItemCursorSlice
+import com.obrit.obrit.shared.model.home.HomeItemOrder
+import com.obrit.obrit.shared.model.home.HomeItemsParams
 import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import com.obrit.obrit.shared.model.home.MyStatusSummary
 import org.orbitmvi.orbit.viewmodel.container
@@ -19,17 +22,22 @@ class HomeViewModel internal constructor(
             val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
             val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
             val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
+            val itemsDeferred =
+                vmAsync {
+                    homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT))
+                }
 
             val overallStatus = overallStatusDeferred.await().getOrNull()
             val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
             val buckets = bucketsDeferred.await().getOrNull()
-
-            if (overallStatus == null || myStatusSummary == null || buckets == null) {
+            val items = itemsDeferred.await().getOrNull()
+            val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null
+            if (!allLoaded) {
                 reduce { HomeUiState.LoadFailed }
                 return@container
             }
 
-            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, createMockStatus()) }
+            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, createMockStatus()) }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -41,6 +49,10 @@ class HomeViewModel internal constructor(
     fun onListSortOrderChange(sortOrder: ConsumableListSortOrder) =
         intent {
             reduceOn<HomeUiState.Success> { state.copy(listSortOrder = sortOrder) }
+            val items = homeRepository.getItems(HomeItemsParams(order = sortOrder.toHomeItemOrder())).getOrNull()
+            if (items != null) {
+                reduceOn<HomeUiState.Success> { state.copy(items = items) }
+            }
         }
 
     fun onDdayFilterChange(maxDays: Int) =
@@ -66,6 +78,7 @@ sealed interface HomeUiState {
         val overallStatus: HomeOverallStatus,
         val myStatusSummary: MyStatusSummary,
         val buckets: List<HomeBucketGroup>,
+        val items: HomeItemCursorSlice,
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
         val ddayRange: IntRange,
@@ -140,6 +153,7 @@ private fun createSuccessState(
     overallStatus: HomeOverallStatus,
     myStatusSummary: MyStatusSummary,
     buckets: List<HomeBucketGroup>,
+    items: HomeItemCursorSlice,
     status: HomeStatus,
 ): HomeUiState.Success {
     val ddayValues = status.buckets.map { daysUntil(it.replacementDate) }
@@ -152,6 +166,7 @@ private fun createSuccessState(
         overallStatus = overallStatus,
         myStatusSummary = myStatusSummary,
         buckets = buckets,
+        items = items,
         status = status,
         ddayRange = ddayMin..ddayMax,
         ddayFilterMax = ddayMax,
@@ -254,3 +269,11 @@ private const val DEFAULT_DDAY_MIN = 0
 private const val DEFAULT_DDAY_MAX = 30
 private const val DEFAULT_SPARE_MIN = 0
 private const val DEFAULT_SPARE_MAX = 10
+
+private fun ConsumableListSortOrder.toHomeItemOrder(): HomeItemOrder? =
+    when (this) {
+        ConsumableListSortOrder.REPLACE_IMMINENT -> HomeItemOrder.REPLACEMENT_URGENT
+        ConsumableListSortOrder.LEAST_SPARE -> HomeItemOrder.SPARE_LOW
+        ConsumableListSortOrder.OLDEST_REPLACEMENT -> HomeItemOrder.USED_OLD
+        ConsumableListSortOrder.ALPHABETICAL -> null
+    }
