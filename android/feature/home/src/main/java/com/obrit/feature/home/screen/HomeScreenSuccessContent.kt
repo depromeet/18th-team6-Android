@@ -34,13 +34,13 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.feature.home.screen.homeSection.ConsumableAlertSection
-import com.obrit.feature.home.screen.homeSection.ConsumableIcon
-import com.obrit.feature.home.screen.homeSection.ConsumableOrbitSection
-import com.obrit.feature.home.screen.homeSection.ConsumableStatusSection
-import com.obrit.feature.home.screen.homeSection.ConsumableUsageStatusSection
-import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
 import com.obrit.feature.home.screen.homeSection.QuickItemSection
+import com.obrit.feature.home.screen.homeSection.ConsumableIcon
+import com.obrit.feature.home.screen.homeSection.ItemOrbitSection
+import com.obrit.feature.home.screen.homeSection.ItemStatusSection
+import com.obrit.feature.home.screen.homeSection.ItemUsageStatusSection
+import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
+import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 
@@ -198,21 +198,21 @@ private fun HomeContents(
                 .navigationBarsPadding()
                 .padding(bottom = 80.dp),
     ) {
-        ConsumableStatusSection(overallStatus = state.overallStatus)
-        ConsumableOrbitSection(
+        ItemStatusSection(overallStatus = state.overallStatus)
+        ItemOrbitSection(
             icons = homeConsumableIcons,
             normalRatio = state.status.ratio.goodPercentage / 100f,
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
         MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
-        ConsumableAlertSection(buckets = state.buckets)
-        QuickItemSection(
+        QuickItemSection(buckets = state.buckets)
+        ItemListPreviewSection(
             items = state.items.content,
             sortOrder = state.listSortOrder,
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,
         )
-        ConsumableUsageStatusSection(buckets = state.status.buckets)
+        ItemUsageStatusSection(buckets = state.status.buckets)
     }
 }
 

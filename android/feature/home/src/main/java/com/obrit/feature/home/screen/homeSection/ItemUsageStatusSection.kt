@@ -32,7 +32,7 @@ import com.obrit.feature.home.viewmodel.BucketStatus
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
 @Composable
-internal fun ConsumableUsageStatusSection(
+internal fun ItemUsageStatusSection(
     buckets: List<Bucket>,
     modifier: Modifier = Modifier,
 ) {
@@ -121,9 +121,9 @@ private fun DaysInUseText(daysInUse: Int) {
 @Suppress("MagicNumber")
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20, widthDp = 412)
 @Composable
-private fun ConsumableUsageStatusSectionPreview() {
+private fun ItemUsageStatusSectionPreview() {
     OBRitTheme {
-        ConsumableUsageStatusSection(
+        ItemUsageStatusSection(
             buckets =
                 listOf(
                     Bucket(

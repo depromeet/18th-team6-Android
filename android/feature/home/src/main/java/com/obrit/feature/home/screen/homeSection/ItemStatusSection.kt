@@ -22,7 +22,7 @@ import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import com.obrit.obrit.shared.model.home.HomeStatusLevel
 
 @Composable
-internal fun ConsumableStatusSection(
+internal fun ItemStatusSection(
     overallStatus: HomeOverallStatus,
     modifier: Modifier = Modifier,
 ) {
@@ -117,9 +117,9 @@ private fun HomeStatusLevel.displayText(): String =
 
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
-private fun ConsumableStatusSectionPreview() {
+private fun ItemStatusSectionPreview() {
     OBRitTheme {
-        ConsumableStatusSection(
+        ItemStatusSection(
             overallStatus =
                 HomeOverallStatus(
                     overall = HomeOverallLevel.WARNING,
