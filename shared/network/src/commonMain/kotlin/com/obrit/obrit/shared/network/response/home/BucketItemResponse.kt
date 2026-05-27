@@ -8,18 +8,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BucketItemResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("itemId") val itemId: Long,
     @SerialName("name") val name: String,
-    @SerialName("count") val count: Int,
+    @SerialName("spareQuantity") val spareQuantity: Int,
     @SerialName("nextReplacementDate") val nextReplacementDate: String? = null,
     @SerialName("status") val status: String,
 )
 
 fun BucketItemResponse.toHomeBucketItem() =
     HomeBucketItem(
-        id = id,
+        itemId = itemId,
         name = name,
-        count = count,
+        spareQuantity = spareQuantity,
         nextReplacementDate = nextReplacementDate?.let(::ReplacementDate),
         status =
             when (status) {
