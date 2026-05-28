@@ -25,7 +25,14 @@ struct ItemRegistrationCreateItemRequest: Equatable {
     let categoryId: Int
     let name: String
     let quantity: Int
-    let lastReplacementDate: String?
+    let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod
+}
+
+enum ItemRegistrationLastReplacementPeriod: String, Equatable {
+    case withinWeek = "WITHIN_WEEK"
+    case withinMonth = "WITHIN_MONTH"
+    case withinThreeMonths = "WITHIN_THREE_MONTHS"
+    case overThreeMonths = "OVER_THREE_MONTHS"
 }
 
 enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {

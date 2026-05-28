@@ -4,6 +4,7 @@ import com.obrit.obrit.shared.model.ReplacementDate
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
+import com.obrit.obrit.shared.model.items.LastReplacementPeriod
 import com.obrit.obrit.shared.model.items.PatchItemParams
 
 /**
@@ -17,7 +18,8 @@ class SharedWriteService(
         name: String,
         iconId: Long,
     ): Category =
-        repositoryProvider.categoryRepository()
+        repositoryProvider
+            .categoryRepository()
             .createCategory(name = name, iconId = iconId)
             .getOrThrow()
 
@@ -25,9 +27,12 @@ class SharedWriteService(
     suspend fun createItem(params: CreateItemParams): Item =
         logged(
             event = "SharedWriteService.createItem",
-            details = "categoryId=${params.categoryId} count=${params.count} interval=${params.replacementIntervalDays}",
+            details =
+                "categoryId=${params.categoryId} count=${params.count} " +
+                    "lastReplacementPeriod=${params.lastReplacementPeriod?.value} interval=${params.replacementIntervalDays}",
         ) {
-            repositoryProvider.itemRepository()
+            repositoryProvider
+                .itemRepository()
                 .createItem(params = params)
                 .getOrThrow()
         }
@@ -37,7 +42,7 @@ class SharedWriteService(
         categoryId: Long,
         name: String,
         count: Int?,
-        lastReplacedDate: String?,
+        lastReplacementPeriod: String?,
         replacementIntervalDays: Int?,
     ): Item =
         createItem(
@@ -45,7 +50,12 @@ class SharedWriteService(
                 categoryId = categoryId,
                 name = name,
                 count = count,
-                lastReplacedDate = lastReplacedDate?.let(::ReplacementDate),
+                lastReplacementPeriod =
+                    lastReplacementPeriod?.let { value ->
+                        checkNotNull(LastReplacementPeriod.fromValue(value)) {
+                            "Unknown lastReplacementPeriod: $value"
+                        }
+                    },
                 replacementIntervalDays = replacementIntervalDays,
             ),
         )
@@ -59,7 +69,8 @@ class SharedWriteService(
             event = "SharedWriteService.patchSpareCount",
             details = "itemId=$itemId count=$count",
         ) {
-            repositoryProvider.itemRepository()
+            repositoryProvider
+                .itemRepository()
                 .patchSpareCount(itemId = itemId, count = count)
                 .getOrThrow()
         }
@@ -72,7 +83,8 @@ class SharedWriteService(
         lastReplacedDate: String?,
         replacementIntervalDays: Int?,
     ): Item =
-        repositoryProvider.itemRepository()
+        repositoryProvider
+            .itemRepository()
             .patchItem(
                 PatchItemParams(
                     itemId = itemId,
@@ -92,7 +104,8 @@ class SharedWriteService(
             event = "SharedWriteService.createReplacement",
             details = "itemId=$itemId replacedDate=$replacedDate",
         ) {
-            repositoryProvider.itemRepository()
+            repositoryProvider
+                .itemRepository()
                 .createReplacement(
                     itemId = itemId,
                     replacedDate = replacedDate?.let(::ReplacementDate),
@@ -105,7 +118,8 @@ class SharedWriteService(
             event = "SharedWriteService.deleteItem",
             details = "itemId=$itemId",
         ) {
-            repositoryProvider.itemRepository()
+            repositoryProvider
+                .itemRepository()
                 .deleteItem(itemId = itemId)
                 .getOrThrow()
         }

@@ -17,7 +17,7 @@ internal class UserRepositoryImpl(
                         type = UUID_AUTH_TYPE,
                         value = deviceUuidProvider.get(),
                     ),
-                ).id
+                ).userId
         }
 }
 

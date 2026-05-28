@@ -8,6 +8,6 @@ data class CreateItemRequest(
     @SerialName("categoryId") val categoryId: Long,
     @SerialName("name") val name: String,
     @SerialName("spareQuantity") val count: Int? = null,
-    @SerialName("lastReplacedDate") val lastReplacedDate: String? = null,
+    @SerialName("lastReplacementPeriod") val lastReplacementPeriod: String? = null,
     @SerialName("replacementIntervalDays") val replacementIntervalDays: Int? = null,
 )

@@ -7,8 +7,6 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     private let catalogRepository: ItemRegistrationCatalogRepository?
     private let writeRepository: ItemRegistrationWriteRepository?
-    private let dateProvider: () -> Date
-    private let calendar: Calendar
 
     private var data: ItemRegistrationViewData {
         didSet {
@@ -33,8 +31,6 @@ final class ItemRegistrationViewModel: ObservableObject {
         )
         self.catalogRepository = nil
         self.writeRepository = nil
-        self.dateProvider = Date.init
-        self.calendar = .current
         self.data = initialData
         self.state = .success(initialData)
 
@@ -48,8 +44,6 @@ final class ItemRegistrationViewModel: ObservableObject {
         writeRepository: ItemRegistrationWriteRepository,
         fallbackItemKinds: [ItemKind] = [],
         fallbackImageOptions: [ItemImageOption] = [],
-        dateProvider: @escaping () -> Date = Date.init,
-        calendar: Calendar = .current,
         automaticallyLoads: Bool = true
     ) {
         let initialData = ItemRegistrationViewData(
@@ -64,8 +58,6 @@ final class ItemRegistrationViewModel: ObservableObject {
         )
         self.catalogRepository = catalogRepository
         self.writeRepository = writeRepository
-        self.dateProvider = dateProvider
-        self.calendar = calendar
         self.data = initialData
         self.state = automaticallyLoads ? .loading : .success(initialData)
 
@@ -290,16 +282,14 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     private func makeCreateItemRequest() -> ItemRegistrationCreateItemRequest? {
-        guard let selectedKind = data.draft.selectedKind else { return nil }
+        guard let selectedKind = data.draft.selectedKind,
+              let lastReplacementPeriod = data.draft.lastReplacementDateOption?.apiPeriod else { return nil }
 
         return ItemRegistrationCreateItemRequest(
             categoryId: selectedKind.id,
             name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
             quantity: data.draft.quantity,
-            lastReplacementDate: data.draft.lastReplacementDateOption?.replacementDateString(
-                referenceDate: dateProvider(),
-                calendar: calendar
-            )
+            lastReplacementPeriod: lastReplacementPeriod
         )
     }
 
@@ -338,7 +328,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         AppLog.enter(
             AppLog.itemRegistrationViewModel,
             "ItemRegistrationViewModel.submitFormTask",
-            "categoryId=\(request.categoryId) quantity=\(request.quantity) hasLastReplacementDate=\(request.lastReplacementDate != nil)"
+            "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
         )
         do {
             try await repository.createItem(request: request)
@@ -413,30 +403,18 @@ enum ItemRegistrationViewEffect: Equatable {
 }
 
 private extension ItemReplacementDateOption {
-    func replacementDateString(referenceDate: Date, calendar: Calendar) -> String? {
-        let dayOffset: Int
+    var apiPeriod: ItemRegistrationLastReplacementPeriod {
         switch self {
         case .withinOneWeek:
-            dayOffset = -3
+            return .withinWeek
         case .twoToFourWeeksAgo:
-            dayOffset = -21
+            return .withinMonth
         case .oneToThreeMonthsAgo:
-            dayOffset = -60
+            return .withinThreeMonths
         case .unknown:
-            return nil
+            return .overThreeMonths
         }
-
-        let date = calendar.date(byAdding: .day, value: dayOffset, to: referenceDate) ?? referenceDate
-        return Self.dateFormatter.string(from: date)
     }
-
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 }
 
 private extension Error {

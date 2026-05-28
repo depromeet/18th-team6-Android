@@ -34,14 +34,14 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
         let event = "SharedItemRegistrationWriteRepository.createItem"
-        let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) hasLastReplacementDate=\(request.lastReplacementDate != nil)"
+        let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             _ = try await writeService.createItem(
                 categoryId: Int64(request.categoryId),
                 name: request.name,
                 count: KotlinInt(int: Int32(request.quantity)),
-                lastReplacedDate: request.lastReplacementDate,
+                lastReplacementPeriod: request.lastReplacementPeriod.rawValue,
                 replacementIntervalDays: nil
             )
             AppLog.success(AppLog.swiftRepository, event, details)

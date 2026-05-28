@@ -10,11 +10,16 @@ internal interface UserIdProvider {
 internal class DefaultUserIdProvider(
     private val deviceUuidProvider: DeviceUuidProvider,
     private val userRemoteDataSource: UserRemoteDataSource,
+    private val userIdStorage: UserIdStorage,
 ) : UserIdProvider {
     private var cachedUserId: Long? = null
 
     override suspend fun get(): Long {
         cachedUserId?.let { userId -> return userId }
+        userIdStorage.load()?.let { userId ->
+            cachedUserId = userId
+            return userId
+        }
 
         val registeredUser =
             userRemoteDataSource.register(
@@ -25,6 +30,7 @@ internal class DefaultUserIdProvider(
             )
 
         cachedUserId = registeredUser.userId
+        userIdStorage.save(registeredUser.userId)
         return registeredUser.userId
     }
 }
