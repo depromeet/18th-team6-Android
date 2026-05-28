@@ -26,17 +26,18 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.categories.Category
 
 internal data class CategoryListAreaState(
     val isEmptyResult: Boolean,
-    val items: List<String>,
-    val selectedName: String,
+    val items: List<Category>,
+    val selectedId: Long?,
 )
 
 @Composable
 internal fun CategoryListArea(
     state: CategoryListAreaState,
-    onCategorySelect: (String) -> Unit,
+    onCategorySelect: (Category) -> Unit,
     onDirectRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -50,7 +51,7 @@ internal fun CategoryListArea(
         } else {
             CategoryList(
                 items = state.items,
-                selectedName = state.selectedName,
+                selectedId = state.selectedId,
                 onCategorySelect = onCategorySelect,
             )
             CategoryListBottomFade(color = colors.gray900)
@@ -60,9 +61,9 @@ internal fun CategoryListArea(
 
 @Composable
 private fun CategoryList(
-    items: List<String>,
-    selectedName: String,
-    onCategorySelect: (String) -> Unit,
+    items: List<Category>,
+    selectedId: Long?,
+    onCategorySelect: (Category) -> Unit,
 ) {
     val listState = rememberLazyListState()
     val listFlingGuard = remember(listState) { listFlingGuardConnection(listState) }
@@ -75,12 +76,12 @@ private fun CategoryList(
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         contentPadding = PaddingValues(bottom = CATEGORY_LIST_BOTTOM_FADE),
     ) {
-        items(items, key = { it }) { name ->
+        items(items, key = { it.id }) { category ->
             CategoryListItem(
-                name = name,
-                addedCount = 0,
-                selected = name == selectedName,
-                onClick = { onCategorySelect(name) },
+                name = category.name,
+                addedCount = category.itemCount,
+                selected = category.id == selectedId,
+                onClick = { onCategorySelect(category) },
             )
         }
     }

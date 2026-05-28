@@ -104,7 +104,7 @@ private fun CreateItemParams.toCreateItemRequest() =
     CreateItemRequest(
         categoryId = categoryId,
         name = name,
-        count = count,
-        lastReplacedDate = lastReplacedDate?.value,
+        spareQuantity = spareQuantity,
+        lastReplacementPeriod = lastReplacementPeriod?.name,
         replacementIntervalDays = replacementIntervalDays,
     )

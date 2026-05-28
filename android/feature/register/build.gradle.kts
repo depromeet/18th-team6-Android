@@ -9,4 +9,6 @@ dependencies {
     implementation(projects.android.core.ui)
     implementation(projects.android.core.designsystem)
     implementation(projects.shared.designSystem)
+    implementation(projects.shared.data)
+    api(projects.shared.model)
 }

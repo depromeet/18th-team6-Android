@@ -39,18 +39,18 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.obrit.android.core.designsystem.component.bottomsheet.OBRitBottomSheet
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.categories.Category
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun CategorySelectionBottomSheet(
-    initialSelected: String,
-    onConfirm: (String) -> Unit,
+    categories: List<Category>,
+    initialSelectedId: Long?,
+    onConfirm: (Category) -> Unit,
     onDismissRequest: () -> Unit,
     onDirectRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -66,10 +66,10 @@ internal fun CategorySelectionBottomSheet(
 
     // M3 ModalBottomSheet의 sheet container가 IME에 자동 반응(CTA 떠오름 + 진동)하는 의도된 동작을
     // disable할 공식 API가 없어, 직접 Dialog로 wrapper를 구성.
-    Dialog(
+    androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismissRequest,
         properties =
-            DialogProperties(
+            androidx.compose.ui.window.DialogProperties(
                 usePlatformDefaultWidth = false,
                 decorFitsSystemWindows = false,
                 dismissOnClickOutside = false,
@@ -78,7 +78,8 @@ internal fun CategorySelectionBottomSheet(
         CategorySheetScrim(modifier = modifier, onDismiss = onDismissRequest) {
             CategorySheetContainer(state = anchoredState, flingBehavior = flingBehavior) {
                 CategorySelectionBottomSheetContent(
-                    initialSelected = initialSelected,
+                    categories = categories,
+                    initialSelectedId = initialSelectedId,
                     onConfirm = onConfirm,
                     onDirectRegisterClick = onDirectRegisterClick,
                 )
@@ -164,16 +165,17 @@ internal enum class SheetDragValue { Expanded, Hidden }
 @Composable
 @Suppress("LongMethod")
 private fun CategorySelectionBottomSheetContent(
-    initialSelected: String,
-    onConfirm: (String) -> Unit,
+    categories: List<Category>,
+    initialSelectedId: Long?,
+    onConfirm: (Category) -> Unit,
     onDirectRegisterClick: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var confirmedQuery by rememberSaveable { mutableStateOf("") }
-    var selectedName by rememberSaveable(initialSelected) { mutableStateOf(initialSelected) }
+    var selectedId by rememberSaveable(initialSelectedId) { mutableStateOf(initialSelectedId) }
     val keyboard = LocalSoftwareKeyboardController.current
-    val displayList = rememberCategoryDisplayList(confirmedQuery)
-    val suggestions = rememberCategorySuggestions(query, confirmedQuery)
+    val displayList = rememberCategoryDisplayList(categories, confirmedQuery)
+    val suggestions = rememberCategorySuggestions(categories, query, confirmedQuery)
     val isEmptyResult = confirmedQuery.isNotBlank() && displayList.isEmpty()
     var searchFieldBottomPx by remember { mutableIntStateOf(0) }
     val commitSearch: (String) -> Unit = { v ->
@@ -188,7 +190,7 @@ private fun CategorySelectionBottomSheetContent(
                     query = query,
                     isEmptyResult = isEmptyResult,
                     displayList = displayList,
-                    selectedName = selectedName,
+                    selectedId = selectedId,
                 ),
             actions =
                 CategorySheetMainColumnActions(
@@ -197,9 +199,12 @@ private fun CategorySelectionBottomSheetContent(
                         if (newValue.isEmpty() && confirmedQuery.isNotEmpty()) confirmedQuery = ""
                     },
                     onSearch = { commitSearch(query) },
-                    onCategorySelect = { selectedName = it },
+                    onCategorySelect = { selectedId = it.id },
                     onDirectRegisterClick = onDirectRegisterClick,
-                    onConfirm = { onConfirm(selectedName) },
+                    onConfirm = {
+                        val picked = categories.firstOrNull { it.id == selectedId }
+                        if (picked != null) onConfirm(picked)
+                    },
                     onSearchFieldSized = { searchFieldBottomPx = it },
                 ),
             suggestions = suggestions,
@@ -213,7 +218,7 @@ private fun CategorySelectionBottomSheetContent(
 private fun CategorySheetBody(
     state: CategorySheetMainColumnState,
     actions: CategorySheetMainColumnActions,
-    suggestions: List<String>,
+    suggestions: List<Category>,
     onSuggestionPick: (String) -> Unit,
     searchFieldBottomPx: Int,
 ) {
@@ -222,7 +227,7 @@ private fun CategorySheetBody(
         CategorySheetMainColumn(state = state, actions = actions)
         if (suggestions.isNotEmpty()) {
             CategorySearchSuggestionsOverlay(
-                suggestions = suggestions,
+                suggestions = suggestions.map { it.name },
                 query = state.query,
                 onPick = onSuggestionPick,
                 topOffsetPx = searchFieldBottomPx,
@@ -234,14 +239,14 @@ private fun CategorySheetBody(
 internal data class CategorySheetMainColumnState(
     val query: String,
     val isEmptyResult: Boolean,
-    val displayList: List<String>,
-    val selectedName: String,
+    val displayList: List<Category>,
+    val selectedId: Long?,
 )
 
 internal data class CategorySheetMainColumnActions(
     val onQueryChange: (String) -> Unit,
     val onSearch: () -> Unit,
-    val onCategorySelect: (String) -> Unit,
+    val onCategorySelect: (Category) -> Unit,
     val onDirectRegisterClick: () -> Unit,
     val onConfirm: () -> Unit,
     val onSearchFieldSized: (Int) -> Unit,
@@ -273,7 +278,7 @@ private fun CategorySheetMainColumn(
                 CategoryListAreaState(
                     isEmptyResult = state.isEmptyResult,
                     items = state.displayList,
-                    selectedName = state.selectedName,
+                    selectedId = state.selectedId,
                 ),
             onCategorySelect = actions.onCategorySelect,
             onDirectRegisterClick = actions.onDirectRegisterClick,
@@ -281,7 +286,7 @@ private fun CategorySheetMainColumn(
         )
         CategoryConfirmButton(
             isEmptyResult = state.isEmptyResult,
-            enabled = !state.isEmptyResult && state.selectedName.isNotBlank(),
+            enabled = !state.isEmptyResult && state.selectedId != null,
             onClick = actions.onConfirm,
         )
     }
@@ -292,7 +297,8 @@ private fun CategorySheetMainColumn(
 private fun CategorySelectionBottomSheetEmptyPreview() {
     OBRitTheme(dynamicColor = false) {
         CategorySelectionBottomSheetContent(
-            initialSelected = "",
+            categories = emptyList(),
+            initialSelectedId = null,
             onConfirm = {},
             onDirectRegisterClick = {},
         )
@@ -303,8 +309,14 @@ private fun CategorySelectionBottomSheetEmptyPreview() {
 @Composable
 private fun CategorySelectionBottomSheetSelectedPreview() {
     OBRitTheme(dynamicColor = false) {
+        val sample =
+            listOf(
+                Category(id = 1, name = "정수기 필터", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
+                Category(id = 2, name = "칫솔", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
+            )
         CategorySelectionBottomSheetContent(
-            initialSelected = "정수기 필터",
+            categories = sample,
+            initialSelectedId = 1L,
             onConfirm = {},
             onDirectRegisterClick = {},
         )

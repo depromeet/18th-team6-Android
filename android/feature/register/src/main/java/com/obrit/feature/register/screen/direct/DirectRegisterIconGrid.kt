@@ -17,20 +17,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.categories.CategoryIcon
 
 @Composable
 internal fun IconGridField(
     label: String,
-    totalCount: Int,
-    selectedIndex: Int?,
-    onSelect: (Int) -> Unit,
+    icons: List<CategoryIcon>,
+    selectedIconId: Long?,
+    onSelect: (Long) -> Unit,
     headerSlot: @Composable (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp)) {
         headerSlot(label)
         IconGrid(
-            totalCount = totalCount,
-            selectedIndex = selectedIndex,
+            icons = icons,
+            selectedIconId = selectedIconId,
             onSelect = onSelect,
         )
     }
@@ -38,10 +39,11 @@ internal fun IconGridField(
 
 @Composable
 private fun IconGrid(
-    totalCount: Int,
-    selectedIndex: Int?,
-    onSelect: (Int) -> Unit,
+    icons: List<CategoryIcon>,
+    selectedIconId: Long?,
+    onSelect: (Long) -> Unit,
 ) {
+    val totalCount = icons.size
     val rowCount = (totalCount + ICON_GRID_COLUMNS - 1) / ICON_GRID_COLUMNS
     Column(verticalArrangement = Arrangement.spacedBy(ICON_GRID_ROW_GAP)) {
         repeat(rowCount) { rowIndex ->
@@ -52,9 +54,10 @@ private fun IconGrid(
                 repeat(ICON_GRID_COLUMNS) { columnIndex ->
                     val itemIndex = rowIndex * ICON_GRID_COLUMNS + columnIndex
                     if (itemIndex < totalCount) {
+                        val icon = icons[itemIndex]
                         IconCircle(
-                            selected = itemIndex == selectedIndex,
-                            onClick = { onSelect(itemIndex) },
+                            selected = icon.id == selectedIconId,
+                            onClick = { onSelect(icon.id) },
                         )
                     } else {
                         Spacer(modifier = Modifier.size(ICON_CIRCLE_SIZE))
@@ -81,7 +84,6 @@ private fun IconCircle(
         } else {
             Modifier
         }
-    // 추후 GET /categories/icons 연동 시 Image / AsyncImage 추가.
     Box(
         modifier =
             Modifier
