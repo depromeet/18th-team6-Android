@@ -184,6 +184,7 @@ private fun ManualRegisterFields(
         )
         QuantityField(
             title = state.categoryName,
+            iconUrl = state.categoryIconUrl,
             quantity = state.quantity,
             totalCount = state.totalCount,
             onQuantityChange = onQuantityChange,

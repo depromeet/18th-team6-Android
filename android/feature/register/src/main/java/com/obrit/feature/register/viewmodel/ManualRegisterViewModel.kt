@@ -34,6 +34,7 @@ class ManualRegisterViewModel(
                 state.copy(
                     selectedCategoryId = category.id,
                     categoryName = category.name,
+                    categoryIconUrl = category.iconUrl,
                     existingCount = category.totalSpareQuantity,
                 )
             }
@@ -61,6 +62,7 @@ class ManualRegisterViewModel(
                     categories = state.categories + category,
                     selectedCategoryId = category.id,
                     categoryName = category.name,
+                    categoryIconUrl = category.iconUrl,
                     existingCount = category.totalSpareQuantity,
                 )
             }
@@ -106,6 +108,7 @@ data class ManualRegisterUiState(
     val categories: List<Category> = emptyList(),
     val selectedCategoryId: Long? = null,
     val categoryName: String = "",
+    val categoryIconUrl: String = "",
     val name: String = "",
     val quantity: Int = 0,
     val existingCount: Int = 0,

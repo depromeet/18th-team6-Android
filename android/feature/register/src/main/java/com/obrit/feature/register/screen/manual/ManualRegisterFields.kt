@@ -185,6 +185,7 @@ private class LastReplaceDateMenuPositionProvider(
 @Composable
 internal fun QuantityField(
     title: String,
+    iconUrl: String,
     quantity: Int,
     totalCount: Int,
     onQuantityChange: (Int) -> Unit,
@@ -193,6 +194,7 @@ internal fun QuantityField(
         FieldSectionHeader(label = MANUAL_REGISTER_QUANTITY_LABEL)
         QuantityCard(
             title = title.ifEmpty { MANUAL_REGISTER_QUANTITY_TITLE_PLACEHOLDER },
+            iconUrl = iconUrl,
             totalCount = totalCount,
             quantity = quantity,
             onQuantityChange = onQuantityChange,
