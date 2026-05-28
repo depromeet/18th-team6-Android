@@ -41,20 +41,23 @@ fun OBRitSlider(
     onValueChangeFinished: (() -> Unit)? = null,
 ) {
     val colors = LocalOBRitColor.current
+    val zeroRange = valueRange.start == valueRange.endInclusive
+    val effectiveRange =
+        if (zeroRange) (valueRange.start - 1f)..valueRange.endInclusive else valueRange
 
     Slider(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        enabled = enabled,
-        valueRange = valueRange,
+        enabled = enabled && !zeroRange,
+        valueRange = effectiveRange,
         steps = steps,
         onValueChangeFinished = onValueChangeFinished,
         thumb = { OBRitSliderThumb(colors = colors) },
         track = { sliderState ->
             OBRitSliderTrack(
                 sliderState = sliderState,
-                valueRange = valueRange,
+                valueRange = effectiveRange,
                 colors = colors,
             )
         },
