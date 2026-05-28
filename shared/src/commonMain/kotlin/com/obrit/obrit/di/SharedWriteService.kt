@@ -131,14 +131,16 @@ class SharedWriteService(
         block: suspend () -> T,
     ): T {
         SharedLog.enter(scope = LOG_SCOPE, event = event, details = details)
-        return try {
-            val value = block()
+        val result = runCatching { block() }
+
+        result.onSuccess {
             SharedLog.success(scope = LOG_SCOPE, event = event, details = details)
-            value
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = details)
-            throw throwable
         }
+        result.onFailure { throwable ->
+            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = details)
+        }
+
+        return result.getOrThrow()
     }
 
     private companion object {

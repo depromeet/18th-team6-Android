@@ -17,35 +17,25 @@ class SharedReadService(
     private val repositoryProvider: SharedRepositoryProvider = SharedRepositoryProvider(),
 ) {
     @Throws(Throwable::class)
-    suspend fun getCategories(): List<Category> {
-        val event = "SharedReadService.getCategories"
-        SharedLog.enter(scope = LOG_SCOPE, event = event)
-        return try {
+    suspend fun getCategories(): List<Category> =
+        logged(
+            event = "SharedReadService.getCategories",
+        ) {
             val categories = repositoryProvider.categoryRepository().getCategories().getOrThrow()
-            SharedLog.success(scope = LOG_SCOPE, event = event, details = "count=${categories.size}")
-            categories
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable)
-            throw throwable
+            categories to "count=${categories.size}"
         }
-    }
 
     @Throws(Throwable::class)
     suspend fun getCategoryIcons(): List<CategoryIcon> = repositoryProvider.categoryRepository().getCategoryIcons().getOrThrow()
 
     @Throws(Throwable::class)
-    suspend fun getItems(): List<Item> {
-        val event = "SharedReadService.getItems"
-        SharedLog.enter(scope = LOG_SCOPE, event = event)
-        return try {
+    suspend fun getItems(): List<Item> =
+        logged(
+            event = "SharedReadService.getItems",
+        ) {
             val items = repositoryProvider.itemRepository().getItems().getOrThrow()
-            SharedLog.success(scope = LOG_SCOPE, event = event, details = "count=${items.size}")
-            items
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable)
-            throw throwable
+            items to "count=${items.size}"
         }
-    }
 
     @Throws(Throwable::class)
     suspend fun getReplacementHistories(
@@ -58,58 +48,55 @@ class SharedReadService(
             .getOrThrow()
 
     @Throws(Throwable::class)
-    suspend fun getOverallStatus(): HomeOverallStatus {
-        val event = "SharedReadService.getOverallStatus"
-        SharedLog.enter(scope = LOG_SCOPE, event = event)
-        return try {
+    suspend fun getOverallStatus(): HomeOverallStatus =
+        logged(
+            event = "SharedReadService.getOverallStatus",
+        ) {
             val status = repositoryProvider.homeRepository().getOverallStatus().getOrThrow()
-            SharedLog.success(scope = LOG_SCOPE, event = event, details = "overall=${status.overall}")
-            status
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable)
-            throw throwable
+            status to "overall=${status.overall}"
         }
-    }
 
     @Throws(Throwable::class)
-    suspend fun getMyStatusSummary(): MyStatusSummary {
-        val event = "SharedReadService.getMyStatusSummary"
-        SharedLog.enter(scope = LOG_SCOPE, event = event)
-        return try {
+    suspend fun getMyStatusSummary(): MyStatusSummary =
+        logged(
+            event = "SharedReadService.getMyStatusSummary",
+        ) {
             val summary = repositoryProvider.homeRepository().getMyStatusSummary().getOrThrow()
-            SharedLog.success(
-                scope = LOG_SCOPE,
-                event = event,
-                details = "totalCount=${summary.totalCount} needReplaceCount=${summary.needReplaceCount}",
-            )
-            summary
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable)
-            throw throwable
+            summary to "totalCount=${summary.totalCount} needReplaceCount=${summary.needReplaceCount}"
         }
-    }
 
     @Throws(Throwable::class)
-    suspend fun getHomeItems(params: HomeItemsParams): HomeItemCursorSlice {
-        val event = "SharedReadService.getHomeItems"
-        val details = "cursor=${params.cursor} size=${params.size} order=${params.order}"
-        SharedLog.enter(scope = LOG_SCOPE, event = event, details = details)
-        return try {
+    suspend fun getHomeItems(params: HomeItemsParams): HomeItemCursorSlice =
+        logged(
+            event = "SharedReadService.getHomeItems",
+            enterDetails = "cursor=${params.cursor} size=${params.size} order=${params.order}",
+        ) {
             val slice = repositoryProvider.homeRepository().getItems(params = params).getOrThrow()
-            SharedLog.success(
-                scope = LOG_SCOPE,
-                event = event,
-                details = "$details count=${slice.content.size} hasNext=${slice.hasNext}",
-            )
-            slice
-        } catch (throwable: Throwable) {
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = details)
-            throw throwable
+            slice to
+                "cursor=${params.cursor} size=${params.size} order=${params.order} " +
+                "count=${slice.content.size} hasNext=${slice.hasNext}"
         }
-    }
 
     @Throws(Throwable::class)
     suspend fun getBuckets(): List<HomeBucketGroup> = repositoryProvider.homeRepository().getBuckets().getOrThrow()
+
+    private suspend fun <T> logged(
+        event: String,
+        enterDetails: String? = null,
+        block: suspend () -> Pair<T, String>,
+    ): T {
+        SharedLog.enter(scope = LOG_SCOPE, event = event, details = enterDetails)
+        val result = runCatching { block() }
+
+        result.onSuccess { (_, successDetails) ->
+            SharedLog.success(scope = LOG_SCOPE, event = event, details = successDetails)
+        }
+        result.onFailure { throwable ->
+            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = enterDetails)
+        }
+
+        return result.getOrThrow().first
+    }
 
     private companion object {
         const val LOG_SCOPE = "SharedReadService"
