@@ -20,14 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +67,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun ConsumableListScreenContent(
     items: List<HomeItemCard>,
+    hasNext: Boolean,
     sortOrder: ConsumableListSortOrder,
     ddayRange: IntRange,
     ddayFilterMax: Int,
@@ -84,8 +89,21 @@ internal fun ConsumableListScreenContent(
         }
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
+    val currentOnLoadMoreItems by rememberUpdatedState(action.onLoadMoreItems)
+    val reachedBottom by remember {
+        derivedStateOf {
+            val layoutInfo = lazyListState.layoutInfo
+            val lastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            layoutInfo.totalItemsCount > 0 && lastVisibleIndex >= layoutInfo.totalItemsCount - 1
+        }
+    }
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom && hasNext) currentOnLoadMoreItems()
+    }
     Box(modifier = modifier) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier.fillMaxSize(),
             contentPadding =
                 PaddingValues(

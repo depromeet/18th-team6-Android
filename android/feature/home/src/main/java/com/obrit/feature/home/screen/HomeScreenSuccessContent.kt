@@ -78,6 +78,7 @@ internal fun HomeScreenSuccessContent(
             } else {
                 ConsumableListScreenContent(
                     items = state.items.content,
+                    hasNext = state.items.hasNext,
                     sortOrder = state.listSortOrder,
                     ddayRange = state.ddayRange,
                     ddayFilterMax = state.ddayFilterMax,
@@ -90,6 +91,7 @@ internal fun HomeScreenSuccessContent(
                             onDdayFilterChange = action.onDdayFilterChange,
                             onSpareFilterChange = action.onSpareFilterChange,
                             onFilterApply = action.onFilterApply,
+                            onLoadMoreItems = action.onLoadMoreItems,
                         ),
                     modifier =
                         Modifier
