@@ -552,6 +552,32 @@ private fun FilterButtonRow(
     }
 }
 
+@Composable
+private fun ConsumableListEmptyState(modifier: Modifier = Modifier) {
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    Column(
+        modifier =
+            modifier.padding(
+                horizontal = AtomSpacing.S5.dp,
+                vertical = EMPTY_STATE_VERTICAL_PADDING.dp,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
+    ) {
+        Text(
+            text = "아직 등록된 소모품이 없어요",
+            style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+            color = colors.common00,
+        )
+        Text(
+            text = "가지고 계신 소모품을 등록하고 관리해 보세요",
+            style = typography.base.copy(fontWeight = FontWeight.Medium),
+            color = colors.gray300.copy(alpha = EMPTY_STATE_SUBTITLE_ALPHA),
+        )
+    }
+}
+
 @Suppress("LongParameterList")
 private fun applyFiltersAndSort(
     items: List<HomeItemCard>,
