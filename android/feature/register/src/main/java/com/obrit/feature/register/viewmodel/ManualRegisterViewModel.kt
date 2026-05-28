@@ -24,10 +24,10 @@ class ManualRegisterViewModel : BaseContainerHost<ManualRegisterUiState, ManualR
             }
         }
 
-    fun onSpareCountChange(value: String) =
+    fun onQuantityChange(value: Int) =
         intent {
             reduce {
-                state.copy(spareCount = value)
+                state.copy(quantity = value)
             }
         }
 
@@ -40,6 +40,7 @@ class ManualRegisterViewModel : BaseContainerHost<ManualRegisterUiState, ManualR
 
     fun onSubmit() =
         intent {
+            reduce { ManualRegisterUiState() }
             postSideEffect(ManualRegisterSideEffect.OnRegistered)
         }
 
@@ -58,11 +59,15 @@ class ManualRegisterViewModel : BaseContainerHost<ManualRegisterUiState, ManualR
 data class ManualRegisterUiState(
     val categoryName: String = "",
     val name: String = "",
-    val spareCount: String = "",
+    val quantity: Int = 0,
+    val existingCount: Int = 0,
     val lastReplaceDate: String = "",
 ) {
+    val totalCount: Int
+        get() = existingCount + quantity
+
     val isSubmitEnabled: Boolean
-        get() = categoryName.isNotBlank() && name.isNotBlank() && lastReplaceDate.isNotBlank()
+        get() = categoryName.isNotBlank() && name.isNotBlank() && lastReplaceDate.isNotBlank() && quantity > 0
 }
 
 sealed interface ManualRegisterSideEffect {

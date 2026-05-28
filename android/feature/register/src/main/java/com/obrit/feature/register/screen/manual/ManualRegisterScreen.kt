@@ -34,7 +34,7 @@ fun ManualRegisterScreen(
             ManualRegisterScreenAction(
                 onCategoryChange = viewModel::onCategoryChange,
                 onNameChange = viewModel::onNameChange,
-                onSpareCountChange = viewModel::onSpareCountChange,
+                onQuantityChange = viewModel::onQuantityChange,
                 onLastReplaceDateChange = viewModel::onLastReplaceDateChange,
                 onSubmit = viewModel::onSubmit,
                 onBack = viewModel::onBack,
@@ -66,7 +66,7 @@ data class PendingCategory(
 internal data class ManualRegisterScreenAction(
     val onCategoryChange: (String) -> Unit,
     val onNameChange: (String) -> Unit,
-    val onSpareCountChange: (String) -> Unit,
+    val onQuantityChange: (Int) -> Unit,
     val onLastReplaceDateChange: (String) -> Unit,
     val onSubmit: () -> Unit,
     val onBack: () -> Unit,
