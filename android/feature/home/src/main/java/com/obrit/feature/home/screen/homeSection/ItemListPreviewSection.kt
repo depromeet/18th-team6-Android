@@ -50,6 +50,7 @@ import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.home.HomeItemCard
+import com.obrit.obrit.shared.model.home.ItemBucket
 import kotlin.math.roundToInt
 
 private const val LIST_PREVIEW_COUNT = 3
@@ -260,11 +261,15 @@ internal fun QuickItemListItem(item: HomeItemCard) {
     )
 }
 
-@Suppress("MagicNumber")
-private fun homeItemCardLevel(item: HomeItemCard): OBRitCardLevel {
-    val hasSpare = item.spareQuantity > 0
-    return if (hasSpare) OBRitCardLevel.L1 else OBRitCardLevel.L2
-}
+private fun homeItemCardLevel(item: HomeItemCard): OBRitCardLevel =
+    when (item.itemBucket) {
+        ItemBucket.NONE_OVERDUE -> OBRitCardLevel.L1
+        ItemBucket.NONE_WARN -> OBRitCardLevel.L2
+        ItemBucket.HAS_OVERDUE -> OBRitCardLevel.L3
+        ItemBucket.HAS_WARN -> OBRitCardLevel.L4
+        ItemBucket.NONE_SAFE -> OBRitCardLevel.L5
+        ItemBucket.HAS_SAFE -> OBRitCardLevel.L6
+    }
 
 @Suppress("MagicNumber")
 private val SORT_SHEET_SCRIM_COLOR = Color(0x99000000)
@@ -277,10 +282,10 @@ private fun ItemListPreview() {
         ItemListPreviewSection(
             items =
                 listOf(
-                    HomeItemCard(1L, "면도기", 30, "교체 D+7", 0, ""),
-                    HomeItemCard(2L, "칫솔", 27, "교체 D-day", 1, ""),
-                    HomeItemCard(3L, "샴푸", 22, "교체 D-2", 0, ""),
-                    HomeItemCard(4L, "필터", 10, "교체 D-10", 3, ""),
+                    HomeItemCard(1L, "면도기", 30, "교체 D+7", 0, "", ItemBucket.NONE_OVERDUE),
+                    HomeItemCard(2L, "칫솔", 27, "교체 D-day", 1, "", ItemBucket.NONE_WARN),
+                    HomeItemCard(3L, "샴푸", 22, "교체 D-2", 0, "", ItemBucket.HAS_OVERDUE),
+                    HomeItemCard(4L, "필터", 10, "교체 D-10", 3, "", ItemBucket.NONE_SAFE),
                 ),
             sortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
             onSortOrderChange = {},

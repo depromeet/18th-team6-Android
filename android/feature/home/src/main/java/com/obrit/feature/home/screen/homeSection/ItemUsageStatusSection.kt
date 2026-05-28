@@ -28,6 +28,7 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.home.HomeItemCard
+import com.obrit.obrit.shared.model.home.ItemBucket
 
 @Composable
 internal fun ItemUsageStatusSection(
@@ -124,11 +125,11 @@ private fun ItemUsageStatusSectionPreview() {
         ItemUsageStatusSection(
             items =
                 listOf(
-                    HomeItemCard(1L, "면도기", 82, "교체 D-3", 0, ""),
-                    HomeItemCard(2L, "칫솔", 82, "교체 D-day", 1, ""),
-                    HomeItemCard(3L, "수건", 82, "교체 D+5", 0, ""),
-                    HomeItemCard(4L, "세탁망", 82, "교체 D-7", 2, ""),
-                    HomeItemCard(5L, "필터", 82, "교체 D-10", 3, ""),
+                    HomeItemCard(1L, "면도기", 82, "교체 D-3", 0, "", ItemBucket.NONE_OVERDUE),
+                    HomeItemCard(2L, "칫솔", 82, "교체 D-day", 1, "", ItemBucket.NONE_WARN),
+                    HomeItemCard(3L, "수건", 82, "교체 D+5", 0, "", ItemBucket.HAS_OVERDUE),
+                    HomeItemCard(4L, "세탁망", 82, "교체 D-7", 2, "", ItemBucket.HAS_WARN),
+                    HomeItemCard(5L, "필터", 82, "교체 D-10", 3, "", ItemBucket.NONE_SAFE),
                 ),
         )
     }

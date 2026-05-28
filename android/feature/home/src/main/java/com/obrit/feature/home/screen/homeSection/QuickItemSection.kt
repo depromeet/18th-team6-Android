@@ -29,6 +29,7 @@ import com.obrit.obrit.shared.model.home.HomeBucketGroup
 import com.obrit.obrit.shared.model.home.HomeBucketItem
 import com.obrit.obrit.shared.model.home.HomeBucketType
 import com.obrit.obrit.shared.model.home.HomeStatusLevel
+import com.obrit.obrit.shared.model.home.ItemBucket
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -102,7 +103,7 @@ private fun BucketCardRow(
 @Composable
 private fun BucketCard(item: HomeBucketItem) {
     OBRitCardGrid(
-        level = itemCardLevel(item.status),
+        level = itemCardLevel(item.itemBucket),
         title = item.name,
         stockCount = item.spareQuantity,
         daysLabel = daysLabel(item.nextReplacementDate),
@@ -117,11 +118,14 @@ private val HomeBucketType.displayName: String
             HomeBucketType.UNKNOWN -> ""
         }
 
-private fun itemCardLevel(status: HomeStatusLevel): OBRitCardLevel =
-    when (status) {
-        HomeStatusLevel.DANGER -> OBRitCardLevel.L1
-        HomeStatusLevel.WARNING -> OBRitCardLevel.L4
-        else -> OBRitCardLevel.L6
+private fun itemCardLevel(itemBucket: ItemBucket): OBRitCardLevel =
+    when (itemBucket) {
+        ItemBucket.NONE_OVERDUE -> OBRitCardLevel.L1
+        ItemBucket.NONE_WARN -> OBRitCardLevel.L2
+        ItemBucket.HAS_OVERDUE -> OBRitCardLevel.L3
+        ItemBucket.HAS_WARN -> OBRitCardLevel.L4
+        ItemBucket.NONE_SAFE -> OBRitCardLevel.L5
+        ItemBucket.HAS_SAFE -> OBRitCardLevel.L6
     }
 
 private fun daysLabel(replacementDate: ReplacementDate?): String {
@@ -151,6 +155,7 @@ private val previewBuckets =
                         spareQuantity = 0,
                         nextReplacementDate = ReplacementDate("2026-05-23"),
                         status = HomeStatusLevel.DANGER,
+                        itemBucket = ItemBucket.NONE_OVERDUE,
                     ),
                     HomeBucketItem(
                         itemId = 2,
@@ -158,6 +163,7 @@ private val previewBuckets =
                         spareQuantity = 1,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.DANGER,
+                        itemBucket = ItemBucket.NONE_WARN,
                     ),
                 ),
         ),
@@ -172,6 +178,7 @@ private val previewBuckets =
                         spareQuantity = 3,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.WARNING,
+                        itemBucket = ItemBucket.NONE_SAFE,
                     ),
                 ),
         ),
