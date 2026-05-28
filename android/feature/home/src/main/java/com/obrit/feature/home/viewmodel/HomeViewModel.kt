@@ -68,13 +68,50 @@ class HomeViewModel internal constructor(
 
     fun onDdayFilterChange(maxDays: Int) =
         intent {
+            val current = state as? HomeUiState.Success ?: return@intent
             reduceOn<HomeUiState.Success> { state.copy(ddayFilterMax = maxDays) }
+            val params =
+                HomeItemsParams(
+                    order = current.listSortOrder.toHomeItemOrder(),
+                    dDay = if (maxDays < current.ddayRange.last) maxDays else null,
+                    spareQuantity = if (current.spareFilterMax < current.spareRange.last) current.spareFilterMax else null,
+                )
+            Log.d(TAG, "getItems called: $params")
+            val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+            reduceOn<HomeUiState.Success> { state.copy(items = result) }
         }
 
     fun onSpareFilterChange(maxSpare: Int) =
         intent {
+            val current = state as? HomeUiState.Success ?: return@intent
             reduceOn<HomeUiState.Success> { state.copy(spareFilterMax = maxSpare) }
+            val params =
+                HomeItemsParams(
+                    order = current.listSortOrder.toHomeItemOrder(),
+                    dDay = if (current.ddayFilterMax < current.ddayRange.last) current.ddayFilterMax else null,
+                    spareQuantity = if (maxSpare < current.spareRange.last) maxSpare else null,
+                )
+            Log.d(TAG, "getItems called: $params")
+            val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+            reduceOn<HomeUiState.Success> { state.copy(items = result) }
         }
+
+    fun onFilterApply(
+        ddayMax: Int,
+        spareMax: Int,
+    ) = intent {
+        val current = state as? HomeUiState.Success ?: return@intent
+        reduceOn<HomeUiState.Success> { state.copy(ddayFilterMax = ddayMax, spareFilterMax = spareMax) }
+        val params =
+            HomeItemsParams(
+                order = current.listSortOrder.toHomeItemOrder(),
+                dDay = if (ddayMax < current.ddayRange.last) ddayMax else null,
+                spareQuantity = if (spareMax < current.spareRange.last) spareMax else null,
+            )
+        Log.d(TAG, "getItems called: $params")
+        val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+        reduceOn<HomeUiState.Success> { state.copy(items = result) }
+    }
 
     fun onLoadMoreItems() =
         intent {

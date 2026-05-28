@@ -120,8 +120,10 @@ internal fun ConsumableListScreenContent(
             ddayFilterMax = ddayFilterMax,
             spareRange = spareRange,
             spareFilterMax = spareFilterMax,
-            onDdayFilterChange = action.onDdayFilterChange,
-            onSpareFilterChange = action.onSpareFilterChange,
+            onFilterApply = { dday, spare ->
+                action.onFilterApply(dday, spare)
+                showFilterSheet = false
+            },
             onDismiss = { showFilterSheet = false },
         )
     }
@@ -129,7 +131,10 @@ internal fun ConsumableListScreenContent(
     if (showSortSheet) {
         SortBottomSheet(
             sortOrder = sortOrder,
-            onSortOrderChange = action.onSortOrderChange,
+            onSortOrderChange = {
+                action.onSortOrderChange(it)
+                showSortSheet = false
+            },
             onDismiss = { showSortSheet = false },
         )
     }
@@ -333,8 +338,7 @@ private fun ListFilterBottomSheet(
     ddayFilterMax: Int,
     spareRange: IntRange,
     spareFilterMax: Int,
-    onDdayFilterChange: (Int) -> Unit,
-    onSpareFilterChange: (Int) -> Unit,
+    onFilterApply: (Int, Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var pendingDday by remember { mutableIntStateOf(ddayFilterMax) }
@@ -355,11 +359,7 @@ private fun ListFilterBottomSheet(
                     pendingDday = ddayRange.last
                     pendingSpare = spareRange.last
                 },
-                onApply = {
-                    onDdayFilterChange(pendingDday)
-                    onSpareFilterChange(pendingSpare)
-                    onDismiss()
-                },
+                onApply = { onFilterApply(pendingDday, pendingSpare) },
             )
         }
     }
@@ -440,20 +440,24 @@ private fun FilterSliderSection(
 ) {
     val typography = LocalOBRitTypography.current
     val colors = LocalOBRitColor.current
+    val effectiveValue =
+        if (sliderRange.first == sliderRange.last) {
+            sliderRange.last.toFloat()
+        } else {
+            sliderValue.coerceIn(sliderRange).toFloat()
+        }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         Text(
             text = title,
             style = typography.xl.copy(color = colors.gray300, fontWeight = FontWeight.Bold),
         )
         FilterValueLabel(valueLabel = valueLabel)
-        if (sliderRange.first < sliderRange.last) {
-            OBRitSlider(
-                value = sliderValue.toFloat(),
-                onValueChange = { onValueChange(it.roundToInt()) },
-                valueRange = sliderRange.first.toFloat()..sliderRange.last.toFloat(),
-                steps = (sliderRange.last - sliderRange.first - 1).coerceAtLeast(0),
-            )
-        }
+        OBRitSlider(
+            value = effectiveValue,
+            onValueChange = { onValueChange(it.roundToInt()) },
+            valueRange = sliderRange.first.toFloat()..sliderRange.last.toFloat(),
+            steps = (sliderRange.last - sliderRange.first - 1).coerceAtLeast(0),
+        )
     }
 }
 

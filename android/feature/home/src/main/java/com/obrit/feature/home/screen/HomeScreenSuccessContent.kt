@@ -89,6 +89,7 @@ internal fun HomeScreenSuccessContent(
                             onSortOrderChange = action.onListSortOrderChange,
                             onDdayFilterChange = action.onDdayFilterChange,
                             onSpareFilterChange = action.onSpareFilterChange,
+                            onFilterApply = action.onFilterApply,
                         ),
                     modifier =
                         Modifier

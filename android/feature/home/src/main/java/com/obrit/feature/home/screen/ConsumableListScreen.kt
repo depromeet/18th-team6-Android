@@ -14,6 +14,7 @@ internal data class ConsumableListScreenAction(
     val onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     val onDdayFilterChange: (Int) -> Unit,
     val onSpareFilterChange: (Int) -> Unit,
+    val onFilterApply: (Int, Int) -> Unit,
 )
 
 @Composable
@@ -38,6 +39,7 @@ fun ConsumableListScreen(
                 onSortOrderChange = viewModel::onListSortOrderChange,
                 onDdayFilterChange = viewModel::onDdayFilterChange,
                 onSpareFilterChange = viewModel::onSpareFilterChange,
+                onFilterApply = viewModel::onFilterApply,
             ),
         modifier = modifier,
     )
