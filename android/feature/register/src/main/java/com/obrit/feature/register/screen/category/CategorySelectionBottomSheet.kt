@@ -45,17 +45,21 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
 import kotlin.math.roundToInt
 
+internal data class CategorySheetActions(
+    val onConfirm: (Category) -> Unit,
+    val onDismiss: () -> Unit,
+    val onDirectRegister: () -> Unit,
+)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun CategorySelectionBottomSheet(
     categories: List<Category>,
     initialSelectedId: Long?,
-    onConfirm: (Category) -> Unit,
-    onDismissRequest: () -> Unit,
-    onDirectRegisterClick: () -> Unit,
+    actions: CategorySheetActions,
     modifier: Modifier = Modifier,
 ) {
-    val anchoredState = rememberSheetDragState(onDismissRequest)
+    val anchoredState = rememberSheetDragState(actions.onDismiss)
     // 새 API: thresholds/specs는 flingBehavior로 옮김. velocityThreshold는 default 사용 (M3 표준 유사).
     val flingBehavior =
         AnchoredDraggableDefaults.flingBehavior(
@@ -67,7 +71,7 @@ internal fun CategorySelectionBottomSheet(
     // M3 ModalBottomSheet의 sheet container가 IME에 자동 반응(CTA 떠오름 + 진동)하는 의도된 동작을
     // disable할 공식 API가 없어, 직접 Dialog로 wrapper를 구성.
     androidx.compose.ui.window.Dialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = actions.onDismiss,
         properties =
             androidx.compose.ui.window.DialogProperties(
                 usePlatformDefaultWidth = false,
@@ -75,13 +79,13 @@ internal fun CategorySelectionBottomSheet(
                 dismissOnClickOutside = false,
             ),
     ) {
-        CategorySheetScrim(modifier = modifier, onDismiss = onDismissRequest) {
+        CategorySheetScrim(modifier = modifier, onDismiss = actions.onDismiss) {
             CategorySheetContainer(state = anchoredState, flingBehavior = flingBehavior) {
                 CategorySelectionBottomSheetContent(
                     categories = categories,
                     initialSelectedId = initialSelectedId,
-                    onConfirm = onConfirm,
-                    onDirectRegisterClick = onDirectRegisterClick,
+                    onConfirm = actions.onConfirm,
+                    onDirectRegisterClick = actions.onDirectRegister,
                 )
             }
         }

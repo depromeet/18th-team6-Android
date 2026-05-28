@@ -39,6 +39,7 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.register.screen.category.CategorySelectionBottomSheet
+import com.obrit.feature.register.screen.category.CategorySheetActions
 import com.obrit.feature.register.viewmodel.ManualRegisterUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
@@ -80,9 +81,12 @@ internal fun ManualRegisterScreenContent(
         visible = isCategorySheetOpen,
         categories = state.categories,
         initialSelectedId = state.selectedCategoryId,
-        onConfirm = action.onCategoryConfirm,
-        onDismiss = { isCategorySheetOpen = false },
-        onDirectRegister = action.onDirectRegister,
+        actions =
+            CategorySheetActions(
+                onConfirm = action.onCategoryConfirm,
+                onDismiss = { isCategorySheetOpen = false },
+                onDirectRegister = action.onDirectRegister,
+            ),
     )
 }
 
@@ -91,24 +95,25 @@ private fun ManualRegisterCategorySheetHost(
     visible: Boolean,
     categories: List<Category>,
     initialSelectedId: Long?,
-    onConfirm: (Category) -> Unit,
-    onDismiss: () -> Unit,
-    onDirectRegister: () -> Unit,
+    actions: CategorySheetActions,
 ) {
     if (!visible) return
     CategorySelectionBottomSheet(
         categories = categories,
         initialSelectedId = initialSelectedId,
-        onConfirm = { category ->
-            onConfirm(category)
-            onDismiss()
-        },
-        onDismissRequest = onDismiss,
-        onDirectRegisterClick = {
-            // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
-            onDismiss()
-            onDirectRegister()
-        },
+        actions =
+            CategorySheetActions(
+                onConfirm = { category ->
+                    actions.onConfirm(category)
+                    actions.onDismiss()
+                },
+                onDismiss = actions.onDismiss,
+                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
+                onDirectRegister = {
+                    actions.onDismiss()
+                    actions.onDirectRegister()
+                },
+            ),
     )
 }
 
