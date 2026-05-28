@@ -7,4 +7,5 @@ data class HomeItemCard(
     val replacementDday: String,
     val spareQuantity: Int,
     val iconUrl: String,
+    val itemBucket: ItemBucket,
 )

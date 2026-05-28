@@ -12,6 +12,7 @@ data class HomeItemCardResponse(
     @SerialName("replacementDday") val replacementDday: String,
     @SerialName("spareQuantity") val spareQuantity: Int,
     @SerialName("iconUrl") val iconUrl: String,
+    @SerialName("itemBucket") val itemBucket: String,
 )
 
 fun HomeItemCardResponse.toHomeItemCard() =
@@ -22,4 +23,5 @@ fun HomeItemCardResponse.toHomeItemCard() =
         replacementDday = replacementDday,
         spareQuantity = spareQuantity,
         iconUrl = iconUrl,
+        itemBucket = itemBucket.toItemBucket(),
     )

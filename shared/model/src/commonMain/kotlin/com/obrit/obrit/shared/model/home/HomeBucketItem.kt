@@ -8,4 +8,5 @@ data class HomeBucketItem(
     val spareQuantity: Int,
     val nextReplacementDate: ReplacementDate?,
     val status: HomeStatusLevel,
+    val itemBucket: ItemBucket,
 )
