@@ -114,7 +114,11 @@ internal fun ConsumableListScreenContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            items(filtered) { item -> QuickItemListItem(item = item) }
+            if (filtered.isEmpty()) {
+                item { ConsumableListEmptyState(modifier = Modifier.fillParentMaxWidth()) }
+            } else {
+                items(filtered) { item -> QuickItemListItem(item = item) }
+            }
         }
         ListFilterBar(
             sortOrder = sortOrder,
@@ -701,3 +705,5 @@ private const val LIST_FILTER_BAR_HEIGHT = AtomSpacing.S14
 private const val FILTER_ICON_BUTTON_SIZE = 38f
 private const val FILTER_CHIP_STROKE_WIDTH = 1f
 private const val LIST_RESET_ICON_SIZE = AtomSpacing.S6
+private const val EMPTY_STATE_VERTICAL_PADDING = 96f
+private const val EMPTY_STATE_SUBTITLE_ALPHA = 0.64f
