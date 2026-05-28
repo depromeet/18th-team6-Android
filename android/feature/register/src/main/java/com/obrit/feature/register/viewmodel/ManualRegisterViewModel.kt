@@ -83,6 +83,7 @@ class ManualRegisterViewModel(
                 .onSuccess {
                     reduce { ManualRegisterUiState(categories = state.categories) }
                     postSideEffect(ManualRegisterSideEffect.OnRegistered)
+                    loadCategories()
                 }
                 .onFailure {
                     reduce { state.copy(isSubmitting = false) }
