@@ -22,7 +22,8 @@ class ManualRegisterViewModel(
 
     private fun loadCategories() =
         intent {
-            categoryRepository.getCategories()
+            categoryRepository
+                .getCategories()
                 .onSuccess { categories ->
                     reduce { state.copy(categories = categories) }
                 }
@@ -81,13 +82,13 @@ class ManualRegisterViewModel(
                     spareQuantity = current.quantity,
                     lastReplacementPeriod = current.lastReplacementPeriod,
                 )
-            itemRepository.createItem(params)
+            itemRepository
+                .createItem(params)
                 .onSuccess {
                     reduce { ManualRegisterUiState(categories = state.categories) }
                     postSideEffect(ManualRegisterSideEffect.OnRegistered)
                     loadCategories()
-                }
-                .onFailure {
+                }.onFailure {
                     reduce { state.copy(isSubmitting = false) }
                 }
         }

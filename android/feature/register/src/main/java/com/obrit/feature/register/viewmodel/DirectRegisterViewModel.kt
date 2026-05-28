@@ -19,7 +19,8 @@ class DirectRegisterViewModel(
 
     private fun loadIcons() =
         intent {
-            categoryRepository.getCategoryIcons()
+            categoryRepository
+                .getCategoryIcons()
                 .onSuccess { icons ->
                     reduce { state.copy(icons = icons) }
                 }
@@ -41,12 +42,12 @@ class DirectRegisterViewModel(
             val iconId = current.selectedIconId ?: return@intent
             if (current.isSubmitting) return@intent
             reduce { state.copy(isSubmitting = true) }
-            categoryRepository.createCategory(name = current.name, iconId = iconId)
+            categoryRepository
+                .createCategory(name = current.name, iconId = iconId)
                 .onSuccess { category ->
                     reduce { state.copy(isSubmitting = false) }
                     postSideEffect(DirectRegisterSideEffect.OnRegistered(category))
-                }
-                .onFailure {
+                }.onFailure {
                     reduce { state.copy(isSubmitting = false) }
                 }
         }
@@ -73,7 +74,9 @@ data class DirectRegisterUiState(
 }
 
 sealed interface DirectRegisterSideEffect {
-    data class OnRegistered(val category: Category) : DirectRegisterSideEffect
+    data class OnRegistered(
+        val category: Category,
+    ) : DirectRegisterSideEffect
 
     data object OnBack : DirectRegisterSideEffect
 }
