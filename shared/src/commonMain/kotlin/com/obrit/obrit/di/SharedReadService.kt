@@ -31,8 +31,7 @@ class SharedReadService(
     }
 
     @Throws(Throwable::class)
-    suspend fun getCategoryIcons(): List<CategoryIcon> =
-        repositoryProvider.categoryRepository().getCategoryIcons().getOrThrow()
+    suspend fun getCategoryIcons(): List<CategoryIcon> = repositoryProvider.categoryRepository().getCategoryIcons().getOrThrow()
 
     @Throws(Throwable::class)
     suspend fun getItems(): List<Item> {
@@ -53,7 +52,8 @@ class SharedReadService(
         itemId: Long,
         limit: Int?,
     ): List<ReplacementHistory> =
-        repositoryProvider.itemRepository()
+        repositoryProvider
+            .itemRepository()
             .getReplacementHistories(itemId = itemId, limit = limit)
             .getOrThrow()
 
@@ -109,8 +109,7 @@ class SharedReadService(
     }
 
     @Throws(Throwable::class)
-    suspend fun getBuckets(): List<HomeBucketGroup> =
-        repositoryProvider.homeRepository().getBuckets().getOrThrow()
+    suspend fun getBuckets(): List<HomeBucketGroup> = repositoryProvider.homeRepository().getBuckets().getOrThrow()
 
     private companion object {
         const val LOG_SCOPE = "SharedReadService"
