@@ -79,6 +79,7 @@ private fun CategoryList(
         items(items, key = { it.id }) { category ->
             CategoryListItem(
                 name = category.name,
+                iconUrl = category.iconUrl,
                 addedCount = category.itemCount,
                 selected = category.id == selectedId,
                 onClick = { onCategorySelect(category) },

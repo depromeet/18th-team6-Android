@@ -11,4 +11,7 @@ dependencies {
     implementation(projects.shared.designSystem)
     implementation(projects.shared.data)
     api(projects.shared.model)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }

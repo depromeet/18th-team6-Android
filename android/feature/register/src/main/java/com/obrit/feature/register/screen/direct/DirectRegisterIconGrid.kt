@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.CategoryIcon
@@ -56,6 +58,7 @@ private fun IconGrid(
                     if (itemIndex < totalCount) {
                         val icon = icons[itemIndex]
                         IconCircle(
+                            url = icon.url,
                             selected = icon.id == selectedIconId,
                             onClick = { onSelect(icon.id) },
                         )
@@ -70,6 +73,7 @@ private fun IconGrid(
 
 @Composable
 private fun IconCircle(
+    url: String,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -92,7 +96,13 @@ private fun IconCircle(
                 .background(colors.gray750)
                 .then(borderModifier)
                 .clickable(onClick = onClick),
-    )
+    ) {
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }
 
 private const val ICON_GRID_COLUMNS = 5
