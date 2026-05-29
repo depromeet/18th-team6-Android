@@ -25,15 +25,14 @@ internal fun DetailCardBackground(
     Box(
         modifier =
             modifier
-                .clip(DetailCardBackgroundShape)
+                .clip(DETAIL_CARD_BACKGROUND_SHAPE)
                 .background(colors.gray850)
                 .border(
                     border = BorderStroke(width = 1.dp, color = colors.gray800),
-                    shape = DetailCardBackgroundShape,
-                )
-                .padding(contentPadding),
+                    shape = DETAIL_CARD_BACKGROUND_SHAPE,
+                ).padding(contentPadding),
         content = content,
     )
 }
 
-private val DetailCardBackgroundShape = RoundedCornerShape(16.dp)
+private val DETAIL_CARD_BACKGROUND_SHAPE = RoundedCornerShape(16.dp)

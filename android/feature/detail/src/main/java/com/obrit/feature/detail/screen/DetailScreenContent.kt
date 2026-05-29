@@ -8,6 +8,8 @@ import com.obrit.feature.detail.viewmodel.DetailUiState
 internal fun DetailScreenContent(
     state: DetailUiState,
     action: DetailScreenAction,
+    isMoreMenuExpanded: Boolean,
+    isSpareSheetVisible: Boolean,
     modifier: Modifier = Modifier,
 ) {
     when (state) {
@@ -15,6 +17,8 @@ internal fun DetailScreenContent(
             DetailScreenSuccessContent(
                 state = state,
                 action = action,
+                isMoreMenuExpanded = isMoreMenuExpanded,
+                isSpareSheetVisible = isSpareSheetVisible,
                 modifier = modifier,
             )
         }

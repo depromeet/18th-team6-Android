@@ -1,3 +1,5 @@
+@file:Suppress("ScreenActionContract")
+
 package com.obrit.feature.detail.screen
 
 import androidx.compose.foundation.layout.Arrangement
