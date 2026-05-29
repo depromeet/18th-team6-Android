@@ -32,7 +32,9 @@ class HomeViewModel internal constructor(
                 }
 
             val overallStatus = overallStatusDeferred.await().getOrNull()
-            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
+            val myStatusSummaryResult = myStatusSummaryDeferred.await()
+            Log.d(TAG, "getMyStatusSummary response: $myStatusSummaryResult")
+            val myStatusSummary = myStatusSummaryResult.getOrNull()
             val bucketsResult = bucketsDeferred.await()
             Log.d(TAG, "getBuckets response: $bucketsResult")
             val buckets = bucketsResult.getOrNull()
@@ -231,8 +233,8 @@ private fun createMockStatus() =
     HomeStatus(
         ratio =
             HomeRatio(
-                goodPercentage = 77.0f,
-                warningPercentage = 23.0f,
+                goodPercentage = 20.0f,
+                warningPercentage = 80.0f,
                 illustrationType = IllustrationType.NEGATIVE,
             ),
     )

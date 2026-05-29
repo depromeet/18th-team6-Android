@@ -30,6 +30,8 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getMyStatusSummary(): MyStatusSummaryResponse {
         val userId = userIdProvider.get()
+        println("getMyStatusSummary URL: ${NETWORK_BASE_URL}${HOME_PATH}/my-summary")
+        println("getMyStatusSummary headers: X-User-Id: $userId")
 
         return httpClient
             .get("$HOME_PATH/my-summary") {
@@ -49,6 +51,7 @@ internal class HomeRemoteDataSourceImpl(
                 request.size?.let { add("size=$it") }
             }.joinToString("&")
         println("getItems URL: ${NETWORK_BASE_URL}${HOME_PATH}/items${if (queryParams.isNotEmpty()) "?$queryParams" else ""}")
+        println("getItems headers: X-User-Id: $userId")
 
         return httpClient
             .get("$HOME_PATH/items") {

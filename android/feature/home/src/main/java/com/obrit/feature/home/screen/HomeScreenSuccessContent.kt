@@ -36,7 +36,6 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.feature.home.screen.homeSection.ConsumableIcon
 import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
 import com.obrit.feature.home.screen.homeSection.ItemOrbitSection
 import com.obrit.feature.home.screen.homeSection.ItemStatusSection
@@ -214,7 +213,7 @@ private fun HomeContents(
     ) {
         ItemStatusSection(overallStatus = state.overallStatus)
         ItemOrbitSection(
-            icons = homeConsumableIcons,
+            items = state.items.content.take(ORBIT_ITEMS_SIZE),
             normalRatio = state.status.ratio.goodPercentage / 100f,
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
@@ -230,15 +229,9 @@ private fun HomeContents(
     }
 }
 
-private val homeConsumableIcons =
-    listOf(
-        ConsumableIcon(R.drawable.ic_towel, 68.dp, 49.dp),
-        ConsumableIcon(R.drawable.ic_toothbrush, 70.dp, 70.dp),
-        ConsumableIcon(R.drawable.ic_detergent, 36.dp, 54.dp),
-        ConsumableIcon(R.drawable.ic_razor, 58.dp, 79.dp),
-    )
 private val HomeFabSize = 56.dp
 private val HomeFabIconSize = 30.dp
 private val HomeFabShadowBlur = 24.dp
 private val HomeFabShadowOffsetY = 16.dp
 private const val HOME_FAB_SHADOW_ALPHA = 0.24f
+private const val ORBIT_ITEMS_SIZE = 10
