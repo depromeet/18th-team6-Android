@@ -2,6 +2,7 @@ package com.obrit.obrit
 
 import android.app.Application
 import com.obrit.feature.agent.di.agentFeatureModule
+import com.obrit.feature.detail.di.detailFeatureModule
 import com.obrit.feature.home.di.homeFeatureModule
 import com.obrit.feature.register.di.registerFeatureModule
 import com.obrit.obrit.di.initKoin
@@ -13,7 +14,7 @@ class OBRitApplication : Application() {
 
         initKoin {
             androidContext(this@OBRitApplication)
-            modules(agentFeatureModule, homeFeatureModule, registerFeatureModule)
+            modules(agentFeatureModule,homeFeatureModule, registerFeatureModule)
         }
     }
 }
