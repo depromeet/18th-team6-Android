@@ -6,12 +6,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CategoryResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("categoryId") val id: Long,
     @SerialName("name") val name: String,
     @SerialName("iconUrl") val iconUrl: String,
-    @SerialName("userId") val userId: Long? = null,
-    @SerialName("createdAt") val createdAt: String? = null,
-    @SerialName("defaultReplacementIntervalDays") val defaultReplacementIntervalDays: Int,
+    @SerialName("itemCount") val itemCount: Int,
+    @SerialName("totalSpareQuantity") val totalSpareQuantity: Int,
 )
 
 fun CategoryResponse.toCategory() =
@@ -19,7 +18,6 @@ fun CategoryResponse.toCategory() =
         id = id,
         name = name,
         iconUrl = iconUrl,
-        userId = userId,
-        createdAt = createdAt,
-        defaultReplacementIntervalDays = defaultReplacementIntervalDays,
+        itemCount = itemCount,
+        totalSpareQuantity = totalSpareQuantity,
     )

@@ -51,6 +51,7 @@ import com.obrit.feature.register.screen.common.FieldSectionHeader
 import com.obrit.feature.register.screen.common.rememberFocusBringIntoView
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
 @Composable
 internal fun CategoryField(
@@ -103,17 +104,18 @@ internal fun NameField(
 
 @Composable
 internal fun LastReplaceDateField(
-    selectedOption: String,
-    onOptionChange: (String) -> Unit,
+    selected: ReplacementPeriod?,
+    onChange: (ReplacementPeriod?) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var triggerSize by remember { mutableStateOf(IntSize.Zero) }
+    val displayLabel = selected?.let { period -> LAST_REPLACE_DATE_OPTIONS.first { it.second == period }.first }.orEmpty()
 
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         FieldSectionHeader(label = MANUAL_REGISTER_LAST_REPLACE_DATE_LABEL)
         Box {
             OBRitDropdown(
-                value = selectedOption,
+                value = displayLabel,
                 onClick = { expanded = !expanded },
                 placeholder = MANUAL_REGISTER_LAST_REPLACE_DATE_PLACEHOLDER,
                 expanded = expanded,
@@ -124,11 +126,11 @@ internal fun LastReplaceDateField(
             )
             if (expanded) {
                 LastReplaceDateMenu(
-                    selectedOption = selectedOption,
+                    selected = selected,
                     triggerWidthPx = triggerSize.width,
                     onDismiss = { expanded = false },
                     onItemSelect = {
-                        onOptionChange(it)
+                        onChange(it)
                         expanded = false
                     },
                 )
@@ -139,10 +141,10 @@ internal fun LastReplaceDateField(
 
 @Composable
 private fun LastReplaceDateMenu(
-    selectedOption: String,
+    selected: ReplacementPeriod?,
     triggerWidthPx: Int,
     onDismiss: () -> Unit,
-    onItemSelect: (String) -> Unit,
+    onItemSelect: (ReplacementPeriod) -> Unit,
 ) {
     val density = LocalDensity.current
     val menuGapPx = with(density) { LAST_REPLACE_DATE_MENU_GAP.roundToPx() }
@@ -154,9 +156,9 @@ private fun LastReplaceDateMenu(
         properties = PopupProperties(focusable = true),
     ) {
         OBRitDropdownMenu(
-            items = LAST_REPLACE_DATE_OPTIONS,
-            selectedIndex = LAST_REPLACE_DATE_OPTIONS.indexOf(selectedOption).takeIf { it >= 0 },
-            onItemClick = { index -> onItemSelect(LAST_REPLACE_DATE_OPTIONS[index]) },
+            items = LAST_REPLACE_DATE_OPTIONS.map { it.first },
+            selectedIndex = LAST_REPLACE_DATE_OPTIONS.indexOfFirst { it.second == selected }.takeIf { it >= 0 },
+            onItemClick = { index -> onItemSelect(LAST_REPLACE_DATE_OPTIONS[index].second) },
             modifier = with(density) { Modifier.width(triggerWidthPx.toDp()) },
         )
     }
@@ -183,6 +185,7 @@ private class LastReplaceDateMenuPositionProvider(
 @Composable
 internal fun QuantityField(
     title: String,
+    iconUrl: String,
     quantity: Int,
     totalCount: Int,
     onQuantityChange: (Int) -> Unit,
@@ -191,6 +194,7 @@ internal fun QuantityField(
         FieldSectionHeader(label = MANUAL_REGISTER_QUANTITY_LABEL)
         QuantityCard(
             title = title.ifEmpty { MANUAL_REGISTER_QUANTITY_TITLE_PLACEHOLDER },
+            iconUrl = iconUrl,
             totalCount = totalCount,
             quantity = quantity,
             onQuantityChange = onQuantityChange,
@@ -286,8 +290,8 @@ private val LAST_REPLACE_DATE_MENU_GAP = 6.dp
 
 private val LAST_REPLACE_DATE_OPTIONS =
     listOf(
-        "1주일 이내",
-        "2-4주 전",
-        "1-3개월 전",
-        "3개월 이전",
+        "1주일 이내" to ReplacementPeriod.WITHIN_WEEK,
+        "2-4주 전" to ReplacementPeriod.WITHIN_MONTH,
+        "1-3개월 전" to ReplacementPeriod.WITHIN_THREE_MONTHS,
+        "3개월 이전" to ReplacementPeriod.OVER_THREE_MONTHS,
     )

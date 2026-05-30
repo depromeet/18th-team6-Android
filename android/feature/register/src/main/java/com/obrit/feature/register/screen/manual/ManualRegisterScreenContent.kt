@@ -39,8 +39,11 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.register.screen.category.CategorySelectionBottomSheet
+import com.obrit.feature.register.screen.category.CategorySheetActions
 import com.obrit.feature.register.viewmodel.ManualRegisterUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
 @Composable
 internal fun ManualRegisterScreenContent(
@@ -65,7 +68,7 @@ internal fun ManualRegisterScreenContent(
             fieldActions =
                 ManualRegisterFieldActions(
                     onNameChange = action.onNameChange,
-                    onLastReplaceDateChange = action.onLastReplaceDateChange,
+                    onLastReplacementPeriodChange = action.onLastReplacementPeriodChange,
                     onCategoryClick = { isCategorySheetOpen = true },
                 ),
             onQuantityChange = action.onQuantityChange,
@@ -76,40 +79,47 @@ internal fun ManualRegisterScreenContent(
 
     ManualRegisterCategorySheetHost(
         visible = isCategorySheetOpen,
-        initialSelected = state.categoryName,
-        onConfirm = action.onCategoryChange,
-        onDismiss = { isCategorySheetOpen = false },
-        onDirectRegister = action.onDirectRegister,
+        categories = state.categories,
+        initialSelectedId = state.selectedCategoryId,
+        actions =
+            CategorySheetActions(
+                onConfirm = action.onCategoryConfirm,
+                onDismiss = { isCategorySheetOpen = false },
+                onDirectRegister = action.onDirectRegister,
+            ),
     )
 }
 
 @Composable
 private fun ManualRegisterCategorySheetHost(
     visible: Boolean,
-    initialSelected: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onDirectRegister: () -> Unit,
+    categories: List<Category>,
+    initialSelectedId: Long?,
+    actions: CategorySheetActions,
 ) {
     if (!visible) return
     CategorySelectionBottomSheet(
-        initialSelected = initialSelected,
-        onConfirm = { name ->
-            onConfirm(name)
-            onDismiss()
-        },
-        onDismissRequest = onDismiss,
-        onDirectRegisterClick = {
-            // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
-            onDismiss()
-            onDirectRegister()
-        },
+        categories = categories,
+        initialSelectedId = initialSelectedId,
+        actions =
+            CategorySheetActions(
+                onConfirm = { category ->
+                    actions.onConfirm(category)
+                    actions.onDismiss()
+                },
+                onDismiss = actions.onDismiss,
+                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
+                onDirectRegister = {
+                    actions.onDismiss()
+                    actions.onDirectRegister()
+                },
+            ),
     )
 }
 
 internal data class ManualRegisterFieldActions(
     val onNameChange: (String) -> Unit,
-    val onLastReplaceDateChange: (String) -> Unit,
+    val onLastReplacementPeriodChange: (ReplacementPeriod?) -> Unit,
     val onCategoryClick: () -> Unit,
 )
 
@@ -174,11 +184,12 @@ private fun ManualRegisterFields(
         CategoryField(value = state.categoryName, onClick = fieldActions.onCategoryClick)
         NameField(value = state.name, onValueChange = fieldActions.onNameChange)
         LastReplaceDateField(
-            selectedOption = state.lastReplaceDate,
-            onOptionChange = fieldActions.onLastReplaceDateChange,
+            selected = state.lastReplacementPeriod,
+            onChange = fieldActions.onLastReplacementPeriodChange,
         )
         QuantityField(
             title = state.categoryName,
+            iconUrl = state.categoryIconUrl,
             quantity = state.quantity,
             totalCount = state.totalCount,
             onQuantityChange = onQuantityChange,
@@ -267,10 +278,10 @@ private fun ManualRegisterScreenFilledPreview() {
 
 private fun previewAction(): ManualRegisterScreenAction =
     ManualRegisterScreenAction(
-        onCategoryChange = {},
+        onCategoryConfirm = {},
         onNameChange = {},
         onQuantityChange = {},
-        onLastReplaceDateChange = {},
+        onLastReplacementPeriodChange = {},
         onSubmit = {},
         onBack = {},
         onDirectRegister = {},
