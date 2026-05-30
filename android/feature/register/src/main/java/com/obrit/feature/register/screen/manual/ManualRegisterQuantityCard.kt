@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.component.stepper.OBRitStepper
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
@@ -26,6 +28,7 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 @Composable
 internal fun QuantityCard(
     title: String,
+    iconUrl: String,
     totalCount: Int,
     quantity: Int,
     onQuantityChange: (Int) -> Unit,
@@ -47,7 +50,13 @@ internal fun QuantityCard(
                     .size(QUANTITY_CARD_IMAGE_SIZE)
                     .clip(CircleShape)
                     .background(colors.gray750),
-        )
+        ) {
+            AsyncImage(
+                model = iconUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         QuantityCardText(title = title, totalCount = totalCount, modifier = Modifier.weight(1f))
         OBRitStepper(value = quantity, onValueChange = onQuantityChange)
     }

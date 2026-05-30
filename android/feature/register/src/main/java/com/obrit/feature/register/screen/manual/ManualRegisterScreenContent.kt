@@ -18,9 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,8 +39,11 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.register.screen.category.CategorySelectionBottomSheet
+import com.obrit.feature.register.screen.category.CategorySheetActions
 import com.obrit.feature.register.viewmodel.ManualRegisterUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
 @Composable
 internal fun ManualRegisterScreenContent(
@@ -50,7 +51,6 @@ internal fun ManualRegisterScreenContent(
     action: ManualRegisterScreenAction,
     modifier: Modifier = Modifier,
 ) {
-    var quantity by remember { mutableIntStateOf(MANUAL_REGISTER_INITIAL_QUANTITY) }
     var isCategorySheetOpen by rememberSaveable { mutableStateOf(false) }
     val colors = LocalOBRitColor.current
 
@@ -68,11 +68,10 @@ internal fun ManualRegisterScreenContent(
             fieldActions =
                 ManualRegisterFieldActions(
                     onNameChange = action.onNameChange,
-                    onLastReplaceDateChange = action.onLastReplaceDateChange,
+                    onLastReplacementPeriodChange = action.onLastReplacementPeriodChange,
                     onCategoryClick = { isCategorySheetOpen = true },
                 ),
-            quantity = quantity,
-            onQuantityChange = { quantity = it },
+            onQuantityChange = action.onQuantityChange,
             modifier = Modifier.weight(1f),
         )
         ManualRegisterCta(enabled = state.isSubmitEnabled, onSubmit = action.onSubmit)
@@ -80,40 +79,47 @@ internal fun ManualRegisterScreenContent(
 
     ManualRegisterCategorySheetHost(
         visible = isCategorySheetOpen,
-        initialSelected = state.categoryName,
-        onConfirm = action.onCategoryChange,
-        onDismiss = { isCategorySheetOpen = false },
-        onDirectRegister = action.onDirectRegister,
+        categories = state.categories,
+        initialSelectedId = state.selectedCategoryId,
+        actions =
+            CategorySheetActions(
+                onConfirm = action.onCategoryConfirm,
+                onDismiss = { isCategorySheetOpen = false },
+                onDirectRegister = action.onDirectRegister,
+            ),
     )
 }
 
 @Composable
 private fun ManualRegisterCategorySheetHost(
     visible: Boolean,
-    initialSelected: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onDirectRegister: () -> Unit,
+    categories: List<Category>,
+    initialSelectedId: Long?,
+    actions: CategorySheetActions,
 ) {
     if (!visible) return
     CategorySelectionBottomSheet(
-        initialSelected = initialSelected,
-        onConfirm = { name ->
-            onConfirm(name)
-            onDismiss()
-        },
-        onDismissRequest = onDismiss,
-        onDirectRegisterClick = {
-            // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
-            onDismiss()
-            onDirectRegister()
-        },
+        categories = categories,
+        initialSelectedId = initialSelectedId,
+        actions =
+            CategorySheetActions(
+                onConfirm = { category ->
+                    actions.onConfirm(category)
+                    actions.onDismiss()
+                },
+                onDismiss = actions.onDismiss,
+                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
+                onDirectRegister = {
+                    actions.onDismiss()
+                    actions.onDirectRegister()
+                },
+            ),
     )
 }
 
 internal data class ManualRegisterFieldActions(
     val onNameChange: (String) -> Unit,
-    val onLastReplaceDateChange: (String) -> Unit,
+    val onLastReplacementPeriodChange: (ReplacementPeriod?) -> Unit,
     val onCategoryClick: () -> Unit,
 )
 
@@ -121,7 +127,6 @@ internal data class ManualRegisterFieldActions(
 private fun ManualRegisterBody(
     state: ManualRegisterUiState,
     fieldActions: ManualRegisterFieldActions,
-    quantity: Int,
     onQuantityChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -142,7 +147,6 @@ private fun ManualRegisterBody(
             ManualRegisterFields(
                 state = state,
                 fieldActions = fieldActions,
-                quantity = quantity,
                 onQuantityChange = onQuantityChange,
             )
         }
@@ -168,7 +172,6 @@ private fun ManualRegisterTitleSection() {
 private fun ManualRegisterFields(
     state: ManualRegisterUiState,
     fieldActions: ManualRegisterFieldActions,
-    quantity: Int,
     onQuantityChange: (Int) -> Unit,
 ) {
     Column(
@@ -181,12 +184,14 @@ private fun ManualRegisterFields(
         CategoryField(value = state.categoryName, onClick = fieldActions.onCategoryClick)
         NameField(value = state.name, onValueChange = fieldActions.onNameChange)
         LastReplaceDateField(
-            selectedOption = state.lastReplaceDate,
-            onOptionChange = fieldActions.onLastReplaceDateChange,
+            selected = state.lastReplacementPeriod,
+            onChange = fieldActions.onLastReplacementPeriodChange,
         )
         QuantityField(
             title = state.categoryName,
-            quantity = quantity,
+            iconUrl = state.categoryIconUrl,
+            quantity = state.quantity,
+            totalCount = state.totalCount,
             onQuantityChange = onQuantityChange,
         )
     }
@@ -242,7 +247,6 @@ private const val MANUAL_REGISTER_TITLE = "소모품 등록"
 private const val MANUAL_REGISTER_HEADLINE = "소모품의 상세 정보를\n입력해주세요"
 private const val MANUAL_REGISTER_DESCRIPTION = "원활한 관리를 위해 구체적인 정보를 입력해주세요"
 private const val MANUAL_REGISTER_SUBMIT_LABEL = "소모품 등록하기"
-private const val MANUAL_REGISTER_INITIAL_QUANTITY = 1
 
 private val MANUAL_REGISTER_TOP_BAR_TO_BODY_GAP = AtomSpacing.S5.dp
 private val MANUAL_REGISTER_SECTION_GAP = 28.dp
@@ -274,10 +278,10 @@ private fun ManualRegisterScreenFilledPreview() {
 
 private fun previewAction(): ManualRegisterScreenAction =
     ManualRegisterScreenAction(
-        onCategoryChange = {},
+        onCategoryConfirm = {},
         onNameChange = {},
-        onSpareCountChange = {},
-        onLastReplaceDateChange = {},
+        onQuantityChange = {},
+        onLastReplacementPeriodChange = {},
         onSubmit = {},
         onBack = {},
         onDirectRegister = {},

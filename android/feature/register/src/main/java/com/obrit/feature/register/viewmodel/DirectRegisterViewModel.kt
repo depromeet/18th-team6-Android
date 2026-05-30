@@ -2,36 +2,54 @@ package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
+import com.obrit.obrit.shared.data.repository.CategoryRepository
+import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.categories.CategoryIcon
 import org.orbitmvi.orbit.viewmodel.container
 
-class DirectRegisterViewModel : BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
+class DirectRegisterViewModel(
+    private val categoryRepository: CategoryRepository,
+) : BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
     override val container =
         container<DirectRegisterUiState, DirectRegisterSideEffect>(
             DirectRegisterUiState(),
-        )
+        ) {
+            loadIcons()
+        }
+
+    private fun loadIcons() =
+        intent {
+            categoryRepository
+                .getCategoryIcons()
+                .onSuccess { icons ->
+                    reduce { state.copy(icons = icons) }
+                }
+        }
 
     fun onNameChange(value: String) =
         intent {
-            reduce {
-                state.copy(name = value)
-            }
+            reduce { state.copy(name = value) }
         }
 
-    fun onIconSelect(index: Int) =
+    fun onIconSelect(iconId: Long) =
         intent {
-            reduce {
-                state.copy(selectedIconIndex = index)
-            }
+            reduce { state.copy(selectedIconId = iconId) }
         }
 
     fun onSubmit() =
         intent {
-            postSideEffect(
-                DirectRegisterSideEffect.OnRegistered(
-                    name = state.name,
-                    selectedIconIndex = state.selectedIconIndex,
-                ),
-            )
+            val current = state
+            val iconId = current.selectedIconId ?: return@intent
+            if (current.isSubmitting) return@intent
+            reduce { state.copy(isSubmitting = true) }
+            categoryRepository
+                .createCategory(name = current.name, iconId = iconId)
+                .onSuccess { category ->
+                    reduce { state.copy(isSubmitting = false) }
+                    postSideEffect(DirectRegisterSideEffect.OnRegistered(category))
+                }.onFailure {
+                    reduce { state.copy(isSubmitting = false) }
+                }
         }
 
     fun onBack() =
@@ -42,27 +60,25 @@ class DirectRegisterViewModel : BaseContainerHost<DirectRegisterUiState, DirectR
 
 @Immutable
 data class DirectRegisterUiState(
+    val icons: List<CategoryIcon> = emptyList(),
     val name: String = "",
-    // 추후 GET /categories/icons 연동 시 selectedIconId: String? 으로 교체
-    val selectedIconIndex: Int? = null,
+    val selectedIconId: Long? = null,
+    val isSubmitting: Boolean = false,
 ) {
     val isSubmitEnabled: Boolean
         get() =
             name.isNotBlank() &&
                 name.length <= DIRECT_REGISTER_NAME_MAX_LENGTH &&
-                selectedIconIndex != null
+                selectedIconId != null &&
+                !isSubmitting
 }
 
 sealed interface DirectRegisterSideEffect {
     data class OnRegistered(
-        val name: String,
-        val selectedIconIndex: Int?,
+        val category: Category,
     ) : DirectRegisterSideEffect
 
     data object OnBack : DirectRegisterSideEffect
 }
 
 internal const val DIRECT_REGISTER_NAME_MAX_LENGTH = 15
-
-// 추후 GET /categories/icons 응답으로 교체. 일단 placeholder 41개 (5x8 + 1).
-internal const val DIRECT_REGISTER_ICON_PLACEHOLDER_COUNT = 41

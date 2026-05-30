@@ -4,8 +4,8 @@ import com.obrit.obrit.shared.model.ReplacementDate
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
-import com.obrit.obrit.shared.model.items.LastReplacementPeriod
 import com.obrit.obrit.shared.model.items.PatchItemParams
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
 /**
  * Swift-facing write facade that unwraps Kotlin Result before crossing the K/N boundary.
@@ -28,8 +28,8 @@ class SharedWriteService(
         logged(
             event = "SharedWriteService.createItem",
             details =
-                "categoryId=${params.categoryId} count=${params.count} " +
-                    "lastReplacementPeriod=${params.lastReplacementPeriod?.value} interval=${params.replacementIntervalDays}",
+                "categoryId=${params.categoryId} spareQuantity=${params.spareQuantity} " +
+                    "lastReplacementPeriod=${params.lastReplacementPeriod?.name} interval=${params.replacementIntervalDays}",
         ) {
             repositoryProvider
                 .itemRepository()
@@ -49,10 +49,10 @@ class SharedWriteService(
             CreateItemParams(
                 categoryId = categoryId,
                 name = name,
-                count = count,
+                spareQuantity = count,
                 lastReplacementPeriod =
                     lastReplacementPeriod?.let { value ->
-                        checkNotNull(LastReplacementPeriod.fromValue(value)) {
+                        checkNotNull(ReplacementPeriod.entries.firstOrNull { period -> period.name == value }) {
                             "Unknown lastReplacementPeriod: $value"
                         }
                     },

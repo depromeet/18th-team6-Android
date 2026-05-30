@@ -85,14 +85,14 @@ class SharedReadService(
         enterDetails: String? = null,
         block: suspend () -> Pair<T, String>,
     ): T {
-        SharedLog.enter(scope = LOG_SCOPE, event = event, details = enterDetails)
+        SharedLog.enter(scope = LOG_SCOPE, event = event, details = enterDetails.orEmpty())
         val result = runCatching { block() }
 
         result.onSuccess { (_, successDetails) ->
             SharedLog.success(scope = LOG_SCOPE, event = event, details = successDetails)
         }
         result.onFailure { throwable ->
-            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = enterDetails)
+            SharedLog.failure(scope = LOG_SCOPE, event = event, throwable = throwable, details = enterDetails.orEmpty())
         }
 
         return result.getOrThrow().first

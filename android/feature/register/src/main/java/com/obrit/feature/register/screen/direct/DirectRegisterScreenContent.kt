@@ -41,7 +41,6 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.register.screen.common.FieldSectionHeader
 import com.obrit.feature.register.screen.common.rememberFocusBringIntoView
-import com.obrit.feature.register.viewmodel.DIRECT_REGISTER_ICON_PLACEHOLDER_COUNT
 import com.obrit.feature.register.viewmodel.DIRECT_REGISTER_NAME_MAX_LENGTH
 import com.obrit.feature.register.viewmodel.DirectRegisterUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -76,7 +75,7 @@ internal fun DirectRegisterScreenContent(
 private fun DirectRegisterBody(
     state: DirectRegisterUiState,
     onNameChange: (String) -> Unit,
-    onIconSelect: (Int) -> Unit,
+    onIconSelect: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -121,7 +120,7 @@ private fun DirectRegisterTitleSection() {
 private fun DirectRegisterFieldsColumn(
     state: DirectRegisterUiState,
     onNameChange: (String) -> Unit,
-    onIconSelect: (Int) -> Unit,
+    onIconSelect: (Long) -> Unit,
 ) {
     Column(
         modifier =
@@ -133,8 +132,8 @@ private fun DirectRegisterFieldsColumn(
         NameField(value = state.name, onValueChange = onNameChange)
         IconGridField(
             label = DIRECT_REGISTER_ICON_LABEL,
-            totalCount = DIRECT_REGISTER_ICON_PLACEHOLDER_COUNT,
-            selectedIndex = state.selectedIconIndex,
+            icons = state.icons,
+            selectedIconId = state.selectedIconId,
             onSelect = onIconSelect,
             headerSlot = { FieldSectionHeader(label = it) },
         )
@@ -240,23 +239,6 @@ private fun DirectRegisterScreenEmptyPreview() {
     OBRitTheme(dynamicColor = false) {
         DirectRegisterScreenContent(
             state = DirectRegisterUiState(),
-            action =
-                DirectRegisterScreenAction(
-                    onNameChange = {},
-                    onIconSelect = {},
-                    onSubmit = {},
-                    onBack = {},
-                ),
-        )
-    }
-}
-
-@Preview(name = "DirectRegisterScreen Filled", showBackground = false)
-@Composable
-private fun DirectRegisterScreenFilledPreview() {
-    OBRitTheme(dynamicColor = false) {
-        DirectRegisterScreenContent(
-            state = DirectRegisterUiState(name = "화장품 퍼프", selectedIconIndex = 0),
             action =
                 DirectRegisterScreenAction(
                     onNameChange = {},
