@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.radiobutton.OBRitRadioButton
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
@@ -31,6 +33,7 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 @Composable
 internal fun CategoryListItem(
     name: String,
+    iconUrl: String,
     addedCount: Int,
     selected: Boolean,
     onClick: () -> Unit,
@@ -53,7 +56,13 @@ internal fun CategoryListItem(
                     .size(CATEGORY_ITEM_IMAGE_SIZE)
                     .clip(CircleShape)
                     .background(colors.gray750),
-        )
+        ) {
+            AsyncImage(
+                model = iconUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         CategoryListItemText(
             name = name,
             addedCount = addedCount,

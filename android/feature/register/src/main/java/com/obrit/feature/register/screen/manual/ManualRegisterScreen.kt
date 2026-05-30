@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.obrit.feature.register.viewmodel.ManualRegisterSideEffect
 import com.obrit.feature.register.viewmodel.ManualRegisterViewModel
+import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -19,23 +21,21 @@ fun ManualRegisterScreen(
 ) {
     val state by viewModel.collectAsState()
 
-    LaunchedEffect(pendingCategory?.name) {
+    LaunchedEffect(pendingCategory?.category?.id) {
         val handle = pendingCategory ?: return@LaunchedEffect
-        val name = handle.name
-        if (!name.isNullOrBlank()) {
-            viewModel.onCategoryChange(name)
-            handle.onConsumed()
-        }
+        val category = handle.category ?: return@LaunchedEffect
+        viewModel.applyPendingCategory(category)
+        handle.onConsumed()
     }
 
     ManualRegisterScreenContent(
         state = state,
         action =
             ManualRegisterScreenAction(
-                onCategoryChange = viewModel::onCategoryChange,
+                onCategoryConfirm = viewModel::onCategorySelect,
                 onNameChange = viewModel::onNameChange,
-                onSpareCountChange = viewModel::onSpareCountChange,
-                onLastReplaceDateChange = viewModel::onLastReplaceDateChange,
+                onQuantityChange = viewModel::onQuantityChange,
+                onLastReplacementPeriodChange = viewModel::onLastReplacementPeriodChange,
                 onSubmit = viewModel::onSubmit,
                 onBack = viewModel::onBack,
                 onDirectRegister = viewModel::onDirectRegister,
@@ -59,15 +59,15 @@ data class ManualRegisterNavigation(
 )
 
 data class PendingCategory(
-    val name: String?,
+    val category: Category?,
     val onConsumed: () -> Unit,
 )
 
 internal data class ManualRegisterScreenAction(
-    val onCategoryChange: (String) -> Unit,
+    val onCategoryConfirm: (Category) -> Unit,
     val onNameChange: (String) -> Unit,
-    val onSpareCountChange: (String) -> Unit,
-    val onLastReplaceDateChange: (String) -> Unit,
+    val onQuantityChange: (Int) -> Unit,
+    val onLastReplacementPeriodChange: (ReplacementPeriod?) -> Unit,
     val onSubmit: () -> Unit,
     val onBack: () -> Unit,
     val onDirectRegister: () -> Unit,

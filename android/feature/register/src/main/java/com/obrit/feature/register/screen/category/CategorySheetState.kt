@@ -2,44 +2,35 @@ package com.obrit.feature.register.screen.category
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.obrit.obrit.shared.model.categories.Category
 
 @Composable
-internal fun rememberCategoryDisplayList(confirmedQuery: String): List<String> =
-    remember(confirmedQuery) {
+internal fun rememberCategoryDisplayList(
+    categories: List<Category>,
+    confirmedQuery: String,
+): List<Category> =
+    remember(categories, confirmedQuery) {
         if (confirmedQuery.isBlank()) {
-            MOCK_CATEGORIES
+            categories
         } else {
-            MOCK_CATEGORIES.filter { it.contains(confirmedQuery, ignoreCase = true) }
+            categories.filter { it.name.contains(confirmedQuery, ignoreCase = true) }
         }
     }
 
 @Composable
 internal fun rememberCategorySuggestions(
+    categories: List<Category>,
     query: String,
     confirmedQuery: String,
-): List<String> =
-    remember(query, confirmedQuery) {
+): List<Category> =
+    remember(categories, query, confirmedQuery) {
         if (query.isBlank() || query == confirmedQuery) {
             emptyList()
         } else {
-            MOCK_CATEGORIES
-                .filter { it.contains(query, ignoreCase = true) }
+            categories
+                .filter { it.name.contains(query, ignoreCase = true) }
                 .take(MAX_SUGGESTIONS)
         }
     }
 
 private const val MAX_SUGGESTIONS = 3
-
-internal val MOCK_CATEGORIES =
-    listOf(
-        "면도기",
-        "정수기 필터",
-        "칫솔",
-        "치약",
-        "세탁 세제",
-        "수건",
-        "샤워기 필터",
-        "수세미",
-        "주방세제",
-        "휴지",
-    )
