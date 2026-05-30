@@ -13,7 +13,7 @@ private enum HomePreviewLayoutMetrics {
 }
 
 struct HomePreviewSection: View {
-    let items: [HomeConsumableItem]
+    let items: [HomeItemItem]
     let selectedSort: HomeWarningSort
     let onOpenSortSheet: () -> Void
     let onShowList: () -> Void

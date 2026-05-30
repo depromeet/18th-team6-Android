@@ -3,20 +3,17 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
 
-    let onNavigateConsumable: (ConsumableRoute) -> Void
-    let onNavigateMyPage: (MyPageRoute) -> Void
+    let onNavigateItem: (ItemRoute) -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     init(
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void,
+        onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel())
-        self.onNavigateConsumable = onNavigateConsumable
-        self.onNavigateMyPage = onNavigateMyPage
+        self.onNavigateItem = onNavigateItem
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
@@ -33,13 +30,12 @@ struct HomeView: View {
                 visibleWarningItems: viewModel.visibleWarningItems,
                 onBottomSheetVisibleChange: onBottomSheetVisibleChange,
                 action: HomeViewAction(
-                    onSearch: { onNavigateConsumable(.search) },
+                    onSearch: { onNavigateItem(.search) },
                     onNotification: {},
-                    onProfile: { onNavigateMyPage(.myPage) },
-                    onRegisterFromImage: { onNavigateConsumable(.receiptCaptureOrUpload) },
-                    onRegisterDirect: { onNavigateConsumable(.manualRegistration) },
+                    onProfile: {},
+                    onRegisterDirect: { onNavigateItem(.itemRegistration) },
                     onShowList: onShowListTab,
-                    onSelectConsumable: { onNavigateConsumable(.detail(consumableId: $0)) },
+                    onSelectItem: { onNavigateItem(.detail(itemId: $0)) },
                     onSelectStatusFilter: viewModel.selectStatusFilter,
                     onSelectWarningSort: viewModel.selectWarningSort
                 )
@@ -52,10 +48,9 @@ struct HomeViewAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
-    let onRegisterFromImage: () -> Void
     let onRegisterDirect: () -> Void
     let onShowList: () -> Void
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
     let onSelectStatusFilter: (HomeStatusFilter) -> Void
     let onSelectWarningSort: (HomeWarningSort) -> Void
 }

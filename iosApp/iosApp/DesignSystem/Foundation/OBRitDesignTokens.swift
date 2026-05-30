@@ -1,9 +1,11 @@
-import SwiftUI
 import Shared
+import SwiftUI
 
+// UNDERSCORE_ALLOW: generated design token names may mirror Figma token names.
 public enum OBRitColors {
+    // Atom Colors
     public static let common00 = color(AtomColors.Common.shared.S00)
-    public static let common100 = color(AtomColors.Common.shared.S100)
+    public static let common1000 = color(AtomColors.Common.shared.S1000)
     public static let commonBlack00_80 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_80)
     public static let commonBlack00_60 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_60)
     public static let commonBlack00_40 = color(AtomColors.CommonOpacityCommonBlack.shared.S00_40)
@@ -94,6 +96,7 @@ public enum OBRitColors {
     public static let blue850 = color(AtomColors.Blue.shared.S850)
     public static let blue900 = color(AtomColors.Blue.shared.S900)
 
+    // Semantic Colors
     public static let backgroundDefaultDefault = color(SemanticColors.BackgroundDefault.shared.Default)
     public static let backgroundDefaultDefaultHover = color(SemanticColors.BackgroundDefault.shared.DefaultHover)
     public static let backgroundDefaultSecondary = color(SemanticColors.BackgroundDefault.shared.Secondary)
@@ -166,52 +169,52 @@ public enum OBRitColors {
 }
 
 public enum OBRitSpacing {
-    public static let s0 = CGFloat(AtomSpacing.shared.S0)
-    public static let px = CGFloat(AtomSpacing.shared.Px)
-    public static let s0_5 = CGFloat(AtomSpacing.shared.S0_5)
-    public static let s1 = CGFloat(AtomSpacing.shared.S1)
-    public static let s1_5 = CGFloat(AtomSpacing.shared.S1_5)
-    public static let s2 = CGFloat(AtomSpacing.shared.S2)
-    public static let s2_5 = CGFloat(AtomSpacing.shared.S2_5)
-    public static let s3 = CGFloat(AtomSpacing.shared.S3)
-    public static let s4 = CGFloat(AtomSpacing.shared.S4)
-    public static let s5 = CGFloat(AtomSpacing.shared.S5)
-    public static let s6 = CGFloat(AtomSpacing.shared.S6)
-    public static let s7 = CGFloat(AtomSpacing.shared.S7)
-    public static let s8 = CGFloat(AtomSpacing.shared.S8)
-    public static let s9 = CGFloat(AtomSpacing.shared.S9)
-    public static let s10 = CGFloat(AtomSpacing.shared.S10)
-    public static let s11 = CGFloat(AtomSpacing.shared.S11)
-    public static let s12 = CGFloat(AtomSpacing.shared.S12)
-    public static let s14 = CGFloat(AtomSpacing.shared.S14)
-    public static let s16 = CGFloat(AtomSpacing.shared.S16)
-    public static let s20 = CGFloat(AtomSpacing.shared.S20)
-    public static let s24 = CGFloat(AtomSpacing.shared.S24)
-    public static let s28 = CGFloat(AtomSpacing.shared.S28)
-    public static let s32 = CGFloat(AtomSpacing.shared.S32)
-    public static let s36 = CGFloat(AtomSpacing.shared.S36)
-    public static let s40 = CGFloat(AtomSpacing.shared.S40)
+    public static let s0: CGFloat = 0
+    public static let px: CGFloat = 1
+    public static let s0_5: CGFloat = 2
+    public static let s1: CGFloat = 4
+    public static let s1_5: CGFloat = 6
+    public static let s2: CGFloat = 8
+    public static let s2_5: CGFloat = 10
+    public static let s3: CGFloat = 12
+    public static let s4: CGFloat = 16
+    public static let s5: CGFloat = 20
+    public static let s6: CGFloat = 24
+    public static let s7: CGFloat = 28
+    public static let s8: CGFloat = 32
+    public static let s9: CGFloat = 36
+    public static let s10: CGFloat = 40
+    public static let s11: CGFloat = 44
+    public static let s12: CGFloat = 48
+    public static let s14: CGFloat = 56
+    public static let s16: CGFloat = 64
+    public static let s20: CGFloat = 80
+    public static let s24: CGFloat = 96
+    public static let s28: CGFloat = 112
+    public static let s32: CGFloat = 128
+    public static let s36: CGFloat = 144
+    public static let s40: CGFloat = 160
 }
 
 public enum OBRitRadius {
-    public static let extraSmall = CGFloat(AtomRadius.shared.ExtraSmall)
-    public static let small = CGFloat(AtomRadius.shared.Small)
-    public static let middle = CGFloat(AtomRadius.shared.Middle)
-    public static let large = CGFloat(AtomRadius.shared.Large)
-    public static let extraLarge = CGFloat(AtomRadius.shared.ExtraLarge)
-    public static let bottomSheet = CGFloat(AtomRadius.shared.BottomSheet)
-    public static let exception = CGFloat(AtomRadius.shared.Exception)
+    public static let extraSmall: CGFloat = 4
+    public static let small: CGFloat = 8
+    public static let middle: CGFloat = 10
+    public static let large: CGFloat = 12
+    public static let extraLarge: CGFloat = 16
+    public static let bottomSheet: CGFloat = 28
+    public static let exception: CGFloat = 1000
 }
 
 public enum OBRitFontFamily {
-    public static let fontSans = AtomFontFamily.shared.FontSans
+    public static let fontSans = "Pretendard"
 }
 
 public enum OBRitFontWeight {
-    public static let regular: Int32 = AtomFontWeight.shared.Regular
-    public static let medium: Int32 = AtomFontWeight.shared.Medium
-    public static let semiBold: Int32 = AtomFontWeight.shared.SemiBold
-    public static let bold: Int32 = AtomFontWeight.shared.Bold
+    public static let regular: Int32 = 400
+    public static let medium: Int32 = 500
+    public static let semiBold: Int32 = 600
+    public static let bold: Int32 = 700
 }
 
 public enum OBRitTypography {
@@ -220,19 +223,21 @@ public enum OBRitTypography {
         public let lineHeight: CGFloat
     }
 
-    public static let s2xs = TextToken(size: CGFloat(AtomText.S2xs.shared.FontSize), lineHeight: CGFloat(AtomText.S2xs.shared.LineHeight))
-    public static let xs = TextToken(size: CGFloat(AtomText.Xs.shared.FontSize), lineHeight: CGFloat(AtomText.Xs.shared.LineHeight))
-    public static let small = TextToken(size: CGFloat(AtomText.S.shared.FontSize), lineHeight: CGFloat(AtomText.S.shared.LineHeight))
+    private static let letterSpacingPercent: CGFloat = -3
+
+    public static let s2xs = TextToken(size: 10, lineHeight: 16)
+    public static let xs = TextToken(size: 12, lineHeight: 18)
+    public static let small = TextToken(size: 13, lineHeight: 20)
+    public static let base = TextToken(size: 14, lineHeight: 22)
+    public static let lg = TextToken(size: 15, lineHeight: 24)
+    public static let xl = TextToken(size: 16, lineHeight: 24)
+    public static let s2xl = TextToken(size: 18, lineHeight: 24)
+    public static let s3xl = TextToken(size: 20, lineHeight: 30)
+    public static let s4xl = TextToken(size: 22, lineHeight: 32)
+    public static let s5xl = TextToken(size: 24, lineHeight: 36)
+    public static let s6xl = TextToken(size: 28, lineHeight: 40)
+    public static let s7xl = TextToken(size: 32, lineHeight: 44)
     public static let s = small
-    public static let base = TextToken(size: CGFloat(AtomText.Base.shared.FontSize), lineHeight: CGFloat(AtomText.Base.shared.LineHeight))
-    public static let lg = TextToken(size: CGFloat(AtomText.Lg.shared.FontSize), lineHeight: CGFloat(AtomText.Lg.shared.LineHeight))
-    public static let xl = TextToken(size: CGFloat(AtomText.Xl.shared.FontSize), lineHeight: CGFloat(AtomText.Xl.shared.LineHeight))
-    public static let s2xl = TextToken(size: CGFloat(AtomText.S2xl.shared.FontSize), lineHeight: CGFloat(AtomText.S2xl.shared.LineHeight))
-    public static let s3xl = TextToken(size: CGFloat(AtomText.S3xl.shared.FontSize), lineHeight: CGFloat(AtomText.S3xl.shared.LineHeight))
-    public static let s4xl = TextToken(size: CGFloat(AtomText.S4xl.shared.FontSize), lineHeight: CGFloat(AtomText.S4xl.shared.LineHeight))
-    public static let s5xl = TextToken(size: CGFloat(AtomText.S5xl.shared.FontSize), lineHeight: CGFloat(AtomText.S5xl.shared.LineHeight))
-    public static let s6xl = TextToken(size: CGFloat(AtomText.S6xl.shared.FontSize), lineHeight: CGFloat(AtomText.S6xl.shared.LineHeight))
-    public static let s7xl = TextToken(size: CGFloat(AtomText.S7xl.shared.FontSize), lineHeight: CGFloat(AtomText.S7xl.shared.LineHeight))
 
     public static func font(_ token: TextToken, weight: Int32 = OBRitFontWeight.regular) -> Font {
         Font.custom(fontName(for: weight), size: token.size)
@@ -252,16 +257,16 @@ public enum OBRitTypography {
     }
 
     public static func letterSpacing(for token: TextToken) -> CGFloat {
-        token.size * CGFloat(AtomText.shared.LetterSpacing) / 100
+        token.size * letterSpacingPercent / 100
     }
 }
 
 public enum OBRitEffects {
-    public static let backgroundBlur0 = CGFloat(AtomEffects.BackgroundBlur.shared.Blur0)
-    public static let backgroundBlur4 = CGFloat(AtomEffects.BackgroundBlur.shared.Blur4)
-    public static let backgroundBlur8 = CGFloat(AtomEffects.BackgroundBlur.shared.Blur8)
-    public static let backgroundBlur12 = CGFloat(AtomEffects.BackgroundBlur.shared.Blur12)
-    public static let backgroundBlur16 = CGFloat(AtomEffects.BackgroundBlur.shared.Blur16)
+    public static let backgroundBlur0: CGFloat = 0
+    public static let backgroundBlur4: CGFloat = 4
+    public static let backgroundBlur8: CGFloat = 8
+    public static let backgroundBlur12: CGFloat = 12
+    public static let backgroundBlur16: CGFloat = 16
 }
 
 public struct OBRitTextStyle: ViewModifier {

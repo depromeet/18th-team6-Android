@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public struct OBRitHomeTopBar: View {
     private let backgroundColor: Bool
@@ -30,7 +29,6 @@ public struct OBRitHomeTopBar: View {
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
                     TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
-                    TopBarIconButton(symbolName: "person", accessibilityLabel: "프로필", action: onProfileClick)
                 }
             }
             .padding(.leading, OBRitSpacing.s5)
@@ -152,7 +150,7 @@ public struct OBRitSearchTopBar: View {
                         .submitLabel(.search)
                         .focused($isSearchFocused)
                         .onSubmit(onSubmit)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: OBRitSpacing.s5, weight: .regular))
                         .foregroundStyle(OBRitColors.common00)
@@ -206,7 +204,7 @@ private struct TopBarWithTitle: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(width: 277)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 }
             }
         }

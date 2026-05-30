@@ -9,7 +9,7 @@ private enum HomeInventoryLayoutMetrics {
 
 struct HomeInventorySection: View {
     let summary: HomeSummary
-    let items: [HomeConsumableItem]
+    let items: [HomeItemItem]
 
     var body: some View {
         VStack(spacing: HomeInventoryLayoutMetrics.summarySpacing) {
@@ -26,7 +26,7 @@ struct HomeInventorySection: View {
 
 private struct HomeOrbOverview: View {
     let summary: HomeSummary
-    let items: [HomeConsumableItem]
+    let items: [HomeItemItem]
 
     var body: some View {
         GeometryReader { geometry in

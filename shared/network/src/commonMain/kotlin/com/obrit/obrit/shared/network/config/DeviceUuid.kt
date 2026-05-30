@@ -2,7 +2,7 @@ package com.obrit.obrit.shared.network.config
 
 import org.koin.core.module.Module
 
-internal interface DeviceUuidProvider {
+interface DeviceUuidProvider {
     fun get(): String
 }
 

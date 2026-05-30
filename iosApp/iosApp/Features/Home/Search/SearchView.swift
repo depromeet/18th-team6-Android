@@ -1,25 +1,31 @@
 import SwiftUI
-import Shared
 
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SearchViewModel
 
-    let onSelectConsumable: (Int) -> Void
+    let onBack: (() -> Void)?
+    let onSelectItem: (Int) -> Void
 
     @MainActor
-    init(onSelectConsumable: @escaping (Int) -> Void) {
+    init(
+        onBack: (() -> Void)? = nil,
+        onSelectItem: @escaping (Int) -> Void
+    ) {
         _viewModel = StateObject(wrappedValue: SearchViewModel())
-        self.onSelectConsumable = onSelectConsumable
+        self.onBack = onBack
+        self.onSelectItem = onSelectItem
     }
 
     @MainActor
     init(
         viewModel: SearchViewModel,
-        onSelectConsumable: @escaping (Int) -> Void
+        onBack: (() -> Void)? = nil,
+        onSelectItem: @escaping (Int) -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.onSelectConsumable = onSelectConsumable
+        self.onBack = onBack
+        self.onSelectItem = onSelectItem
     }
 
     var body: some View {
@@ -30,15 +36,24 @@ struct SearchView: View {
                 set: viewModel.updateQuery
             ),
             action: SearchViewAction(
-                onBack: { dismiss() },
+                onBack: handleBack,
                 onSelectKeyword: viewModel.selectKeyword,
                 onRemoveRecentKeyword: viewModel.removeRecentKeyword,
                 onSubmitSearch: viewModel.submitSearch,
-                onSelectConsumable: onSelectConsumable
+                onSelectItem: onSelectItem
             )
         )
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func handleBack() {
+        dismissKeyboard()
+        if let onBack {
+            onBack()
+        } else {
+            dismiss()
+        }
     }
 }
 
@@ -47,7 +62,7 @@ struct SearchViewAction {
     let onSelectKeyword: (String) -> Void
     let onRemoveRecentKeyword: (String) -> Void
     let onSubmitSearch: () -> Void
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
 }
 
 private struct SearchContentView: View {
@@ -104,7 +119,7 @@ private struct SearchBodyView: View {
         case .results:
             SearchResultListView(
                 items: viewData.results,
-                onSelectConsumable: action.onSelectConsumable
+                onSelectItem: action.onSelectItem
             )
         case .noResult:
             SearchEmptyMessageView(
@@ -122,9 +137,9 @@ private struct SearchEmptyMessageView: View {
     var body: some View {
         VStack(spacing: OBRitSpacing.s2) {
             Text(title)
-                .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
             Text(description)
-                .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Medium, color: OBRitColors.gray500)
+                .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.medium, color: OBRitColors.gray500)
         }
         .frame(maxWidth: .infinity, alignment: .top)
         .padding(.top, SearchMetrics.emptyMessageTopPadding)
@@ -164,7 +179,7 @@ private struct RecentKeywordRow: View {
             } label: {
                 Text(keyword)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                    .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
             }
             .buttonStyle(.plain)
 
@@ -196,7 +211,7 @@ private struct SearchSuggestionListView: View {
                 } label: {
                     Text(highlightedKeyword(keyword))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .padding(.vertical, OBRitSpacing.s2)
                 }
                 .buttonStyle(.plain)
@@ -220,12 +235,12 @@ private struct SearchSuggestionListView: View {
 
 private struct SearchResultListView: View {
     let items: [HomeListTabItem]
-    let onSelectConsumable: (Int) -> Void
+    let onSelectItem: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("검색 결과")
-                .obritTextStyle(OBRitTypography.s, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                 .padding(.horizontal, OBRitSpacing.s5)
                 .padding(.top, OBRitSpacing.s4)
                 .padding(.bottom, OBRitSpacing.s3)
@@ -234,7 +249,8 @@ private struct SearchResultListView: View {
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(items) { item in
                         Button {
-                            onSelectConsumable(item.id)
+                            dismissKeyboard()
+                            onSelectItem(item.id)
                         } label: {
                             OBRitCardList(
                                 level: item.cardLevel,
@@ -283,7 +299,7 @@ private extension SearchViewModel {
             )
         ),
         query: .constant(""),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectConsumable: { _ in })
+        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
     )
 }
 
@@ -299,6 +315,6 @@ private extension SearchViewModel {
             )
         ),
         query: .constant("샤워기"),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectConsumable: { _ in })
+        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
     )
 }

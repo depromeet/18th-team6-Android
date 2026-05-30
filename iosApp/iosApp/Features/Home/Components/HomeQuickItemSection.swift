@@ -9,7 +9,7 @@ private enum HomeQuickItemLayoutMetrics {
 }
 
 struct HomeQuickItemSection: View {
-    let items: [HomeConsumableItem]
+    let items: [HomeItemItem]
     let selectedFilter: HomeStatusFilter
     let filterCounts: [HomeStatusFilter: Int]
     let onSelectFilter: (HomeStatusFilter) -> Void

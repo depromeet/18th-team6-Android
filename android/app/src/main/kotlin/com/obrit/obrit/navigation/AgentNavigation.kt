@@ -29,12 +29,12 @@ fun AgentNavigation(modifier: Modifier = Modifier) {
         entryProvider =
             entryProvider {
                 entry<AgentRoute.Agents> {
-                    AgentScreen(
-                        onAgentClick = { agent ->
-                            agentBackStack.add(AgentRoute.AgentDetail(agent.id))
-                        },
-                        modifier = Modifier,
-                    )
+//                    AgentScreen(
+//                        onAgentClick = { agent ->
+//                            agentBackStack.add(AgentRoute.AgentDetail(agent.id))
+//                        },
+//                        modifier = Modifier,
+//                    )
                 }
                 entry<AgentRoute.AgentDetail> { route ->
                     DetailScreen(

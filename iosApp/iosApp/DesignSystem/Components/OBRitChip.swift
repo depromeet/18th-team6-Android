@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public struct OBRitChip: View {
     private let text: String
@@ -28,7 +27,7 @@ public struct OBRitChip: View {
                 }
             }
             .lineLimit(1)
-            .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Bold, color: contentColor)
+            .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.bold, color: contentColor)
             .padding(.horizontal, OBRitSpacing.s4)
             .padding(.vertical, OBRitSpacing.s2)
             .frame(height: OBRitSpacing.s9 + OBRitSpacing.s0_5)
@@ -44,6 +43,6 @@ public struct OBRitChip: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }

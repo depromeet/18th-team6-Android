@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitTitleSize {
     case large
@@ -75,12 +74,12 @@ public struct OBRitTitle: View {
     private var titleText: some View {
         Text(title)
             .lineLimit(1)
-            .obritTextStyle(titleToken, weight: AtomFontWeight.shared.Bold, color: OBRitColors.textDefaultDefault)
+            .obritTextStyle(titleToken, weight: OBRitFontWeight.bold, color: OBRitColors.textDefaultDefault)
     }
 
     private var descriptionText: some View {
         Text(description)
-            .obritTextStyle(descriptionToken, weight: AtomFontWeight.shared.Medium, color: OBRitColors.textDefaultSecondary)
+            .obritTextStyle(descriptionToken, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
     }
 
     private var titleToken: OBRitTypography.TextToken {
