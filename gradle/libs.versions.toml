@@ -19,7 +19,6 @@ kotlin = "2.3.20"
 koinBom = "4.2.1"
 ktorBom = "3.4.2"
 ktlint = "14.2.0"
-coil = "2.7.0"
 orbit = "11.0.0"
 nav3Core = "1.1.1"
 lifecycleViewmodelNav3 = "2.10.0"
@@ -90,10 +89,6 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin" }
-# endregion
-
-# region Coil
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 # endregion
 
 # region Orbit

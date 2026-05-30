@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.bottomsheet.OBRitBottomSheet
 import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults

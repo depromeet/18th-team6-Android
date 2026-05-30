@@ -50,7 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.android.feature.home.R
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -423,7 +423,7 @@ private fun BoxScope.PhysicsIcon(
 @Composable
 private fun GlassBallTextureOverlay() {
     Image(
-        painter = painterResource(R.drawable.ic_glass_plusLighter),
+        painter = painterResource(R.drawable.ic_glass_plus_lighter),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier =
