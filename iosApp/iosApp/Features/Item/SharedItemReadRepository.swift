@@ -24,7 +24,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
             ItemKind(
                 id: Int(clamping: category.id),
                 title: category.name,
-                addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
+                addedCount: Int(category.itemCount),
                 imageAssetName: Self.assetName(for: category.name)
             )
         }
@@ -283,10 +283,10 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
     }
 
     private static func imageOptions(from icons: [Shared.CategoryIcon]) -> [ItemImageOption] {
-        return icons.enumerated().map { index, icon in
+        icons.map { icon in
             ItemImageOption(
                 id: Int(clamping: icon.id),
-                assetName: ItemAssetCatalog.assetNames[index % ItemAssetCatalog.assetNames.count]
+                assetName: CategoryIconKind.assetName(iconId: icon.id, url: icon.url)
             )
         }
     }

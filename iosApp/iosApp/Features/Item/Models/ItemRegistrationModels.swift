@@ -59,6 +59,21 @@ enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
     }
 }
 
+extension ItemReplacementDateOption {
+    var apiPeriod: ItemRegistrationLastReplacementPeriod? {
+        switch self {
+        case .withinOneWeek:
+            .withinWeek
+        case .twoToFourWeeksAgo:
+            .withinMonth
+        case .oneToThreeMonthsAgo:
+            .withinThreeMonths
+        case .unknown:
+            nil
+        }
+    }
+}
+
 enum ItemRegistrationMode: Equatable {
     case form
     case directKind
@@ -96,7 +111,7 @@ struct ItemRegistrationViewData: Equatable {
     var canSubmitForm: Bool {
         draft.selectedKind != nil &&
             !draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.lastReplacementDateOption != nil &&
+            draft.lastReplacementDateOption?.apiPeriod != nil &&
             draft.quantity >= ItemRegistrationConfig.quantityMinimum &&
             !isProcessing
     }

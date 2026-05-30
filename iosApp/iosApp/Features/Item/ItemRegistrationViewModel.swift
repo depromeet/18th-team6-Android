@@ -402,21 +402,6 @@ enum ItemRegistrationViewEffect: Equatable {
     case showMessage(String)
 }
 
-private extension ItemReplacementDateOption {
-    var apiPeriod: ItemRegistrationLastReplacementPeriod {
-        switch self {
-        case .withinOneWeek:
-            return .withinWeek
-        case .twoToFourWeeksAgo:
-            return .withinMonth
-        case .oneToThreeMonthsAgo:
-            return .withinThreeMonths
-        case .unknown:
-            return .overThreeMonths
-        }
-    }
-}
-
 private extension Error {
     var itemRegistrationMessage: String {
         if let localizedError = self as? LocalizedError,
