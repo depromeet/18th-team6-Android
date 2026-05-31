@@ -1,7 +1,6 @@
 package com.obrit.obrit.shared.network.source
 
 import com.obrit.obrit.shared.network.client.userIdHeader
-import com.obrit.obrit.shared.network.config.NETWORK_BASE_URL
 import com.obrit.obrit.shared.network.config.UserIdProvider
 import com.obrit.obrit.shared.network.request.home.HomeItemsRequest
 import com.obrit.obrit.shared.network.response.ApiResponse
@@ -30,9 +29,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getMyStatusSummary(): MyStatusSummaryResponse {
         val userId = userIdProvider.get()
-        println("getMyStatusSummary URL: ${NETWORK_BASE_URL}${HOME_PATH}/my-summary")
-        println("getMyStatusSummary headers: X-User-Id: $userId")
-
         return httpClient
             .get("$HOME_PATH/my-summary") {
                 userIdHeader(userId)
@@ -42,17 +38,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getItems(request: HomeItemsRequest): CursorSliceResponseHomeItemCard {
         val userId = userIdProvider.get()
-        val queryParams =
-            buildList {
-                request.order?.let { add("order=$it") }
-                request.dDay?.let { add("dDay=$it") }
-                request.spareQuantity?.let { add("spareQuantity=$it") }
-                request.cursor?.let { add("cursor=$it") }
-                request.size?.let { add("size=$it") }
-            }.joinToString("&")
-        println("getItems URL: ${NETWORK_BASE_URL}${HOME_PATH}/items${if (queryParams.isNotEmpty()) "?$queryParams" else ""}")
-        println("getItems headers: X-User-Id: $userId")
-
         return httpClient
             .get("$HOME_PATH/items") {
                 userIdHeader(userId)
@@ -67,8 +52,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getBuckets(): HomeBucketsResponse {
         val userId = userIdProvider.get()
-        println("getBuckets URL: ${NETWORK_BASE_URL}${HOME_PATH}/buckets")
-
         return httpClient
             .get("$HOME_PATH/buckets") {
                 userIdHeader(userId)
