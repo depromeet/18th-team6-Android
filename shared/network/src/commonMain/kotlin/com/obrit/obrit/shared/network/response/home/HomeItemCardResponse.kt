@@ -6,20 +6,22 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HomeItemCardResponse(
-    @SerialName("itemId") val id: Long,
+    @SerialName("itemId") val itemId: Long,
     @SerialName("name") val name: String,
-    @SerialName("iconUrl") val iconUrl: String,
     @SerialName("daysInUse") val daysInUse: Int,
     @SerialName("replacementDday") val replacementDday: String,
     @SerialName("spareQuantity") val spareQuantity: Int,
+    @SerialName("iconUrl") val iconUrl: String,
+    @SerialName("itemBucket") val itemBucket: String,
 )
 
 fun HomeItemCardResponse.toHomeItemCard() =
     HomeItemCard(
-        id = id,
+        itemId = itemId,
         name = name,
-        iconUrl = iconUrl,
         daysInUse = daysInUse,
         replacementDday = replacementDday,
         spareQuantity = spareQuantity,
+        iconUrl = iconUrl,
+        itemBucket = itemBucket.toItemBucket(),
     )

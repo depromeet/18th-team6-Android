@@ -14,11 +14,15 @@ internal data class ConsumableListScreenAction(
     val onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     val onDdayFilterChange: (Int) -> Unit,
     val onSpareFilterChange: (Int) -> Unit,
+    val onFilterApply: (Int, Int) -> Unit,
+    val onLoadMoreItems: () -> Unit,
+    val onItemClick: (Long) -> Unit,
 )
 
 @Composable
 fun ConsumableListScreen(
     onBack: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -26,7 +30,8 @@ fun ConsumableListScreen(
     val success = state as? HomeUiState.Success ?: return
 
     ConsumableListScreenContent(
-        buckets = success.status.buckets,
+        items = success.items.content,
+        hasNext = success.items.hasNext,
         sortOrder = success.listSortOrder,
         ddayRange = success.ddayRange,
         ddayFilterMax = success.ddayFilterMax,
@@ -38,6 +43,9 @@ fun ConsumableListScreen(
                 onSortOrderChange = viewModel::onListSortOrderChange,
                 onDdayFilterChange = viewModel::onDdayFilterChange,
                 onSpareFilterChange = viewModel::onSpareFilterChange,
+                onFilterApply = viewModel::onFilterApply,
+                onLoadMoreItems = viewModel::onLoadMoreItems,
+                onItemClick = onItemClick,
             ),
         modifier = modifier,
     )

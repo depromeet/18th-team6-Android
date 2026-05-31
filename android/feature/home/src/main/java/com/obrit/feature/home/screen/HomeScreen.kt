@@ -19,6 +19,7 @@ fun HomeScreen(
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMoreClick: () -> Unit = {},
+    onItemClick: (Long) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
@@ -33,8 +34,11 @@ fun HomeScreen(
                 onListSortOrderChange = viewModel::onListSortOrderChange,
                 onDdayFilterChange = viewModel::onDdayFilterChange,
                 onSpareFilterChange = viewModel::onSpareFilterChange,
+                onFilterApply = viewModel::onFilterApply,
                 onMoreClick = viewModel::onMoreClick,
+                onLoadMoreItems = viewModel::onLoadMoreItems,
                 onRegisterClick = onRegisterClick,
+                onItemClick = onItemClick,
             ),
         modifier = modifier,
     )
@@ -56,6 +60,9 @@ internal data class HomeScreenAction(
     val onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
     val onDdayFilterChange: (Int) -> Unit,
     val onSpareFilterChange: (Int) -> Unit,
+    val onFilterApply: (Int, Int) -> Unit,
     val onMoreClick: () -> Unit,
+    val onLoadMoreItems: () -> Unit,
     val onRegisterClick: () -> Unit,
+    val onItemClick: (Long) -> Unit,
 )

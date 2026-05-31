@@ -16,12 +16,8 @@ fun ItemBucketResponse.toHomeBucketGroup() =
     HomeBucketGroup(
         bucket =
             when (bucket) {
-                "NONE_OVERDUE" -> HomeBucketType.NONE_OVERDUE
-                "NONE_WARN" -> HomeBucketType.NONE_WARN
-                "HAS_OVERDUE" -> HomeBucketType.HAS_OVERDUE
-                "HAS_WARN" -> HomeBucketType.HAS_WARN
-                "NONE_SAFE" -> HomeBucketType.NONE_SAFE
-                "HAS_SAFE" -> HomeBucketType.HAS_SAFE
+                "DANGER" -> HomeBucketType.DANGER
+                "WARNING" -> HomeBucketType.WARNING
                 else -> HomeBucketType.UNKNOWN
             },
         count = count,

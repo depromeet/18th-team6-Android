@@ -15,9 +15,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,11 +36,10 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
-import com.obrit.feature.home.screen.homeSection.ConsumableAlertSection
-import com.obrit.feature.home.screen.homeSection.ConsumableIcon
-import com.obrit.feature.home.screen.homeSection.ConsumableOrbitSection
-import com.obrit.feature.home.screen.homeSection.ConsumableStatusSection
-import com.obrit.feature.home.screen.homeSection.ConsumableUsageStatusSection
+import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
+import com.obrit.feature.home.screen.homeSection.ItemOrbitSection
+import com.obrit.feature.home.screen.homeSection.ItemStatusSection
+import com.obrit.feature.home.screen.homeSection.ItemUsageStatusSection
 import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
 import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
@@ -71,10 +72,13 @@ internal fun HomeScreenSuccessContent(
                     state = state,
                     onListSortOrderChange = action.onListSortOrderChange,
                     onMoreClick = { selectedTab = OBRitGnbTab.List },
+                    onLoadMoreItems = action.onLoadMoreItems,
+                    onItemClick = action.onItemClick,
                 )
             } else {
                 ConsumableListScreenContent(
-                    buckets = state.status.buckets,
+                    items = state.items.content,
+                    hasNext = state.items.hasNext,
                     sortOrder = state.listSortOrder,
                     ddayRange = state.ddayRange,
                     ddayFilterMax = state.ddayFilterMax,
@@ -86,6 +90,9 @@ internal fun HomeScreenSuccessContent(
                             onSortOrderChange = action.onListSortOrderChange,
                             onDdayFilterChange = action.onDdayFilterChange,
                             onSpareFilterChange = action.onSpareFilterChange,
+                            onFilterApply = action.onFilterApply,
+                            onLoadMoreItems = action.onLoadMoreItems,
+                            onItemClick = action.onItemClick,
                         ),
                     modifier =
                         Modifier
@@ -183,58 +190,53 @@ private fun Modifier.homeFabShadow(): Modifier =
         }
     }
 
+@Suppress("LongParameterList")
 @Composable
 private fun HomeContents(
     state: HomeUiState.Success,
     onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
     onMoreClick: () -> Unit,
+    onLoadMoreItems: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+    val currentOnLoadMoreItems by rememberUpdatedState(onLoadMoreItems)
+    LaunchedEffect(scrollState.value) {
+        if (scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue && state.items.hasNext) {
+            currentOnLoadMoreItems()
+        }
+    }
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .navigationBarsPadding()
                 .padding(bottom = 80.dp),
     ) {
-        ConsumableStatusSection(
-            title = state.status.message.title,
-            highlightWord = state.status.message.highlightWord,
-            replacementStatus = state.status.message.replacementStatus,
-            stockStatus = state.status.message.stockStatus,
-        )
-        ConsumableOrbitSection(
-            icons = homeConsumableIcons,
+        ItemStatusSection(overallStatus = state.overallStatus)
+        ItemOrbitSection(
+            items = state.items.content.take(ORBIT_ITEMS_SIZE),
             normalRatio = state.status.ratio.goodPercentage / 100f,
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
-        MyStatusGraphSection(
-            totalCount = state.status.graph.totalCount,
-            needReplaceCount = state.status.graph.needReplaceCount,
-            score = state.status.graph.score,
-            averageScore = state.status.graph.averageScore,
-        )
-        ConsumableAlertSection(buckets = state.status.buckets)
-        QuickItemSection(
-            buckets = state.status.buckets,
+        MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
+        QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
+        ItemListPreviewSection(
+            items = state.items.content,
             sortOrder = state.listSortOrder,
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,
+            onItemClick = onItemClick,
         )
-        ConsumableUsageStatusSection(buckets = state.status.buckets)
+        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
     }
 }
 
-private val homeConsumableIcons =
-    listOf(
-        ConsumableIcon(R.drawable.ic_towel, 68.dp, 49.dp),
-        ConsumableIcon(R.drawable.ic_toothbrush, 70.dp, 70.dp),
-        ConsumableIcon(R.drawable.ic_detergent, 36.dp, 54.dp),
-        ConsumableIcon(R.drawable.ic_razor, 58.dp, 79.dp),
-    )
 private val HomeFabSize = 56.dp
 private val HomeFabIconSize = 30.dp
 private val HomeFabShadowBlur = 24.dp
 private val HomeFabShadowOffsetY = 16.dp
 private const val HOME_FAB_SHADOW_ALPHA = 0.24f
+private const val ORBIT_ITEMS_SIZE = 10
