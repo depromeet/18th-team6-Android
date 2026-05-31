@@ -345,8 +345,7 @@ class DetailViewModel internal constructor(
             }
         }
 
-        val itemsResult = itemRepository.getItems()
-        val items = itemsResult.getOrNull()
+        val items = itemRepository.getItems().getOrNull()
         if (isCurrentDetailLoad(loadGeneration)) {
             val item = items?.firstOrNull { candidate -> candidate.id == consumableId }
 
@@ -370,10 +369,8 @@ class DetailViewModel internal constructor(
     ) {
         val historiesDeferred = vmAsync { itemRepository.getReplacementHistories(itemId = item.id) }
         val categoriesDeferred = vmAsync { categoryRepository.getCategories() }
-        val historiesResult = historiesDeferred.await()
-        val categoriesResult = categoriesDeferred.await()
-        val histories = historiesResult.getOrNull()
-        val categories = categoriesResult.getOrNull()
+        val histories = historiesDeferred.await().getOrNull()
+        val categories = categoriesDeferred.await().getOrNull()
         if (isCurrentDetailLoad(loadGeneration)) {
             when {
                 histories == null -> handleLoadFailure(keepCurrentOnFailure)

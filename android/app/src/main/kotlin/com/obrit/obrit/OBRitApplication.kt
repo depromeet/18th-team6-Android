@@ -14,7 +14,7 @@ class OBRitApplication : Application() {
 
         initKoin {
             androidContext(this@OBRitApplication)
-            modules(agentFeatureModule, homeFeatureModule, registerFeatureModule, detailFeatureModule)
+            modules(agentFeatureModule, detailFeatureModule, homeFeatureModule, registerFeatureModule)
         }
     }
 }
