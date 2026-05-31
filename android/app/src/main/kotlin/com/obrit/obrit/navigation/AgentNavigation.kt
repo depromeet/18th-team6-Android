@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.obrit.feature.agent.screen.AgentScreen
 import com.obrit.feature.detail.screen.DetailEditScreen
 import com.obrit.feature.detail.screen.DetailEditSubmitResult
 import com.obrit.feature.detail.screen.DetailScreen
