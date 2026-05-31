@@ -21,6 +21,20 @@ struct ItemRegistrationDraft: Equatable {
     var selectedImageOption: ItemImageOption?
 }
 
+struct ItemRegistrationCreateItemRequest: Equatable {
+    let categoryId: Int
+    let name: String
+    let quantity: Int
+    let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod
+}
+
+enum ItemRegistrationLastReplacementPeriod: String, Equatable {
+    case withinWeek = "WITHIN_WEEK"
+    case withinMonth = "WITHIN_MONTH"
+    case withinThreeMonths = "WITHIN_THREE_MONTHS"
+    case overThreeMonths = "OVER_THREE_MONTHS"
+}
+
 enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
     case withinOneWeek
     case twoToFourWeeksAgo
@@ -45,6 +59,21 @@ enum ItemReplacementDateOption: Int, CaseIterable, Identifiable, Equatable {
     }
 }
 
+extension ItemReplacementDateOption {
+    var apiPeriod: ItemRegistrationLastReplacementPeriod? {
+        switch self {
+        case .withinOneWeek:
+            .withinWeek
+        case .twoToFourWeeksAgo:
+            .withinMonth
+        case .oneToThreeMonthsAgo:
+            .withinThreeMonths
+        case .unknown:
+            nil
+        }
+    }
+}
+
 enum ItemRegistrationMode: Equatable {
     case form
     case directKind
@@ -56,6 +85,8 @@ enum ItemRegistrationBottomSheet: Equatable {
 }
 
 enum ItemRegistrationViewState: Equatable {
+    case loading
+    case loadFailed(message: String)
     case success(ItemRegistrationViewData)
 }
 
@@ -64,9 +95,10 @@ struct ItemRegistrationViewData: Equatable {
     var draft: ItemRegistrationDraft
     var kindSearchQuery: String
     var itemKinds: [ItemKind]
-    let imageOptions: [ItemImageOption]
+    var imageOptions: [ItemImageOption]
     var bottomSheet: ItemRegistrationBottomSheet?
     var selectedKindCandidate: ItemKind?
+    var isProcessing: Bool
 
     var filteredKinds: [ItemKind] {
         let query = kindSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -79,13 +111,15 @@ struct ItemRegistrationViewData: Equatable {
     var canSubmitForm: Bool {
         draft.selectedKind != nil &&
             !draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.lastReplacementDateOption != nil &&
-            draft.quantity >= ItemRegistrationConfig.quantityMinimum
+            draft.lastReplacementDateOption?.apiPeriod != nil &&
+            draft.quantity >= ItemRegistrationConfig.quantityMinimum &&
+            !isProcessing
     }
 
     var canSubmitDirectKind: Bool {
         !draft.directKindName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.selectedImageOption != nil
+            draft.selectedImageOption != nil &&
+            !isProcessing
     }
 
     var kindCandidateForDisplay: ItemKind? {

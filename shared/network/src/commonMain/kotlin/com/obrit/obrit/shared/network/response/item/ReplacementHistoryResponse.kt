@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ReplacementHistoryResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("replacementId") val id: Long,
     @SerialName("replacedDate") val replacedDate: String,
 )
 

@@ -351,22 +351,38 @@ struct ItemQuantityCard: View {
     let action: ItemRegistrationAction
 
     var body: some View {
+        let isKindSelected = kind != nil
+
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s4) {
-                ItemImage(
-                    assetName: kind?.imageAssetName ?? ItemRegistrationAsset.fallbackItemImage,
-                    size: ItemRegistrationLayout.itemThumbnailSize
-                )
+                if let kind {
+                    ItemImage(
+                        assetName: kind.imageAssetName,
+                        size: ItemRegistrationLayout.itemThumbnailSize
+                    )
+                } else {
+                    Circle()
+                        .fill(OBRitColors.gray750)
+                        .frame(
+                            width: ItemRegistrationLayout.itemThumbnailSize,
+                            height: ItemRegistrationLayout.itemThumbnailSize
+                        )
+                }
 
                 VStack(alignment: .leading, spacing: OBRitSpacing.s1) {
-                    Text(kind?.title ?? "{title}")
+                    Text(kind?.title ?? "-")
                         .lineLimit(ItemRegistrationLayout.singleLineLimit)
                         .obritTextStyle(
                             OBRitTypography.xl,
                             weight: OBRitFontWeight.bold,
                             color: OBRitColors.common00
                         )
-                    Text(ItemRegistrationText.quantityText(prefix: quantityLabelPrefix, quantity: quantity))
+                    Text(
+                        ItemRegistrationText.quantityText(
+                            prefix: quantityLabelPrefix,
+                            quantity: isKindSelected ? quantity : ItemRegistrationConfig.quantityMinimum
+                        )
+                    )
                         .lineLimit(ItemRegistrationLayout.singleLineLimit)
                         .obritTextStyle(
                             OBRitTypography.small,
@@ -380,6 +396,7 @@ struct ItemQuantityCard: View {
                     value: quantity,
                     size: .small,
                     minimumValue: ItemRegistrationConfig.quantityMinimum,
+                    isEnabled: isKindSelected,
                     onDecrement: action.onDecrementQuantity,
                     onIncrement: action.onIncrementQuantity
                 )

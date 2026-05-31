@@ -113,6 +113,11 @@ final class ItemDetailViewModel: ObservableObject {
     }
 
     private func loadDetail(showLoading: Bool) async {
+        AppLog.enter(
+            AppLog.itemDetailViewModel,
+            "ItemDetailViewModel.loadDetail",
+            "itemId=\(itemId) showLoading=\(showLoading)"
+        )
         if showLoading {
             state = .loading
         }
@@ -122,13 +127,20 @@ final class ItemDetailViewModel: ObservableObject {
             isProcessing = false
             confirmationDialog = nil
             publishSuccess()
+            AppLog.success(AppLog.itemDetailViewModel, "ItemDetailViewModel.loadDetail", "itemId=\(itemId)")
         } catch {
             isProcessing = false
             state = .loadFailed(message: error.itemDetailMessage)
+            AppLog.failure(AppLog.itemDetailViewModel, "ItemDetailViewModel.loadDetail", error, "itemId=\(itemId)")
         }
     }
 
     private func updateSpareQuantityTask(_ quantity: Int) async {
+        AppLog.enter(
+            AppLog.itemDetailViewModel,
+            "ItemDetailViewModel.updateSpareQuantityTask",
+            "itemId=\(itemId) quantity=\(quantity)"
+        )
         do {
             item = try await repository.updateSpareQuantity(
                 itemId: itemId,
@@ -137,13 +149,25 @@ final class ItemDetailViewModel: ObservableObject {
             )
             isProcessing = false
             publishSuccess()
-            effect = .showMessage("여분 수량을 수정했어요.")
+            effect = .itemUpdated(message: "여분 수량을 수정했어요.")
+            AppLog.success(
+                AppLog.itemDetailViewModel,
+                "ItemDetailViewModel.updateSpareQuantityTask",
+                "itemId=\(itemId) quantity=\(quantity)"
+            )
         } catch {
             handleMutationFailure(error)
+            AppLog.failure(
+                AppLog.itemDetailViewModel,
+                "ItemDetailViewModel.updateSpareQuantityTask",
+                error,
+                "itemId=\(itemId) quantity=\(quantity)"
+            )
         }
     }
 
     private func completeReplacementTask() async {
+        AppLog.enter(AppLog.itemDetailViewModel, "ItemDetailViewModel.completeReplacementTask", "itemId=\(itemId)")
         do {
             item = try await repository.completeReplacement(
                 itemId: itemId,
@@ -153,12 +177,20 @@ final class ItemDetailViewModel: ObservableObject {
             isProcessing = false
             publishSuccess()
             effect = .replacementCompleted(itemId: itemId)
+            AppLog.success(AppLog.itemDetailViewModel, "ItemDetailViewModel.completeReplacementTask", "itemId=\(itemId)")
         } catch {
             handleMutationFailure(error)
+            AppLog.failure(
+                AppLog.itemDetailViewModel,
+                "ItemDetailViewModel.completeReplacementTask",
+                error,
+                "itemId=\(itemId)"
+            )
         }
     }
 
     private func deleteTask() async {
+        AppLog.enter(AppLog.itemDetailViewModel, "ItemDetailViewModel.deleteTask", "itemId=\(itemId)")
         do {
             try await repository.delete(itemId: itemId)
             confirmationDialog = nil
@@ -166,8 +198,10 @@ final class ItemDetailViewModel: ObservableObject {
             item = nil
             state = .loadFailed(message: "삭제된 소모품이에요.")
             effect = .itemDeleted(itemId: itemId)
+            AppLog.success(AppLog.itemDetailViewModel, "ItemDetailViewModel.deleteTask", "itemId=\(itemId)")
         } catch {
             handleMutationFailure(error)
+            AppLog.failure(AppLog.itemDetailViewModel, "ItemDetailViewModel.deleteTask", error, "itemId=\(itemId)")
         }
     }
 

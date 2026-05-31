@@ -3,6 +3,8 @@ import SwiftUI
 private enum HomeUsageListLayoutMetrics {
     static let sectionPadding = OBRitSpacing.s5
     static let contentSpacing = OBRitSpacing.s2
+    static let emptyStateSpacing = OBRitSpacing.s5
+    static let emptyStateTextSpacing = OBRitSpacing.s2
     static let rowHeight = OBRitSpacing.s16
     static let rowContentSpacing = OBRitSpacing.s4
     static let thumbnailSize = OBRitSpacing.s8
@@ -13,26 +15,62 @@ private enum HomeUsageListLayoutMetrics {
 
 struct HomeUsageListSection: View {
     let items: [HomeItemItem]
+    let showsHeader: Bool
+    let emptyStateMinHeight: CGFloat?
     let onSelect: (Int) -> Void
+    let onRegister: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: HomeUsageListLayoutMetrics.contentSpacing) {
-            Text("사용 현황")
-                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if showsHeader {
+                Text("사용 현황")
+                    .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-            LazyVStack(spacing: 0) {
-                ForEach(items) { item in
-                    Button {
-                        onSelect(item.id)
-                    } label: {
-                        HomeUsageRow(item: item)
+            if items.isEmpty {
+                HomeUsageEmptyState(onRegister: onRegister)
+                    .frame(maxWidth: .infinity, minHeight: emptyStateMinHeight, alignment: .center)
+            } else {
+                LazyVStack(spacing: 0) {
+                    ForEach(items) { item in
+                        Button {
+                            onSelect(item.id)
+                        } label: {
+                            HomeUsageRow(item: item)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding(HomeUsageListLayoutMetrics.sectionPadding)
+        .padding(.horizontal, HomeUsageListLayoutMetrics.sectionPadding)
+        .padding(.vertical, showsHeader ? HomeUsageListLayoutMetrics.sectionPadding : 0)
+    }
+}
+
+private struct HomeUsageEmptyState: View {
+    let onRegister: () -> Void
+
+    var body: some View {
+        VStack(spacing: HomeUsageListLayoutMetrics.emptyStateSpacing) {
+            VStack(spacing: HomeUsageListLayoutMetrics.emptyStateTextSpacing) {
+                Text("등록된 물품이 없어요")
+                    .multilineTextAlignment(.center)
+                    .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                Text("소모품을 등록하면 사용 현황을 확인할 수 있어요")
+                    .multilineTextAlignment(.center)
+                    .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray500)
+            }
+
+            OBRitFilledTextButton(
+                text: "소모품 등록하기",
+                size: .middle,
+                action: onRegister
+            )
+            .accessibilityLabel("소모품 등록하기")
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 

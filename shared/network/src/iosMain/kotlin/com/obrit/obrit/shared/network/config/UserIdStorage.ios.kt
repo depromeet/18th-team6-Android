@@ -9,11 +9,11 @@ internal class IosUserIdStorage : UserIdStorage {
 
     override fun load(): Long? {
         if (userDefaults.objectForKey(KEY_USER_ID) == null) return null
-        return userDefaults.longLongForKey(KEY_USER_ID).takeIf { it != UNSET }
+        return userDefaults.integerForKey(KEY_USER_ID).takeIf { it != UNSET }
     }
 
     override fun save(userId: Long) {
-        userDefaults.setObject(userId, forKey = KEY_USER_ID)
+        userDefaults.setInteger(userId, forKey = KEY_USER_ID)
     }
 
     private companion object {

@@ -12,9 +12,18 @@ internal class DefaultUserIdProvider(
     private val userRemoteDataSource: UserRemoteDataSource,
     private val userIdStorage: UserIdStorage,
 ) : UserIdProvider {
-    override suspend fun get(): Long {
-        userIdStorage.load()?.let { return it }
+    private var cachedUserId: Long? = null
 
+    override suspend fun get(): Long {
+        val userId =
+            cachedUserId ?: userIdStorage.load()?.also { savedUserId ->
+                cachedUserId = savedUserId
+            } ?: registerUser()
+
+        return userId
+    }
+
+    private suspend fun registerUser(): Long {
         val registeredUser =
             userRemoteDataSource.register(
                 RegisterUserRequest(
@@ -23,8 +32,10 @@ internal class DefaultUserIdProvider(
                 ),
             )
 
-        userIdStorage.save(registeredUser.id)
-        return registeredUser.id
+        return registeredUser.userId.also { userId ->
+            cachedUserId = userId
+            userIdStorage.save(userId)
+        }
     }
 }
 

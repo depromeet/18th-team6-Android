@@ -3,6 +3,8 @@ import SwiftUI
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SearchViewModel
+    @State private var didRequestInitialFocus = false
+    @FocusState private var isSearchFocused: Bool
 
     let onBack: (() -> Void)?
     let onSelectItem: (Int) -> Void
@@ -12,7 +14,20 @@ struct SearchView: View {
         onBack: (() -> Void)? = nil,
         onSelectItem: @escaping (Int) -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: SearchViewModel())
+        self.init(
+            viewModelFactory: { SearchViewModel() },
+            onBack: onBack,
+            onSelectItem: onSelectItem
+        )
+    }
+
+    @MainActor
+    init(
+        viewModelFactory: @MainActor @escaping () -> SearchViewModel,
+        onBack: (() -> Void)? = nil,
+        onSelectItem: @escaping (Int) -> Void
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.onBack = onBack
         self.onSelectItem = onSelectItem
     }
@@ -35,25 +50,56 @@ struct SearchView: View {
                 get: { viewModel.currentQuery },
                 set: viewModel.updateQuery
             ),
+            searchFocus: $isSearchFocused,
             action: SearchViewAction(
                 onBack: handleBack,
                 onSelectKeyword: viewModel.selectKeyword,
                 onRemoveRecentKeyword: viewModel.removeRecentKeyword,
                 onSubmitSearch: viewModel.submitSearch,
+                onRetry: viewModel.retry,
                 onSelectItem: onSelectItem
             )
         )
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            AppLog.enter(AppLog.searchViewModel, "SearchView.onAppear")
+        }
+        .task {
+            viewModel.loadIfNeeded()
+            await requestInitialFocusIfReady()
+        }
+        .onChange(of: viewModel.canRequestInitialFocus) { _, _ in
+            Task {
+                await requestInitialFocusIfReady()
+            }
+        }
+        .onDisappear {
+            AppLog.success(AppLog.searchViewModel, "SearchView.onDisappear")
+        }
     }
 
     private func handleBack() {
-        dismissKeyboard()
         if let onBack {
             onBack()
         } else {
             dismiss()
         }
+    }
+
+    @MainActor
+    private func requestInitialFocusIfReady() async {
+        guard viewModel.canRequestInitialFocus, !didRequestInitialFocus else { return }
+
+        didRequestInitialFocus = true
+        AppLog.enter(AppLog.searchViewModel, "SearchView.initialFocus")
+        try? await Task.sleep(for: .milliseconds(300))
+        guard !Task.isCancelled else {
+            didRequestInitialFocus = false
+            return
+        }
+        isSearchFocused = true
+        AppLog.success(AppLog.searchViewModel, "SearchView.initialFocus")
     }
 }
 
@@ -62,34 +108,76 @@ struct SearchViewAction {
     let onSelectKeyword: (String) -> Void
     let onRemoveRecentKeyword: (String) -> Void
     let onSubmitSearch: () -> Void
+    let onRetry: () -> Void
     let onSelectItem: (Int) -> Void
 }
 
 private struct SearchContentView: View {
     let state: SearchViewState
     @Binding var query: String
+    let searchFocus: FocusState<Bool>.Binding
     let action: SearchViewAction
 
     var body: some View {
-        switch state {
-        case let .success(viewData):
-            VStack(spacing: 0) {
-                OBRitSearchTopBar(
-                    query: $query,
-                    backgroundColor: false,
-                    focusOnAppear: true,
-                    onBackClick: action.onBack,
-                    onSubmit: action.onSubmitSearch
-                )
+        VStack(spacing: 0) {
+            OBRitSearchTopBar(
+                query: $query,
+                searchFocus: searchFocus,
+                backgroundColor: false,
+                onBackClick: action.onBack,
+                onSubmit: action.onSubmitSearch
+            )
 
+            switch state {
+            case .loading:
+                SearchLoadingView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            case let .loadFailed(message):
+                SearchLoadFailedView(message: message, onRetry: action.onRetry)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            case let .success(viewData):
                 SearchBodyView(
                     viewData: viewData,
                     action: action
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
-            .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
         }
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
+    }
+}
+
+private struct SearchLoadingView: View {
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s3) {
+            ProgressView()
+                .tint(OBRitColors.green300)
+                .accessibilityLabel("검색 목록 불러오는 중")
+
+            Text("소모품 목록을 불러오는 중이에요")
+                .multilineTextAlignment(.center)
+                .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray500)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+        .padding(.top, SearchMetrics.emptyMessageTopPadding)
+        .padding(.horizontal, OBRitSpacing.s5)
+    }
+}
+
+private struct SearchLoadFailedView: View {
+    let message: String
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack(spacing: OBRitSpacing.s4) {
+            SearchEmptyMessageView(
+                title: message,
+                description: "잠시 후 다시 시도해주세요"
+            )
+
+            OBRitFilledTextButton(text: "다시 시도", size: .middle, action: onRetry)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }
 
@@ -249,7 +337,6 @@ private struct SearchResultListView: View {
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(items) { item in
                         Button {
-                            dismissKeyboard()
                             onSelectItem(item.id)
                         } label: {
                             OBRitCardList(
@@ -280,15 +367,35 @@ private enum SearchMetrics {
     static let recentKeywordRowHeight: CGFloat = 46
 }
 
-private extension SearchViewModel {
-    var currentQuery: String {
-        guard case let .success(viewData) = state else { return "" }
-        return viewData.query
+private struct SearchContentPreview: View {
+    let state: SearchViewState
+    @State private var query: String
+    @FocusState private var isSearchFocused: Bool
+
+    init(state: SearchViewState, query: String) {
+        self.state = state
+        _query = State(initialValue: query)
+    }
+
+    var body: some View {
+        SearchContentView(
+            state: state,
+            query: $query,
+            searchFocus: $isSearchFocused,
+            action: SearchViewAction(
+                onBack: {},
+                onSelectKeyword: { _ in },
+                onRemoveRecentKeyword: { _ in },
+                onSubmitSearch: {},
+                onRetry: {},
+                onSelectItem: { _ in }
+            )
+        )
     }
 }
 
 #Preview("Search - Recent") {
-    SearchContentView(
+    SearchContentPreview(
         state: .success(
             SearchViewData(
                 query: "",
@@ -298,13 +405,12 @@ private extension SearchViewModel {
                 displayMode: .recentKeywords
             )
         ),
-        query: .constant(""),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
+        query: ""
     )
 }
 
 #Preview("Search - Results") {
-    SearchContentView(
+    SearchContentPreview(
         state: .success(
             SearchViewData(
                 query: "샤워기",
@@ -314,7 +420,6 @@ private extension SearchViewModel {
                 displayMode: .results
             )
         ),
-        query: .constant("샤워기"),
-        action: SearchViewAction(onBack: {}, onSelectKeyword: { _ in }, onRemoveRecentKeyword: { _ in }, onSubmitSearch: {}, onSelectItem: { _ in })
+        query: "샤워기"
     )
 }

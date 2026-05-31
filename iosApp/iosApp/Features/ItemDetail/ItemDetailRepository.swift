@@ -7,13 +7,29 @@ protocol ItemDetailRepository {
     func delete(itemId: Int) async throws
 }
 
+struct ItemDetailEditSource: Equatable {
+    let item: ItemDetailItem
+    let existingItemNames: [String]
+}
+
+protocol ItemDetailEditRepository {
+    func editSource(itemId: Int) async throws -> ItemDetailEditSource
+    func updateItem(itemId: Int, draft: ItemDetailEditDraft, original: ItemDetailItem) async throws -> ItemDetailItem
+}
+
 enum ItemDetailRepositoryError: LocalizedError, Equatable {
     case notFound(itemId: Int)
+    case unsupportedMutation
+    case operationFailed(message: String)
 
     var errorDescription: String? {
         switch self {
         case let .notFound(itemId):
             return "소모품 ID \(itemId)를 찾을 수 없어요."
+        case .unsupportedMutation:
+            return "이 기능은 아직 준비 중이에요."
+        case let .operationFailed(message):
+            return message
         }
     }
 }
@@ -58,5 +74,44 @@ actor ItemDetailSampleRepository: ItemDetailRepository {
         guard itemsByID.removeValue(forKey: itemId) != nil else {
             throw ItemDetailRepositoryError.notFound(itemId: itemId)
         }
+    }
+}
+
+actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
+    private var itemsByID: [Int: ItemDetailItem]
+
+    init(items: [ItemDetailItem] = ItemDetailDomainSampleData.items) {
+        self.itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+    }
+
+    func editSource(itemId: Int) async throws -> ItemDetailEditSource {
+        guard let item = itemsByID[itemId] else {
+            throw ItemDetailRepositoryError.notFound(itemId: itemId)
+        }
+
+        return ItemDetailEditSource(
+            item: item,
+            existingItemNames: itemsByID.values
+                .filter { $0.id != itemId }
+                .map(\.name)
+        )
+    }
+
+    func updateItem(
+        itemId: Int,
+        draft: ItemDetailEditDraft,
+        original: ItemDetailItem
+    ) async throws -> ItemDetailItem {
+        guard itemsByID[itemId] != nil else {
+            throw ItemDetailRepositoryError.notFound(itemId: itemId)
+        }
+
+        var updated = original
+        updated.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        updated.replacementCycle = ItemDetailReplacementCycle(intervalDays: draft.replacementCycleDays)
+        updated.imageAssetName = draft.imageAssetName
+        updated.updatedAt = Date()
+        itemsByID[itemId] = updated
+        return updated
     }
 }

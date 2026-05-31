@@ -4,6 +4,7 @@ struct ItemDetailView: View {
     let itemId: Int
     let onBack: () -> Void
     let onNavigate: (ItemRoute) -> Void
+    let onMutationCompleted: () -> Void
 
     @StateObject private var viewModel: ItemDetailViewModel
     @State private var stockDraftQuantity = 0
@@ -12,15 +13,33 @@ struct ItemDetailView: View {
     @State private var snackbar: ItemDetailSnackbarPresentation?
     @State private var snackbarDismissTask: Task<Void, Never>?
 
+    @MainActor
+    init(
+        itemId: Int,
+        viewModelFactory: @MainActor @escaping (Int) -> ItemDetailViewModel,
+        onBack: @escaping () -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void,
+        onMutationCompleted: @escaping () -> Void = {}
+    ) {
+        self.itemId = itemId
+        self.onBack = onBack
+        self.onNavigate = onNavigate
+        self.onMutationCompleted = onMutationCompleted
+        _viewModel = StateObject(wrappedValue: viewModelFactory(itemId))
+    }
+
+    @MainActor
     init(
         itemId: Int,
         onBack: @escaping () -> Void,
         onNavigate: @escaping (ItemRoute) -> Void
     ) {
-        self.itemId = itemId
-        self.onBack = onBack
-        self.onNavigate = onNavigate
-        _viewModel = StateObject(wrappedValue: ItemDetailViewModel(itemId: itemId))
+        self.init(
+            itemId: itemId,
+            viewModelFactory: AppDependencies.preview.makeItemDetailViewModel,
+            onBack: onBack,
+            onNavigate: onNavigate
+        )
     }
 
     var body: some View {
@@ -182,11 +201,16 @@ struct ItemDetailView: View {
         case let .navigate(destination):
             handleNavigation(destination)
         case .itemDeleted:
+            onMutationCompleted()
             onBack()
         case .replacementCompleted:
+            onMutationCompleted()
             if case let .success(data) = viewModel.state {
                 completionModal = ItemDetailCompletionModalData(data: data)
             }
+        case let .itemUpdated(message):
+            onMutationCompleted()
+            showSnackbar(message)
         case let .showMessage(message):
             showSnackbar(message)
         }

@@ -6,22 +6,31 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var selectedStatusFilter: HomeStatusFilter
     @Published private(set) var selectedWarningSort: HomeWarningSort
 
-    private let dashboard: HomeDashboard
+    private let repository: HomeDashboardRepository
+    private var dashboard: HomeDashboard?
+    private var didStartInitialLoad: Bool
 
-    init(dashboard: HomeDashboard = HomeSampleData.dashboard) {
-        self.dashboard = dashboard
-        self.state = .success(dashboard)
-        self.selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
+    init(
+        repository: HomeDashboardRepository = HomeSampleDashboardRepository(),
+        initialDashboard: HomeDashboard? = nil
+    ) {
+        self.repository = repository
+        self.dashboard = initialDashboard
+        self.didStartInitialLoad = initialDashboard != nil
+        self.state = initialDashboard.map(HomeViewState.success) ?? .loading
+        self.selectedStatusFilter = initialDashboard.flatMap(Self.firstVisibleStatusFilter(in:)) ?? .replacementDanger
         self.selectedWarningSort = .replacementRisk
     }
 
     var statusFilterCounts: [HomeStatusFilter: Int] {
-        HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
+        guard let dashboard else { return [:] }
+        return HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
             result[filter] = dashboard.warningItems.filter { $0.quickStatusFilters.contains(filter) }.count
         }
     }
 
     var visibleQuickItems: [HomeItemItem] {
+        guard let dashboard else { return [] }
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -30,6 +39,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var visibleWarningItems: [HomeItemItem] {
+        guard let dashboard else { return [] }
         let filteredItems = dashboard.warningItems.filter {
             $0.quickStatusFilters.contains(selectedStatusFilter)
         }
@@ -59,6 +69,54 @@ final class HomeViewModel: ObservableObject {
 
     func selectWarningSort(_ sort: HomeWarningSort) {
         selectedWarningSort = sort
+    }
+
+    func loadInitialDashboardIfNeeded() async {
+        guard !didStartInitialLoad else { return }
+        didStartInitialLoad = true
+        await loadDashboard()
+    }
+
+    func retry() {
+        Task {
+            await loadDashboard()
+        }
+    }
+
+    func refresh() {
+        Task {
+            await loadDashboard()
+        }
+    }
+
+    private func loadDashboard() async {
+        AppLog.enter(AppLog.homeViewModel, "HomeViewModel.loadDashboard")
+        do {
+            let dashboard = try await repository.dashboard()
+            self.dashboard = dashboard
+            if statusFilterCounts[selectedStatusFilter, default: 0] == 0 {
+                selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
+            }
+            state = .success(dashboard)
+            AppLog.success(
+                AppLog.homeViewModel,
+                "HomeViewModel.loadDashboard",
+                "warningCount=\(dashboard.warningItems.count) usageCount=\(dashboard.usageItems.count)"
+            )
+        } catch {
+            if let dashboard {
+                state = .success(dashboard)
+                AppLog.failure(
+                    AppLog.homeViewModel,
+                    "HomeViewModel.loadDashboard",
+                    error,
+                    "usingCachedDashboard=true warningCount=\(dashboard.warningItems.count)"
+                )
+            } else {
+                state = .loadFailed(message: error.homeMessage)
+                AppLog.failure(AppLog.homeViewModel, "HomeViewModel.loadDashboard", error)
+            }
+        }
     }
 
     private static func firstVisibleStatusFilter(in dashboard: HomeDashboard) -> HomeStatusFilter? {
@@ -91,5 +149,18 @@ final class HomeViewModel: ObservableObject {
 }
 
 enum HomeViewState {
+    case loading
+    case loadFailed(message: String)
     case success(HomeDashboard)
+}
+
+private extension Error {
+    var homeMessage: String {
+        if let localizedError = self as? LocalizedError,
+           let description = localizedError.errorDescription {
+            return description
+        }
+
+        return "홈 정보를 불러오지 못했어요."
+    }
 }

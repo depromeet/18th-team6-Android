@@ -53,6 +53,69 @@ enum ItemAssetCatalog {
     static let accessibilityNames = Dictionary(uniqueKeysWithValues: entries.map { ($0.assetName, $0.title) })
 }
 
+enum CategoryIconKind: Int64, CaseIterable {
+    case razor = 1
+    case waterFilter
+    case toothbrush
+    case detergent
+    case towel
+    case showerFilter
+    case scrubSponge
+    case diffuser
+    case kitchenTowel
+    case bodyWash
+    case shampoo
+    case treatment
+    case handSanitizer
+    case toothpaste
+    case wetWipes
+    case toiletPaper
+    case bandage
+    case misc
+    case airPurifierFilter
+    case trashBag
+    case zipBag
+    case toothbrushSanitizerFilter
+    case clothespin
+    case rubberGloves
+    case dishSoap
+    case fabricSoftener
+    case cleaningWipe
+    case sponge
+    case laundryNet
+    case cottonSwab
+    case cottonPad
+    case foamCleanser
+    case mask
+    case diffuserRefill
+    case drainFilter
+    case bathroomCleaner
+    case dishcloth
+    case wrapFoil
+    case showerBall
+    case lightBulb
+    case toiletCleaner
+
+    var assetName: String {
+        ItemAssetCatalog.assetNames[index]
+    }
+
+    private var index: Int {
+        Int(rawValue - 1)
+    }
+
+    static func assetName(iconId: Int64, url: String) -> String {
+        assetName(fromURL: url)
+            ?? CategoryIconKind(rawValue: iconId)?.assetName
+            ?? ItemRegistrationAsset.fallbackItemImage
+    }
+
+    private static func assetName(fromURL url: String) -> String? {
+        let decodedURL = url.removingPercentEncoding ?? url
+        return ItemAssetCatalog.assetNames.first { decodedURL.contains($0) }
+    }
+}
+
 enum ItemRegistrationSampleData {
     static let itemKinds: [ItemKind] = {
         ItemAssetCatalog.entries.enumerated().map { index, entry in
@@ -65,7 +128,7 @@ enum ItemRegistrationSampleData {
         }
     }()
 
-    static let imageOptions: [ItemImageOption] = ItemAssetCatalog.assetNames.enumerated().map { index, assetName in
-        ItemImageOption(id: index, assetName: assetName)
+    static let imageOptions: [ItemImageOption] = CategoryIconKind.allCases.map { kind in
+        ItemImageOption(id: Int(kind.rawValue), assetName: kind.assetName)
     }
 }

@@ -24,8 +24,11 @@ private val generatedNetworkConfigDirectory =
     layout.buildDirectory.dir("generated/source/networkConfig/commonMain/kotlin")
 
 private val generateNetworkConfig by tasks.registering(GenerateNetworkConfigTask::class) {
-    localPropertiesFile.set(networkLocalPropertiesFile)
+    if (networkLocalPropertiesFile.asFile.isFile) {
+        localPropertiesFile.set(networkLocalPropertiesFile)
+    }
     networkBaseUrlPropertyName.set(networkBaseUrlLocalPropertyName)
+    ci.set(providers.environmentVariable("CI").map(String::toBoolean).orElse(false))
     outputDirectory.set(generatedNetworkConfigDirectory)
 }
 
@@ -65,21 +68,26 @@ abstract class GenerateNetworkConfigTask : DefaultTask() {
     @get:Input
     abstract val networkBaseUrlPropertyName: Property<String>
 
+    @get:Input
+    abstract val ci: Property<Boolean>
+
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
     fun generate() {
         val propertyName = networkBaseUrlPropertyName.get()
-        val propertiesFile = localPropertiesFile.get().asFile
+        val propertiesFile = localPropertiesFile.orNull?.asFile
         val networkBaseUrl =
             loadProperties(propertiesFile)
                 .getProperty(propertyName)
                 ?.trim()
                 .orEmpty()
+                .ifBlank { ciNetworkBaseUrl() }
 
         check(networkBaseUrl.isNotBlank()) {
-            "Missing '$propertyName' in ${propertiesFile.path}. " +
+            val propertiesFilePath = propertiesFile?.path ?: "local.properties"
+            "Missing '$propertyName' in $propertiesFilePath. " +
                 "Add '$propertyName=https://example.com/' to local.properties."
         }
 
@@ -99,11 +107,18 @@ abstract class GenerateNetworkConfigTask : DefaultTask() {
         )
     }
 
-    private fun loadProperties(file: File): Properties =
+    private fun loadProperties(file: File?): Properties =
         Properties().apply {
-            if (file.isFile) {
+            if (file?.isFile == true) {
                 file.inputStream().use { input -> load(input) }
             }
+        }
+
+    private fun ciNetworkBaseUrl(): String =
+        if (ci.get()) {
+            "https://example.com/"
+        } else {
+            ""
         }
 
     private fun String.toKotlinStringLiteral(): String =

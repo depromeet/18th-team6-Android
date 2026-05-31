@@ -2,11 +2,15 @@ import SwiftUI
 import UIKit
 
 struct OBRitNavigation: View {
+    let dependencies: AppDependencies
+
     @State private var rootRoute: AppRoute
     @State private var selectedMainTab: MainTab
     @State private var path: NavigationPath
 
-    init() {
+    init(dependencies: AppDependencies = .preview) {
+        self.dependencies = dependencies
+
         #if DEBUG
             let debugConfiguration = Self.debugInitialConfiguration
             let initialRootRoute = debugConfiguration.rootRoute
@@ -25,6 +29,7 @@ struct OBRitNavigation: View {
             AppNavigation.destination(
                 for: rootRoute,
                 selectedMainTab: selectedMainTab,
+                dependencies: dependencies,
                 onSetRoot: setRoot,
                 onSelectMainTab: selectMainTab,
                 onBack: popRoute,
@@ -37,6 +42,7 @@ struct OBRitNavigation: View {
                 AppNavigation.destination(
                     for: route,
                     selectedMainTab: selectedMainTab,
+                    dependencies: dependencies,
                     onSetRoot: setRoot,
                     onSelectMainTab: selectMainTab,
                     onBack: popRoute,
@@ -49,6 +55,7 @@ struct OBRitNavigation: View {
             .navigationDestination(for: ItemRoute.self) { route in
                 ItemNavigation.destination(
                     for: route,
+                    dependencies: dependencies,
                     onBack: popRoute,
                     onNavigate: { navigate(to: $0) },
                     onSetMainRoot: { setRoot(.main($0)) }

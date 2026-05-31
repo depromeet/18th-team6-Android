@@ -42,6 +42,15 @@
   - 화면 진입점과 content view를 분리할 때는 preview/test 재사용, 상태별 렌더링 독립성, 파일 크기 감소 같은 명확한 이점이 있어야 한다.
   - 분리 후에도 각 파일이 독립적인 책임을 갖지 못하거나 호출 단계만 늘어난다면 기존 파일 안의 private helper/view로 유지한다.
 
+## KMP 비즈니스 로직 연결 경계
+
+- SwiftUI View는 Swift ViewModel에만 의존하고, Android Compose code나 Android ViewModel을 참조하지 않는다.
+- Swift ViewModel은 KMP shared repository 또는 Swift-facing shared facade/provider를 통해 비즈니스 로직을 호출한다.
+- KMP shared code는 API 호출, repository contract와 구현, domain model, typed error, 공통 business rule을 담당한다.
+- iOS Swift code는 SwiftUI 화면 state, 버튼/시트/네비게이션 상태, 화면 문구, iOS 전용 view data를 담당한다.
+- KMP DTO, remote data source, Ktor client는 SwiftUI presentation layer에 직접 노출하지 않는다.
+- facade/provider를 추가할 때는 repository 조립, Koin 접근, Kotlin `Result`/error 변환처럼 Swift interop 부담을 줄이는 목적에 한정한다. 화면 문구나 SwiftUI 전용 view data를 Kotlin에서 만들기 위한 facade는 만들지 않는다.
+
 ## Git 커밋 규칙
 
 - iOS 작업 커밋의 제목과 본문은 한글로 작성한다.
