@@ -73,6 +73,7 @@ internal fun HomeScreenSuccessContent(
                     onListSortOrderChange = action.onListSortOrderChange,
                     onMoreClick = { selectedTab = OBRitGnbTab.List },
                     onLoadMoreItems = action.onLoadMoreItems,
+                    onItemClick = action.onItemClick,
                 )
             } else {
                 ConsumableListScreenContent(
@@ -91,6 +92,7 @@ internal fun HomeScreenSuccessContent(
                             onSpareFilterChange = action.onSpareFilterChange,
                             onFilterApply = action.onFilterApply,
                             onLoadMoreItems = action.onLoadMoreItems,
+                            onItemClick = action.onItemClick,
                         ),
                     modifier =
                         Modifier
@@ -188,12 +190,14 @@ private fun Modifier.homeFabShadow(): Modifier =
         }
     }
 
+@Suppress("LongParameterList")
 @Composable
 private fun HomeContents(
     state: HomeUiState.Success,
     onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
     onMoreClick: () -> Unit,
     onLoadMoreItems: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
@@ -218,14 +222,15 @@ private fun HomeContents(
             warningRatio = state.status.ratio.warningPercentage / 100f,
         )
         MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
-        QuickItemSection(buckets = state.buckets)
+        QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
         ItemListPreviewSection(
             items = state.items.content,
             sortOrder = state.listSortOrder,
             onSortOrderChange = onListSortOrderChange,
             onMoreClick = onMoreClick,
+            onItemClick = onItemClick,
         )
-        ItemUsageStatusSection(items = state.items.content)
+        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
     }
 }
 

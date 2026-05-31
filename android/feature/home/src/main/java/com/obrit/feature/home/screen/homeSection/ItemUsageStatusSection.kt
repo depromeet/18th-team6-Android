@@ -1,6 +1,7 @@
 package com.obrit.feature.home.screen.homeSection
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import com.obrit.obrit.shared.model.home.ItemBucket
 @Composable
 internal fun ItemUsageStatusSection(
     items: List<HomeItemCard>,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (items.isEmpty()) return
@@ -50,7 +52,7 @@ internal fun ItemUsageStatusSection(
         )
         Column {
             items.forEach { item ->
-                UsageStatusItem(item = item)
+                UsageStatusItem(item = item, onItemClick = onItemClick)
             }
         }
     }
@@ -59,6 +61,7 @@ internal fun ItemUsageStatusSection(
 @Composable
 private fun UsageStatusItem(
     item: HomeItemCard,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -68,6 +71,7 @@ private fun UsageStatusItem(
         modifier =
             modifier
                 .fillMaxWidth()
+                .clickable { onItemClick(item.itemId) }
                 .padding(vertical = AtomSpacing.S4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
@@ -131,6 +135,7 @@ private fun ItemUsageStatusSectionPreview() {
                     HomeItemCard(4L, "세탁망", 82, "교체 D-7", 2, "", ItemBucket.HAS_WARN),
                     HomeItemCard(5L, "필터", 82, "교체 D-10", 3, "", ItemBucket.NONE_SAFE),
                 ),
+            onItemClick = {},
         )
     }
 }

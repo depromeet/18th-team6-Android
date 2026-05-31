@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.obrit.feature.detail.screen.DetailScreen
 import com.obrit.feature.home.screen.ConsumableListScreen
 import com.obrit.feature.home.screen.HomeScreen
 import com.obrit.obrit.navigation.route.HomeRoute
@@ -29,12 +30,21 @@ fun HomeNavigation(
                         onProfileClick = {},
                         onRegisterClick = onRegisterClick,
                         onMoreClick = { homeBackStack.add(HomeRoute.ConsumableList) },
+                        onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
                         modifier = Modifier,
                     )
                 }
                 entry<HomeRoute.ConsumableList> {
                     ConsumableListScreen(
                         onBack = { homeBackStack.removeLastOrNull() },
+                        onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
+                        modifier = Modifier,
+                    )
+                }
+                entry<HomeRoute.Detail> { entry ->
+                    DetailScreen(
+                        id = entry.itemId,
+                        onBackClick = { homeBackStack.removeLastOrNull() },
                         modifier = Modifier,
                     )
                 }

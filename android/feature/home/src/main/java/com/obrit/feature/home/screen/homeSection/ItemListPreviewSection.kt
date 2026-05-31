@@ -55,12 +55,14 @@ import kotlin.math.roundToInt
 
 private const val LIST_PREVIEW_COUNT = 3
 
+@Suppress("LongParameterList")
 @Composable
 internal fun ItemListPreviewSection(
     items: List<HomeItemCard>,
     sortOrder: ConsumableListSortOrder,
     onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     onMoreClick: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val typography = LocalOBRitTypography.current
@@ -84,7 +86,7 @@ internal fun ItemListPreviewSection(
             )
         }
 
-        PreviewItemList(items = items.take(LIST_PREVIEW_COUNT))
+        PreviewItemList(items = items.take(LIST_PREVIEW_COUNT), onItemClick = onItemClick)
         OBRitLargeFilledButton(
             text = "더보기",
             onClick = onMoreClick,
@@ -230,6 +232,7 @@ private fun SortBottomSheetContent(
 @Composable
 private fun PreviewItemList(
     items: List<HomeItemCard>,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -237,13 +240,16 @@ private fun PreviewItemList(
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
     ) {
         items.forEach { item ->
-            QuickItemListItem(item = item)
+            QuickItemListItem(item = item, onItemClick = onItemClick)
         }
     }
 }
 
 @Composable
-internal fun QuickItemListItem(item: HomeItemCard) {
+internal fun QuickItemListItem(
+    item: HomeItemCard,
+    onItemClick: (Long) -> Unit = {},
+) {
     OBRitCardList(
         level = homeItemCardLevel(item),
         title = item.name,
@@ -258,6 +264,7 @@ internal fun QuickItemListItem(item: HomeItemCard) {
                 )
             }
         },
+        modifier = Modifier.clickable { onItemClick(item.itemId) },
     )
 }
 
@@ -290,6 +297,7 @@ private fun ItemListPreview() {
             sortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
             onSortOrderChange = {},
             onMoreClick = {},
+            onItemClick = {},
         )
     }
 }

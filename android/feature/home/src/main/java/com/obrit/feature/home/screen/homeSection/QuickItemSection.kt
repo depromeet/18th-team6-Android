@@ -3,6 +3,7 @@
 
 package com.obrit.feature.home.screen.homeSection
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,6 +37,7 @@ import java.time.temporal.ChronoUnit
 @Composable
 internal fun QuickItemSection(
     buckets: List<HomeBucketGroup>,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (buckets.isEmpty()) return
@@ -55,7 +57,7 @@ internal fun QuickItemSection(
             selectedType = selectedType,
             onTypeSelect = { selectedType = it },
         )
-        BucketCardRow(items = selectedItems)
+        BucketCardRow(items = selectedItems, onItemClick = onItemClick)
     }
 }
 
@@ -87,6 +89,7 @@ private fun BucketFilterChipRow(
 @Composable
 private fun BucketCardRow(
     items: List<HomeBucketItem>,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
@@ -95,18 +98,22 @@ private fun BucketCardRow(
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
     ) {
         items(items) { item ->
-            BucketCard(item = item)
+            BucketCard(item = item, onItemClick = onItemClick)
         }
     }
 }
 
 @Composable
-private fun BucketCard(item: HomeBucketItem) {
+private fun BucketCard(
+    item: HomeBucketItem,
+    onItemClick: (Long) -> Unit,
+) {
     OBRitCardGrid(
         level = itemCardLevel(item.itemBucket),
         title = item.name,
         stockCount = item.spareQuantity,
         daysLabel = daysLabel(item.nextReplacementDate),
+        modifier = Modifier.clickable { onItemClick(item.itemId) },
     )
 }
 
@@ -188,6 +195,6 @@ private val previewBuckets =
 @Composable
 private fun QuickItemSectionPreview() {
     OBRitTheme {
-        QuickItemSection(buckets = previewBuckets)
+        QuickItemSection(buckets = previewBuckets, onItemClick = {})
     }
 }

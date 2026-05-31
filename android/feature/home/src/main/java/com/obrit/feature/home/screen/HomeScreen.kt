@@ -19,6 +19,7 @@ fun HomeScreen(
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMoreClick: () -> Unit = {},
+    onItemClick: (Long) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
@@ -37,6 +38,7 @@ fun HomeScreen(
                 onMoreClick = viewModel::onMoreClick,
                 onLoadMoreItems = viewModel::onLoadMoreItems,
                 onRegisterClick = onRegisterClick,
+                onItemClick = onItemClick,
             ),
         modifier = modifier,
     )
@@ -62,4 +64,5 @@ internal data class HomeScreenAction(
     val onMoreClick: () -> Unit,
     val onLoadMoreItems: () -> Unit,
     val onRegisterClick: () -> Unit,
+    val onItemClick: (Long) -> Unit,
 )

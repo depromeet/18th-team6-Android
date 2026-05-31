@@ -16,11 +16,13 @@ internal data class ConsumableListScreenAction(
     val onSpareFilterChange: (Int) -> Unit,
     val onFilterApply: (Int, Int) -> Unit,
     val onLoadMoreItems: () -> Unit,
+    val onItemClick: (Long) -> Unit,
 )
 
 @Composable
 fun ConsumableListScreen(
     onBack: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -43,6 +45,7 @@ fun ConsumableListScreen(
                 onSpareFilterChange = viewModel::onSpareFilterChange,
                 onFilterApply = viewModel::onFilterApply,
                 onLoadMoreItems = viewModel::onLoadMoreItems,
+                onItemClick = onItemClick,
             ),
         modifier = modifier,
     )

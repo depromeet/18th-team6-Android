@@ -117,7 +117,7 @@ internal fun ConsumableListScreenContent(
             if (filtered.isEmpty()) {
                 item { ConsumableListEmptyState(modifier = Modifier.fillParentMaxWidth()) }
             } else {
-                items(filtered) { item -> QuickItemListItem(item = item) }
+                items(filtered) { item -> QuickItemListItem(item = item, onItemClick = action.onItemClick) }
             }
         }
         ListFilterBar(
