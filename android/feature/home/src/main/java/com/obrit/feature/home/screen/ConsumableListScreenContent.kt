@@ -20,14 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,18 +57,17 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.home.screen.homeSection.QuickItemListItem
-import com.obrit.feature.home.viewmodel.Bucket
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import kotlin.math.roundToInt
 
 @Suppress("LongMethod", "LongParameterList")
 @Composable
 internal fun ConsumableListScreenContent(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
+    hasNext: Boolean,
     sortOrder: ConsumableListSortOrder,
     ddayRange: IntRange,
     ddayFilterMax: Int,
@@ -74,9 +77,9 @@ internal fun ConsumableListScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val filtered =
-        remember(buckets, sortOrder, ddayRange, ddayFilterMax, spareRange, spareFilterMax) {
+        remember(items, sortOrder, ddayRange, ddayFilterMax, spareRange, spareFilterMax) {
             applyFiltersAndSort(
-                buckets,
+                items,
                 sortOrder,
                 ddayRange,
                 ddayFilterMax,
@@ -86,8 +89,21 @@ internal fun ConsumableListScreenContent(
         }
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
+    val currentOnLoadMoreItems by rememberUpdatedState(action.onLoadMoreItems)
+    val reachedBottom by remember {
+        derivedStateOf {
+            val layoutInfo = lazyListState.layoutInfo
+            val lastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            layoutInfo.totalItemsCount > 0 && lastVisibleIndex >= layoutInfo.totalItemsCount - 1
+        }
+    }
+    LaunchedEffect(reachedBottom) {
+        if (reachedBottom && hasNext) currentOnLoadMoreItems()
+    }
     Box(modifier = modifier) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier.fillMaxSize(),
             contentPadding =
                 PaddingValues(
@@ -98,7 +114,11 @@ internal fun ConsumableListScreenContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            items(filtered) { bucket -> QuickItemListItem(bucket = bucket) }
+            if (filtered.isEmpty()) {
+                item { ConsumableListEmptyState(modifier = Modifier.fillParentMaxWidth()) }
+            } else {
+                items(filtered) { item -> QuickItemListItem(item = item, onItemClick = action.onItemClick) }
+            }
         }
         ListFilterBar(
             sortOrder = sortOrder,
@@ -122,8 +142,10 @@ internal fun ConsumableListScreenContent(
             ddayFilterMax = ddayFilterMax,
             spareRange = spareRange,
             spareFilterMax = spareFilterMax,
-            onDdayFilterChange = action.onDdayFilterChange,
-            onSpareFilterChange = action.onSpareFilterChange,
+            onFilterApply = { dday, spare ->
+                action.onFilterApply(dday, spare)
+                showFilterSheet = false
+            },
             onDismiss = { showFilterSheet = false },
         )
     }
@@ -131,7 +153,10 @@ internal fun ConsumableListScreenContent(
     if (showSortSheet) {
         SortBottomSheet(
             sortOrder = sortOrder,
-            onSortOrderChange = action.onSortOrderChange,
+            onSortOrderChange = {
+                action.onSortOrderChange(it)
+                showSortSheet = false
+            },
             onDismiss = { showSortSheet = false },
         )
     }
@@ -335,8 +360,7 @@ private fun ListFilterBottomSheet(
     ddayFilterMax: Int,
     spareRange: IntRange,
     spareFilterMax: Int,
-    onDdayFilterChange: (Int) -> Unit,
-    onSpareFilterChange: (Int) -> Unit,
+    onFilterApply: (Int, Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var pendingDday by remember { mutableIntStateOf(ddayFilterMax) }
@@ -357,11 +381,7 @@ private fun ListFilterBottomSheet(
                     pendingDday = ddayRange.last
                     pendingSpare = spareRange.last
                 },
-                onApply = {
-                    onDdayFilterChange(pendingDday)
-                    onSpareFilterChange(pendingSpare)
-                    onDismiss()
-                },
+                onApply = { onFilterApply(pendingDday, pendingSpare) },
             )
         }
     }
@@ -442,20 +462,24 @@ private fun FilterSliderSection(
 ) {
     val typography = LocalOBRitTypography.current
     val colors = LocalOBRitColor.current
+    val effectiveValue =
+        if (sliderRange.first == sliderRange.last) {
+            sliderRange.last.toFloat()
+        } else {
+            sliderValue.coerceIn(sliderRange).toFloat()
+        }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         Text(
             text = title,
             style = typography.xl.copy(color = colors.gray300, fontWeight = FontWeight.Bold),
         )
         FilterValueLabel(valueLabel = valueLabel)
-        if (sliderRange.first < sliderRange.last) {
-            OBRitSlider(
-                value = sliderValue.toFloat(),
-                onValueChange = { onValueChange(it.roundToInt()) },
-                valueRange = sliderRange.first.toFloat()..sliderRange.last.toFloat(),
-                steps = (sliderRange.last - sliderRange.first - 1).coerceAtLeast(0),
-            )
-        }
+        OBRitSlider(
+            value = effectiveValue,
+            onValueChange = { onValueChange(it.roundToInt()) },
+            valueRange = sliderRange.first.toFloat()..sliderRange.last.toFloat(),
+            steps = (sliderRange.last - sliderRange.first - 1).coerceAtLeast(0),
+        )
     }
 }
 
@@ -532,34 +556,68 @@ private fun FilterButtonRow(
     }
 }
 
+@Composable
+private fun ConsumableListEmptyState(modifier: Modifier = Modifier) {
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    Column(
+        modifier =
+            modifier.padding(
+                horizontal = AtomSpacing.S5.dp,
+                vertical = EMPTY_STATE_VERTICAL_PADDING.dp,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
+    ) {
+        Text(
+            text = "아직 등록된 소모품이 없어요",
+            style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+            color = colors.common00,
+        )
+        Text(
+            text = "가지고 계신 소모품을 등록하고 관리해 보세요",
+            style = typography.base.copy(fontWeight = FontWeight.Medium),
+            color = colors.gray300.copy(alpha = EMPTY_STATE_SUBTITLE_ALPHA),
+        )
+    }
+}
+
 @Suppress("LongParameterList")
 private fun applyFiltersAndSort(
-    buckets: List<Bucket>,
+    items: List<HomeItemCard>,
     sortOrder: ConsumableListSortOrder,
     ddayRange: IntRange,
     ddayFilterMax: Int,
     spareRange: IntRange,
     spareFilterMax: Int,
-): List<Bucket> {
+): List<HomeItemCard> {
     val ddayFiltered =
         if (ddayFilterMax >= ddayRange.last) {
-            buckets
+            items
         } else {
-            buckets.filter { daysUntil(it.replacementDate) <= ddayFilterMax }
+            items.filter { parseDaysUntil(it.replacementDday) <= ddayFilterMax }
         }
     val spareFiltered =
         if (spareFilterMax >= spareRange.last) {
             ddayFiltered
         } else {
-            ddayFiltered.filter { it.spare <= spareFilterMax }
+            ddayFiltered.filter { it.spareQuantity <= spareFilterMax }
         }
     return when (sortOrder) {
-        ConsumableListSortOrder.REPLACE_IMMINENT -> spareFiltered.sortedBy { daysUntil(it.replacementDate) }
-        ConsumableListSortOrder.LEAST_SPARE -> spareFiltered.sortedBy { it.spare }
+        ConsumableListSortOrder.REPLACE_IMMINENT -> spareFiltered.sortedBy { parseDaysUntil(it.replacementDday) }
+        ConsumableListSortOrder.LEAST_SPARE -> spareFiltered.sortedBy { it.spareQuantity }
         ConsumableListSortOrder.OLDEST_REPLACEMENT -> spareFiltered.sortedByDescending { it.daysInUse }
-        ConsumableListSortOrder.ALPHABETICAL -> spareFiltered.sortedBy { it.title }
+        ConsumableListSortOrder.ALPHABETICAL -> spareFiltered.sortedBy { it.name }
     }
 }
+
+private fun parseDaysUntil(replacementDday: String): Int =
+    when {
+        replacementDday.contains("D-day") -> 0
+        replacementDday.contains("D+") -> -(replacementDday.substringAfter("D+").toIntOrNull() ?: 0)
+        replacementDday.contains("D-") -> replacementDday.substringAfter("D-").toIntOrNull() ?: 0
+        else -> 0
+    }
 
 @Composable
 private fun SortBottomSheet(
@@ -639,8 +697,6 @@ private fun SortBottomSheetContentPreview() {
     }
 }
 
-private fun daysUntil(replacementDate: String): Int = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(replacementDate)).toInt()
-
 private fun ddayLabel(days: Int): String = if (days >= 0) "D-$days 이하" else "D+${-days} 이하"
 
 @Suppress("MagicNumber")
@@ -649,3 +705,5 @@ private const val LIST_FILTER_BAR_HEIGHT = AtomSpacing.S14
 private const val FILTER_ICON_BUTTON_SIZE = 38f
 private const val FILTER_CHIP_STROKE_WIDTH = 1f
 private const val LIST_RESET_ICON_SIZE = AtomSpacing.S6
+private const val EMPTY_STATE_VERTICAL_PADDING = 96f
+private const val EMPTY_STATE_SUBTITLE_ALPHA = 0.64f

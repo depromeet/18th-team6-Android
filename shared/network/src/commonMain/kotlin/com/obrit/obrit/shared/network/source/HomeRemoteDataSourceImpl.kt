@@ -20,7 +20,6 @@ internal class HomeRemoteDataSourceImpl(
 ) : HomeRemoteDataSource {
     override suspend fun getOverallStatus(): OverallStatusResponse {
         val userId = userIdProvider.get()
-
         return httpClient
             .get("$HOME_PATH/overall-status") {
                 userIdHeader(userId)
@@ -30,7 +29,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getMyStatusSummary(): MyStatusSummaryResponse {
         val userId = userIdProvider.get()
-
         return httpClient
             .get("$HOME_PATH/my-summary") {
                 userIdHeader(userId)
@@ -40,7 +38,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getItems(request: HomeItemsRequest): CursorSliceResponseHomeItemCard {
         val userId = userIdProvider.get()
-
         return httpClient
             .get("$HOME_PATH/items") {
                 userIdHeader(userId)
@@ -55,7 +52,6 @@ internal class HomeRemoteDataSourceImpl(
 
     override suspend fun getBuckets(): HomeBucketsResponse {
         val userId = userIdProvider.get()
-
         return httpClient
             .get("$HOME_PATH/buckets") {
                 userIdHeader(userId)

@@ -6,7 +6,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -27,28 +26,36 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.obrit.android.core.designsystem.R
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.android.feature.home.R
+import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.designsystem.tokens.semantic.SemanticColors
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -63,25 +70,25 @@ import kotlin.math.sqrt
  * @param icons 볼 안에 표시할 소모품 아이콘 목록. 변경 시 물리 상태가 초기화된다.
  */
 @Composable
-internal fun ConsumableOrbitSection(
-    icons: List<ConsumableIcon>,
+internal fun ItemOrbitSection(
+    items: List<HomeItemCard>,
     normalRatio: Float,
     warningRatio: Float,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val iconCount = icons.size
+    val itemCount = items.size
 
-    // 물리 상태 전체를 density와 iconCount 기준으로 관리한다.
-    val physicsState = remember(density, iconCount) { GlassBallPhysicsState(density, iconCount) }
+    // 물리 상태 전체를 density와 itemCount 기준으로 관리한다.
+    val physicsState = remember(density, itemCount) { GlassBallPhysicsState(density, itemCount) }
 
     val iconOffsets =
-        remember(density, iconCount) {
-            Array(iconCount) { i -> mutableStateOf(physicsState.initOffsets.getOrNull(i) ?: Offset.Zero) }
+        remember(density, itemCount) {
+            Array(itemCount) { i -> mutableStateOf(physicsState.initOffsets.getOrNull(i) ?: Offset.Zero) }
         }
 
     // 물리 시뮬레이션 루프: withFrameNanos로 화면 주사율(≈60fps)에 동기화한다.
-    LaunchedEffect(iconCount) {
+    LaunchedEffect(itemCount) {
         var lastTime = 0L
         while (true) {
             withFrameNanos { time ->
@@ -99,7 +106,7 @@ internal fun ConsumableOrbitSection(
         GlassBallStatusRing(normalRatio = normalRatio, warningRatio = warningRatio)
         GlassBallGroundShadow()
         GlassBallContent(
-            icons = icons,
+            items = items,
             state = physicsState,
             visualState =
                 GlassBallVisualState(
@@ -254,7 +261,7 @@ private fun applyIconRepulsion(state: GlassBallPhysicsState) {
  */
 @Composable
 private fun GlassBallContent(
-    icons: List<ConsumableIcon>,
+    items: List<HomeItemCard>,
     state: GlassBallPhysicsState,
     visualState: GlassBallVisualState,
     iconOffsets: Array<MutableState<Offset>>,
@@ -281,7 +288,7 @@ private fun GlassBallContent(
         GlassBallLayer(
             visualState = visualState,
             rotationState = GlassBallRotationState(pitchDeg = pitchDeg, yawDeg = yawDeg),
-            icons = icons,
+            items = items,
             iconOffsets = iconOffsets,
         )
     }
@@ -291,7 +298,7 @@ private fun GlassBallContent(
 private fun GlassBallLayer(
     visualState: GlassBallVisualState,
     rotationState: GlassBallRotationState,
-    icons: List<ConsumableIcon>,
+    items: List<HomeItemCard>,
     iconOffsets: Array<MutableState<Offset>>,
 ) {
     Box(
@@ -315,7 +322,8 @@ private fun GlassBallLayer(
             normalRatio = visualState.normalRatio,
             warningRatio = visualState.warningRatio,
         )
-        GlassBallIconLayer(icons = icons, iconOffsets = iconOffsets)
+        GlassBallTextureOverlay()
+        GlassBallIconLayer(items = items, iconOffsets = iconOffsets)
     }
 }
 
@@ -366,16 +374,14 @@ private fun Modifier.glassBallDrag(
 
 /** 물리 시뮬레이션 결과로 계산된 offset에 따라 각 아이콘을 볼 내부에 배치한다. */
 @Composable
-private fun BoxScope.GlassBallIconLayer(
-    icons: List<ConsumableIcon>,
+private fun GlassBallIconLayer(
+    items: List<HomeItemCard>,
     iconOffsets: Array<MutableState<Offset>>,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        icons.forEachIndexed { index, icon ->
+        items.forEachIndexed { index, item ->
             PhysicsIcon(
-                drawableRes = icon.drawableRes,
-                width = icon.width,
-                height = icon.height,
+                iconUrl = item.iconUrl,
                 // 아이콘별 고정 기울기: 인덱스에 따라 순환 적용해 자연스럽게 배치
                 staticRotation = StaticRotationCycle[index % StaticRotationCycle.size],
                 offset = iconOffsets[index].value,
@@ -390,15 +396,13 @@ private fun BoxScope.GlassBallIconLayer(
  */
 @Composable
 private fun BoxScope.PhysicsIcon(
-    @DrawableRes drawableRes: Int,
-    width: Dp,
-    height: Dp,
+    iconUrl: String,
     staticRotation: Float,
     offset: Offset,
 ) {
     val density = LocalDensity.current
-    Image(
-        painter = painterResource(id = drawableRes),
+    AsyncImage(
+        model = iconUrl,
         contentDescription = null,
         modifier =
             Modifier
@@ -406,8 +410,50 @@ private fun BoxScope.PhysicsIcon(
                 .offset(
                     x = with(density) { offset.x.toDp() },
                     y = with(density) { offset.y.toDp() },
-                ).size(width = width, height = height)
+                ).size(ORBIT_ICON_SIZE)
                 .rotate(staticRotation),
+    )
+}
+
+/**
+ * 유리 질감 텍스처 레이어 (iOS: HomeOrbGlassTextureOverlay).
+ * hardLight 합성으로 구체 배경 위에 프로스트 유리 효과를 만든다.
+ * 위→아래 그래디언트 마스크로 하단으로 갈수록 텍스처가 희미해진다.
+ */
+@Composable
+private fun GlassBallTextureOverlay() {
+    Image(
+        painter = painterResource(R.drawable.ic_glass_plus_lighter),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier =
+            Modifier
+                .size(GlassBallInternalShadowSize)
+                .graphicsLayer {
+                    blendMode = BlendMode.Hardlight
+                    compositingStrategy = CompositingStrategy.Offscreen
+                    clip = true
+                    shape = CircleShape
+                }.drawWithContent {
+                    drawContent()
+                    drawTextureMask()
+                },
+    )
+}
+
+private fun DrawScope.drawTextureMask() {
+    drawRect(
+        brush =
+            Brush.verticalGradient(
+                colorStops =
+                    arrayOf(
+                        0f to Color.Transparent,
+                        TEXTURE_MASK_STOP_1 to Color.Black.copy(alpha = TEXTURE_MASK_ALPHA_038),
+                        TEXTURE_MASK_STOP_2 to Color.Black.copy(alpha = TEXTURE_MASK_ALPHA_068),
+                        1f to Color.Black.copy(alpha = TEXTURE_MASK_ALPHA_100),
+                    ),
+            ),
+        blendMode = BlendMode.DstOut,
     )
 }
 
@@ -442,18 +488,22 @@ private fun GlassBallInternalShadow(
 
 private fun DrawScope.drawInnerDarkShadow(diameter: Float) {
     val darkCircleRadius = diameter * INNER_DARK_DIAMETER_RATIO / 2f
-    val darkRadius = darkCircleRadius + diameter * INNER_DARK_BLUR_RATIO
-    val darkFlatStop = darkCircleRadius / darkRadius
-    drawCircle(
-        brush =
-            Brush.radialGradient(
-                0f to InnerShadowCoreColor,
-                darkFlatStop to InnerShadowCoreColor,
-                1f to Color.Transparent,
-                radius = darkRadius,
-            ),
-        radius = darkRadius,
-    )
+    val blurRadius = diameter * INNER_DARK_BLUR_RATIO
+    drawIntoCanvas { canvas ->
+        val paint =
+            Paint().apply {
+                asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    color = InnerShadowCoreColor.toArgb()
+                    maskFilter =
+                        android.graphics.BlurMaskFilter(
+                            blurRadius,
+                            android.graphics.BlurMaskFilter.Blur.NORMAL,
+                        )
+                }
+            }
+        canvas.drawCircle(Offset(size.width / 2f, size.height / 2f), darkCircleRadius, paint)
+    }
 }
 
 private fun DrawScope.drawInnerLightHighlight(diameter: Float) {
@@ -789,27 +839,23 @@ private val StaticRotationCycle = floatArrayOf(25f, -20f, -15f, 15f)
 @Suppress("MagicNumber")
 private val MassFactorCycle = floatArrayOf(0.7f, 1.0f, 1.4f, 0.9f)
 
-private val ToothbrushWidth = 70.dp
-private val ToothbrushHeight = 70.dp
-private val RazorWidth = 58.dp
-private val RazorHeight = 79.dp
-private val TowelWidth = 68.dp
-private val TowelHeight = 49.dp
-private val DetergentWidth = 36.dp
-private val DetergentHeight = 54.dp
+private val ORBIT_ICON_SIZE = AtomSpacing.S14.dp
+
+// 텍스처 그래디언트 마스크 stop 위치 (iOS: HomeOrbGlassMetrics.textureMaskStops)
+private const val TEXTURE_MASK_STOP_1 = 0.38f
+private const val TEXTURE_MASK_STOP_2 = 0.68f
+
+// 텍스처 그래디언트 마스크 알파 (DstOut 기준: 1 - iOS 가시성 비율)
+private const val TEXTURE_MASK_ALPHA_038 = 0.44f // 1 - 0.56
+private const val TEXTURE_MASK_ALPHA_068 = 0.82f // 1 - 0.18
+private const val TEXTURE_MASK_ALPHA_100 = 0.94f // 1 - 0.06
 
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
-private fun ConsumableOrbitSectionPreview() {
+private fun ItemOrbitSectionPreview() {
     OBRitTheme {
-        ConsumableOrbitSection(
-            icons =
-                listOf(
-                    ConsumableIcon(R.drawable.ic_towel, TowelWidth, TowelHeight),
-                    ConsumableIcon(R.drawable.ic_toothbrush, ToothbrushWidth, ToothbrushHeight),
-                    ConsumableIcon(R.drawable.ic_detergent, DetergentWidth, DetergentHeight),
-                    ConsumableIcon(R.drawable.ic_razor, RazorWidth, RazorHeight),
-                ),
+        ItemOrbitSection(
+            items = emptyList(),
             normalRatio = 0.62f,
             warningRatio = 0.38f,
         )

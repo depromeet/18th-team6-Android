@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.obrit.shared.model.home.MyStatusSummary
 
 private val CARD_CONTENT_HEIGHT = 68.dp
 private val BAR_HEIGHT = 18.dp
@@ -64,10 +65,7 @@ private data class BarGeometry(
 
 @Composable
 internal fun MyStatusGraphSection(
-    totalCount: Int,
-    needReplaceCount: Int,
-    score: Float,
-    averageScore: Float,
+    myStatusSummary: MyStatusSummary,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -90,10 +88,10 @@ internal fun MyStatusGraphSection(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         MyStatusGraphRow(
-            totalCount = totalCount,
-            needReplaceCount = needReplaceCount,
-            score = score,
-            averageScore = averageScore,
+            totalCount = myStatusSummary.totalCount,
+            needReplaceCount = myStatusSummary.needReplaceCount,
+            score = (myStatusSummary.score / 100).toFloat(),
+            averageScore = (myStatusSummary.averageScore / 100).toFloat(),
             config = barConfig,
         )
     }
@@ -267,10 +265,13 @@ private fun DrawScope.drawMarkerLabels(
 private fun MyStatusGraphSectionPreview() {
     OBRitTheme {
         MyStatusGraphSection(
-            totalCount = 16,
-            needReplaceCount = 4,
-            score = 0.425f,
-            averageScore = 0.65f,
+            myStatusSummary =
+                MyStatusSummary(
+                    totalCount = 16,
+                    needReplaceCount = 4,
+                    score = 0.425,
+                    averageScore = 0.65,
+                ),
         )
     }
 }

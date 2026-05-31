@@ -3,9 +3,10 @@ package com.obrit.obrit.shared.model.home
 import com.obrit.obrit.shared.model.ReplacementDate
 
 data class HomeBucketItem(
-    val id: Long,
+    val itemId: Long,
     val name: String,
-    val count: Int,
+    val spareQuantity: Int,
     val nextReplacementDate: ReplacementDate?,
     val status: HomeStatusLevel,
+    val itemBucket: ItemBucket,
 )
