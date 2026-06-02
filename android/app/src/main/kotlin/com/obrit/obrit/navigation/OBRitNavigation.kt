@@ -7,6 +7,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.obrit.obrit.navigation.route.AgentRoute
 import com.obrit.obrit.navigation.route.HomeRoute
+import com.obrit.obrit.navigation.route.OnboardingRoute
 import com.obrit.obrit.navigation.route.RegisterRoute
 
 @Composable
@@ -33,6 +34,12 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
                 entry<RegisterRoute.ManualRegister> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
+                        modifier = Modifier,
+                    )
+                }
+                entry<OnboardingRoute.Start> {
+                    OnboardingNavigation(
+                        onOnboardingComplete = { /* TODO: 다음 온보딩 스텝으로 이동 */ },
                         modifier = Modifier,
                     )
                 }
