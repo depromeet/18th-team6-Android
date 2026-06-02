@@ -9,10 +9,14 @@ import com.obrit.obrit.navigation.route.AgentRoute
 import com.obrit.obrit.navigation.route.HomeRoute
 import com.obrit.obrit.navigation.route.OnboardingRoute
 import com.obrit.obrit.navigation.route.RegisterRoute
+import com.obrit.obrit.storage.OnboardingStorage
+import org.koin.compose.koinInject
 
 @Composable
 fun OBRitNavigation(modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack(HomeRoute.Home)
+    val onboardingStorage = koinInject<OnboardingStorage>()
+    val initialRoute = if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start
+    val backStack = rememberNavBackStack(initialRoute)
 
     NavDisplay(
         backStack = backStack,
@@ -39,7 +43,11 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
                 }
                 entry<OnboardingRoute.Start> {
                     OnboardingNavigation(
-                        onOnboardingComplete = { /* TODO: 다음 온보딩 스텝으로 이동 */ },
+                        onOnboardingComplete = {
+                            onboardingStorage.setCompleted()
+                            backStack.clear()
+                            backStack.add(HomeRoute.Home)
+                        },
                         modifier = Modifier,
                     )
                 }
