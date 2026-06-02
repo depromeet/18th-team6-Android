@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.component.card.OBRitCardGrid
 import com.obrit.android.core.designsystem.component.card.OBRitCardLevel
 import com.obrit.android.core.designsystem.component.chip.OBRitChip
@@ -114,6 +115,7 @@ private fun BucketCard(
         stockCount = item.spareQuantity,
         daysLabel = daysLabel(item.nextReplacementDate),
         modifier = Modifier.clickable { onItemClick(item.itemId) },
+        image = { AsyncImage(model = item.iconUrl, contentDescription = null) },
     )
 }
 
@@ -159,6 +161,7 @@ private val previewBuckets =
                     HomeBucketItem(
                         itemId = 1,
                         name = "면도기",
+                        iconUrl = "",
                         spareQuantity = 0,
                         nextReplacementDate = ReplacementDate("2026-05-23"),
                         status = HomeStatusLevel.DANGER,
@@ -167,6 +170,7 @@ private val previewBuckets =
                     HomeBucketItem(
                         itemId = 2,
                         name = "칫솔",
+                        iconUrl = "",
                         spareQuantity = 1,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.DANGER,
@@ -182,6 +186,7 @@ private val previewBuckets =
                     HomeBucketItem(
                         itemId = 3,
                         name = "필터",
+                        iconUrl = "",
                         spareQuantity = 3,
                         nextReplacementDate = ReplacementDate("2026-05-26"),
                         status = HomeStatusLevel.WARNING,

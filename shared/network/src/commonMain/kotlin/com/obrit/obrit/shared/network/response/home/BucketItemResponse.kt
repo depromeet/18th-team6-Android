@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 data class BucketItemResponse(
     @SerialName("itemId") val itemId: Long,
     @SerialName("name") val name: String,
+    @SerialName("iconUrl") val iconUrl: String,
     @SerialName("spareQuantity") val spareQuantity: Int,
     @SerialName("nextReplacementDate") val nextReplacementDate: String? = null,
     @SerialName("status") val status: String,
@@ -21,6 +22,7 @@ fun BucketItemResponse.toHomeBucketItem() =
     HomeBucketItem(
         itemId = itemId,
         name = name,
+        iconUrl = iconUrl,
         spareQuantity = spareQuantity,
         nextReplacementDate = nextReplacementDate?.let(::ReplacementDate),
         status =
