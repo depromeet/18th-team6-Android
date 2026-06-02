@@ -11,11 +11,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +50,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.android.feature.home.R
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -59,6 +64,7 @@ import com.obrit.obrit.shared.model.home.HomeItemCard
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -73,37 +79,14 @@ import kotlin.math.sqrt
 internal fun ItemOrbitSection(
     items: List<HomeItemCard>,
     normalRatio: Float,
-    warningRatio: Float,
+    negativeRatio: Float,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
-    val itemCount = items.size
-
-    // 물리 상태 전체를 density와 itemCount 기준으로 관리한다.
-    val physicsState = remember(density, itemCount) { GlassBallPhysicsState(density, itemCount) }
-
-    val iconOffsets =
-        remember(density, itemCount) {
-            Array(itemCount) { i -> mutableStateOf(physicsState.initOffsets.getOrNull(i) ?: Offset.Zero) }
-        }
-
-    // 물리 시뮬레이션 루프: withFrameNanos로 화면 주사율(≈60fps)에 동기화한다.
-    LaunchedEffect(itemCount) {
-        var lastTime = 0L
-        while (true) {
-            withFrameNanos { time ->
-                // 프레임 간 경과 시간(초). 첫 프레임은 기본값 사용, 이후 실제 경과 시간을 사용한다.
-                val dt = if (lastTime == 0L) DEFAULT_DT else ((time - lastTime) / NANOS_PER_SECOND).coerceIn(0f, MAX_DT)
-                lastTime = time
-                stepPhysicsFrame(physicsState, dt, iconOffsets)
-            }
-        }
-    }
-
+    val (physicsState, iconOffsets) = rememberGlassBallPhysics(items.size)
     val tilt = rememberGlassBallTilt()
 
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        GlassBallStatusRing(normalRatio = normalRatio, warningRatio = warningRatio)
+        GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
         GlassBallGroundShadow()
         GlassBallContent(
             items = items,
@@ -111,12 +94,45 @@ internal fun ItemOrbitSection(
             visualState =
                 GlassBallVisualState(
                     normalRatio = normalRatio,
-                    warningRatio = warningRatio,
+                    warningRatio = negativeRatio,
                     tilt = tilt,
                 ),
             iconOffsets = iconOffsets,
         )
+        GlassBallRatioLabel(
+            ratio = normalRatio,
+            label = "양호",
+            color = Color(SemanticColors.Text.Positive.Default),
+            modifier = Modifier.align(Alignment.CenterStart).padding(start = 20.dp),
+        )
+        GlassBallRatioLabel(
+            ratio = negativeRatio,
+            label = "경고",
+            color = Color(SemanticColors.Text.Warning.Default),
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 20.dp),
+        )
     }
+}
+
+@Composable
+private fun rememberGlassBallPhysics(itemCount: Int): Pair<GlassBallPhysicsState, Array<MutableState<Offset>>> {
+    val density = LocalDensity.current
+    val physicsState = remember(density, itemCount) { GlassBallPhysicsState(density, itemCount) }
+    val iconOffsets =
+        remember(density, itemCount) {
+            Array(itemCount) { i -> mutableStateOf(physicsState.initOffsets.getOrNull(i) ?: Offset.Zero) }
+        }
+    LaunchedEffect(itemCount) {
+        var lastTime = 0L
+        while (true) {
+            withFrameNanos { time ->
+                val dt = if (lastTime == 0L) DEFAULT_DT else ((time - lastTime) / NANOS_PER_SECOND).coerceIn(0f, MAX_DT)
+                lastTime = time
+                stepPhysicsFrame(physicsState, dt, iconOffsets)
+            }
+        }
+    }
+    return physicsState to iconOffsets
 }
 
 /** 중력 센서를 읽어 [-1, 1]로 정규화된 기기 기울기를 반환한다. 센서 미지원 시 Offset.Zero를 반환한다. */
@@ -839,7 +855,7 @@ private val StaticRotationCycle = floatArrayOf(25f, -20f, -15f, 15f)
 @Suppress("MagicNumber")
 private val MassFactorCycle = floatArrayOf(0.7f, 1.0f, 1.4f, 0.9f)
 
-private val ORBIT_ICON_SIZE = AtomSpacing.S14.dp
+private val ORBIT_ICON_SIZE = AtomSpacing.S24.dp
 
 // 텍스처 그래디언트 마스크 stop 위치 (iOS: HomeOrbGlassMetrics.textureMaskStops)
 private const val TEXTURE_MASK_STOP_1 = 0.38f
@@ -850,6 +866,28 @@ private const val TEXTURE_MASK_ALPHA_038 = 0.44f // 1 - 0.56
 private const val TEXTURE_MASK_ALPHA_068 = 0.82f // 1 - 0.18
 private const val TEXTURE_MASK_ALPHA_100 = 0.94f // 1 - 0.06
 
+@Composable
+private fun GlassBallRatioLabel(
+    ratio: Float,
+    label: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    val typography = LocalOBRitTypography.current
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "${(ratio * 100).roundToInt()}%",
+            style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+            color = color,
+        )
+        Text(
+            text = label,
+            style = typography.xs,
+            color = color,
+        )
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF1D1B20)
 @Composable
 private fun ItemOrbitSectionPreview() {
@@ -857,7 +895,7 @@ private fun ItemOrbitSectionPreview() {
         ItemOrbitSection(
             items = emptyList(),
             normalRatio = 0.62f,
-            warningRatio = 0.38f,
+            negativeRatio = 0.38f,
         )
     }
 }

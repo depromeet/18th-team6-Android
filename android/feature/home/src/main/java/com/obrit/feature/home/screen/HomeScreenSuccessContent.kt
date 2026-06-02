@@ -216,10 +216,12 @@ private fun HomeContents(
                 .padding(bottom = 80.dp),
     ) {
         ItemStatusSection(overallStatus = state.overallStatus)
+        val totalCount = state.myStatusSummary.totalCount.coerceAtLeast(1)
+        val negativeRatio = state.myStatusSummary.needReplaceCount.toFloat() / totalCount
         ItemOrbitSection(
             items = state.items.content.take(ORBIT_ITEMS_SIZE),
-            normalRatio = state.status.ratio.goodPercentage / 100f,
-            warningRatio = state.status.ratio.warningPercentage / 100f,
+            normalRatio = 1f - negativeRatio,
+            negativeRatio = negativeRatio,
         )
         MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
         QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
