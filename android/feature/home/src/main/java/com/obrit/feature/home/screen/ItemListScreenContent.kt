@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -75,6 +76,7 @@ internal fun ItemListScreenContent(
     spareFilterMax: Int,
     action: ItemListScreenAction,
     modifier: Modifier = Modifier,
+    contentBottomPadding: Dp = 0.dp,
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
@@ -99,7 +101,7 @@ internal fun ItemListScreenContent(
                     start = AtomSpacing.S5.dp,
                     end = AtomSpacing.S5.dp,
                     top = LIST_FILTER_BAR_HEIGHT.dp + AtomSpacing.S3.dp,
-                    bottom = AtomSpacing.S3.dp,
+                    bottom = AtomSpacing.S3.dp + contentBottomPadding,
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {

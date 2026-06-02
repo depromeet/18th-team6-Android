@@ -44,6 +44,7 @@ import com.obrit.feature.home.screen.homeSection.MyStatusGraphSection
 import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
+import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
 @Suppress("LongMethod")
 @Composable
@@ -94,11 +95,8 @@ internal fun HomeScreenSuccessContent(
                             onLoadMoreItems = action.onLoadMoreItems,
                             onItemClick = action.onItemClick,
                         ),
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .navigationBarsPadding()
-                            .padding(bottom = 80.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentBottomPadding = HomeGnbContentBottomPadding,
                 )
             }
         }
@@ -123,7 +121,11 @@ private fun HomeGnbBar(
             modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                .padding(
+                    start = HomeGnbHorizontalPadding,
+                    end = HomeGnbHorizontalPadding,
+                    bottom = HomeGnbBottomPadding,
+                ),
     ) {
         OBRitGnb(
             selectedTab = selectedTab,
@@ -240,5 +242,8 @@ private val HomeFabSize = 56.dp
 private val HomeFabIconSize = 30.dp
 private val HomeFabShadowBlur = 24.dp
 private val HomeFabShadowOffsetY = 16.dp
+private val HomeGnbHorizontalPadding = AtomSpacing.S5.dp
+private val HomeGnbBottomPadding = AtomSpacing.S5.dp
+private val HomeGnbContentBottomPadding = HomeFabSize + HomeGnbBottomPadding + AtomSpacing.S5.dp
 private const val HOME_FAB_SHADOW_ALPHA = 0.24f
 private const val ORBIT_ITEMS_SIZE = 10

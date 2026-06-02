@@ -6,8 +6,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.obrit.feature.detail.screen.DetailScreen
-import com.obrit.feature.home.screen.ItemListScreen
 import com.obrit.feature.home.screen.HomeScreen
+import com.obrit.feature.home.screen.ItemListScreen
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
