@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -144,61 +143,6 @@ private fun OnboardingSelectBody(
     }
 }
 
-@Composable
-private fun OnboardingStepIndicator(
-    currentStep: Int,
-    totalStep: Int,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
-    ) {
-        for (step in 1..totalStep) {
-            OnboardingStepCircle(number = step, active = step == currentStep)
-            if (step < totalStep) OnboardingStepConnector()
-        }
-    }
-}
-
-@Composable
-private fun OnboardingStepCircle(
-    number: Int,
-    active: Boolean,
-) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-    Box(
-        modifier =
-            Modifier
-                .size(ONBOARDING_STEP_CIRCLE_SIZE)
-                .clip(CircleShape)
-                .background(if (active) colors.common00 else colors.gray750),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = number.toString(),
-            style =
-                typography.base.copy(
-                    color = if (active) colors.common1000 else colors.common00,
-                    fontWeight = FontWeight.SemiBold,
-                ),
-        )
-    }
-}
-
-@Composable
-private fun OnboardingStepConnector() {
-    val colors = LocalOBRitColor.current
-    Box(
-        modifier =
-            Modifier
-                .width(ONBOARDING_STEP_CONNECTOR_WIDTH)
-                .height(ONBOARDING_STEP_CONNECTOR_HEIGHT)
-                .background(colors.gray750),
-    )
-}
 
 @Composable
 private fun OnboardingSelectedCountHeader(
@@ -351,9 +295,6 @@ private const val ONBOARDING_SELECT_ADDED_COUNT_FORMAT = "%d개"
 private const val ONBOARDING_SELECT_CTA_LABEL = "다음 단계로"
 private const val ONBOARDING_SELECT_TOTAL_STEP = 2
 
-private val ONBOARDING_STEP_CIRCLE_SIZE = 28.dp
-private val ONBOARDING_STEP_CONNECTOR_WIDTH = 28.dp
-private val ONBOARDING_STEP_CONNECTOR_HEIGHT = 2.dp
 private val ONBOARDING_SELECT_IMAGE_SIZE = 52.dp
 private val ONBOARDING_SELECT_CHECKBOX_SIZE = AtomSpacing.S7.dp
 private val ONBOARDING_SELECT_SCROLL_FADE_HEIGHT = 20.dp

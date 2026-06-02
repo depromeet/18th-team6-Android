@@ -9,4 +9,10 @@ sealed interface OnboardingRoute : Route {
 
     @Serializable
     data object Select : OnboardingRoute
+
+    @Serializable
+    data class Detail(val selectedIds: List<Long>) : OnboardingRoute
+
+    @Serializable
+    data object Complete : OnboardingRoute
 }
