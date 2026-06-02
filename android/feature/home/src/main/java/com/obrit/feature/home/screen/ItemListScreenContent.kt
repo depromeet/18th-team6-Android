@@ -65,7 +65,7 @@ import kotlin.math.roundToInt
 
 @Suppress("LongMethod", "LongParameterList")
 @Composable
-internal fun ConsumableListScreenContent(
+internal fun ItemListScreenContent(
     items: List<HomeItemCard>,
     hasNext: Boolean,
     sortOrder: ConsumableListSortOrder,
@@ -73,20 +73,9 @@ internal fun ConsumableListScreenContent(
     ddayFilterMax: Int,
     spareRange: IntRange,
     spareFilterMax: Int,
-    action: ConsumableListScreenAction,
+    action: ItemListScreenAction,
     modifier: Modifier = Modifier,
 ) {
-    val filtered =
-        remember(items, sortOrder, ddayRange, ddayFilterMax, spareRange, spareFilterMax) {
-            applyFiltersAndSort(
-                items,
-                sortOrder,
-                ddayRange,
-                ddayFilterMax,
-                spareRange,
-                spareFilterMax,
-            )
-        }
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
@@ -114,10 +103,10 @@ internal fun ConsumableListScreenContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            if (filtered.isEmpty()) {
+            if (items.isEmpty()) {
                 item { ConsumableListEmptyState(modifier = Modifier.fillParentMaxWidth()) }
             } else {
-                items(filtered) { item -> QuickItemListItem(item = item, onItemClick = action.onItemClick) }
+                items(items) { item -> QuickItemListItem(item = item, onItemClick = action.onItemClick) }
             }
         }
         ListFilterBar(
@@ -581,43 +570,6 @@ private fun ConsumableListEmptyState(modifier: Modifier = Modifier) {
         )
     }
 }
-
-@Suppress("LongParameterList")
-private fun applyFiltersAndSort(
-    items: List<HomeItemCard>,
-    sortOrder: ConsumableListSortOrder,
-    ddayRange: IntRange,
-    ddayFilterMax: Int,
-    spareRange: IntRange,
-    spareFilterMax: Int,
-): List<HomeItemCard> {
-    val ddayFiltered =
-        if (ddayFilterMax >= ddayRange.last) {
-            items
-        } else {
-            items.filter { parseDaysUntil(it.replacementDday) <= ddayFilterMax }
-        }
-    val spareFiltered =
-        if (spareFilterMax >= spareRange.last) {
-            ddayFiltered
-        } else {
-            ddayFiltered.filter { it.spareQuantity <= spareFilterMax }
-        }
-    return when (sortOrder) {
-        ConsumableListSortOrder.REPLACE_IMMINENT -> spareFiltered.sortedBy { parseDaysUntil(it.replacementDday) }
-        ConsumableListSortOrder.LEAST_SPARE -> spareFiltered.sortedBy { it.spareQuantity }
-        ConsumableListSortOrder.OLDEST_REPLACEMENT -> spareFiltered.sortedByDescending { it.daysInUse }
-        ConsumableListSortOrder.ALPHABETICAL -> spareFiltered.sortedBy { it.name }
-    }
-}
-
-private fun parseDaysUntil(replacementDday: String): Int =
-    when {
-        replacementDday.contains("D-day") -> 0
-        replacementDday.contains("D+") -> -(replacementDday.substringAfter("D+").toIntOrNull() ?: 0)
-        replacementDday.contains("D-") -> replacementDday.substringAfter("D-").toIntOrNull() ?: 0
-        else -> 0
-    }
 
 @Composable
 private fun SortBottomSheet(

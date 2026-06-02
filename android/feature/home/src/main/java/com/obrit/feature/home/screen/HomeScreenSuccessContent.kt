@@ -76,7 +76,7 @@ internal fun HomeScreenSuccessContent(
                     onItemClick = action.onItemClick,
                 )
             } else {
-                ConsumableListScreenContent(
+                ItemListScreenContent(
                     items = state.items.content,
                     hasNext = state.items.hasNext,
                     sortOrder = state.listSortOrder,
@@ -85,7 +85,7 @@ internal fun HomeScreenSuccessContent(
                     spareRange = state.spareRange,
                     spareFilterMax = state.spareFilterMax,
                     action =
-                        ConsumableListScreenAction(
+                        ItemListScreenAction(
                             onBack = {},
                             onSortOrderChange = action.onListSortOrderChange,
                             onDdayFilterChange = action.onDdayFilterChange,
