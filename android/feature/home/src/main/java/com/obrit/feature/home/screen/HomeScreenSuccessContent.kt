@@ -1,5 +1,6 @@
 package com.obrit.feature.home.screen
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,10 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +34,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
@@ -51,6 +51,7 @@ import com.obrit.feature.home.screen.homeSection.QuickItemSection
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import kotlinx.coroutines.launch
 
 @Suppress("LongMethod")
 @Composable
@@ -209,18 +210,7 @@ private fun HomeContents(
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer =
-            LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    coroutineScope.launch { scrollState.scrollTo(0) }
-                }
-            }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
+    ScrollToTopOnResumeEffect(scrollState)
     val currentOnLoadMoreItems by rememberUpdatedState(onLoadMoreItems)
     LaunchedEffect(scrollState.value) {
         if (scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue && state.items.hasNext) {
@@ -252,7 +242,23 @@ private fun HomeContents(
             onMoreClick = onMoreClick,
             onItemClick = onItemClick,
         )
-        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
+        ItemUsageStatusSection(items = state.usageItems, onItemClick = onItemClick)
+    }
+}
+
+@Composable
+private fun ScrollToTopOnResumeEffect(scrollState: ScrollState) {
+    val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    coroutineScope.launch { scrollState.scrollTo(0) }
+                }
+            }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 }
 

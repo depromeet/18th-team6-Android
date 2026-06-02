@@ -6,6 +6,7 @@ import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.model.home.HomeBucketGroup
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import com.obrit.obrit.shared.model.home.HomeItemCursorSlice
 import com.obrit.obrit.shared.model.home.HomeItemOrder
 import com.obrit.obrit.shared.model.home.HomeItemsParams
@@ -30,6 +31,11 @@ class HomeViewModel internal constructor(
                     Log.d(TAG, "getItems called: order=${HomeItemOrder.REPLACEMENT_URGENT}")
                     homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT))
                 }
+            val usageItemsDeferred =
+                vmAsync {
+                    Log.d(TAG, "getItems called: order=${HomeItemOrder.USED_OLD}")
+                    homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD))
+                }
 
             val overallStatus = overallStatusDeferred.await().getOrNull()
             val myStatusSummaryResult = myStatusSummaryDeferred.await()
@@ -41,13 +47,16 @@ class HomeViewModel internal constructor(
             val itemsResult = itemsDeferred.await()
             Log.d(TAG, "getItems response: $itemsResult")
             val items = itemsResult.getOrNull()
-            val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null
+            val usageItemsResult = usageItemsDeferred.await()
+            Log.d(TAG, "getUsageItems response: $usageItemsResult")
+            val usageItems = usageItemsResult.getOrNull()
+            val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null && usageItems != null
             if (!allLoaded) {
                 reduce { HomeUiState.LoadFailed }
                 return@container
             }
 
-            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, createMockStatus()) }
+            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, createMockStatus()) }
         }
 
     fun onSearchClick() = intent { postSideEffect(HomeSideEffect.OnSearchClick) }
@@ -71,13 +80,15 @@ class HomeViewModel internal constructor(
             val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
             val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
             val itemsDeferred = vmAsync { homeRepository.getItems(params) }
+            val usageItemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD)) }
 
             val overallStatus = overallStatusDeferred.await().getOrNull() ?: return@intent
             val myStatusSummary = myStatusSummaryDeferred.await().getOrNull() ?: return@intent
             val buckets = bucketsDeferred.await().getOrNull() ?: return@intent
             val items = itemsDeferred.await().getOrNull() ?: return@intent
+            val usageItems = usageItemsDeferred.await().getOrNull() ?: return@intent
 
-            val refreshed = createSuccessState(overallStatus, myStatusSummary, buckets, items, current.status)
+            val refreshed = createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, current.status)
             reduceOn<HomeUiState.Success> {
                 refreshed.copy(
                     listSortOrder = current.listSortOrder,
@@ -201,6 +212,7 @@ sealed interface HomeUiState {
         val myStatusSummary: MyStatusSummary,
         val buckets: List<HomeBucketGroup>,
         val items: HomeItemCursorSlice,
+        val usageItems: List<HomeItemCard>,
         val status: HomeStatus,
         val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
         val ddayRange: IntRange,
@@ -245,12 +257,13 @@ enum class ConsumableListSortOrder(
     ALPHABETICAL("가나다 순"),
 }
 
-@Suppress("MagicNumber")
+@Suppress("MagicNumber", "LongParameterList")
 private fun createSuccessState(
     overallStatus: HomeOverallStatus,
     myStatusSummary: MyStatusSummary,
     buckets: List<HomeBucketGroup>,
     items: HomeItemCursorSlice,
+    usageItems: List<HomeItemCard>,
     status: HomeStatus,
 ): HomeUiState.Success {
     val ddayValues = items.content.map { parseDday(it.replacementDday) }
@@ -264,6 +277,7 @@ private fun createSuccessState(
         myStatusSummary = myStatusSummary,
         buckets = buckets,
         items = items,
+        usageItems = usageItems,
         status = status,
         ddayRange = ddayMin..ddayMax,
         ddayFilterMax = ddayMax,
