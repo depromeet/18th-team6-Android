@@ -58,11 +58,16 @@ class HomeViewModel internal constructor(
 
     fun onListSortOrderChange(sortOrder: ConsumableListSortOrder) =
         intent {
+            val current = state as? HomeUiState.Success ?: return@intent
             reduceOn<HomeUiState.Success> { state.copy(listSortOrder = sortOrder) }
-            Log.d(TAG, "getItems called: order=${sortOrder.toHomeItemOrder()}")
-            val itemsResult = homeRepository.getItems(HomeItemsParams(order = sortOrder.toHomeItemOrder()))
-            Log.d(TAG, "getItems response: $itemsResult")
-            val items = itemsResult.getOrNull()
+            val params =
+                HomeItemsParams(
+                    order = sortOrder.toHomeItemOrder(),
+                    dDay = if (current.ddayFilterMax < current.ddayRange.last) current.ddayFilterMax else null,
+                    spareQuantity = if (current.spareFilterMax < current.spareRange.last) current.spareFilterMax else null,
+                )
+            Log.d(TAG, "getItems called: $params")
+            val items = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull()
             if (items != null) {
                 reduceOn<HomeUiState.Success> { state.copy(items = items) }
             }
@@ -119,7 +124,6 @@ class HomeViewModel internal constructor(
         intent {
             val current = state as? HomeUiState.Success ?: return@intent
             if (!current.items.hasNext) return@intent
-            Log.d(TAG, "getItems called: order=${current.listSortOrder.toHomeItemOrder()}, cursor=${current.items.nextCursor}")
             val loadMoreResult =
                 homeRepository
                     .getItems(
@@ -128,7 +132,6 @@ class HomeViewModel internal constructor(
                             cursor = current.items.nextCursor,
                         ),
                     )
-            Log.d(TAG, "getItems response: $loadMoreResult")
             val result = loadMoreResult.getOrNull() ?: return@intent
             reduceOn<HomeUiState.Success> {
                 state.copy(
