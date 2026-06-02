@@ -56,6 +56,47 @@ class HomeViewModel internal constructor(
 
     fun onProfileClick() = intent { postSideEffect(HomeSideEffect.OnProfileClick) }
 
+    fun onHomeResumed() =
+        intent {
+            val current = state as? HomeUiState.Success ?: return@intent
+            val isDdayFilterApplied = current.ddayFilterMax < current.ddayRange.last
+            val isSpareFilterApplied = current.spareFilterMax < current.spareRange.last
+            val params =
+                HomeItemsParams(
+                    order = current.listSortOrder.toHomeItemOrder(),
+                    dDay = if (isDdayFilterApplied) current.ddayFilterMax else null,
+                    spareQuantity = if (isSpareFilterApplied) current.spareFilterMax else null,
+                )
+            val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
+            val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
+            val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
+            val itemsDeferred = vmAsync { homeRepository.getItems(params) }
+
+            val overallStatus = overallStatusDeferred.await().getOrNull() ?: return@intent
+            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull() ?: return@intent
+            val buckets = bucketsDeferred.await().getOrNull() ?: return@intent
+            val items = itemsDeferred.await().getOrNull() ?: return@intent
+
+            val refreshed = createSuccessState(overallStatus, myStatusSummary, buckets, items, current.status)
+            reduceOn<HomeUiState.Success> {
+                refreshed.copy(
+                    listSortOrder = current.listSortOrder,
+                    ddayFilterMax =
+                        if (isDdayFilterApplied) {
+                            current.ddayFilterMax.coerceIn(refreshed.ddayRange)
+                        } else {
+                            refreshed.ddayRange.last
+                        },
+                    spareFilterMax =
+                        if (isSpareFilterApplied) {
+                            current.spareFilterMax.coerceIn(refreshed.spareRange)
+                        } else {
+                            refreshed.spareRange.last
+                        },
+                )
+            }
+        }
+
     fun onListSortOrderChange(sortOrder: ConsumableListSortOrder) =
         intent {
             val current = state as? HomeUiState.Success ?: return@intent

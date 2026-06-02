@@ -1,8 +1,13 @@
 package com.obrit.feature.home.screen
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.obrit.feature.home.viewmodel.ConsumableListSortOrder
 import com.obrit.feature.home.viewmodel.HomeSideEffect
 import com.obrit.feature.home.viewmodel.HomeViewModel
@@ -23,6 +28,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
+    HomeResumeRefreshEffect(onResume = viewModel::onHomeResumed)
 
     HomeScreenContent(
         state = state,
@@ -49,6 +55,27 @@ fun HomeScreen(
             is HomeSideEffect.OnNotificationClick -> onNotificationClick()
             is HomeSideEffect.OnProfileClick -> onProfileClick()
             is HomeSideEffect.OnMoreClick -> onMoreClick()
+        }
+    }
+}
+
+@Composable
+private fun HomeResumeRefreshEffect(onResume: () -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentOnResume by rememberUpdatedState(onResume)
+
+    DisposableEffect(lifecycleOwner) {
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    currentOnResume()
+                }
+            }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 }
