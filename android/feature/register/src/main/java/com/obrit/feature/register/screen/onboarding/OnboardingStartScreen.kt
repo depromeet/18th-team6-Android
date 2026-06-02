@@ -104,7 +104,7 @@ private fun BoxScope.OnboardingStartCta(onClick: () -> Unit) {
 }
 
 private const val ONBOARDING_START_LABEL = "소모품 등록"
-private const val ONBOARDING_START_HEADLINE = "환영합니다!\nOBRIT과 함께 소모품 관리해요"
+private const val ONBOARDING_START_HEADLINE = "환영합니다!\nOBRIT으로 소모품 관리해요"
 private const val ONBOARDING_START_DESCRIPTION = "소모품 관리, 온보딩으로 간편하게 시작해요!"
 private const val ONBOARDING_START_CTA_LABEL = "온보딩 시작하기"
 
