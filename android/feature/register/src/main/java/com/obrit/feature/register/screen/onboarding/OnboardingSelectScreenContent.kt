@@ -49,12 +49,6 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
 
-internal data class OnboardingSelectScreenAction(
-    val onToggle: (Long) -> Unit,
-    val onNext: () -> Unit,
-    val onBack: () -> Unit,
-)
-
 @Composable
 internal fun OnboardingSelectScreenContent(
     state: OnboardingSelectUiState,
@@ -97,32 +91,7 @@ private fun OnboardingSelectBody(
                     bottom = ONBOARDING_SELECT_SCROLL_FADE_HEIGHT,
                 ),
         ) {
-            item {
-                OnboardingStepIndicator(
-                    currentStep = 1,
-                    totalStep = ONBOARDING_SELECT_TOTAL_STEP,
-                    modifier = Modifier.padding(vertical = AtomSpacing.S4.dp),
-                )
-            }
-            item {
-                OBRitTitle(
-                    title = ONBOARDING_SELECT_HEADLINE,
-                    description = ONBOARDING_SELECT_DESCRIPTION,
-                    size = OBRitTitleSize.Large,
-                    type = OBRitTitleType.Default,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = AtomSpacing.S4.dp),
-                )
-            }
-            item { Spacer(Modifier.height(AtomSpacing.S5.dp)) }
-            item {
-                OnboardingSelectedCountHeader(
-                    count = state.selectedCount,
-                    modifier = Modifier.padding(bottom = AtomSpacing.S3.dp),
-                )
-            }
+            item { OnboardingSelectListHeader(selectedCount = state.selectedCount) }
             itemsIndexed(
                 items = state.categories,
                 key = { _, category -> category.id },
@@ -143,6 +112,31 @@ private fun OnboardingSelectBody(
     }
 }
 
+@Composable
+private fun OnboardingSelectListHeader(selectedCount: Int) {
+    Column {
+        OnboardingStepIndicator(
+            currentStep = 1,
+            totalStep = ONBOARDING_SELECT_TOTAL_STEP,
+            modifier = Modifier.padding(vertical = AtomSpacing.S4.dp),
+        )
+        OBRitTitle(
+            title = ONBOARDING_SELECT_HEADLINE,
+            description = ONBOARDING_SELECT_DESCRIPTION,
+            size = OBRitTitleSize.Large,
+            type = OBRitTitleType.Default,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = AtomSpacing.S4.dp),
+        )
+        Spacer(Modifier.height(AtomSpacing.S5.dp))
+        OnboardingSelectedCountHeader(
+            count = selectedCount,
+            modifier = Modifier.padding(bottom = AtomSpacing.S3.dp),
+        )
+    }
+}
 
 @Composable
 private fun OnboardingSelectedCountHeader(

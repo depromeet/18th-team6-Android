@@ -2,7 +2,9 @@ package com.obrit.obrit.storage
 
 import android.content.Context
 
-class OnboardingStorage(context: Context) {
+class OnboardingStorage(
+    context: Context,
+) {
     private val prefs =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 

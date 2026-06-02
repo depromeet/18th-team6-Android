@@ -2,6 +2,7 @@ package com.obrit.feature.register.screen.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.foundation.layout.width
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -33,45 +33,60 @@ internal fun ReplacementPeriodDropdown(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var triggerSize by remember { mutableStateOf(IntSize.Zero) }
-    val displayLabel = selected?.let { period ->
-        REPLACEMENT_PERIOD_OPTIONS.first { it.second == period }.first
-    }.orEmpty()
-    val density = LocalDensity.current
-
+    val displayLabel =
+        selected
+            ?.let { period ->
+                REPLACEMENT_PERIOD_OPTIONS.first { it.second == period }.first
+            }.orEmpty()
     Box(modifier = modifier) {
         OBRitDropdown(
             value = displayLabel,
             onClick = { expanded = !expanded },
             placeholder = placeholder,
             expanded = expanded,
-            modifier = Modifier
-                .fillMaxWidth()
-                .onSizeChanged { triggerSize = it },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { triggerSize = it },
         )
         if (expanded) {
-            val menuGapPx = with(density) { REPLACEMENT_PERIOD_MENU_GAP.roundToPx() }
-            val positionProvider = remember(menuGapPx) {
-                ReplacementPeriodMenuPositionProvider(menuGapPx)
-            }
-            Popup(
-                popupPositionProvider = positionProvider,
-                onDismissRequest = { expanded = false },
-                properties = PopupProperties(focusable = true),
-            ) {
-                OBRitDropdownMenu(
-                    items = REPLACEMENT_PERIOD_OPTIONS.map { it.first },
-                    selectedIndex = REPLACEMENT_PERIOD_OPTIONS.indexOfFirst { it.second == selected }
-                        .takeIf { it >= 0 },
-                    onItemClick = { index ->
-                        onChange(REPLACEMENT_PERIOD_OPTIONS[index].second)
-                        expanded = false
-                    },
-                    modifier = with(density) {
-                        Modifier.width(triggerSize.width.toDp())
-                    },
-                )
-            }
+            ReplacementPeriodPopup(
+                selected = selected,
+                triggerWidth = triggerSize.width,
+                onChange = { period ->
+                    onChange(period)
+                    expanded = false
+                },
+                onDismiss = { expanded = false },
+            )
         }
+    }
+}
+
+@Composable
+private fun ReplacementPeriodPopup(
+    selected: ReplacementPeriod?,
+    triggerWidth: Int,
+    onChange: (ReplacementPeriod) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val menuGapPx = with(density) { REPLACEMENT_PERIOD_MENU_GAP.roundToPx() }
+    val positionProvider = remember(menuGapPx) { ReplacementPeriodMenuPositionProvider(menuGapPx) }
+    Popup(
+        popupPositionProvider = positionProvider,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true),
+    ) {
+        OBRitDropdownMenu(
+            items = REPLACEMENT_PERIOD_OPTIONS.map { it.first },
+            selectedIndex =
+                REPLACEMENT_PERIOD_OPTIONS
+                    .indexOfFirst { it.second == selected }
+                    .takeIf { it >= 0 },
+            onItemClick = { index -> onChange(REPLACEMENT_PERIOD_OPTIONS[index].second) },
+            modifier = with(density) { Modifier.width(triggerWidth.toDp()) },
+        )
     }
 }
 

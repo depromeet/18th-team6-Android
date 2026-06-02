@@ -45,18 +45,20 @@ private fun OnboardingStepCircle(
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
     Box(
-        modifier = Modifier
-            .size(ONBOARDING_STEP_CIRCLE_SIZE)
-            .clip(CircleShape)
-            .background(if (active) colors.common00 else colors.gray750),
+        modifier =
+            Modifier
+                .size(ONBOARDING_STEP_CIRCLE_SIZE)
+                .clip(CircleShape)
+                .background(if (active) colors.common00 else colors.gray750),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = number.toString(),
-            style = typography.base.copy(
-                color = if (active) colors.common1000 else colors.common00,
-                fontWeight = FontWeight.SemiBold,
-            ),
+            style =
+                typography.base.copy(
+                    color = if (active) colors.common1000 else colors.common00,
+                    fontWeight = FontWeight.SemiBold,
+                ),
         )
     }
 }
@@ -65,10 +67,11 @@ private fun OnboardingStepCircle(
 private fun OnboardingStepConnector() {
     val colors = LocalOBRitColor.current
     Box(
-        modifier = Modifier
-            .width(ONBOARDING_STEP_CONNECTOR_WIDTH)
-            .height(ONBOARDING_STEP_CONNECTOR_HEIGHT)
-            .background(colors.gray750),
+        modifier =
+            Modifier
+                .width(ONBOARDING_STEP_CONNECTOR_WIDTH)
+                .height(ONBOARDING_STEP_CONNECTOR_HEIGHT)
+                .background(colors.gray750),
     )
 }
 

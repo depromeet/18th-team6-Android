@@ -9,6 +9,12 @@ import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
+internal data class OnboardingSelectScreenAction(
+    val onToggle: (Long) -> Unit,
+    val onNext: () -> Unit,
+    val onBack: () -> Unit,
+)
+
 @Composable
 fun OnboardingSelectScreen(
     onBack: () -> Unit,

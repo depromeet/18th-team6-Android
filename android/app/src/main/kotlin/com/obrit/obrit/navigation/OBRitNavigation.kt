@@ -17,7 +17,6 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
     val onboardingStorage = koinInject<OnboardingStorage>()
     val initialRoute = if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start
     val backStack = rememberNavBackStack(initialRoute)
-
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
@@ -26,9 +25,7 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
             entryProvider {
                 entry<HomeRoute.Home> {
                     HomeNavigation(
-                        onRegisterClick = {
-                            backStack.add(RegisterRoute.ManualRegister)
-                        },
+                        onRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
                         modifier = Modifier,
                     )
                 }

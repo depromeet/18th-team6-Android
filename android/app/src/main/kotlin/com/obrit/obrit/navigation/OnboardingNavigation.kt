@@ -17,7 +17,6 @@ fun OnboardingNavigation(
     modifier: Modifier = Modifier,
 ) {
     val onboardingBackStack = rememberNavBackStack(OnboardingRoute.Start)
-
     NavDisplay(
         backStack = onboardingBackStack,
         modifier = modifier,
@@ -33,9 +32,7 @@ fun OnboardingNavigation(
                 entry<OnboardingRoute.Select> {
                     OnboardingSelectScreen(
                         onBack = { onboardingBackStack.removeLastOrNull() },
-                        onNext = { selectedIds ->
-                            onboardingBackStack.add(OnboardingRoute.Detail(selectedIds))
-                        },
+                        onNext = { onboardingBackStack.add(OnboardingRoute.Detail(it)) },
                         modifier = Modifier,
                     )
                 }

@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -50,12 +50,6 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
-internal data class OnboardingDetailScreenAction(
-    val onPeriodChange: (categoryId: Long, period: ReplacementPeriod) -> Unit,
-    val onSubmit: () -> Unit,
-    val onBack: () -> Unit,
-)
-
 @Composable
 internal fun OnboardingDetailScreenContent(
     state: OnboardingDetailUiState,
@@ -64,11 +58,12 @@ internal fun OnboardingDetailScreenContent(
 ) {
     val colors = LocalOBRitColor.current
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(colors.gray900)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(colors.gray900)
+                .statusBarsPadding()
+                .navigationBarsPadding(),
     ) {
         OBRitDepthTopBar(title = ONBOARDING_DETAIL_TITLE, onBackClick = action.onBack)
         OnboardingDetailBody(
@@ -90,38 +85,20 @@ private fun OnboardingDetailBody(
     Box(modifier = modifier.fillMaxWidth()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = AtomSpacing.S5.dp,
-                end = AtomSpacing.S5.dp,
-                bottom = ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT,
-            ),
+            contentPadding =
+                PaddingValues(
+                    start = AtomSpacing.S5.dp,
+                    end = AtomSpacing.S5.dp,
+                    bottom = ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT,
+                ),
         ) {
-            item {
-                OnboardingStepIndicator(
-                    currentStep = 2,
-                    totalStep = ONBOARDING_DETAIL_TOTAL_STEP,
-                    modifier = Modifier.padding(vertical = AtomSpacing.S4.dp),
-                )
-            }
-            item {
-                OBRitTitle(
-                    title = ONBOARDING_DETAIL_HEADLINE,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = AtomSpacing.S4.dp),
-                    size = OBRitTitleSize.Large,
-                    type = OBRitTitleType.Default,
-                    description = ONBOARDING_DETAIL_DESCRIPTION,
-                )
-            }
+            item { OnboardingDetailListHeader() }
             itemsIndexed(
                 items = rows,
                 key = { _, row -> row.category.id },
             ) { index, row ->
                 Column {
-                    if (index > 0) {
-                        Spacer(Modifier.height(AtomSpacing.S2.dp))
-                    }
+                    if (index > 0) Spacer(Modifier.height(AtomSpacing.S2.dp))
                     OnboardingDetailCard(
                         row = row,
                         onPeriodChange = { period -> onPeriodChange(row.category.id, period) },
@@ -134,52 +111,42 @@ private fun OnboardingDetailBody(
 }
 
 @Composable
+private fun OnboardingDetailListHeader() {
+    Column {
+        OnboardingStepIndicator(
+            currentStep = 2,
+            totalStep = ONBOARDING_DETAIL_TOTAL_STEP,
+            modifier = Modifier.padding(vertical = AtomSpacing.S4.dp),
+        )
+        OBRitTitle(
+            title = ONBOARDING_DETAIL_HEADLINE,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = AtomSpacing.S4.dp),
+            size = OBRitTitleSize.Large,
+            type = OBRitTitleType.Default,
+            description = ONBOARDING_DETAIL_DESCRIPTION,
+        )
+    }
+}
+
+@Composable
 private fun OnboardingDetailCard(
     row: OnboardingDetailRow,
     onPeriodChange: (ReplacementPeriod) -> Unit,
 ) {
     val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(AtomRadius.ExtraLarge.dp))
-            .background(colors.gray850)
-            .padding(AtomSpacing.S5.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(AtomRadius.ExtraLarge.dp))
+                .background(colors.gray850)
+                .padding(AtomSpacing.S5.dp),
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(ONBOARDING_DETAIL_ICON_SIZE)
-                    .clip(CircleShape)
-                    .background(colors.gray750),
-            ) {
-                AsyncImage(
-                    model = row.category.iconUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = row.category.name,
-                    style = typography.xl2.copy(
-                        color = colors.common00,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_essential),
-                    contentDescription = null,
-                    modifier = Modifier.size(ONBOARDING_DETAIL_ESSENTIAL_SIZE),
-                    tint = Color.Unspecified,
-                )
-            }
-        }
+        OnboardingDetailCardHeader(category = row.category)
         ReplacementPeriodDropdown(
             selected = row.period,
             onChange = onPeriodChange,
@@ -188,15 +155,56 @@ private fun OnboardingDetailCard(
 }
 
 @Composable
+private fun OnboardingDetailCardHeader(category: Category) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(ONBOARDING_DETAIL_ICON_SIZE)
+                    .clip(CircleShape)
+                    .background(colors.gray750),
+        ) {
+            AsyncImage(
+                model = category.iconUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = category.name,
+                style =
+                    typography.xl2.copy(
+                        color = colors.common00,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.ic_essential),
+                contentDescription = null,
+                modifier = Modifier.size(ONBOARDING_DETAIL_ESSENTIAL_SIZE),
+                tint = Color.Unspecified,
+            )
+        }
+    }
+}
+
+@Composable
 private fun BoxScope.BottomFadeOverlay(color: Color) {
     Box(
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .height(ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT)
-            .background(
-                Brush.verticalGradient(listOf(Color.Transparent, color)),
-            ),
+        modifier =
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT)
+                .background(
+                    Brush.verticalGradient(listOf(Color.Transparent, color)),
+                ),
     )
 }
 
@@ -207,13 +215,14 @@ private fun OnboardingDetailCta(
 ) {
     val typography = LocalOBRitTypography.current
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = AtomSpacing.S5.dp,
-                end = AtomSpacing.S5.dp,
-                bottom = ONBOARDING_DETAIL_CTA_BOTTOM_PADDING,
-            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = AtomSpacing.S5.dp,
+                    end = AtomSpacing.S5.dp,
+                    bottom = ONBOARDING_DETAIL_CTA_BOTTOM_PADDING,
+                ),
     ) {
         OBRitLargeFilledButton(
             onClick = onSubmit,
@@ -240,40 +249,46 @@ private val ONBOARDING_DETAIL_ESSENTIAL_SIZE = AtomSpacing.S5.dp
 private val ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT = 20.dp
 private val ONBOARDING_DETAIL_CTA_BOTTOM_PADDING = 20.dp
 
+@Suppress("LongMethod")
 @Preview(name = "OnboardingDetailScreen", showBackground = false)
 @Composable
 private fun OnboardingDetailScreenPreview() {
     OBRitTheme(dynamicColor = false) {
         OnboardingDetailScreenContent(
-            state = OnboardingDetailUiState(
-                rows = listOf(
-                    OnboardingDetailRow(
-                        category = Category(
-                            id = 1L,
-                            name = "면도기",
-                            iconUrl = "",
-                            itemCount = 0,
-                            totalSpareQuantity = 0,
+            state =
+                OnboardingDetailUiState(
+                    rows =
+                        listOf(
+                            OnboardingDetailRow(
+                                category =
+                                    Category(
+                                        id = 1L,
+                                        name = "면도기",
+                                        iconUrl = "",
+                                        itemCount = 0,
+                                        totalSpareQuantity = 0,
+                                    ),
+                                period = ReplacementPeriod.WITHIN_MONTH,
+                            ),
+                            OnboardingDetailRow(
+                                category =
+                                    Category(
+                                        id = 2L,
+                                        name = "정수기 필터",
+                                        iconUrl = "",
+                                        itemCount = 0,
+                                        totalSpareQuantity = 0,
+                                    ),
+                                period = null,
+                            ),
                         ),
-                        period = ReplacementPeriod.WITHIN_MONTH,
-                    ),
-                    OnboardingDetailRow(
-                        category = Category(
-                            id = 2L,
-                            name = "정수기 필터",
-                            iconUrl = "",
-                            itemCount = 0,
-                            totalSpareQuantity = 0,
-                        ),
-                        period = null,
-                    ),
                 ),
-            ),
-            action = OnboardingDetailScreenAction(
-                onPeriodChange = { _, _ -> },
-                onSubmit = {},
-                onBack = {},
-            ),
+            action =
+                OnboardingDetailScreenAction(
+                    onPeriodChange = { _, _ -> },
+                    onSubmit = {},
+                    onBack = {},
+                ),
         )
     }
 }

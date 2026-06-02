@@ -24,11 +24,13 @@ class OnboardingDetailViewModel(
             categoryRepository
                 .getCategories()
                 .onSuccess { categories ->
-                    val rows = selectedCategoryIds.mapNotNull { id ->
-                        categories.find { it.id == id }
-                    }.map { category ->
-                        OnboardingDetailRow(category = category, period = null)
-                    }
+                    val rows =
+                        selectedCategoryIds
+                            .mapNotNull { id ->
+                                categories.find { it.id == id }
+                            }.map { category ->
+                                OnboardingDetailRow(category = category, period = null)
+                            }
                     reduce { state.copy(rows = rows) }
                 }
         }
@@ -39,9 +41,10 @@ class OnboardingDetailViewModel(
     ) = intent {
         reduce {
             state.copy(
-                rows = state.rows.map { row ->
-                    if (row.category.id == categoryId) row.copy(period = period) else row
-                },
+                rows =
+                    state.rows.map { row ->
+                        if (row.category.id == categoryId) row.copy(period = period) else row
+                    },
             )
         }
     }
@@ -50,14 +53,15 @@ class OnboardingDetailViewModel(
         intent {
             if (!state.isSubmitEnabled) return@intent
             reduce { state.copy(isSubmitting = true) }
-            val params = state.rows.map { row ->
-                CreateItemParams(
-                    categoryId = row.category.id,
-                    name = row.category.name,
-                    spareQuantity = 0,
-                    lastReplacementPeriod = row.period,
-                )
-            }
+            val params =
+                state.rows.map { row ->
+                    CreateItemParams(
+                        categoryId = row.category.id,
+                        name = row.category.name,
+                        spareQuantity = 0,
+                        lastReplacementPeriod = row.period,
+                    )
+                }
             itemRepository
                 .createItems(params)
                 .onSuccess { postSideEffect(OnboardingDetailSideEffect.OnComplete) }

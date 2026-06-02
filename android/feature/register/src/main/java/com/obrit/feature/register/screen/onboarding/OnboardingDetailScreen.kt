@@ -6,9 +6,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.obrit.feature.register.viewmodel.OnboardingDetailSideEffect
 import com.obrit.feature.register.viewmodel.OnboardingDetailViewModel
+import com.obrit.obrit.shared.model.items.ReplacementPeriod
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+
+internal data class OnboardingDetailScreenAction(
+    val onPeriodChange: (categoryId: Long, period: ReplacementPeriod) -> Unit,
+    val onSubmit: () -> Unit,
+    val onBack: () -> Unit,
+)
 
 @Composable
 fun OnboardingDetailScreen(
@@ -26,11 +33,12 @@ fun OnboardingDetailScreen(
 
     OnboardingDetailScreenContent(
         state = state,
-        action = OnboardingDetailScreenAction(
-            onPeriodChange = viewModel::onPeriodChange,
-            onSubmit = viewModel::onSubmit,
-            onBack = viewModel::onBack,
-        ),
+        action =
+            OnboardingDetailScreenAction(
+                onPeriodChange = viewModel::onPeriodChange,
+                onSubmit = viewModel::onSubmit,
+                onBack = viewModel::onBack,
+            ),
         modifier = modifier,
     )
 

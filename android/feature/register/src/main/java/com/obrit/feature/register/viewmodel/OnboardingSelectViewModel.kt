@@ -65,5 +65,7 @@ data class OnboardingSelectUiState(
 sealed interface OnboardingSelectSideEffect {
     data object OnBack : OnboardingSelectSideEffect
 
-    data class OnNext(val selectedIds: List<Long>) : OnboardingSelectSideEffect
+    data class OnNext(
+        val selectedIds: List<Long>,
+    ) : OnboardingSelectSideEffect
 }
