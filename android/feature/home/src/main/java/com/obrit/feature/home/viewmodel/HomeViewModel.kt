@@ -1,6 +1,5 @@
 package com.obrit.feature.home.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
@@ -21,35 +20,15 @@ class HomeViewModel internal constructor(
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
             val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
             val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
-            val bucketsDeferred =
-                vmAsync {
-                    Log.d(TAG, "getBuckets called")
-                    homeRepository.getBuckets()
-                }
-            val itemsDeferred =
-                vmAsync {
-                    Log.d(TAG, "getItems called: order=${HomeItemOrder.REPLACEMENT_URGENT}")
-                    homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT))
-                }
-            val usageItemsDeferred =
-                vmAsync {
-                    Log.d(TAG, "getItems called: order=${HomeItemOrder.USED_OLD}")
-                    homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD))
-                }
+            val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
+            val itemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT)) }
+            val usageItemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD)) }
 
             val overallStatus = overallStatusDeferred.await().getOrNull()
-            val myStatusSummaryResult = myStatusSummaryDeferred.await()
-            Log.d(TAG, "getMyStatusSummary response: $myStatusSummaryResult")
-            val myStatusSummary = myStatusSummaryResult.getOrNull()
-            val bucketsResult = bucketsDeferred.await()
-            Log.d(TAG, "getBuckets response: $bucketsResult")
-            val buckets = bucketsResult.getOrNull()
-            val itemsResult = itemsDeferred.await()
-            Log.d(TAG, "getItems response: $itemsResult")
-            val items = itemsResult.getOrNull()
-            val usageItemsResult = usageItemsDeferred.await()
-            Log.d(TAG, "getUsageItems response: $usageItemsResult")
-            val usageItems = usageItemsResult.getOrNull()
+            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
+            val buckets = bucketsDeferred.await().getOrNull()
+            val items = itemsDeferred.await().getOrNull()
+            val usageItems = usageItemsDeferred.await().getOrNull()
             val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null && usageItems != null
             if (!allLoaded) {
                 reduce { HomeUiState.LoadFailed }
@@ -92,18 +71,8 @@ class HomeViewModel internal constructor(
                 reduceOn<HomeUiState.Success> { state.copy(buckets = buckets) }
             }
             itemsDeferred.await().getOrNull()?.let { items ->
-                val ddayValues = items.content.map { parseDday(it.replacementDday) }
-                val spareValues = items.content.map { it.spareQuantity }
-                val newDdayRange = (ddayValues.minOrNull() ?: DEFAULT_DDAY_MIN)..(ddayValues.maxOrNull() ?: DEFAULT_DDAY_MAX)
-                val newSpareRange = (spareValues.minOrNull() ?: DEFAULT_SPARE_MIN)..(spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX)
                 reduceOn<HomeUiState.Success> {
-                    state.copy(
-                        items = items,
-                        ddayRange = newDdayRange,
-                        ddayFilterMax = if (isDdayFilterApplied) current.ddayFilterMax.coerceIn(newDdayRange) else newDdayRange.last,
-                        spareRange = newSpareRange,
-                        spareFilterMax = if (isSpareFilterApplied) current.spareFilterMax.coerceIn(newSpareRange) else newSpareRange.last,
-                    )
+                    state.withRefreshedItems(items, isDdayFilterApplied, isSpareFilterApplied)
                 }
             }
             usageItemsDeferred.await().getOrNull()?.let { usageItems ->
@@ -121,8 +90,7 @@ class HomeViewModel internal constructor(
                     dDay = if (current.ddayFilterMax < current.ddayRange.last) current.ddayFilterMax else null,
                     spareQuantity = if (current.spareFilterMax < current.spareRange.last) current.spareFilterMax else null,
                 )
-            Log.d(TAG, "getItems called: $params")
-            val items = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull()
+            val items = homeRepository.getItems(params).getOrNull()
             if (items != null) {
                 reduceOn<HomeUiState.Success> { state.copy(items = items) }
             }
@@ -138,8 +106,7 @@ class HomeViewModel internal constructor(
                     dDay = if (maxDays < current.ddayRange.last) maxDays else null,
                     spareQuantity = if (current.spareFilterMax < current.spareRange.last) current.spareFilterMax else null,
                 )
-            Log.d(TAG, "getItems called: $params")
-            val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+            val result = homeRepository.getItems(params).getOrNull() ?: return@intent
             reduceOn<HomeUiState.Success> { state.copy(items = result) }
         }
 
@@ -153,8 +120,7 @@ class HomeViewModel internal constructor(
                     dDay = if (current.ddayFilterMax < current.ddayRange.last) current.ddayFilterMax else null,
                     spareQuantity = if (maxSpare < current.spareRange.last) maxSpare else null,
                 )
-            Log.d(TAG, "getItems called: $params")
-            val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+            val result = homeRepository.getItems(params).getOrNull() ?: return@intent
             reduceOn<HomeUiState.Success> { state.copy(items = result) }
         }
 
@@ -170,8 +136,7 @@ class HomeViewModel internal constructor(
                 dDay = if (ddayMax < current.ddayRange.last) ddayMax else null,
                 spareQuantity = if (spareMax < current.spareRange.last) spareMax else null,
             )
-        Log.d(TAG, "getItems called: $params")
-        val result = homeRepository.getItems(params).also { Log.d(TAG, "getItems response: $it") }.getOrNull() ?: return@intent
+        val result = homeRepository.getItems(params).getOrNull() ?: return@intent
         reduceOn<HomeUiState.Success> { state.copy(items = result) }
     }
 
@@ -300,11 +265,28 @@ private fun createMockStatus() =
             ),
     )
 
-private const val TAG = "HomeViewModel"
 private const val DEFAULT_DDAY_MIN = 0
 private const val DEFAULT_DDAY_MAX = 30
 private const val DEFAULT_SPARE_MIN = 0
 private const val DEFAULT_SPARE_MAX = 10
+
+private fun HomeUiState.Success.withRefreshedItems(
+    items: HomeItemCursorSlice,
+    isDdayFilterApplied: Boolean,
+    isSpareFilterApplied: Boolean,
+): HomeUiState.Success {
+    val ddayValues = items.content.map { parseDday(it.replacementDday) }
+    val spareValues = items.content.map { it.spareQuantity }
+    val newDdayRange = (ddayValues.minOrNull() ?: DEFAULT_DDAY_MIN)..(ddayValues.maxOrNull() ?: DEFAULT_DDAY_MAX)
+    val newSpareRange = (spareValues.minOrNull() ?: DEFAULT_SPARE_MIN)..(spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX)
+    return copy(
+        items = items,
+        ddayRange = newDdayRange,
+        ddayFilterMax = if (isDdayFilterApplied) ddayFilterMax.coerceIn(newDdayRange) else newDdayRange.last,
+        spareRange = newSpareRange,
+        spareFilterMax = if (isSpareFilterApplied) spareFilterMax.coerceIn(newSpareRange) else newSpareRange.last,
+    )
+}
 
 private fun parseDday(replacementDday: String): Int =
     when {
