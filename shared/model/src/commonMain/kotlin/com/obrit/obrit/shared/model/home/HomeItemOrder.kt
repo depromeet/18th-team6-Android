@@ -4,4 +4,5 @@ enum class HomeItemOrder {
     REPLACEMENT_URGENT,
     SPARE_LOW,
     USED_OLD,
+    ITEM_NAME,
 }

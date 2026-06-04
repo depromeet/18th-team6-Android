@@ -316,5 +316,5 @@ private fun ConsumableListSortOrder.toHomeItemOrder(): HomeItemOrder? =
         ConsumableListSortOrder.REPLACE_IMMINENT -> HomeItemOrder.REPLACEMENT_URGENT
         ConsumableListSortOrder.LEAST_SPARE -> HomeItemOrder.SPARE_LOW
         ConsumableListSortOrder.OLDEST_REPLACEMENT -> HomeItemOrder.USED_OLD
-        ConsumableListSortOrder.ALPHABETICAL -> null
+        ConsumableListSortOrder.ALPHABETICAL -> HomeItemOrder.ITEM_NAME
     }
