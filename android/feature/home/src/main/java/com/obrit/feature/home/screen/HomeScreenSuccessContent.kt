@@ -242,7 +242,7 @@ private fun HomeContents(
             onMoreClick = onMoreClick,
             onItemClick = onItemClick,
         )
-        ItemUsageStatusSection(items = state.usageItems, onItemClick = onItemClick)
+        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
     }
 }
 
