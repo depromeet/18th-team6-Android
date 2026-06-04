@@ -82,29 +82,32 @@ class HomeViewModel internal constructor(
             val itemsDeferred = vmAsync { homeRepository.getItems(params) }
             val usageItemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD)) }
 
-            val overallStatus = overallStatusDeferred.await().getOrNull() ?: return@intent
-            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull() ?: return@intent
-            val buckets = bucketsDeferred.await().getOrNull() ?: return@intent
-            val items = itemsDeferred.await().getOrNull() ?: return@intent
-            val usageItems = usageItemsDeferred.await().getOrNull() ?: return@intent
-
-            val refreshed = createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, current.status)
-            reduceOn<HomeUiState.Success> {
-                refreshed.copy(
-                    listSortOrder = current.listSortOrder,
-                    ddayFilterMax =
-                        if (isDdayFilterApplied) {
-                            current.ddayFilterMax.coerceIn(refreshed.ddayRange)
-                        } else {
-                            refreshed.ddayRange.last
-                        },
-                    spareFilterMax =
-                        if (isSpareFilterApplied) {
-                            current.spareFilterMax.coerceIn(refreshed.spareRange)
-                        } else {
-                            refreshed.spareRange.last
-                        },
-                )
+            overallStatusDeferred.await().getOrNull()?.let { overallStatus ->
+                reduceOn<HomeUiState.Success> { state.copy(overallStatus = overallStatus) }
+            }
+            myStatusSummaryDeferred.await().getOrNull()?.let { myStatusSummary ->
+                reduceOn<HomeUiState.Success> { state.copy(myStatusSummary = myStatusSummary) }
+            }
+            bucketsDeferred.await().getOrNull()?.let { buckets ->
+                reduceOn<HomeUiState.Success> { state.copy(buckets = buckets) }
+            }
+            itemsDeferred.await().getOrNull()?.let { items ->
+                val ddayValues = items.content.map { parseDday(it.replacementDday) }
+                val spareValues = items.content.map { it.spareQuantity }
+                val newDdayRange = (ddayValues.minOrNull() ?: DEFAULT_DDAY_MIN)..(ddayValues.maxOrNull() ?: DEFAULT_DDAY_MAX)
+                val newSpareRange = (spareValues.minOrNull() ?: DEFAULT_SPARE_MIN)..(spareValues.maxOrNull() ?: DEFAULT_SPARE_MAX)
+                reduceOn<HomeUiState.Success> {
+                    state.copy(
+                        items = items,
+                        ddayRange = newDdayRange,
+                        ddayFilterMax = if (isDdayFilterApplied) current.ddayFilterMax.coerceIn(newDdayRange) else newDdayRange.last,
+                        spareRange = newSpareRange,
+                        spareFilterMax = if (isSpareFilterApplied) current.spareFilterMax.coerceIn(newSpareRange) else newSpareRange.last,
+                    )
+                }
+            }
+            usageItemsDeferred.await().getOrNull()?.let { usageItems ->
+                reduceOn<HomeUiState.Success> { state.copy(usageItems = usageItems.content) }
             }
         }
 
