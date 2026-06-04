@@ -9,7 +9,7 @@ import com.obrit.feature.home.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 
-internal data class ConsumableListScreenAction(
+internal data class ItemListScreenAction(
     val onBack: () -> Unit,
     val onSortOrderChange: (ConsumableListSortOrder) -> Unit,
     val onDdayFilterChange: (Int) -> Unit,
@@ -20,7 +20,7 @@ internal data class ConsumableListScreenAction(
 )
 
 @Composable
-fun ConsumableListScreen(
+fun ItemListScreen(
     onBack: () -> Unit,
     onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -29,7 +29,7 @@ fun ConsumableListScreen(
     val state by viewModel.collectAsState()
     val success = state as? HomeUiState.Success ?: return
 
-    ConsumableListScreenContent(
+    ItemListScreenContent(
         items = success.items.content,
         hasNext = success.items.hasNext,
         sortOrder = success.listSortOrder,
@@ -38,7 +38,7 @@ fun ConsumableListScreen(
         spareRange = success.spareRange,
         spareFilterMax = success.spareFilterMax,
         action =
-            ConsumableListScreenAction(
+            ItemListScreenAction(
                 onBack = onBack,
                 onSortOrderChange = viewModel::onListSortOrderChange,
                 onDdayFilterChange = viewModel::onDdayFilterChange,
