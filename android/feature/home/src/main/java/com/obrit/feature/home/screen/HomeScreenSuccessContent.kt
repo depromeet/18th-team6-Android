@@ -3,6 +3,7 @@ package com.obrit.feature.home.screen
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -222,56 +222,81 @@ private fun HomeContents(
         }
     }
     if (state.items.content.isEmpty()) {
-        val typography = LocalOBRitTypography.current
-        val colors = LocalOBRitColor.current
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
-            ) {
-                Text(
-                    text = "아직 등록된 소모품이 없어요.",
-                    style = typography.xl3.copy(fontWeight = FontWeight.Bold),
-                    color = colors.common00,
-                )
-                Text(
-                    text = "하단 + 버튼으로 소모품을 등록해보세요!",
-                    style = typography.base.copy(fontWeight = FontWeight.Medium),
-                    color = colors.gray300,
-                )
-            }
-        }
+        HomeContentsEmptyState()
     } else {
+        HomeContentsItemList(
+            state = state,
+            scrollState = scrollState,
+            onListSortOrderChange = onListSortOrderChange,
+            onMoreClick = onMoreClick,
+            onItemClick = onItemClick,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun HomeContentsEmptyState() {
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
         Column(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .verticalScroll(scrollState)
-                    .navigationBarsPadding()
-                    .padding(bottom = 80.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
-            ItemStatusSection(overallStatus = state.overallStatus)
-            val totalCount = state.myStatusSummary.totalCount.coerceAtLeast(1)
-            val negativeRatio = state.myStatusSummary.needReplaceCount.toFloat() / totalCount
-            ItemOrbitSection(
-                items = state.items.content.take(ORBIT_ITEMS_SIZE),
-                normalRatio = 1f - negativeRatio,
-                negativeRatio = negativeRatio,
+            Text(
+                text = "아직 등록된 소모품이 없어요.",
+                style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+                color = colors.common00,
             )
-            MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
-            QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
-            ItemListPreviewSection(
-                items = state.items.content,
-                sortOrder = state.listSortOrder,
-                onSortOrderChange = onListSortOrderChange,
-                onMoreClick = onMoreClick,
-                onItemClick = onItemClick,
+            Text(
+                text = "하단 + 버튼으로 소모품을 등록해보세요!",
+                style = typography.base.copy(fontWeight = FontWeight.Medium),
+                color = colors.gray300,
             )
-            ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
         }
+    }
+}
+
+@Suppress("LongParameterList")
+@Composable
+private fun HomeContentsItemList(
+    state: HomeUiState.Success,
+    scrollState: ScrollState,
+    onListSortOrderChange: (ConsumableListSortOrder) -> Unit,
+    onMoreClick: () -> Unit,
+    onItemClick: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val totalCount = state.myStatusSummary.totalCount.coerceAtLeast(1)
+    val negativeRatio = state.myStatusSummary.needReplaceCount.toFloat() / totalCount
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
+                .navigationBarsPadding()
+                .padding(bottom = 80.dp),
+    ) {
+        ItemStatusSection(overallStatus = state.overallStatus)
+        ItemOrbitSection(
+            items = state.items.content.take(ORBIT_ITEMS_SIZE),
+            normalRatio = 1f - negativeRatio,
+            negativeRatio = negativeRatio,
+        )
+        MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
+        QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
+        ItemListPreviewSection(
+            items = state.items.content,
+            sortOrder = state.listSortOrder,
+            onSortOrderChange = onListSortOrderChange,
+            onMoreClick = onMoreClick,
+            onItemClick = onItemClick,
+        )
+        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
     }
 }
 
