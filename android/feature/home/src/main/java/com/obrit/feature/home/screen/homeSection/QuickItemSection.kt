@@ -43,7 +43,14 @@ internal fun QuickItemSection(
 ) {
     if (buckets.isEmpty()) return
     val hasDangerItems = buckets.find { it.bucket == HomeBucketType.DANGER }?.items?.isNotEmpty() == true
-    var selectedType by remember { mutableStateOf(if (hasDangerItems) buckets.first().bucket else buckets.last().bucket) }
+    val hasWarningItems = buckets.find { it.bucket == HomeBucketType.WARNING }?.items?.isNotEmpty() == true
+    val defaultSelectedType =
+        when {
+            hasDangerItems -> HomeBucketType.DANGER
+            hasWarningItems -> HomeBucketType.WARNING
+            else -> buckets.firstOrNull { it.items.isNotEmpty() }?.bucket ?: buckets.first().bucket
+        }
+    var selectedType by remember { mutableStateOf(defaultSelectedType) }
     val selectedItems =
         remember(buckets, selectedType) {
             buckets.find { it.bucket == selectedType }?.items ?: emptyList()

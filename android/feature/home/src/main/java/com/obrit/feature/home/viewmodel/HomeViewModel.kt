@@ -67,12 +67,14 @@ class HomeViewModel internal constructor(
             myStatusSummaryDeferred.await().getOrNull()?.let { myStatusSummary ->
                 reduceOn<HomeUiState.Success> { state.copy(myStatusSummary = myStatusSummary) }
             }
-            bucketsDeferred.await().getOrNull()?.let { buckets ->
-                reduceOn<HomeUiState.Success> { state.copy(buckets = buckets) }
-            }
-            itemsDeferred.await().getOrNull()?.let { items ->
+            val buckets = bucketsDeferred.await().getOrNull()
+            val items = itemsDeferred.await().getOrNull()
+            if (buckets != null || items != null) {
                 reduceOn<HomeUiState.Success> {
-                    state.withRefreshedItems(items, isDdayFilterApplied, isSpareFilterApplied)
+                    var newState = state
+                    if (buckets != null) newState = newState.copy(buckets = buckets)
+                    if (items != null) newState = newState.withRefreshedItems(items, isDdayFilterApplied, isSpareFilterApplied)
+                    newState
                 }
             }
             usageItemsDeferred.await().getOrNull()?.let { usageItems ->
