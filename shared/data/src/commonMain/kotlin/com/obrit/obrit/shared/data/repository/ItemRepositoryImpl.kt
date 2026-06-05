@@ -32,12 +32,15 @@ internal class ItemRepositoryImpl(
 
     override suspend fun createItems(params: List<CreateItemParams>): Result<List<Item>> =
         runCatchingWith {
-            itemRemoteDataSource
-                .createItems(
-                    BulkCreateItemRequest(
-                        items = params.map { itemParams -> itemParams.toCreateItemRequest() },
-                    ),
-                ).map { response -> response.toItem() }
+            params
+                .chunked(BULK_CREATE_ITEMS_CHUNK_SIZE)
+                .flatMap { chunk ->
+                    itemRemoteDataSource.createItems(
+                        BulkCreateItemRequest(
+                            items = chunk.map { itemParams -> itemParams.toCreateItemRequest() },
+                        ),
+                    )
+                }.map { response -> response.toItem() }
         }
 
     override suspend fun patchItem(params: PatchItemParams): Result<Item> =
@@ -99,6 +102,8 @@ internal class ItemRepositoryImpl(
                 ).toItem()
         }
 }
+
+private const val BULK_CREATE_ITEMS_CHUNK_SIZE = 20
 
 private fun CreateItemParams.toCreateItemRequest() =
     CreateItemRequest(
