@@ -3,7 +3,6 @@ package com.obrit.feature.home.screen.homeSection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,13 +15,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
@@ -76,11 +78,14 @@ private fun UsageStatusItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
     ) {
-        Box(
+        AsyncImage(
+            model = item.iconUrl,
+            contentDescription = null,
             modifier =
                 Modifier
                     .size(AtomSpacing.S10.dp)
-                    .background(color = colors.gray700, shape = CircleShape),
+                    .clip(CircleShape)
+                    .background(color = colors.gray700),
         )
 
         Text(
@@ -88,6 +93,8 @@ private fun UsageStatusItem(
             style = typography.base.copy(fontWeight = FontWeight.Medium),
             color = colors.common00,
             modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
 
         DaysInUseText(daysInUse = item.daysInUse)

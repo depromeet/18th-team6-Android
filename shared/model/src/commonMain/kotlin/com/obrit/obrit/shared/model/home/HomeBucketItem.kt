@@ -5,6 +5,7 @@ import com.obrit.obrit.shared.model.ReplacementDate
 data class HomeBucketItem(
     val itemId: Long,
     val name: String,
+    val iconUrl: String,
     val spareQuantity: Int,
     val nextReplacementDate: ReplacementDate?,
     val status: HomeStatusLevel,
