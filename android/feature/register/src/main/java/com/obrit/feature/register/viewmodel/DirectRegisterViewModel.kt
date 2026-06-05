@@ -5,6 +5,7 @@ import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.categories.CategoryIcon
+import com.obrit.obrit.shared.model.categories.error.CreateCategoryError
 import org.orbitmvi.orbit.viewmodel.container
 
 class DirectRegisterViewModel(
@@ -28,7 +29,7 @@ class DirectRegisterViewModel(
 
     fun onNameChange(value: String) =
         intent {
-            reduce { state.copy(name = value) }
+            reduce { state.copy(name = value, isDuplicateName = false) }
         }
 
     fun onIconSelect(iconId: Long) =
@@ -47,8 +48,13 @@ class DirectRegisterViewModel(
                 .onSuccess { category ->
                     reduce { state.copy(isSubmitting = false) }
                     postSideEffect(DirectRegisterSideEffect.OnRegistered(category))
-                }.onFailure {
-                    reduce { state.copy(isSubmitting = false) }
+                }.onFailure { throwable ->
+                    reduce {
+                        state.copy(
+                            isSubmitting = false,
+                            isDuplicateName = throwable is CreateCategoryError.DuplicatedName,
+                        )
+                    }
                 }
         }
 
@@ -64,13 +70,15 @@ data class DirectRegisterUiState(
     val name: String = "",
     val selectedIconId: Long? = null,
     val isSubmitting: Boolean = false,
+    val isDuplicateName: Boolean = false,
 ) {
     val isSubmitEnabled: Boolean
         get() =
             name.isNotBlank() &&
                 name.length <= DIRECT_REGISTER_NAME_MAX_LENGTH &&
                 selectedIconId != null &&
-                !isSubmitting
+                !isSubmitting &&
+                !isDuplicateName
 }
 
 sealed interface DirectRegisterSideEffect {
