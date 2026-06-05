@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -42,6 +45,7 @@ import com.obrit.android.core.designsystem.component.gnb.OBRitGnb
 import com.obrit.android.core.designsystem.component.gnb.OBRitGnbTab
 import com.obrit.android.core.designsystem.component.topbar.OBRitHomeTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
+import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.feature.home.screen.homeSection.ItemListPreviewSection
 import com.obrit.feature.home.screen.homeSection.ItemOrbitSection
 import com.obrit.feature.home.screen.homeSection.ItemStatusSection
@@ -217,32 +221,57 @@ private fun HomeContents(
             currentOnLoadMoreItems()
         }
     }
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-                .navigationBarsPadding()
-                .padding(bottom = 80.dp),
-    ) {
-        ItemStatusSection(overallStatus = state.overallStatus)
-        val totalCount = state.myStatusSummary.totalCount.coerceAtLeast(1)
-        val negativeRatio = state.myStatusSummary.needReplaceCount.toFloat() / totalCount
-        ItemOrbitSection(
-            items = state.items.content.take(ORBIT_ITEMS_SIZE),
-            normalRatio = 1f - negativeRatio,
-            negativeRatio = negativeRatio,
-        )
-        MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
-        QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
-        ItemListPreviewSection(
-            items = state.items.content,
-            sortOrder = state.listSortOrder,
-            onSortOrderChange = onListSortOrderChange,
-            onMoreClick = onMoreClick,
-            onItemClick = onItemClick,
-        )
-        ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
+    if (state.items.content.isEmpty()) {
+        val typography = LocalOBRitTypography.current
+        val colors = LocalOBRitColor.current
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
+            ) {
+                Text(
+                    text = "아직 등록된 소모품이 없어요.",
+                    style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+                    color = colors.common00,
+                )
+                Text(
+                    text = "하단 + 버튼으로 소모품을 등록해보세요!",
+                    style = typography.base.copy(fontWeight = FontWeight.Medium),
+                    color = colors.gray300,
+                )
+            }
+        }
+    } else {
+        Column(
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .navigationBarsPadding()
+                    .padding(bottom = 80.dp),
+        ) {
+            ItemStatusSection(overallStatus = state.overallStatus)
+            val totalCount = state.myStatusSummary.totalCount.coerceAtLeast(1)
+            val negativeRatio = state.myStatusSummary.needReplaceCount.toFloat() / totalCount
+            ItemOrbitSection(
+                items = state.items.content.take(ORBIT_ITEMS_SIZE),
+                normalRatio = 1f - negativeRatio,
+                negativeRatio = negativeRatio,
+            )
+            MyStatusGraphSection(myStatusSummary = state.myStatusSummary)
+            QuickItemSection(buckets = state.buckets, onItemClick = onItemClick)
+            ItemListPreviewSection(
+                items = state.items.content,
+                sortOrder = state.listSortOrder,
+                onSortOrderChange = onListSortOrderChange,
+                onMoreClick = onMoreClick,
+                onItemClick = onItemClick,
+            )
+            ItemUsageStatusSection(items = state.items.content, onItemClick = onItemClick)
+        }
     }
 }
 
