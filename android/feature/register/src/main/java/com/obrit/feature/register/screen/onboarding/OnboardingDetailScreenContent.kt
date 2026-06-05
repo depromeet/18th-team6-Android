@@ -246,8 +246,8 @@ private const val ONBOARDING_DETAIL_TOTAL_STEP = 2
 
 private val ONBOARDING_DETAIL_ICON_SIZE = 28.dp
 private val ONBOARDING_DETAIL_ESSENTIAL_SIZE = AtomSpacing.S5.dp
-private val ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT = 20.dp
-private val ONBOARDING_DETAIL_CTA_BOTTOM_PADDING = 20.dp
+private val ONBOARDING_DETAIL_SCROLL_FADE_HEIGHT = 40.dp
+private val ONBOARDING_DETAIL_CTA_BOTTOM_PADDING = 40.dp
 
 @Suppress("LongMethod")
 @Preview(name = "OnboardingDetailScreen", showBackground = false)

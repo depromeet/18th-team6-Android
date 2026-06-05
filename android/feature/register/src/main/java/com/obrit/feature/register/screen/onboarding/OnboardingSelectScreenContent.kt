@@ -291,8 +291,8 @@ private const val ONBOARDING_SELECT_TOTAL_STEP = 2
 
 private val ONBOARDING_SELECT_IMAGE_SIZE = 52.dp
 private val ONBOARDING_SELECT_CHECKBOX_SIZE = AtomSpacing.S7.dp
-private val ONBOARDING_SELECT_SCROLL_FADE_HEIGHT = 20.dp
-private val ONBOARDING_SELECT_CTA_BOTTOM_PADDING = 20.dp
+private val ONBOARDING_SELECT_SCROLL_FADE_HEIGHT = 40.dp
+private val ONBOARDING_SELECT_CTA_BOTTOM_PADDING = 40.dp
 
 @Preview(name = "OnboardingSelectScreen", showBackground = false)
 @Composable
