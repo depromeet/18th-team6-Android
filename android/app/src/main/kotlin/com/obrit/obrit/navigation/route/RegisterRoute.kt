@@ -12,4 +12,7 @@ sealed interface RegisterRoute : Route {
 
     @Serializable
     data object RegisterComplete : RegisterRoute
+
+    @Serializable
+    data object ReceiptCamera : RegisterRoute
 }

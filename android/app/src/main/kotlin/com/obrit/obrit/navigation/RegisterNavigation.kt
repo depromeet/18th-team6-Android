@@ -14,6 +14,7 @@ import com.obrit.feature.register.screen.direct.DirectRegisterScreen
 import com.obrit.feature.register.screen.manual.ManualRegisterNavigation
 import com.obrit.feature.register.screen.manual.ManualRegisterScreen
 import com.obrit.feature.register.screen.manual.PendingCategory
+import com.obrit.feature.register.screen.receipt.ReceiptCameraScreen
 import com.obrit.obrit.navigation.route.RegisterRoute
 import com.obrit.obrit.shared.model.categories.Category
 
@@ -67,6 +68,13 @@ fun RegisterNavigation(
                 entry<RegisterRoute.RegisterComplete> {
                     RegisterCompleteScreen(
                         onExit = onExit,
+                        modifier = Modifier,
+                    )
+                }
+                // 좌상단 X → onExit으로 register 그래프를 pop 하여 홈으로 복귀한다.
+                entry<RegisterRoute.ReceiptCamera> {
+                    ReceiptCameraScreen(
+                        onClose = onExit,
                         modifier = Modifier,
                     )
                 }
