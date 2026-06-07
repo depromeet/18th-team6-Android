@@ -7,6 +7,7 @@ import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.ReplacementPeriod
+import com.obrit.obrit.shared.model.items.error.CreateItemError
 import org.orbitmvi.orbit.viewmodel.container
 
 class ManualRegisterViewModel(
@@ -43,7 +44,7 @@ class ManualRegisterViewModel(
 
     fun onNameChange(value: String) =
         intent {
-            reduce { state.copy(name = value) }
+            reduce { state.copy(name = value, isDuplicateName = false) }
         }
 
     fun onQuantityChange(value: Int) =
@@ -88,8 +89,13 @@ class ManualRegisterViewModel(
                     reduce { ManualRegisterUiState(categories = state.categories) }
                     postSideEffect(ManualRegisterSideEffect.OnRegistered)
                     loadCategories()
-                }.onFailure {
-                    reduce { state.copy(isSubmitting = false) }
+                }.onFailure { throwable ->
+                    reduce {
+                        state.copy(
+                            isSubmitting = false,
+                            isDuplicateName = throwable is CreateItemError.DuplicatedName,
+                        )
+                    }
                 }
         }
 
@@ -115,6 +121,7 @@ data class ManualRegisterUiState(
     val existingCount: Int = 0,
     val lastReplacementPeriod: ReplacementPeriod? = null,
     val isSubmitting: Boolean = false,
+    val isDuplicateName: Boolean = false,
 ) {
     val totalCount: Int
         get() = existingCount + quantity
@@ -125,7 +132,8 @@ data class ManualRegisterUiState(
                 name.isNotBlank() &&
                 lastReplacementPeriod != null &&
                 quantity > 0 &&
-                !isSubmitting
+                !isSubmitting &&
+                !isDuplicateName
 }
 
 sealed interface ManualRegisterSideEffect {
