@@ -88,7 +88,7 @@ internal fun ItemOrbitSection(
     val tilt = rememberGlassBallTilt()
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val ballDiameter = minOf(GlassBallOuterDiameter, maxWidth * 0.8f)
+        val ballDiameter = minOf(GlassBallOuterDiameter, maxWidth * BALL_ROW_WIDTH_RATIO)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
@@ -99,24 +99,13 @@ internal fun ItemOrbitSection(
                 color = Color(SemanticColors.Text.Positive.Default),
                 modifier = Modifier.weight(1f).padding(top = 68.dp),
             )
-            Box(
+            GlassBallBox(
+                items = items,
+                physicsState = physicsState,
+                iconOffsets = iconOffsets,
+                visualState = GlassBallVisualState(normalRatio = normalRatio, warningRatio = negativeRatio, tilt = tilt),
                 modifier = Modifier.size(ballDiameter),
-                contentAlignment = Alignment.Center,
-            ) {
-                GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
-                GlassBallGroundShadow()
-                GlassBallContent(
-                    items = items,
-                    state = physicsState,
-                    visualState =
-                        GlassBallVisualState(
-                            normalRatio = normalRatio,
-                            warningRatio = negativeRatio,
-                            tilt = tilt,
-                        ),
-                    iconOffsets = iconOffsets,
-                )
-            }
+            )
             GlassBallRatioLabel(
                 ratio = negativeRatio,
                 label = "경고",
@@ -280,6 +269,21 @@ private fun applyIconRepulsion(state: GlassBallPhysicsState) {
                 state.velY[j] += ny * impulse
             }
         }
+    }
+}
+
+@Composable
+private fun GlassBallBox(
+    items: List<HomeItemCard>,
+    physicsState: GlassBallPhysicsState,
+    iconOffsets: Array<MutableState<Offset>>,
+    visualState: GlassBallVisualState,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        GlassBallStatusRing(normalRatio = visualState.normalRatio, warningRatio = visualState.warningRatio)
+        GlassBallGroundShadow()
+        GlassBallContent(items = items, state = physicsState, visualState = visualState, iconOffsets = iconOffsets)
     }
 }
 
@@ -740,6 +744,8 @@ private val GlassBallSize = 200.dp
 
 // 상태 링과 그라운드 섀도를 포함하는 외곽 크기 (iOS: HomeOrbMetrics.outerDiameter = S40 + S16 = 224)
 private val GlassBallOuterDiameter = 224.dp
+
+private const val BALL_ROW_WIDTH_RATIO = 0.8f
 
 // 상태 링 선 굵기 (iOS: HomeOrbMetrics.ringLineWidth = S1_5 = 6)
 private val RingLineWidth = 6.dp
