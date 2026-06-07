@@ -182,7 +182,11 @@ private fun ManualRegisterFields(
         verticalArrangement = Arrangement.spacedBy(MANUAL_REGISTER_FIELD_GAP),
     ) {
         CategoryField(value = state.categoryName, onClick = fieldActions.onCategoryClick)
-        NameField(value = state.name, onValueChange = fieldActions.onNameChange)
+        NameField(
+            value = state.name,
+            isDuplicateName = state.isDuplicateName,
+            onValueChange = fieldActions.onNameChange,
+        )
         LastReplaceDateField(
             selected = state.lastReplacementPeriod,
             onChange = fieldActions.onLastReplacementPeriodChange,
