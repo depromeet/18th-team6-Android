@@ -11,7 +11,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -85,32 +87,43 @@ internal fun ItemOrbitSection(
     val (physicsState, iconOffsets) = rememberGlassBallPhysics(items.size)
     val tilt = rememberGlassBallTilt()
 
-    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
-        GlassBallGroundShadow()
-        GlassBallContent(
-            items = items,
-            state = physicsState,
-            visualState =
-                GlassBallVisualState(
-                    normalRatio = normalRatio,
-                    warningRatio = negativeRatio,
-                    tilt = tilt,
-                ),
-            iconOffsets = iconOffsets,
-        )
-        GlassBallRatioLabel(
-            ratio = normalRatio,
-            label = "양호",
-            color = Color(SemanticColors.Text.Positive.Default),
-            modifier = Modifier.align(Alignment.CenterStart).padding(start = 20.dp),
-        )
-        GlassBallRatioLabel(
-            ratio = negativeRatio,
-            label = "경고",
-            color = Color(SemanticColors.Text.Warning.Default),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 20.dp),
-        )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val ballDiameter = minOf(GlassBallOuterDiameter, maxWidth * 0.8f)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            GlassBallRatioLabel(
+                ratio = normalRatio,
+                label = "양호",
+                color = Color(SemanticColors.Text.Positive.Default),
+                modifier = Modifier.weight(1f).padding(top = 68.dp),
+            )
+            Box(
+                modifier = Modifier.size(ballDiameter),
+                contentAlignment = Alignment.Center,
+            ) {
+                GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
+                GlassBallGroundShadow()
+                GlassBallContent(
+                    items = items,
+                    state = physicsState,
+                    visualState =
+                        GlassBallVisualState(
+                            normalRatio = normalRatio,
+                            warningRatio = negativeRatio,
+                            tilt = tilt,
+                        ),
+                    iconOffsets = iconOffsets,
+                )
+            }
+            GlassBallRatioLabel(
+                ratio = negativeRatio,
+                label = "경고",
+                color = Color(SemanticColors.Text.Warning.Default),
+                modifier = Modifier.weight(1f).padding(top = 68.dp),
+            )
+        }
     }
 }
 
