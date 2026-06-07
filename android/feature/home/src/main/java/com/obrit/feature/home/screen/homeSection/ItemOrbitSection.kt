@@ -97,7 +97,7 @@ internal fun ItemOrbitSection(
                 ratio = normalRatio,
                 label = "양호",
                 color = Color(SemanticColors.Text.Positive.Default),
-                modifier = Modifier.weight(1f).padding(top = 68.dp),
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
             )
             GlassBallBox(
                 items = items,
@@ -110,7 +110,7 @@ internal fun ItemOrbitSection(
                 ratio = negativeRatio,
                 label = "경고",
                 color = Color(SemanticColors.Text.Warning.Default),
-                modifier = Modifier.weight(1f).padding(top = 68.dp),
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
             )
         }
     }
