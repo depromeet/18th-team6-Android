@@ -299,7 +299,7 @@ private struct SearchSuggestionListView: View {
                 } label: {
                     Text(highlightedKeyword(keyword))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .padding(.vertical, OBRitSpacing.s2)
                 }
                 .buttonStyle(.plain)
