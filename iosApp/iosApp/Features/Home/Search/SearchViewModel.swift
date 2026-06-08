@@ -180,7 +180,7 @@ final class SearchViewModel: ObservableObject {
         guard !normalizedQuery.isEmpty else { return [] }
         return sourceItems
             .map(\.title)
-            .filter { $0.range(of: normalizedQuery, options: [.caseInsensitive, .anchored]) != nil }
+            .filter { $0.range(of: normalizedQuery, options: [.caseInsensitive]) != nil }
             .uniqued()
     }
 

@@ -311,9 +311,8 @@ private struct SearchSuggestionListView: View {
 
     private func highlightedKeyword(_ keyword: String) -> AttributedString {
         var attributedKeyword = AttributedString(keyword)
-        let prefix = String(keyword.prefix(query.count))
 
-        if let range = attributedKeyword.range(of: prefix) {
+        if let range = attributedKeyword.range(of: query, options: [.caseInsensitive]) {
             attributedKeyword[range].foregroundColor = OBRitColors.green300
         }
 
