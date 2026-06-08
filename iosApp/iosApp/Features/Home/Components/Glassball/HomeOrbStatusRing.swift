@@ -57,20 +57,20 @@ enum HomeOrbStatusGradient {
             return solidStops(color: OBRitColors.backgroundWarningDefault)
         }
 
-        let warningArcHalf = mix.warningShareCGFloat / 2
+        let positiveArcHalf = mix.positiveShareCGFloat / 2
         let transitionArc = min(
             HomeOrbVisualConfig.statusRingTransitionArc,
-            warningArcHalf,
-            mix.positiveShareCGFloat / 2
+            positiveArcHalf,
+            mix.warningShareCGFloat / 2
         )
 
         return [
-            .init(color: OBRitColors.backgroundWarningDefault, location: 0),
-            .init(color: OBRitColors.backgroundWarningDefault, location: warningArcHalf - transitionArc),
-            .init(color: OBRitColors.backgroundPositiveDefault, location: warningArcHalf + transitionArc),
-            .init(color: OBRitColors.backgroundPositiveDefault, location: 1 - warningArcHalf - transitionArc),
-            .init(color: OBRitColors.backgroundWarningDefault, location: 1 - warningArcHalf + transitionArc),
-            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: positiveArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: positiveArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundWarningDefault, location: 1 - positiveArcHalf - transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 1 - positiveArcHalf + transitionArc),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 1)
         ]
     }
 
@@ -90,10 +90,10 @@ enum HomeOrbStatusGradient {
         )
 
         return [
-            .init(color: OBRitColors.backgroundPositiveDefault, location: 0),
-            .init(color: OBRitColors.backgroundPositiveDefault, location: max(0, mix.positiveShareCGFloat - transition)),
-            .init(color: OBRitColors.backgroundWarningDefault, location: min(1, mix.positiveShareCGFloat + transition)),
-            .init(color: OBRitColors.backgroundWarningDefault, location: 1)
+            .init(color: OBRitColors.backgroundWarningDefault, location: 0),
+            .init(color: OBRitColors.backgroundWarningDefault, location: max(0, mix.warningShareCGFloat - transition)),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: min(1, mix.warningShareCGFloat + transition)),
+            .init(color: OBRitColors.backgroundPositiveDefault, location: 1)
         ]
     }
 
