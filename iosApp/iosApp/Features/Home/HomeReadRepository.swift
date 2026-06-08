@@ -220,7 +220,7 @@ private enum SharedHomeReadMapper {
         let cardLevel = cardLevel(replacementDday: replacementDday, spareQuantity: Int(item.spareQuantity))
 
         return HomeItemItem(
-            id: Int(item.id),
+            id: Int(clamping: item.itemId),
             title: item.name,
             daysInUse: Int(item.daysInUse),
             stockCount: Int(item.spareQuantity),
@@ -237,7 +237,7 @@ private enum SharedHomeReadMapper {
         let replacementDday = ddayValue(from: item.replacementDday)
 
         return HomeListTabItem(
-            id: Int(item.id),
+            id: Int(clamping: item.itemId),
             title: item.name,
             daysInUse: Int(item.daysInUse),
             stockCount: Int(item.spareQuantity),
