@@ -94,9 +94,9 @@ internal fun ItemOrbitSection(
             verticalAlignment = Alignment.Top,
         ) {
             GlassBallRatioLabel(
-                ratio = normalRatio,
-                label = "양호",
-                color = Color(SemanticColors.Text.Positive.Default),
+                ratio = negativeRatio,
+                label = "경고",
+                color = Color(SemanticColors.Text.Warning.Default),
                 modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
             )
             GlassBallBox(
@@ -107,9 +107,9 @@ internal fun ItemOrbitSection(
                 modifier = Modifier.size(ballDiameter),
             )
             GlassBallRatioLabel(
-                ratio = negativeRatio,
-                label = "경고",
-                color = Color(SemanticColors.Text.Warning.Default),
+                ratio = normalRatio,
+                label = "양호",
+                color = Color(SemanticColors.Text.Positive.Default),
                 modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
             )
         }
