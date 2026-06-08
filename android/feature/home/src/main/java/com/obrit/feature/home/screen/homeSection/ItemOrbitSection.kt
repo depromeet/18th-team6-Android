@@ -676,14 +676,14 @@ private fun buildRingBrush(
         positiveShare <= 0f -> SolidColor(GlassBallWarningColor)
         else -> {
             val transitionArc = minOf(STATUS_RING_TRANSITION_ARC, warningShare / 2f, positiveShare / 2f)
-            val warningArcHalf = warningShare / 2f
+            val positiveArcHalf = positiveShare / 2f
             Brush.sweepGradient(
-                0f to GlassBallWarningColor,
-                (warningArcHalf - transitionArc) to GlassBallWarningColor,
-                (warningArcHalf + transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf - transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf + transitionArc) to GlassBallWarningColor,
-                1f to GlassBallWarningColor,
+                0f to GlassBallPositiveColor,
+                (positiveArcHalf - transitionArc) to GlassBallPositiveColor,
+                (positiveArcHalf + transitionArc) to GlassBallWarningColor,
+                (1f - positiveArcHalf - transitionArc) to GlassBallWarningColor,
+                (1f - positiveArcHalf + transitionArc) to GlassBallPositiveColor,
+                1f to GlassBallPositiveColor,
             )
         }
     }
