@@ -2,6 +2,7 @@
 
 package com.obrit.feature.home.screen.homeSection
 
+import android.graphics.BlurMaskFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -31,6 +32,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -878,6 +880,10 @@ private val MassFactorCycle = floatArrayOf(0.7f, 1.0f, 1.4f, 0.9f)
 
 private val ORBIT_ICON_SIZE = AtomSpacing.S24.dp
 
+private const val LABEL_GLOW_ALPHA = 0.1f
+private const val LABEL_GLOW_BLUR_DP = 96f
+private const val LABEL_GLOW_RADIUS_DP = 145f
+
 // 텍스처 그래디언트 마스크 stop 위치 (iOS: HomeOrbGlassMetrics.textureMaskStops)
 private const val TEXTURE_MASK_STOP_1 = 0.38f
 private const val TEXTURE_MASK_STOP_2 = 0.68f
@@ -892,11 +898,31 @@ private fun GlassBallRatioLabel(
     ratio: Float,
     label: String,
     color: Color,
-    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
 ) {
     val typography = LocalOBRitTypography.current
-    Column(modifier = modifier, horizontalAlignment = horizontalAlignment) {
+    Column(
+        modifier =
+            modifier.drawBehind {
+                val centerX = size.width / 2f
+                val centerY = size.height / 2f
+                val radius = LABEL_GLOW_RADIUS_DP.dp.toPx()
+                val blurRadius = LABEL_GLOW_BLUR_DP.dp.toPx()
+                drawIntoCanvas { canvas ->
+                    val paint =
+                        Paint().apply {
+                            asFrameworkPaint().apply {
+                                isAntiAlias = true
+                                this.color = color.copy(alpha = LABEL_GLOW_ALPHA).toArgb()
+                                maskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
+                            }
+                        }
+                    canvas.drawCircle(Offset(centerX, centerY), radius, paint)
+                }
+            },
+        horizontalAlignment = horizontalAlignment,
+    ) {
         Text(
             text = "${(ratio * 100).roundToInt()}%",
             style = typography.xl3.copy(fontWeight = FontWeight.Bold),
