@@ -97,7 +97,8 @@ internal fun ItemOrbitSection(
                 ratio = negativeRatio,
                 label = "경고",
                 color = Color(SemanticColors.Text.Warning.Default),
-                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, end = AtomSpacing.S2.dp),
             )
             GlassBallBox(
                 items = items,
@@ -109,8 +110,9 @@ internal fun ItemOrbitSection(
             GlassBallRatioLabel(
                 ratio = normalRatio,
                 label = "양호",
+                horizontalAlignment = Alignment.Start,
                 color = Color(SemanticColors.Text.Positive.Default),
-                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp),
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, start = AtomSpacing.S2.dp),
             )
         }
     }
@@ -890,10 +892,11 @@ private fun GlassBallRatioLabel(
     ratio: Float,
     label: String,
     color: Color,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     modifier: Modifier = Modifier,
 ) {
     val typography = LocalOBRitTypography.current
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier, horizontalAlignment = horizontalAlignment) {
         Text(
             text = "${(ratio * 100).roundToInt()}%",
             style = typography.xl3.copy(fontWeight = FontWeight.Bold),
