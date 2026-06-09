@@ -18,7 +18,7 @@ struct HomeTodayStatusSection: View {
                         .obritTextStyle(OBRitTypography.s5xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                     Text(summary.status)
                         .obritTextStyle(OBRitTypography.s5xl, weight: OBRitFontWeight.bold, color: statusColor)
-                    Text("예요")
+                    Text(statusSuffix)
                         .obritTextStyle(OBRitTypography.s5xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 }
                 .lineLimit(1)
@@ -39,6 +39,10 @@ struct HomeTodayStatusSection: View {
 
     private var statusColor: Color {
         summary.status == "완벽" || summary.status == "양호" ? OBRitColors.textPositiveDefault : OBRitColors.textWarningDefault
+    }
+
+    private var statusSuffix: String {
+        summary.status == "완벽" || summary.status == "양호" ? "해요" : "예요"
     }
 }
 

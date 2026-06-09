@@ -37,9 +37,10 @@ enum HomeOrbShaderSource {
         vec4 color = SKDefaultShading();
         vec2 centered = v_tex_coord - vec2(0.5, 0.5);
         float spriteEdge = smoothstep(0.30, 0.78, length(centered));
-        float warningMix = smoothstep(
-            max(0.0, u_positiveShare - u_transitionWidth),
-            min(1.0, u_positiveShare + u_transitionWidth),
+        float warningShare = 1.0 - u_positiveShare;
+        float warningMix = 1.0 - smoothstep(
+            max(0.0, warningShare - u_transitionWidth),
+            min(1.0, warningShare + u_transitionWidth),
             u_orbProgressX
         );
         warningMix = mix(warningMix, 0.0, step(0.999, u_positiveShare));

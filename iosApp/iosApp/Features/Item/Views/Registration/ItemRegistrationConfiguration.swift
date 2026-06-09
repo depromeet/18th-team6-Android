@@ -57,7 +57,7 @@ enum ItemRegistrationLayout {
 enum ItemRegistrationConfig {
     static let itemNameMaxLength = 15
     static let kindNameMaxLength = 15
-    static let quantityMinimum = 0
+    static let quantityMinimum = 1
     static let defaultQuantity = 1
     static let quantityMaximum = 99
     static let emptyIDBase = 0

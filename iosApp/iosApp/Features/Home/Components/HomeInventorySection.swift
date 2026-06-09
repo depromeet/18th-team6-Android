@@ -41,9 +41,9 @@ private struct HomeOrbOverview: View {
 
             HStack(alignment: .center, spacing: OBRitSpacing.s2) {
                 HomeRatioLabel(
-                    value: summary.positiveRatio,
-                    label: "양호",
-                    color: OBRitColors.textPositiveDefault,
+                    value: summary.warningRatio,
+                    label: "경고",
+                    color: OBRitColors.textWarningDefault,
                     alignment: .trailing,
                     orbScale: orbScale
                 )
@@ -59,9 +59,9 @@ private struct HomeOrbOverview: View {
                 .frame(width: orbSize, height: orbSize)
 
                 HomeRatioLabel(
-                    value: summary.warningRatio,
-                    label: "경고",
-                    color: OBRitColors.textWarningDefault,
+                    value: summary.positiveRatio,
+                    label: "양호",
+                    color: OBRitColors.textPositiveDefault,
                     alignment: .leading,
                     orbScale: orbScale
                 )
