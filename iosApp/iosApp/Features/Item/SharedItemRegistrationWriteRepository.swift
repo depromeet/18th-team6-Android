@@ -33,6 +33,10 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
     }
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
+        guard request.quantity >= ItemRegistrationConfig.quantityMinimum else {
+            throw SharedItemRegistrationWriteRepositoryError.invalidQuantity
+        }
+
         let event = "SharedItemRegistrationWriteRepository.createItem"
         let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
         AppLog.enter(AppLog.swiftRepository, event, details)
@@ -49,5 +53,13 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw error
         }
+    }
+}
+
+private enum SharedItemRegistrationWriteRepositoryError: LocalizedError {
+    case invalidQuantity
+
+    var errorDescription: String? {
+        "등록할 수량은 \(ItemRegistrationConfig.quantityMinimum)개 이상이어야 해요."
     }
 }

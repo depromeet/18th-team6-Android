@@ -33,7 +33,7 @@ class SharedWriteService(
         ) {
             repositoryProvider
                 .itemRepository()
-                .createItem(params = params)
+                .createItem(params = params.validatedForCreate())
                 .getOrThrow()
         }
 
@@ -146,4 +146,10 @@ class SharedWriteService(
     private companion object {
         const val LOG_SCOPE = "SharedWriteService"
     }
+}
+
+private fun CreateItemParams.validatedForCreate(): CreateItemParams {
+    val quantity = spareQuantity ?: return this
+    require(quantity > 0) { "spareQuantity must be greater than 0." }
+    return this
 }
