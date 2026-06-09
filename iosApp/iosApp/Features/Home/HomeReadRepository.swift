@@ -313,9 +313,6 @@ private enum SharedHomeReadMapper {
     }
 
     static func homeItem(_ item: HomeItemCard) -> HomeItemItem {
-        let replacementDday = ddayValue(from: item.replacementDday)
-        let cardLevel = cardLevel(replacementDday: replacementDday, spareQuantity: Int(item.spareQuantity))
-
         return HomeItemItem(
             id: Int(clamping: item.itemId),
             title: item.name,
@@ -324,7 +321,7 @@ private enum SharedHomeReadMapper {
             dDayLabel: item.replacementDday,
             replaceLabel: "교체 \(item.replacementDday)",
             sparesLabel: "여분 \(item.spareQuantity)개",
-            cardLevel: cardLevel,
+            cardLevel: cardLevel(itemBucket: item.itemBucket),
             imageColor: Color.clear,
             orbAssetName: OBRitSharedAssetMapper.homeOrbAssetName(for: item.name)
         )
@@ -340,7 +337,7 @@ private enum SharedHomeReadMapper {
             stockCount: Int(item.spareQuantity),
             replacementDday: replacementDday,
             lastReplacementOrder: Int(item.daysInUse),
-            cardLevel: cardLevel(replacementDday: replacementDday, spareQuantity: Int(item.spareQuantity)),
+            cardLevel: cardLevel(itemBucket: item.itemBucket),
             assetName: OBRitSharedAssetMapper.itemAssetName(for: item.name)
         )
     }
@@ -361,24 +358,24 @@ private enum SharedHomeReadMapper {
         return Int(label.filter { $0.isNumber || $0 == "-" }) ?? 0
     }
 
-    private static func cardLevel(replacementDday: Int, spareQuantity: Int) -> OBRitCardLevel {
-        if replacementDday <= 0 || spareQuantity <= 0 {
+    private static func cardLevel(itemBucket: ItemBucket) -> OBRitCardLevel {
+        if itemBucket == .noneOverdue {
             return .l1
         }
 
-        if replacementDday <= 3 {
+        if itemBucket == .noneWarn {
             return .l2
         }
 
-        if replacementDday <= 7 {
+        if itemBucket == .hasOverdue {
             return .l3
         }
 
-        if replacementDday <= 14 {
+        if itemBucket == .hasWarn {
             return .l4
         }
 
-        if replacementDday <= 30 {
+        if itemBucket == .noneSafe {
             return .l5
         }
 
