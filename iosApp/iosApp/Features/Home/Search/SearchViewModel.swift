@@ -5,6 +5,7 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var state: SearchViewState
 
     private let repository: HomeListTabRepository?
+    private let recentKeywordStore: SearchRecentKeywordStore?
     private var sourceItems: [HomeListTabItem]
     private var query = ""
     private var recentKeywords: [String]
@@ -28,19 +29,23 @@ final class SearchViewModel: ObservableObject {
 
     init(
         sourceItems: [HomeListTabItem] = HomeListTabSampleData.items,
-        recentKeywords: [String] = ["샤워기", "수세미", "정수기 필터", "수건"]
+        recentKeywords: [String] = ["샤워기", "수세미", "정수기 필터", "수건"],
+        recentKeywordStore: SearchRecentKeywordStore? = nil
     ) {
+        let initialRecentKeywords = recentKeywordStore?.loadKeywords().normalizedRecentKeywords() ??
+            recentKeywords.normalizedRecentKeywords()
         self.repository = nil
+        self.recentKeywordStore = recentKeywordStore
         self.sourceItems = sourceItems.uniqueByTitle()
-        self.recentKeywords = recentKeywords
+        self.recentKeywords = initialRecentKeywords
         self.automaticallyLoads = false
         self.state = .success(
             SearchViewData(
                 query: "",
-                recentKeywords: recentKeywords,
+                recentKeywords: initialRecentKeywords,
                 suggestedKeywords: [],
                 results: [],
-                displayMode: recentKeywords.isEmpty ? .emptyRecent : .recentKeywords
+                displayMode: initialRecentKeywords.isEmpty ? .emptyRecent : .recentKeywords
             )
         )
         publish()
@@ -49,19 +54,23 @@ final class SearchViewModel: ObservableObject {
     init(
         repository: HomeListTabRepository,
         recentKeywords: [String] = [],
+        recentKeywordStore: SearchRecentKeywordStore? = nil,
         automaticallyLoads: Bool = true
     ) {
+        let initialRecentKeywords = recentKeywordStore?.loadKeywords().normalizedRecentKeywords() ??
+            recentKeywords.normalizedRecentKeywords()
         self.repository = repository
+        self.recentKeywordStore = recentKeywordStore
         self.sourceItems = []
-        self.recentKeywords = recentKeywords
+        self.recentKeywords = initialRecentKeywords
         self.automaticallyLoads = automaticallyLoads
         self.state = automaticallyLoads ? .loading : .success(
             SearchViewData(
                 query: "",
-                recentKeywords: recentKeywords,
+                recentKeywords: initialRecentKeywords,
                 suggestedKeywords: [],
                 results: [],
-                displayMode: recentKeywords.isEmpty ? .emptyRecent : .recentKeywords
+                displayMode: initialRecentKeywords.isEmpty ? .emptyRecent : .recentKeywords
             )
         )
     }
@@ -111,11 +120,13 @@ final class SearchViewModel: ObservableObject {
     func selectKeyword(_ keyword: String) {
         query = keyword
         recentKeywords.moveToFront(keyword)
+        persistRecentKeywords()
         publish(forceResults: true)
     }
 
     func removeRecentKeyword(_ keyword: String) {
         recentKeywords.removeAll { $0 == keyword }
+        persistRecentKeywords()
         publish()
     }
 
@@ -123,7 +134,12 @@ final class SearchViewModel: ObservableObject {
         let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedQuery.isEmpty else { return }
         recentKeywords.moveToFront(normalizedQuery)
+        persistRecentKeywords()
         publish(forceResults: true)
+    }
+
+    private func persistRecentKeywords() {
+        recentKeywordStore?.saveKeywords(recentKeywords)
     }
 
     private func publish(forceResults: Bool = false) {
@@ -308,6 +324,18 @@ private extension Array where Element == String {
     func uniqued() -> [String] {
         var seen = Set<String>()
         return filter { seen.insert($0).inserted }
+    }
+
+    func normalizedRecentKeywords() -> [String] {
+        var normalizedKeywords: [String] = []
+
+        for keyword in self {
+            let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedKeyword.isEmpty, !normalizedKeywords.contains(trimmedKeyword) else { continue }
+            normalizedKeywords.append(trimmedKeyword)
+        }
+
+        return normalizedKeywords
     }
 }
 
