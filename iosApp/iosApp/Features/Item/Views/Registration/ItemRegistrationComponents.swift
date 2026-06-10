@@ -68,7 +68,10 @@ struct ItemKindPickerField: View {
     let onClick: () -> Void
 
     var body: some View {
-        Button(action: onClick) {
+        Button {
+            dismissKeyboard()
+            onClick()
+        } label: {
             HStack(spacing: OBRitSpacing.s2) {
                 Text(value.isEmpty ? placeholder : value)
                     .lineLimit(ItemRegistrationLayout.singleLineLimit)
