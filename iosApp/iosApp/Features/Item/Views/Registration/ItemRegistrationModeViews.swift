@@ -14,8 +14,7 @@ struct ItemRegistrationFormView: View {
                 OBRitDepthTopBar(
                     title: "소모품 등록",
                     backgroundColor: false,
-                    onBackClick: action.onBack,
-                    onMoreClick: action.onClose
+                    onBackClick: action.onBack
                 )
 
                 ScrollView(showsIndicators: false) {
@@ -88,6 +87,7 @@ struct ItemRegistrationFormView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
             .background(OBRitColors.backgroundDefaultDefault)
+            .dismissKeyboardOnBackgroundTap()
         }
     }
 }
@@ -104,8 +104,7 @@ struct ItemDirectKindRegistrationView: View {
                 OBRitDepthTopBar(
                     title: "소모품 직접 등록",
                     backgroundColor: false,
-                    onBackClick: action.onBack,
-                    onMoreClick: action.onClose
+                    onBackClick: action.onBack
                 )
 
                 ScrollView(showsIndicators: false) {
@@ -163,6 +162,7 @@ struct ItemDirectKindRegistrationView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
             .background(OBRitColors.backgroundDefaultDefault)
+            .dismissKeyboardOnBackgroundTap()
         }
     }
 }
