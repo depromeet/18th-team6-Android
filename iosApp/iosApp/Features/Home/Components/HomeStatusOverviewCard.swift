@@ -1,12 +1,12 @@
 import SwiftUI
 
 private enum HomeStatusOverviewLayoutMetrics {
-    static let minimumCardHeight: CGFloat = 96 // 내 상태 현황 카드 최소 높이
-    static let cardPadding = OBRitSpacing.s6
+    static let cardHorizontalPadding = OBRitSpacing.s4
+    static let cardVerticalPadding = OBRitSpacing.s3 + OBRitSpacing.s0_5
     static let contentSpacing = OBRitSpacing.s6
     static let metricValueSpacing = OBRitSpacing.s4
     static var meterHeight: CGFloat {
-        max(markerOverlayHeight, minimumCardHeight - cardPadding * 2)
+        markerOverlayHeight
     }
     static let meterBarHeight: CGFloat = 18
     static let meterDividerWidth = OBRitSpacing.s1
@@ -38,8 +38,9 @@ struct HomeStatusOverviewCard: View {
                 .frame(height: HomeStatusOverviewLayoutMetrics.meterHeight)
                 .layoutPriority(1)
         }
-        .padding(HomeStatusOverviewLayoutMetrics.cardPadding)
-        .frame(maxWidth: .infinity, minHeight: HomeStatusOverviewLayoutMetrics.minimumCardHeight)
+        .padding(.horizontal, HomeStatusOverviewLayoutMetrics.cardHorizontalPadding)
+        .padding(.vertical, HomeStatusOverviewLayoutMetrics.cardVerticalPadding)
+        .frame(maxWidth: .infinity)
         .background(OBRitColors.common1000)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
         .accessibilityElement(children: .contain)
