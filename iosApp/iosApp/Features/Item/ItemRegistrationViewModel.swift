@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 @MainActor
 final class ItemRegistrationViewModel: ObservableObject {
@@ -404,6 +405,14 @@ enum ItemRegistrationViewEffect: Equatable {
 
 private extension Error {
     var itemRegistrationMessage: String {
+        if self is CreateItemError.DuplicatedName {
+            return "이미 사용중인 이름이에요."
+        }
+
+        if self is CreateCategoryError.DuplicatedName {
+            return "이미 등록된 소모품이에요."
+        }
+
         if let localizedError = self as? LocalizedError,
            let description = localizedError.errorDescription {
             return description
