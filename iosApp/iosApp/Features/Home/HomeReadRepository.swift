@@ -415,15 +415,23 @@ private enum SharedHomeReadMapper {
             return 0
         }
 
-        if label.hasPrefix("D+"), let days = Int(label.dropFirst(2)) {
+        if let days = days(after: "D+", in: label) {
             return -days
         }
 
-        if label.hasPrefix("D-"), let days = Int(label.dropFirst(2)) {
+        if let days = days(after: "D-", in: label) {
             return days
         }
 
         return Int(label.filter { $0.isNumber || $0 == "-" }) ?? 0
+    }
+
+    private static func days(after marker: String, in label: String) -> Int? {
+        guard let range = label.range(of: marker, options: .caseInsensitive) else { return nil }
+        let digits = label[range.upperBound...].prefix { character in
+            character.isNumber
+        }
+        return Int(digits)
     }
 
     private static func cardLevel(itemBucket: ItemBucket) -> OBRitCardLevel {
