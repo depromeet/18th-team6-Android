@@ -65,7 +65,7 @@ struct ItemDetailStockManagementSheet: View {
             }
         }
         .onAppear {
-            quantityInput = "\(quantity)"
+            beginInitialQuantityEditing()
         }
         .onChange(of: quantity) { _, newValue in
             guard !isQuantityEditing else { return }
@@ -155,7 +155,19 @@ struct ItemDetailStockManagementSheet: View {
     private func beginQuantityEditing() {
         quantityInput = "\(quantity)"
         isQuantityEditing = true
+        focusQuantityField()
+    }
+
+    private func beginInitialQuantityEditing() {
+        quantity = initialQuantity
+        quantityInput = "\(initialQuantity)"
+        isQuantityEditing = true
+        focusQuantityField()
+    }
+
+    private func focusQuantityField() {
         Task { @MainActor in
+            await Task.yield()
             isQuantityFocused = true
         }
     }
@@ -172,7 +184,7 @@ struct ItemDetailStockManagementSheet: View {
     private func updateQuantityInput(_ newValue: String) {
         let digits = newValue.filter(\.isNumber)
         let maximumDigitCount = "\(ItemDetailConfig.maximumSpareQuantity)".count
-        let clippedDigits = String(digits.prefix(maximumDigitCount))
+        let clippedDigits = String(digits.prefix(maximumDigitCount + 1))
 
         guard let value = Int(clippedDigits) else {
             quantityInput = ""
