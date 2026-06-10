@@ -51,7 +51,7 @@ private struct HomeListTabShellView: View {
 
                 HomeListPinnedTopOverlay(
                     safeAreaTop: geometry.safeAreaInsets.top,
-                    viewData: viewData?.items.isEmpty == false ? viewData : nil,
+                    viewData: viewData?.showsFilterBar == true ? viewData : nil,
                     action: action
                 )
 
@@ -118,8 +118,14 @@ private struct HomeListTabShellView: View {
 
     private func topContentInset(safeAreaTop: CGFloat, viewData: HomeListTabViewData?) -> CGFloat {
         let topBarHeight = safeAreaTop + OBRitSpacing.s14
-        guard let viewData, !viewData.items.isEmpty else { return topBarHeight }
+        guard let viewData, viewData.showsFilterBar else { return topBarHeight }
         return topBarHeight + HomeListTabMetrics.filterBarHeight
+    }
+}
+
+private extension HomeListTabViewData {
+    var showsFilterBar: Bool {
+        !items.isEmpty || !filters.isEmpty
     }
 }
 
@@ -206,7 +212,11 @@ private struct HomeListScrollableContent: View {
 
     var body: some View {
         if viewData.items.isEmpty {
-            HomeListEmptyState(topContentInset: topContentInset)
+            HomeListEmptyState(
+                title: viewData.filters.isEmpty ? "아직 등록된 소모품이 없어요" : "해당하는 물품이 없습니다",
+                subtitle: viewData.filters.isEmpty ? "가지고 계신 소모품을 등록하고 관리해 보세요" : nil,
+                topContentInset: topContentInset
+            )
         } else {
             ScrollView(showsIndicators: false) {
                 GeometryReader { proxy in
@@ -393,14 +403,18 @@ private struct HomeListToolbarChip: View {
 }
 
 private struct HomeListEmptyState: View {
+    let title: String
+    let subtitle: String?
     let topContentInset: CGFloat
 
     var body: some View {
         VStack(spacing: OBRitSpacing.s2) {
-            Text("아직 등록된 소모품이 없어요")
+            Text(title)
                 .obritTextStyle(OBRitTypography.s3xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-            Text("가지고 계신 소모품을 등록하고 관리해 보세요")
-                .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray300.opacity(0.64))
+            if let subtitle {
+                Text(subtitle)
+                    .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray300.opacity(0.64))
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, topContentInset + OBRitSpacing.s24)

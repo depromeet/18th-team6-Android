@@ -152,6 +152,7 @@ final class HomeListTabViewModel: ObservableObject {
             nextCursor = page.nextCursor
             hasNext = page.hasNext
             isLoadingMore = false
+            isFilterBarVisible = true
             publish()
             AppLog.success(
                 AppLog.homeListTabViewModel,

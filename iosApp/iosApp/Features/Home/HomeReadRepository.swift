@@ -110,7 +110,7 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
                 totalItemCount: filteredItems.count,
                 nextCursor: nil,
                 hasNext: false,
-                filterBounds: filteredItems.filterBounds
+                filterBounds: sourceItems.filterBounds
             )
         }
 
@@ -123,7 +123,7 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
             totalItemCount: filteredItems.count,
             nextCursor: nextCursor,
             hasNext: nextCursor != nil,
-            filterBounds: filteredItems.filterBounds
+            filterBounds: sourceItems.filterBounds
         )
     }
 }
@@ -131,7 +131,7 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
 actor SharedHomeListTabRepository: HomeListTabRepository {
     private let readService: SharedReadService
     private let metadataPageSize: Int32
-    private var cachedMetadata: HomeListTabMetadata?
+    private var cachedMetadata: [HomeListTabMetadata] = []
 
     init(readService: SharedReadService, metadataPageSize: Int32 = 100) {
         self.readService = readService
@@ -143,11 +143,36 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
         let details = "cursor=\(String(describing: request.cursor)) size=\(request.size) sort=\(request.sortOption)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
+            if !request.filters.isEmpty {
+                let allItems = try await metadataItems(
+                    for: HomeListTabPageRequest(
+                        filters: .empty,
+                        sortOption: request.sortOption,
+                        cursor: nil,
+                        size: Int(metadataPageSize)
+                    ),
+                    firstSlice: nil
+                )
+                let filteredItems =
+                    allItems
+                        .filtered(by: request.filters)
+                        .sorted { lhs, rhs in
+                            request.sortOption.sortsInAscendingOrder(lhs, rhs)
+                        }
+                let page = filteredItems.page(cursor: request.cursor, size: request.size, filterBounds: allItems.filterBounds)
+                AppLog.success(
+                    AppLog.swiftRepository,
+                    event,
+                    "\(details) items=\(page.items.count) total=\(filteredItems.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                )
+                return page
+            }
+
             let slice = try await readService.getHomeItems(
                 params: HomeItemsParams(
                     order: request.sortOption.homeItemOrder,
-                    dDay: request.filters.maxReplacementDday.kotlinInt,
-                    spareQuantity: request.filters.maxStockCount.kotlinInt,
+                    dDay: nil,
+                    spareQuantity: nil,
                     cursor: request.cursor.kotlinLong,
                     size: KotlinInt(int: Int32(request.size))
                 )
@@ -183,17 +208,22 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
         for request: HomeListTabPageRequest,
         firstSlice: HomeItemCursorSlice?
     ) async throws -> [HomeListTabItem] {
-        if let cachedMetadata,
-           request.cursor != nil,
-           cachedMetadata.matches(filters: request.filters, sortOption: request.sortOption) {
+        if let cachedMetadata = cachedMetadata.first(where: {
+            $0.matches(filters: request.filters, sortOption: request.sortOption)
+        }) {
             return cachedMetadata.items
         }
 
         let items = try await loadMetadataItems(for: request, firstSlice: firstSlice)
-        cachedMetadata = HomeListTabMetadata(
-            filters: request.filters,
-            sortOption: request.sortOption,
-            items: items
+        cachedMetadata.removeAll {
+            $0.matches(filters: request.filters, sortOption: request.sortOption)
+        }
+        cachedMetadata.append(
+            HomeListTabMetadata(
+                filters: request.filters,
+                sortOption: request.sortOption,
+                items: items
+            )
         )
         return items
     }
@@ -274,6 +304,31 @@ private enum HomeListTabMetadataError: LocalizedError {
 }
 
 private extension Array where Element == HomeListTabItem {
+    func filtered(by filters: HomeListTabFilters) -> [HomeListTabItem] {
+        filter { item in
+            let matchesDday = filters.maxReplacementDday.map { item.replacementDday <= $0 } ?? true
+            let matchesStock = filters.maxStockCount.map { item.stockCount <= $0 } ?? true
+            return matchesDday && matchesStock
+        }
+    }
+
+    func page(
+        cursor: Int64?,
+        size: Int,
+        filterBounds: HomeListTabFilterBounds?
+    ) -> HomeListTabPage {
+        let startIndex = min(Int(cursor ?? 0), count)
+        let endIndex = min(startIndex + size, count)
+        let nextCursor = endIndex < count ? Int64(endIndex) : nil
+        return HomeListTabPage(
+            items: Array(self[startIndex ..< endIndex]),
+            totalItemCount: count,
+            nextCursor: nextCursor,
+            hasNext: nextCursor != nil,
+            filterBounds: filterBounds
+        )
+    }
+
     var filterBounds: HomeListTabFilterBounds? {
         guard !isEmpty else { return nil }
 
