@@ -355,6 +355,7 @@ struct ItemQuantityCard: View {
 
     var body: some View {
         let isKindSelected = kind != nil
+        let displayQuantity = isKindSelected ? quantity : ItemRegistrationConfig.defaultQuantity
 
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s4) {
@@ -383,7 +384,7 @@ struct ItemQuantityCard: View {
                     Text(
                         ItemRegistrationText.quantityText(
                             prefix: quantityLabelPrefix,
-                            quantity: isKindSelected ? quantity : ItemRegistrationConfig.quantityMinimum
+                            quantity: displayQuantity
                         )
                     )
                         .lineLimit(ItemRegistrationLayout.singleLineLimit)
@@ -396,12 +397,14 @@ struct ItemQuantityCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 OBRitStepper(
-                    value: quantity,
+                    value: displayQuantity,
                     size: .small,
                     minimumValue: ItemRegistrationConfig.quantityMinimum,
+                    maximumValue: ItemRegistrationConfig.quantityMaximum,
                     isEnabled: isKindSelected,
                     onDecrement: action.onDecrementQuantity,
-                    onIncrement: action.onIncrementQuantity
+                    onIncrement: action.onIncrementQuantity,
+                    onValueChange: action.onUpdateQuantity
                 )
             }
             .padding(OBRitSpacing.s5)

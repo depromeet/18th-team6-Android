@@ -182,6 +182,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         update { data in
             data.draft.selectedKind = kind
             data.draft.itemName = kind.title
+            data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
             data.kindSearchQuery = ""
             data.bottomSheet = nil
             data.selectedKindCandidate = nil
@@ -193,14 +194,26 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func incrementQuantity() {
+        guard data.draft.selectedKind != nil else { return }
         update {
             $0.draft.quantity = min($0.draft.quantity + 1, ItemRegistrationConfig.quantityMaximum)
         }
     }
 
     func decrementQuantity() {
+        guard data.draft.selectedKind != nil else { return }
         update {
             $0.draft.quantity = max($0.draft.quantity - 1, ItemRegistrationConfig.quantityMinimum)
+        }
+    }
+
+    func updateQuantity(_ quantity: Int) {
+        guard data.draft.selectedKind != nil else { return }
+        update {
+            $0.draft.quantity = min(
+                max(quantity, ItemRegistrationConfig.quantityMinimum),
+                ItemRegistrationConfig.quantityMaximum
+            )
         }
     }
 
@@ -275,6 +288,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
         data.draft.selectedKind = kind
         data.draft.itemName = kind.title
+        data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
         data.draft.directKindName = ""
         data.kindSearchQuery = ""
         data.selectedKindCandidate = nil
@@ -380,6 +394,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             update { data in
                 data.itemKinds = catalog.itemKinds
                 data.draft.selectedKind = nil
+                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 data.draft.selectedImageOption = catalog.imageOptions.first
                 data.kindSearchQuery = ""
                 data.imageOptions = catalog.imageOptions
