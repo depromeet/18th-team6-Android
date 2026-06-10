@@ -110,7 +110,7 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
                 totalItemCount: filteredItems.count,
                 nextCursor: nil,
                 hasNext: false,
-                allItemsForBounds: filteredItems
+                filterBounds: filteredItems.filterBounds
             )
         }
 
@@ -123,19 +123,16 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
             totalItemCount: filteredItems.count,
             nextCursor: nextCursor,
             hasNext: nextCursor != nil,
-            allItemsForBounds: filteredItems
+            filterBounds: filteredItems.filterBounds
         )
     }
 }
 
 actor SharedHomeListTabRepository: HomeListTabRepository {
     private let readService: SharedReadService
-    private let metadataPageSize: Int32
-    private var cachedMetadata: HomeListTabMetadata?
 
-    init(readService: SharedReadService, metadataPageSize: Int32 = 100) {
+    init(readService: SharedReadService) {
         self.readService = readService
-        self.metadataPageSize = metadataPageSize
     }
 
     func items(request: HomeListTabPageRequest) async throws -> HomeListTabPage {
@@ -158,19 +155,18 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
                 .sorted { lhs, rhs in
                     request.sortOption.sortsInAscendingOrder(lhs, rhs)
                 }
-            let allItemsForBounds = try await metadataItems(for: request, firstSlice: request.cursor == nil ? slice : nil)
 
             let page = HomeListTabPage(
                 items: items,
-                totalItemCount: allItemsForBounds.count,
+                totalItemCount: nil,
                 nextCursor: slice.nextCursor?.int64Value,
                 hasNext: slice.hasNext,
-                allItemsForBounds: allItemsForBounds
+                filterBounds: nil
             )
             AppLog.success(
                 AppLog.swiftRepository,
                 event,
-                "\(details) items=\(items.count) total=\(page.totalItemCount) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                "\(details) items=\(items.count) total=unknown nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
             )
             return page
         } catch {
@@ -178,98 +174,18 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
             throw error
         }
     }
+}
 
-    private func metadataItems(
-        for request: HomeListTabPageRequest,
-        firstSlice: HomeItemCursorSlice?
-    ) async throws -> [HomeListTabItem] {
-        if let cachedMetadata,
-           request.cursor != nil,
-           cachedMetadata.matches(filters: request.filters, sortOption: request.sortOption) {
-            return cachedMetadata.items
-        }
+private extension Array where Element == HomeListTabItem {
+    var filterBounds: HomeListTabFilterBounds? {
+        guard !isEmpty else { return nil }
 
-        let items = try await loadMetadataItems(for: request, firstSlice: firstSlice)
-        cachedMetadata = HomeListTabMetadata(
-            filters: request.filters,
-            sortOption: request.sortOption,
-            items: items
+        return HomeListTabFilterBounds(
+            minReplacementDday: map(\.replacementDday).min() ?? 0,
+            maxReplacementDday: map(\.replacementDday).max() ?? 0,
+            minStockCount: map(\.stockCount).min() ?? 0,
+            maxStockCount: map(\.stockCount).max() ?? 0
         )
-        return items
-    }
-
-    private func loadMetadataItems(
-        for request: HomeListTabPageRequest,
-        firstSlice: HomeItemCursorSlice?
-    ) async throws -> [HomeListTabItem] {
-        var items = firstSlice?.content.map(SharedHomeReadMapper.homeListItem) ?? []
-        var cursor = firstSlice?.nextCursor?.int64Value
-        var hasNext = firstSlice?.hasNext ?? true
-        var previousCursor: Int64?
-
-        while hasNext {
-            if cursor == nil, !items.isEmpty || firstSlice != nil {
-                AppLog.failure(
-                    AppLog.swiftRepository,
-                    "SharedHomeListTabRepository.loadMetadataItems",
-                    HomeListTabMetadataError.missingCursor
-                )
-                break
-            }
-
-            if let cursor, cursor == previousCursor {
-                AppLog.failure(
-                    AppLog.swiftRepository,
-                    "SharedHomeListTabRepository.loadMetadataItems",
-                    HomeListTabMetadataError.repeatedCursor,
-                    "cursor=\(cursor)"
-                )
-                break
-            }
-
-            previousCursor = cursor
-            let slice = try await readService.getHomeItems(
-                params: HomeItemsParams(
-                    order: request.sortOption.homeItemOrder,
-                    dDay: request.filters.maxReplacementDday.kotlinInt,
-                    spareQuantity: request.filters.maxStockCount.kotlinInt,
-                    cursor: cursor.map { KotlinLong(longLong: $0) },
-                    size: KotlinInt(int: metadataPageSize)
-                )
-            )
-
-            items.append(contentsOf: slice.content.map(SharedHomeReadMapper.homeListItem))
-            cursor = slice.nextCursor?.int64Value
-            hasNext = slice.hasNext
-        }
-
-        return items.sorted { lhs, rhs in
-            request.sortOption.sortsInAscendingOrder(lhs, rhs)
-        }
-    }
-}
-
-private struct HomeListTabMetadata {
-    let filters: HomeListTabFilters
-    let sortOption: HomeListTabSortOption
-    let items: [HomeListTabItem]
-
-    func matches(filters: HomeListTabFilters, sortOption: HomeListTabSortOption) -> Bool {
-        self.filters == filters && self.sortOption == sortOption
-    }
-}
-
-private enum HomeListTabMetadataError: LocalizedError {
-    case missingCursor
-    case repeatedCursor
-
-    var errorDescription: String? {
-        switch self {
-        case .missingCursor:
-            return "홈 목록 다음 페이지 커서가 비어 있어 전체 범위 계산을 멈췄어요."
-        case .repeatedCursor:
-            return "홈 목록 전체 범위를 계산하는 중 같은 커서가 반복됐어요."
-        }
     }
 }
 

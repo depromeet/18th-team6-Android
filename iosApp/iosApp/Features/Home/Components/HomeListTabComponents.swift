@@ -51,7 +51,7 @@ private struct HomeListTabShellView: View {
 
                 HomeListPinnedTopOverlay(
                     safeAreaTop: geometry.safeAreaInsets.top,
-                    viewData: viewData?.totalItemCount == 0 ? nil : viewData,
+                    viewData: viewData?.items.isEmpty == false ? viewData : nil,
                     action: action
                 )
 
@@ -118,7 +118,7 @@ private struct HomeListTabShellView: View {
 
     private func topContentInset(safeAreaTop: CGFloat, viewData: HomeListTabViewData?) -> CGFloat {
         let topBarHeight = safeAreaTop + OBRitSpacing.s14
-        guard let viewData, viewData.totalItemCount > 0 else { return topBarHeight }
+        guard let viewData, !viewData.items.isEmpty else { return topBarHeight }
         return topBarHeight + HomeListTabMetrics.filterBarHeight
     }
 }
@@ -275,23 +275,25 @@ private struct HomeListFilterSortBar: View {
     var body: some View {
         HStack(spacing: OBRitSpacing.s4) {
             HStack(spacing: OBRitSpacing.s2) {
-                HomeListFilterIconButton(action: action.onOpenFilterSheet)
-                HomeListToolbarChip(
-                    title: viewData.filters.maxReplacementDday.map { "\($0.ddayText) 이하" } ?? "디데이",
-                    selected: viewData.filters.maxReplacementDday != nil,
-                    icon: viewData.filters.maxReplacementDday == nil ? "chevron.down" : "xmark",
-                    action: viewData.filters.maxReplacementDday == nil
-                        ? action.onOpenFilterSheet
-                        : action.onClearReplacementDdayFilter
-                )
-                HomeListToolbarChip(
-                    title: viewData.filters.maxStockCount.map { "\($0)개 이하" } ?? "여분",
-                    selected: viewData.filters.maxStockCount != nil,
-                    icon: viewData.filters.maxStockCount == nil ? "chevron.down" : "xmark",
-                    action: viewData.filters.maxStockCount == nil
-                        ? action.onOpenFilterSheet
-                        : action.onClearStockCountFilter
-                )
+                if viewData.filterBounds != nil {
+                    HomeListFilterIconButton(action: action.onOpenFilterSheet)
+                    HomeListToolbarChip(
+                        title: viewData.filters.maxReplacementDday.map { "\($0.ddayText) 이하" } ?? "디데이",
+                        selected: viewData.filters.maxReplacementDday != nil,
+                        icon: viewData.filters.maxReplacementDday == nil ? "chevron.down" : "xmark",
+                        action: viewData.filters.maxReplacementDday == nil
+                            ? action.onOpenFilterSheet
+                            : action.onClearReplacementDdayFilter
+                    )
+                    HomeListToolbarChip(
+                        title: viewData.filters.maxStockCount.map { "\($0)개 이하" } ?? "여분",
+                        selected: viewData.filters.maxStockCount != nil,
+                        icon: viewData.filters.maxStockCount == nil ? "chevron.down" : "xmark",
+                        action: viewData.filters.maxStockCount == nil
+                            ? action.onOpenFilterSheet
+                            : action.onClearStockCountFilter
+                    )
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -422,20 +424,26 @@ private struct HomeListBottomSheetOverlay: View {
 
                 switch bottomSheet {
                 case .filter:
-                    OBRitBottomSheet(
-                        contentHeight: bottomSheetContentHeight(
-                            preferredHeight: HomeListTabMetrics.preferredFilterSheetContentHeight,
-                            in: geometry,
+                    if let filterBounds = viewData.filterBounds {
+                        OBRitBottomSheet(
+                            contentHeight: bottomSheetContentHeight(
+                                preferredHeight: HomeListTabMetrics.preferredFilterSheetContentHeight,
+                                in: geometry,
+                                bottomPadding: bottomPadding
+                            ),
                             bottomPadding: bottomPadding
-                        ),
-                        bottomPadding: bottomPadding
-                    ) {
-                        ScrollView(showsIndicators: false) {
-                            HomeListFilterBottomSheet(viewData: viewData, action: action)
+                        ) {
+                            ScrollView(showsIndicators: false) {
+                                HomeListFilterBottomSheet(
+                                    viewData: viewData,
+                                    filterBounds: filterBounds,
+                                    action: action
+                                )
                                 .frame(maxWidth: .infinity, alignment: .top)
+                            }
                         }
+                        .ignoresSafeArea(.container, edges: .bottom)
                     }
-                    .ignoresSafeArea(.container, edges: .bottom)
                 case .sort:
                     OBRitBottomSheet(
                         contentHeight: bottomSheetContentHeight(
@@ -478,6 +486,7 @@ private struct HomeListBottomSheetOverlay: View {
 
 private struct HomeListFilterBottomSheet: View {
     let viewData: HomeListTabViewData
+    let filterBounds: HomeListTabFilterBounds
     let action: HomeListTabAction
 
     var body: some View {
@@ -485,18 +494,18 @@ private struct HomeListFilterBottomSheet: View {
             VStack(spacing: OBRitSpacing.s6) {
                 HomeListFilterSliderSection(
                     title: "교체 디데이",
-                    valueText: (viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday).ddayText,
+                    valueText: (viewData.draftFilters.maxReplacementDday ?? filterBounds.maxReplacementDday).ddayText,
                     suffix: "이하",
-                    value: Double(viewData.draftFilters.maxReplacementDday ?? viewData.filterBounds.maxReplacementDday),
-                    range: Double(viewData.filterBounds.minReplacementDday) ... Double(viewData.filterBounds.maxReplacementDday),
+                    value: Double(viewData.draftFilters.maxReplacementDday ?? filterBounds.maxReplacementDday),
+                    range: Double(filterBounds.minReplacementDday) ... Double(filterBounds.maxReplacementDday),
                     onValueChange: action.onUpdateDraftReplacementDday
                 )
                 HomeListFilterSliderSection(
                     title: "여분",
-                    valueText: "\(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount)개",
+                    valueText: "\(viewData.draftFilters.maxStockCount ?? filterBounds.maxStockCount)개",
                     suffix: "이하",
-                    value: Double(viewData.draftFilters.maxStockCount ?? viewData.filterBounds.maxStockCount),
-                    range: Double(viewData.filterBounds.minStockCount) ... Double(viewData.filterBounds.maxStockCount),
+                    value: Double(viewData.draftFilters.maxStockCount ?? filterBounds.maxStockCount),
+                    range: Double(filterBounds.minStockCount) ... Double(filterBounds.maxStockCount),
                     onValueChange: action.onUpdateDraftStockCount
                 )
             }

@@ -74,10 +74,10 @@ enum HomeListTabState: Equatable {
 
 struct HomeListTabViewData: Equatable {
     let items: [HomeListTabItem]
-    let totalItemCount: Int
+    let totalItemCount: Int?
     let filters: HomeListTabFilters
     let draftFilters: HomeListTabFilters
-    let filterBounds: HomeListTabFilterBounds
+    let filterBounds: HomeListTabFilterBounds?
     let sortOption: HomeListTabSortOption
     let bottomSheet: HomeListTabBottomSheet?
     let hasMore: Bool
@@ -94,10 +94,10 @@ struct HomeListTabPageRequest: Equatable {
 
 struct HomeListTabPage: Equatable {
     let items: [HomeListTabItem]
-    let totalItemCount: Int
+    let totalItemCount: Int?
     let nextCursor: Int64?
     let hasNext: Bool
-    let allItemsForBounds: [HomeListTabItem]
+    let filterBounds: HomeListTabFilterBounds?
 }
 
 extension Int {
