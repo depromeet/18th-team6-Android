@@ -106,6 +106,9 @@ struct ItemDetailStockManagementSheet: View {
                 .minimumScaleFactor(0.7)
                 .obritTextStyle(OBRitTypography.s7xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 .frame(width: ItemDetailStockSheetMetrics.valueWidth, height: OBRitSpacing.s11)
+                .onAppear {
+                    focusQuantityField()
+                }
                 .onChange(of: isQuantityFocused) { _, isFocused in
                     if !isFocused {
                         finishQuantityEditing()
@@ -155,14 +158,12 @@ struct ItemDetailStockManagementSheet: View {
     private func beginQuantityEditing() {
         quantityInput = "\(quantity)"
         isQuantityEditing = true
-        focusQuantityField()
     }
 
     private func beginInitialQuantityEditing() {
         quantity = initialQuantity
         quantityInput = "\(initialQuantity)"
         isQuantityEditing = true
-        focusQuantityField()
     }
 
     private func focusQuantityField() {
