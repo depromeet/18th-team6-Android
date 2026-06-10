@@ -1,7 +1,8 @@
 import SwiftUI
 
 private enum HomeQuickItemLayoutMetrics {
-    static let sectionPadding = OBRitSpacing.s5
+    static let horizontalContentMargin = OBRitSpacing.s5
+    static let verticalPadding = OBRitSpacing.s5
     static let contentSpacing = OBRitSpacing.s4
     static let itemSpacing = OBRitSpacing.s2
     static let chipRowHeight = OBRitSpacing.s9 + OBRitSpacing.s0_5
@@ -30,6 +31,7 @@ struct HomeQuickItemSection: View {
                     }
                 }
             }
+            .contentMargins(.horizontal, HomeQuickItemLayoutMetrics.horizontalContentMargin, for: .scrollContent)
             .frame(height: HomeQuickItemLayoutMetrics.chipRowHeight)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -53,9 +55,10 @@ struct HomeQuickItemSection: View {
                     }
                 }
             }
+            .contentMargins(.horizontal, HomeQuickItemLayoutMetrics.horizontalContentMargin, for: .scrollContent)
             .frame(height: HomeQuickItemLayoutMetrics.carouselHeight)
         }
-        .padding(HomeQuickItemLayoutMetrics.sectionPadding)
+        .padding(.vertical, HomeQuickItemLayoutMetrics.verticalPadding)
     }
 
     private var visibleFilters: [HomeStatusFilter] {
