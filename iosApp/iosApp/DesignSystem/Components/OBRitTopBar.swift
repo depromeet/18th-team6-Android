@@ -2,33 +2,53 @@ import SwiftUI
 
 public struct OBRitHomeTopBar: View {
     private let backgroundColor: Bool
+    private let showNotificationButton: Bool
     private let onSearchClick: () -> Void
     private let onNotificationClick: () -> Void
     private let onProfileClick: () -> Void
 
     public init(
         backgroundColor: Bool = true,
+        showNotificationButton: Bool = true,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
         onProfileClick: @escaping () -> Void
     ) {
         self.backgroundColor = backgroundColor
+        self.showNotificationButton = showNotificationButton
         self.onSearchClick = onSearchClick
         self.onNotificationClick = onNotificationClick
         self.onProfileClick = onProfileClick
+    }
+
+    public static func transparent(
+        showNotificationButton: Bool = true,
+        onSearchClick: @escaping () -> Void,
+        onNotificationClick: @escaping () -> Void,
+        onProfileClick: @escaping () -> Void
+    ) -> OBRitHomeTopBar {
+        OBRitHomeTopBar(
+            backgroundColor: false,
+            showNotificationButton: showNotificationButton,
+            onSearchClick: onSearchClick,
+            onNotificationClick: onNotificationClick,
+            onProfileClick: onProfileClick
+        )
     }
 
     public var body: some View {
         TopBarRoot(backgroundColor: backgroundColor) {
             HStack {
                 OBRitLogo()
-                    .frame(width: 80, height: 25, alignment: .leading)
+                    .frame(width: 69, height: 24, alignment: .leading)
 
                 Spacer()
 
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
-                    TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
+                    if showNotificationButton {
+                        TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
+                    }
                 }
             }
             .padding(.leading, OBRitSpacing.s5)

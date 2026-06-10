@@ -20,38 +20,42 @@ struct HomeContentView: View {
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
+                    let topNavigationHeight = geometry.safeAreaInsets.top + OBRitSpacing.s14
                     let homeTabMinHeight = max(
                         0,
                         geometry.size.height -
-                            geometry.safeAreaInsets.top -
-                            OBRitSpacing.s14 -
+                            topNavigationHeight -
                             OBRitSpacing.s32
                     )
 
-                    VStack(spacing: 0) {
-                        Color.clear.frame(height: geometry.safeAreaInsets.top)
-                        OBRitHomeTopBar(
-                            backgroundColor: false,
-                            onSearchClick: action.onSearch,
-                            onNotificationClick: action.onNotification,
-                            onProfileClick: action.onProfile
-                        )
-                        HomeTab(
-                            dashboard: dashboard,
-                            selectedStatusFilter: selectedStatusFilter,
-                            statusFilterCounts: statusFilterCounts,
-                            selectedWarningSort: selectedWarningSort,
-                            quickItems: visibleQuickItems,
-                            previewItems: visibleWarningItems,
-                            emptyStateMinHeight: homeTabMinHeight,
-                            onOpenPreviewSortSheet: {
-                                isPreviewSortSheetPresented = true
-                            },
-                            action: action
-                        )
-                    }
+                    HomeTab(
+                        dashboard: dashboard,
+                        selectedStatusFilter: selectedStatusFilter,
+                        statusFilterCounts: statusFilterCounts,
+                        selectedWarningSort: selectedWarningSort,
+                        quickItems: visibleQuickItems,
+                        previewItems: visibleWarningItems,
+                        emptyStateMinHeight: homeTabMinHeight,
+                        onOpenPreviewSortSheet: {
+                            isPreviewSortSheetPresented = true
+                        },
+                        action: action
+                    )
+                    .padding(.top, topNavigationHeight)
                     .padding(.bottom, OBRitSpacing.s32)
                 }
+                .ignoresSafeArea(edges: .top)
+
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: geometry.safeAreaInsets.top)
+                    OBRitHomeTopBar.transparent(
+                        showNotificationButton: false,
+                        onSearchClick: action.onSearch,
+                        onNotificationClick: action.onNotification,
+                        onProfileClick: action.onProfile
+                    )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .ignoresSafeArea(edges: .top)
 
                 if dashboard.hasRegisteredItems {

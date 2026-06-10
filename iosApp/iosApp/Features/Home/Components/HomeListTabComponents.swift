@@ -44,8 +44,8 @@ private struct HomeListTabShellView: View {
 
                 VStack(spacing: 0) {
                     Color.clear.frame(height: geometry.safeAreaInsets.top)
-                    OBRitHomeTopBar(
-                        backgroundColor: false,
+                    OBRitHomeTopBar.transparent(
+                        showNotificationButton: false,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
                         onProfileClick: action.onProfile
