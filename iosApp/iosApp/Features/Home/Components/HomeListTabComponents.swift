@@ -31,8 +31,6 @@ struct HomeListTabAction {
 }
 
 private struct HomeListTabShellView: View {
-    @State private var isFabMenuPresented = false
-
     let state: HomeListTabState
     let action: HomeListTabAction
 
@@ -59,16 +57,9 @@ private struct HomeListTabShellView: View {
                     Spacer(minLength: 0)
                     HStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionMenu(
-                            isPresented: $isFabMenuPresented,
-                            items: [
-                                OBRitFloatingActionMenuItem(
-                                    id: "itemRegistration",
-                                    title: "직접 등록",
-                                    action: action.onRegisterDirect
-                                )
-                            ],
-                            accessibilityLabel: "소모품 등록"
+                        OBRitFloatingActionButton(
+                            accessibilityLabel: "소모품 등록",
+                            action: action.onRegisterDirect
                         )
                         .padding(.trailing, OBRitSpacing.s5)
                         .padding(.bottom, OBRitSpacing.s6)
