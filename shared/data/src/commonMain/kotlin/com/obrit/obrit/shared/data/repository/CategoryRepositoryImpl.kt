@@ -2,6 +2,8 @@ package com.obrit.obrit.shared.data.repository
 
 import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.categories.CategoryIcon
+import com.obrit.obrit.shared.model.categories.error.CreateCategoryError
+import com.obrit.obrit.shared.network.error.RemoteError
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.category.CreateCategoryRequest
 import com.obrit.obrit.shared.network.response.category.toCategory
@@ -30,6 +32,11 @@ internal class CategoryRepositoryImpl(
                         iconId = iconId,
                     ),
                 ).toCategory()
+        }.recoverCatching { error ->
+            if (error is RemoteError && error.statusCode == HTTP_STATUS_CONFLICT) {
+                throw CreateCategoryError.DuplicatedName()
+            }
+            throw error
         }
 
     override suspend fun deleteCategory(categoryId: Long): Result<Unit> =
@@ -43,4 +50,8 @@ internal class CategoryRepositoryImpl(
                 .getCategoryIcons()
                 .map { response -> response.toCategoryIcon() }
         }
+
+    private companion object {
+        const val HTTP_STATUS_CONFLICT = 409
+    }
 }

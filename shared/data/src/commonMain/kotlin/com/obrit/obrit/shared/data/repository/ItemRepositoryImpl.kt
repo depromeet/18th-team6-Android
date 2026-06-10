@@ -5,6 +5,8 @@ import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
 import com.obrit.obrit.shared.model.items.PatchItemParams
 import com.obrit.obrit.shared.model.items.ReplacementHistory
+import com.obrit.obrit.shared.model.items.error.CreateItemError
+import com.obrit.obrit.shared.network.error.RemoteError
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.item.BulkCreateItemRequest
 import com.obrit.obrit.shared.network.request.item.CreateItemRequest
@@ -28,6 +30,11 @@ internal class ItemRepositoryImpl(
             itemRemoteDataSource
                 .createItem(params.toCreateItemRequest())
                 .toItem()
+        }.recoverCatching { error ->
+            if (error is RemoteError && error.statusCode == HTTP_STATUS_CONFLICT) {
+                throw CreateItemError.DuplicatedName()
+            }
+            throw error
         }
 
     override suspend fun createItems(params: List<CreateItemParams>): Result<List<Item>> =
@@ -41,6 +48,11 @@ internal class ItemRepositoryImpl(
                         ),
                     )
                 }.map { response -> response.toItem() }
+        }.recoverCatching { error ->
+            if (error is RemoteError && error.statusCode == HTTP_STATUS_CONFLICT) {
+                throw CreateItemError.DuplicatedName()
+            }
+            throw error
         }
 
     override suspend fun patchItem(params: PatchItemParams): Result<Item> =
@@ -104,6 +116,7 @@ internal class ItemRepositoryImpl(
 }
 
 private const val BULK_CREATE_ITEMS_CHUNK_SIZE = 20
+private const val HTTP_STATUS_CONFLICT = 409
 
 private fun CreateItemParams.toCreateItemRequest() =
     CreateItemRequest(

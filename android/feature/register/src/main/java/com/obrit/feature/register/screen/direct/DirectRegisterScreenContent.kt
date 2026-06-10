@@ -129,7 +129,11 @@ private fun DirectRegisterFieldsColumn(
                 .padding(horizontal = AtomSpacing.S5.dp),
         verticalArrangement = Arrangement.spacedBy(DIRECT_REGISTER_FIELD_GAP),
     ) {
-        NameField(value = state.name, onValueChange = onNameChange)
+        NameField(
+            value = state.name,
+            isDuplicateName = state.isDuplicateName,
+            onValueChange = onNameChange,
+        )
         IconGridField(
             label = DIRECT_REGISTER_ICON_LABEL,
             icons = state.icons,
@@ -189,9 +193,17 @@ private fun DirectRegisterCta(
 @Composable
 private fun NameField(
     value: String,
+    isDuplicateName: Boolean,
     onValueChange: (String) -> Unit,
 ) {
     val isOverLimit = value.length > DIRECT_REGISTER_NAME_MAX_LENGTH
+    val isError = isOverLimit || isDuplicateName
+    val supportingText =
+        when {
+            isOverLimit -> DIRECT_REGISTER_NAME_OVER_LIMIT_MESSAGE
+            isDuplicateName -> DIRECT_REGISTER_NAME_DUPLICATE_MESSAGE
+            else -> ""
+        }
     val focus = rememberFocusBringIntoView()
     Column(
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S3.dp),
@@ -204,11 +216,11 @@ private fun NameField(
         OBRitOutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            supportingTextEnabled = isOverLimit,
+            supportingTextEnabled = isError,
             placeholder = DIRECT_REGISTER_NAME_PLACEHOLDER,
             maxLength = DIRECT_REGISTER_NAME_MAX_LENGTH,
-            inputResultState = if (isOverLimit) InputResultState.Error else InputResultState.Default,
-            supportingText = if (isOverLimit) DIRECT_REGISTER_NAME_OVER_LIMIT_MESSAGE else "",
+            inputResultState = if (isError) InputResultState.Error else InputResultState.Default,
+            supportingText = supportingText,
             singleLine = true,
             modifier =
                 Modifier
@@ -224,6 +236,7 @@ private const val DIRECT_REGISTER_DESCRIPTION = "원하는 소모품 종류가 �
 private const val DIRECT_REGISTER_NAME_LABEL = "소모품 종류 이름"
 private const val DIRECT_REGISTER_NAME_PLACEHOLDER = "화장품 퍼프"
 private const val DIRECT_REGISTER_NAME_OVER_LIMIT_MESSAGE = "이름은 15자 이내로 입력해주세요"
+private const val DIRECT_REGISTER_NAME_DUPLICATE_MESSAGE = "중복된 이름입니다. 다른 이름으로 입력해주세요."
 private const val DIRECT_REGISTER_ICON_LABEL = "대표 이미지"
 private const val DIRECT_REGISTER_SUBMIT_LABEL = "소모품 종류 등록하기"
 

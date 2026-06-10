@@ -77,7 +77,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             selectedKind: nil,
             itemName: "",
             lastReplacementDateOption: nil,
-            quantity: 1,
+            quantity: ItemRegistrationConfig.defaultQuantity,
             directKindName: "",
             selectedImageOption: imageOptions.first
         )
@@ -91,7 +91,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
                     data.draft.lastReplacementDateOption = .withinOneWeek
-                    data.draft.quantity = 1
+                    data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 }
             case "kindSheet":
                 update { data in
@@ -103,7 +103,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
                     data.draft.lastReplacementDateOption = .withinOneWeek
-                    data.draft.quantity = 1
+                    data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 }
             case "directKind":
                 update { $0.mode = .directKind }

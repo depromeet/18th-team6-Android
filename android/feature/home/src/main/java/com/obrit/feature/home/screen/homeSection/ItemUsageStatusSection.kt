@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -99,13 +98,11 @@ private fun UsageStatusItem(
 
         DaysInUseText(daysInUse = item.daysInUse)
 
-        Spacer(modifier = Modifier.size(AtomSpacing.S4.dp))
-
         Icon(
             painter = painterResource(id = R.drawable.ic_chevron_right),
             contentDescription = null,
             tint = colors.common00,
-            modifier = Modifier.size(AtomSpacing.S4.dp),
+            modifier = Modifier.padding(start = AtomSpacing.S1.dp).size(AtomSpacing.S4.dp),
         )
     }
 }

@@ -57,9 +57,17 @@ internal fun CategoryField(
 @Composable
 internal fun NameField(
     value: String,
+    isDuplicateName: Boolean,
     onValueChange: (String) -> Unit,
 ) {
     val isOverLimit = value.length > MANUAL_REGISTER_NAME_MAX_LENGTH
+    val isError = isOverLimit || isDuplicateName
+    val supportingText =
+        when {
+            isOverLimit -> MANUAL_REGISTER_NAME_OVER_LIMIT_MESSAGE
+            isDuplicateName -> MANUAL_REGISTER_NAME_DUPLICATE_MESSAGE
+            else -> ""
+        }
     val focus = rememberFocusBringIntoView()
     Column(
         verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
@@ -72,11 +80,11 @@ internal fun NameField(
         OBRitOutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            supportingTextEnabled = isOverLimit,
+            supportingTextEnabled = isError,
             placeholder = MANUAL_REGISTER_NAME_PLACEHOLDER,
             maxLength = MANUAL_REGISTER_NAME_MAX_LENGTH,
-            inputResultState = if (isOverLimit) InputResultState.Error else InputResultState.Default,
-            supportingText = if (isOverLimit) MANUAL_REGISTER_NAME_OVER_LIMIT_MESSAGE else "",
+            inputResultState = if (isError) InputResultState.Error else InputResultState.Default,
+            supportingText = supportingText,
             singleLine = true,
             modifier =
                 Modifier
@@ -195,6 +203,7 @@ private const val MANUAL_REGISTER_NAME_LABEL = "소모품 명"
 private const val MANUAL_REGISTER_NAME_PLACEHOLDER = "구분을 위한 이름을 입력해주세요"
 private const val MANUAL_REGISTER_NAME_MAX_LENGTH = 15
 private const val MANUAL_REGISTER_NAME_OVER_LIMIT_MESSAGE = "소모품 명은 15자 이내로 입력해주세요"
+private const val MANUAL_REGISTER_NAME_DUPLICATE_MESSAGE = "중복된 이름입니다. 다른 이름으로 입력해주세요."
 private const val MANUAL_REGISTER_LAST_REPLACE_DATE_LABEL = "마지막 교체 일자"
 private const val MANUAL_REGISTER_LAST_REPLACE_DATE_PLACEHOLDER = "마지막 교체 일자를 등록해주세요"
 private const val MANUAL_REGISTER_QUANTITY_LABEL = "등록할 수량"

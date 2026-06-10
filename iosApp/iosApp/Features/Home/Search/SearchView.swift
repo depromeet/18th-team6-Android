@@ -299,7 +299,7 @@ private struct SearchSuggestionListView: View {
                 } label: {
                     Text(highlightedKeyword(keyword))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .padding(.vertical, OBRitSpacing.s2)
                 }
                 .buttonStyle(.plain)
@@ -311,9 +311,8 @@ private struct SearchSuggestionListView: View {
 
     private func highlightedKeyword(_ keyword: String) -> AttributedString {
         var attributedKeyword = AttributedString(keyword)
-        let prefix = String(keyword.prefix(query.count))
 
-        if let range = attributedKeyword.range(of: prefix) {
+        if let range = attributedKeyword.range(of: query, options: [.caseInsensitive]) {
             attributedKeyword[range].foregroundColor = OBRitColors.green300
         }
 
