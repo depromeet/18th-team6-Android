@@ -284,13 +284,13 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     private func makeCreateItemRequest() -> ItemRegistrationCreateItemRequest? {
         guard let selectedKind = data.draft.selectedKind,
-              let lastReplacementPeriod = data.draft.lastReplacementDateOption?.apiPeriod else { return nil }
+              let lastReplacementDateOption = data.draft.lastReplacementDateOption else { return nil }
 
         return ItemRegistrationCreateItemRequest(
             categoryId: selectedKind.id,
             name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
             quantity: data.draft.quantity,
-            lastReplacementPeriod: lastReplacementPeriod
+            lastReplacementPeriod: lastReplacementDateOption.apiPeriod
         )
     }
 
@@ -329,7 +329,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         AppLog.enter(
             AppLog.itemRegistrationViewModel,
             "ItemRegistrationViewModel.submitFormTask",
-            "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
+            "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod?.rawValue ?? "nil")"
         )
         do {
             try await repository.createItem(request: request)
