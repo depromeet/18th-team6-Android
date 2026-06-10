@@ -498,6 +498,7 @@ private struct HomeListFilterBottomSheet: View {
                     suffix: "이하",
                     value: Double(viewData.draftFilters.maxReplacementDday ?? filterBounds.maxReplacementDday),
                     range: Double(filterBounds.minReplacementDday) ... Double(filterBounds.maxReplacementDday),
+                    reversesValue: true,
                     onValueChange: action.onUpdateDraftReplacementDday
                 )
                 HomeListFilterSliderSection(
@@ -542,9 +543,11 @@ private struct HomeListFilterSliderSection: View {
     let suffix: String
     let value: Double
     let range: ClosedRange<Double>
+    var reversesValue = false
     let onValueChange: (Double) -> Void
 
     var body: some View {
+        let sliderValue = reversesValue ? reversed(value) : value
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             Text(title)
                 .obritTextStyle(OBRitTypography.lg, weight: OBRitFontWeight.bold, color: OBRitColors.textDefaultSecondary)
@@ -557,12 +560,18 @@ private struct HomeListFilterSliderSection: View {
             }
 
             OBRitSlider(
-                value: value,
+                value: sliderValue,
                 enabled: range.lowerBound != range.upperBound,
                 valueRange: range,
-                onValueChange: onValueChange
+                onValueChange: { changedValue in
+                    onValueChange(reversesValue ? reversed(changedValue) : changedValue)
+                }
             )
         }
+    }
+
+    private func reversed(_ value: Double) -> Double {
+        range.lowerBound + range.upperBound - value
     }
 }
 
