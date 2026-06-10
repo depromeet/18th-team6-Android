@@ -317,8 +317,8 @@ private extension Array where Element == HomeListTabItem {
         size: Int,
         filterBounds: HomeListTabFilterBounds?
     ) -> HomeListTabPage {
-        let startIndex = min(Int(cursor ?? 0), count)
-        let endIndex = min(startIndex + size, count)
+        let startIndex = Swift.min(Int(cursor ?? 0), count)
+        let endIndex = Swift.min(startIndex + size, count)
         let nextCursor = endIndex < count ? Int64(endIndex) : nil
         return HomeListTabPage(
             items: Array(self[startIndex ..< endIndex]),
