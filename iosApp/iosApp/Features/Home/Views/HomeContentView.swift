@@ -106,16 +106,12 @@ struct HomeContentView: View {
 
 #Preview {
     HomeContentView(
-        dashboard: HomeSampleData.dashboard,
+        dashboard: HomeDashboard.empty,
         selectedStatusFilter: .replacementDanger,
-        statusFilterCounts: [.replacementDanger: 3, .spareShortage: 3, .replacementWarning: 1],
+        statusFilterCounts: [:],
         selectedWarningSort: .replacementRisk,
-        visibleQuickItems: HomeSampleData.dashboard.warningItems
-            .filter { $0.quickStatusFilters.contains(.replacementDanger) }
-            .sorted { $0.replacementDday < $1.replacementDday },
-        visibleWarningItems: HomeSampleData.dashboard.warningItems
-            .filter { $0.quickStatusFilters.contains(.replacementDanger) }
-            .sorted { $0.riskRank < $1.riskRank },
+        visibleQuickItems: [],
+        visibleWarningItems: [],
         onBottomSheetVisibleChange: { _ in },
         action: HomeViewAction(
             onSearch: {},

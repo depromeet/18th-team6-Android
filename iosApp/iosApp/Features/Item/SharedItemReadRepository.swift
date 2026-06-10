@@ -25,7 +25,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                 id: Int(clamping: category.id),
                 title: category.name,
                 addedCount: Int(category.itemCount),
-                imageAssetName: Self.assetName(for: category.name)
+                imageURL: category.iconUrl
             )
         }
 
@@ -45,9 +45,15 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                 throw ItemDetailRepositoryError.notFound(itemId: itemId)
             }
 
-            let histories = try await readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
-            let detail = makeDetailItem(from: item, histories: histories)
-            AppLog.success(AppLog.swiftRepository, event, "\(details) historyCount=\(histories.count)")
+            async let histories = readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
+            async let categories = readService.getCategories()
+            let (loadedHistories, loadedCategories) = try await (histories, categories)
+            let detail = makeDetailItem(
+                from: item,
+                histories: loadedHistories,
+                categories: loadedCategories
+            )
+            AppLog.success(AppLog.swiftRepository, event, "\(details) historyCount=\(loadedHistories.count)")
             return detail
         } catch {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
@@ -126,9 +132,11 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
             throw ItemDetailRepositoryError.notFound(itemId: itemId)
         }
 
-        let histories = try await readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
+        async let histories = readService.getReplacementHistories(itemId: Int64(itemId), limit: nil)
+        async let categories = readService.getCategories()
+        let (loadedHistories, loadedCategories) = try await (histories, categories)
         return ItemDetailEditSource(
-            item: makeDetailItem(from: item, histories: histories),
+            item: makeDetailItem(from: item, histories: loadedHistories, categories: loadedCategories),
             existingItemNames: items
                 .filter { $0.id != Int64(itemId) }
                 .map(\.name)
@@ -152,7 +160,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                     : KotlinInt(int: Int32(draft.replacementCycleDays))
             )
             var updated = try await makeDetailItem(from: item, updatedAt: Date())
-            updated.imageAssetName = draft.imageAssetName
+            updated.imageURL = draft.imageURL
             return updated
         } catch {
             throw presentationError(
@@ -164,22 +172,31 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
 
     private func makeDetailItem(
         from item: Shared.Item,
-        histories: [Shared.ReplacementHistory]
+        histories: [Shared.ReplacementHistory],
+        categories: [Shared.Category]
     ) -> ItemDetailItem {
-        makeDetailItem(from: item, histories: histories, updatedAt: Date())
+        makeDetailItem(from: item, histories: histories, categories: categories, updatedAt: Date())
     }
 
     private func makeDetailItem(
         from item: Shared.Item,
         updatedAt: Date
     ) async throws -> ItemDetailItem {
-        let histories = try await readService.getReplacementHistories(itemId: item.id, limit: nil)
-        return makeDetailItem(from: item, histories: histories, updatedAt: updatedAt)
+        async let histories = readService.getReplacementHistories(itemId: item.id, limit: nil)
+        async let categories = readService.getCategories()
+        let (loadedHistories, loadedCategories) = try await (histories, categories)
+        return makeDetailItem(
+            from: item,
+            histories: loadedHistories,
+            categories: loadedCategories,
+            updatedAt: updatedAt
+        )
     }
 
     private func makeDetailItem(
         from item: Shared.Item,
         histories: [Shared.ReplacementHistory],
+        categories: [Shared.Category],
         updatedAt: Date
     ) -> ItemDetailItem {
         let currentCycleStartedAt = date(from: item.lastReplacedDate) ?? updatedAt
@@ -192,7 +209,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
             id: Int(clamping: item.id),
             name: item.name,
             kindName: item.categoryName,
-            imageAssetName: Self.assetName(for: item.categoryName),
+            imageURL: Self.categoryIconURL(categoryId: item.categoryId, categories: categories),
             spareQuantity: Int(item.count),
             replacementCycle: ItemDetailReplacementCycle(intervalDays: Int(item.replacementIntervalDays)),
             currentCycleStartedAt: currentCycleStartedAt,
@@ -201,6 +218,10 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
             createdAt: currentCycleStartedAt,
             updatedAt: updatedAt
         )
+    }
+
+    private static func categoryIconURL(categoryId: Int64, categories: [Shared.Category]) -> String {
+        categories.first { $0.id == categoryId }?.iconUrl ?? ""
     }
 
     private func makeReplacementRecords(
@@ -275,18 +296,11 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         return .operationFailed(message: fallbackMessage)
     }
 
-    private static func assetName(for title: String) -> String {
-        ItemAssetCatalog.entries.first {
-            title.localizedCaseInsensitiveContains($0.title) ||
-                $0.title.localizedCaseInsensitiveContains(title)
-        }?.assetName ?? ItemRegistrationAsset.fallbackItemImage
-    }
-
     private static func imageOptions(from icons: [Shared.CategoryIcon]) -> [ItemImageOption] {
         icons.map { icon in
             ItemImageOption(
                 id: Int(clamping: icon.id),
-                assetName: CategoryIconKind.assetName(iconId: icon.id, url: icon.url)
+                imageURL: icon.url
             )
         }
     }

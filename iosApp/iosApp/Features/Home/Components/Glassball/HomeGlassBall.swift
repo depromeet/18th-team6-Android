@@ -16,7 +16,7 @@ struct HomeGlassBall: View {
     init(
         normalRatio: Double,
         warningRatio: Double,
-        interiorItems: [HomeOrbInteriorItem] = HomeSampleData.orbFallbackInteriorItems,
+        interiorItems: [HomeOrbInteriorItem] = [],
         sceneCacheKey: HomeOrbInteriorSceneCacheKey = .homeInventory
     ) {
         self.normalRatio = normalRatio

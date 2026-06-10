@@ -30,9 +30,7 @@ struct ItemDetailHeaderHero: View {
                 .rotationEffect(.degrees(-90))
                 .frame(width: diameter - ringWidth, height: diameter - ringWidth)
 
-            Image(item.imageAssetName)
-                .resizable()
-                .scaledToFit()
+            OBRitRemoteImage(urlString: item.imageURL)
                 .padding(ItemDetailLayout.heroImagePadding)
                 .frame(width: diameter, height: diameter)
                 .blendMode(.colorDodge)

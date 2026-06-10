@@ -357,7 +357,7 @@ struct ItemQuantityCard: View {
             HStack(spacing: OBRitSpacing.s4) {
                 if let kind {
                     ItemImage(
-                        assetName: kind.imageAssetName,
+                        imageURL: kind.imageURL,
                         size: ItemRegistrationLayout.itemThumbnailSize
                     )
                 } else {
@@ -427,9 +427,7 @@ struct ItemImageOptionButton: View {
 
     var body: some View {
         Button(action: onSelect) {
-            Image(option.assetName)
-                .resizable()
-                .scaledToFill()
+            OBRitRemoteImage(urlString: option.imageURL, contentMode: .fill)
                 .frame(
                     width: ItemRegistrationLayout.imageOptionSize,
                     height: ItemRegistrationLayout.imageOptionSize
@@ -448,13 +446,11 @@ struct ItemImageOptionButton: View {
 }
 
 struct ItemImage: View {
-    let assetName: String
+    let imageURL: String
     let size: CGFloat
 
     var body: some View {
-        Image(assetName)
-            .resizable()
-            .scaledToFill()
+        OBRitRemoteImage(urlString: imageURL, contentMode: .fill)
             .frame(width: size, height: size)
             .clipShape(Circle())
     }

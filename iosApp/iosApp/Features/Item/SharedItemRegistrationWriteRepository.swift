@@ -22,7 +22,7 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
                 id: Int(clamping: category.id),
                 title: category.name,
                 addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-                imageAssetName: imageOption.assetName
+                imageURL: category.iconUrl
             )
             AppLog.success(AppLog.swiftRepository, event, "kindId=\(kind.id)")
             return kind

@@ -17,8 +17,8 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     init(
-        itemKinds: [ItemKind] = ItemRegistrationSampleData.itemKinds,
-        imageOptions: [ItemImageOption] = ItemRegistrationSampleData.imageOptions
+        itemKinds: [ItemKind] = [],
+        imageOptions: [ItemImageOption] = []
     ) {
         let initialData = ItemRegistrationViewData(
             mode: .form,
@@ -266,7 +266,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                 id: (data.itemKinds.map(\.id).max() ?? 0) + ItemRegistrationConfig.nextIDIncrement,
                 title: name,
                 addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-                imageAssetName: imageOption.assetName
+                imageURL: imageOption.imageURL
             ), into: &data)
         }
     }

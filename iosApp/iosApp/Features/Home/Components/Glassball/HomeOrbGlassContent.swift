@@ -16,10 +16,6 @@ struct HomeOrbGlassContent: View {
                 )
                 .allowsHitTesting(false)
 
-            HomeOrbGlassTextureOverlay()
-                .allowsHitTesting(false)
-                .blendMode(.hardLight)
-
             HomeOrbInteriorItems(
                 items: interiorItems,
                 normalRatio: normalRatio,
@@ -32,6 +28,10 @@ struct HomeOrbGlassContent: View {
                 height: HomeOrbMetrics.glassBallDiameter
             )
             .clipShape(Circle())
+
+            HomeOrbGlassTextureOverlay()
+                .allowsHitTesting(false)
+                .blendMode(.hardLight)
         }
     }
 }

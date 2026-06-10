@@ -59,9 +59,7 @@ struct AppDependencies {
         return AppDependencies(
             refreshCenter: AppRefreshCenter(),
             makeHomeViewModel: {
-                HomeViewModel(
-                    initialDashboard: HomeSampleData.dashboard
-                )
+                HomeViewModel(initialDashboard: HomeDashboard.empty)
             },
             makeHomeListTabViewModel: {
                 HomeListTabViewModel()

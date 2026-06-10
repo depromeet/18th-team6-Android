@@ -4,7 +4,7 @@ struct ItemDetailItem: Identifiable, Equatable {
     let id: Int
     var name: String
     var kindName: String
-    var imageAssetName: String
+    var imageURL: String
     var spareQuantity: Int
     var replacementCycle: ItemDetailReplacementCycle
     var currentCycleStartedAt: Date
@@ -202,13 +202,13 @@ struct ItemDetailNotificationSummary: Equatable {
 struct ItemDetailEditDraft: Equatable {
     var name: String
     var replacementCycleDays: Int
-    var imageAssetName: String
+    var imageURL: String
     var spareQuantity: Int
 
     init(item: ItemDetailItem) {
         self.name = item.name
         self.replacementCycleDays = item.replacementCycle.intervalDays
-        self.imageAssetName = item.imageAssetName
+        self.imageURL = item.imageURL
         self.spareQuantity = item.spareQuantity
     }
 

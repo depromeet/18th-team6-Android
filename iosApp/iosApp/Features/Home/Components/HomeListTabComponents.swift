@@ -38,33 +38,22 @@ private struct HomeListTabShellView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let viewData = successViewData
+            let topContentInset = topContentInset(safeAreaTop: geometry.safeAreaInsets.top, viewData: viewData)
+
             ZStack {
                 OBRitColors.backgroundDefaultDefault
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    Color.clear.frame(height: geometry.safeAreaInsets.top)
-                    OBRitHomeTopBar.transparent(
-                        showNotificationButton: false,
-                        onSearchClick: action.onSearch,
-                        onNotificationClick: action.onNotification,
-                        onProfileClick: action.onProfile
-                    )
+                content(topContentInset: topContentInset)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .ignoresSafeArea(.container, edges: .top)
 
-                    if case let .success(viewData) = state,
-                       viewData.totalItemCount > 0 {
-                        HomeListFilterSortBar(viewData: viewData, action: action)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .opacity(viewData.isFilterBarVisible ? 1 : 0)
-                            .frame(height: viewData.isFilterBarVisible ? HomeListTabMetrics.filterBarHeight : 0)
-                            .clipped()
-                    }
-
-                    content
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .ignoresSafeArea(edges: .top)
+                HomeListPinnedTopOverlay(
+                    safeAreaTop: geometry.safeAreaInsets.top,
+                    viewData: viewData?.totalItemCount == 0 ? nil : viewData,
+                    action: action
+                )
 
                 VStack {
                     Spacer(minLength: 0)
@@ -97,11 +86,10 @@ private struct HomeListTabShellView: View {
             }
             .background(OBRitColors.backgroundDefaultDefault)
         }
-        .animation(.easeOut(duration: 0.2), value: filterBarAnimationValue)
     }
 
     @ViewBuilder
-    private var content: some View {
+    private func content(topContentInset: CGFloat) -> some View {
         switch state {
         case .loading:
             HomeListDataStateView(
@@ -115,13 +103,70 @@ private struct HomeListTabShellView: View {
                 action: action.onRetry
             )
         case let .success(viewData):
-            HomeListScrollableContent(viewData: viewData, action: action)
+            HomeListScrollableContent(
+                viewData: viewData,
+                action: action,
+                topContentInset: topContentInset
+            )
         }
     }
 
-    private var filterBarAnimationValue: Bool {
-        guard case let .success(viewData) = state else { return false }
-        return viewData.isFilterBarVisible
+    private var successViewData: HomeListTabViewData? {
+        guard case let .success(viewData) = state else { return nil }
+        return viewData
+    }
+
+    private func topContentInset(safeAreaTop: CGFloat, viewData: HomeListTabViewData?) -> CGFloat {
+        let topBarHeight = safeAreaTop + OBRitSpacing.s14
+        guard let viewData, viewData.totalItemCount > 0 else { return topBarHeight }
+        return topBarHeight + HomeListTabMetrics.filterBarHeight
+    }
+}
+
+private struct HomeListPinnedTopOverlay: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    let safeAreaTop: CGFloat
+    let viewData: HomeListTabViewData?
+    let action: HomeListTabAction
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Color.clear.frame(height: safeAreaTop)
+                OBRitHomeTopBar.transparent(
+                    showNotificationButton: false,
+                    onSearchClick: action.onSearch,
+                    onNotificationClick: action.onNotification,
+                    onProfileClick: action.onProfile
+                )
+            }
+            .background(OBRitColors.backgroundDefaultDefault)
+
+            if let viewData {
+                ZStack(alignment: .top) {
+                    if viewData.isFilterBarVisible {
+                        OBRitColors.backgroundDefaultDefault
+                        HomeListFilterSortBar(viewData: viewData, action: action)
+                            .transition(filterBarTransition)
+                    }
+                }
+                .frame(height: HomeListTabMetrics.filterBarHeight, alignment: .top)
+                .clipped()
+                .allowsHitTesting(viewData.isFilterBarVisible)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(.container, edges: .top)
+        .animation(filterBarAnimation, value: viewData?.isFilterBarVisible ?? false)
+    }
+
+    private var filterBarTransition: AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity)
+    }
+
+    private var filterBarAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.01) : .easeOut(duration: 0.2)
     }
 }
 
@@ -155,12 +200,13 @@ private struct HomeListDataStateView: View {
 private struct HomeListScrollableContent: View {
     let viewData: HomeListTabViewData
     let action: HomeListTabAction
+    let topContentInset: CGFloat
 
     @State private var previousContentMinY: CGFloat = 0
 
     var body: some View {
         if viewData.items.isEmpty {
-            HomeListEmptyState()
+            HomeListEmptyState(topContentInset: topContentInset)
         } else {
             ScrollView(showsIndicators: false) {
                 GeometryReader { proxy in
@@ -171,6 +217,8 @@ private struct HomeListScrollableContent: View {
                         )
                 }
                 .frame(height: 0)
+
+                Color.clear.frame(height: topContentInset)
 
                 LazyVStack(spacing: OBRitSpacing.s2) {
                     ForEach(viewData.items) { item in
@@ -184,9 +232,7 @@ private struct HomeListScrollableContent: View {
                                 replaceLabel: item.replaceLabel,
                                 sparesLabel: item.sparesLabel
                             ) {
-                                Image(item.assetName)
-                                    .resizable()
-                                    .scaledToFit()
+                                OBRitRemoteImage(urlString: item.imageURL)
                                     .padding(OBRitSpacing.s2)
                             }
                         }
@@ -345,6 +391,8 @@ private struct HomeListToolbarChip: View {
 }
 
 private struct HomeListEmptyState: View {
+    let topContentInset: CGFloat
+
     var body: some View {
         VStack(spacing: OBRitSpacing.s2) {
             Text("아직 등록된 소모품이 없어요")
@@ -353,7 +401,7 @@ private struct HomeListEmptyState: View {
                 .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray300.opacity(0.64))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, OBRitSpacing.s24)
+        .padding(.top, topContentInset + OBRitSpacing.s24)
         .padding(.horizontal, OBRitSpacing.s5)
     }
 }

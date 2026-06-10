@@ -24,7 +24,7 @@ enum HomeReadRepositoryError: LocalizedError, Equatable {
 actor HomeSampleDashboardRepository: HomeDashboardRepository {
     private let dashboardValue: HomeDashboard
 
-    init(dashboard: HomeDashboard = HomeSampleData.dashboard) {
+    init(dashboard: HomeDashboard = HomeDashboard.empty) {
         self.dashboardValue = dashboard
     }
 
@@ -88,7 +88,7 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
 actor HomeListTabSampleRepository: HomeListTabRepository {
     private let sourceItems: [HomeListTabItem]
 
-    init(items: [HomeListTabItem] = HomeListTabSampleData.items) {
+    init(items: [HomeListTabItem] = []) {
         self.sourceItems = items
     }
 
@@ -323,7 +323,7 @@ private enum SharedHomeReadMapper {
             sparesLabel: "여분 \(item.spareQuantity)개",
             cardLevel: cardLevel(itemBucket: item.itemBucket),
             imageColor: Color.clear,
-            orbAssetName: OBRitSharedAssetMapper.homeOrbAssetName(for: item.name)
+            imageURL: item.iconUrl
         )
     }
 
@@ -338,7 +338,7 @@ private enum SharedHomeReadMapper {
             replacementDday: replacementDday,
             lastReplacementOrder: Int(item.daysInUse),
             cardLevel: cardLevel(itemBucket: item.itemBucket),
-            assetName: OBRitSharedAssetMapper.itemAssetName(for: item.name)
+            imageURL: item.iconUrl
         )
     }
 

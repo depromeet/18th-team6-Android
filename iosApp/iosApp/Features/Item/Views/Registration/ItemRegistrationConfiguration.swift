@@ -93,7 +93,6 @@ enum ItemRegistrationText {
 
 enum ItemRegistrationAsset {
     static let searchSymbol = "magnifyingglass"
-    static let fallbackItemImage = "item_razor"
     static let completeBadge = "item_registration_complete_badge"
 }
 

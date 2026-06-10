@@ -8,7 +8,7 @@ enum ItemDetailReplacementCompletionModalKind: Equatable {
 struct ItemDetailReplacementCompletionModal: View {
     let kind: ItemDetailReplacementCompletionModalKind
     let itemName: String
-    let itemImageAssetName: String
+    let itemImageURL: String
     let messageLines: [String]
     let summaryTitle: String
     let summaryValue: String
@@ -19,7 +19,7 @@ struct ItemDetailReplacementCompletionModal: View {
     init(
         kind: ItemDetailReplacementCompletionModalKind,
         itemName: String,
-        itemImageAssetName: String,
+        itemImageURL: String = "",
         messageLines: [String],
         summaryTitle: String,
         summaryValue: String,
@@ -29,7 +29,7 @@ struct ItemDetailReplacementCompletionModal: View {
     ) {
         self.kind = kind
         self.itemName = itemName
-        self.itemImageAssetName = itemImageAssetName
+        self.itemImageURL = itemImageURL
         self.messageLines = messageLines
         self.summaryTitle = summaryTitle
         self.summaryValue = summaryValue
@@ -100,9 +100,7 @@ struct ItemDetailReplacementCompletionModal: View {
                     radius: ItemDetailReplacementModalMetrics.glowRadius
                 )
 
-            Image(itemImageAssetName)
-                .resizable()
-                .scaledToFill()
+            OBRitRemoteImage(urlString: itemImageURL, contentMode: .fill)
                 .frame(
                     width: ItemDetailReplacementModalMetrics.imageSize,
                     height: ItemDetailReplacementModalMetrics.imageSize
@@ -180,7 +178,7 @@ struct ItemDetailReplacementCompletionModal: View {
 extension ItemDetailReplacementCompletionModal {
     init(
         itemName: String,
-        itemImageAssetName: String,
+        itemImageURL: String = "",
         daysComparedToPrevious: Int,
         nextReplacementLabel: String,
         recordedAtText: String,
@@ -199,7 +197,7 @@ extension ItemDetailReplacementCompletionModal {
         self.init(
             kind: .nextReplacement,
             itemName: itemName,
-            itemImageAssetName: itemImageAssetName,
+            itemImageURL: itemImageURL,
             messageLines: [comparisonText, "교체 시기를 잘 지키고 있어요!"],
             summaryTitle: "다음 교체 예상일",
             summaryValue: nextReplacementLabel,
@@ -211,7 +209,7 @@ extension ItemDetailReplacementCompletionModal {
 
     init(
         itemName: String,
-        itemImageAssetName: String,
+        itemImageURL: String = "",
         remainingSpareQuantity: Int,
         recordedAtText: String,
         onConfirm: @escaping () -> Void,
@@ -220,7 +218,7 @@ extension ItemDetailReplacementCompletionModal {
         self.init(
             kind: .lowStock,
             itemName: itemName,
-            itemImageAssetName: itemImageAssetName,
+            itemImageURL: itemImageURL,
             messageLines: ["\(itemName) 여분이 얼마 남지 않았어요!", "여분을 확인해주세요"],
             summaryTitle: "남은 여분 갯수",
             summaryValue: "\(remainingSpareQuantity) 개",
@@ -268,7 +266,6 @@ private enum ItemDetailReplacementModalMetrics {
         OBRitColors.gray900
         ItemDetailReplacementCompletionModal(
             itemName: "칫솔",
-            itemImageAssetName: "item_toothbrush",
             daysComparedToPrevious: -2,
             nextReplacementLabel: "6월 22일(30일 후)",
             recordedAtText: "2026. 05. 23 오전 09:30 기록됨",
@@ -283,7 +280,6 @@ private enum ItemDetailReplacementModalMetrics {
         OBRitColors.gray900
         ItemDetailReplacementCompletionModal(
             itemName: "칫솔",
-            itemImageAssetName: "item_toothbrush",
             remainingSpareQuantity: 1,
             recordedAtText: "2026. 05. 23 오전 09:30 기록됨",
             onConfirm: {},

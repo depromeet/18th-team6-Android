@@ -46,9 +46,7 @@ struct HomeQuickItemSection: View {
                                 stockCount: item.stockCount,
                                 daysLabel: item.dDayLabel
                             ) {
-                                Image(item.imageAssetName)
-                                    .resizable()
-                                    .scaledToFit()
+                                OBRitRemoteImage(urlString: item.imageURL)
                             }
                         }
                         .buttonStyle(.plain)
