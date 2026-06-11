@@ -244,7 +244,7 @@ private val DIRECT_REGISTER_TOP_BAR_TO_BODY_GAP = AtomSpacing.S5.dp
 private val DIRECT_REGISTER_SECTION_GAP = AtomSpacing.S7.dp
 private val DIRECT_REGISTER_FIELD_GAP = AtomSpacing.S7.dp
 private val DIRECT_REGISTER_CTA_BOTTOM_PADDING = AtomSpacing.S10.dp
-private val DIRECT_REGISTER_SCROLL_FADE_HEIGHT = 52.dp
+private val DIRECT_REGISTER_SCROLL_FADE_HEIGHT = 40.dp
 
 @Preview(name = "DirectRegisterScreen Empty", showBackground = false)
 @Composable

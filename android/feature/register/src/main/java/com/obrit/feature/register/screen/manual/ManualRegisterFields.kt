@@ -4,50 +4,34 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
 import com.obrit.android.core.designsystem.R
-import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdown
-import com.obrit.android.core.designsystem.component.dropdown.OBRitDropdownMenu
 import com.obrit.android.core.designsystem.component.textfield.InputResultState
 import com.obrit.android.core.designsystem.component.textfield.OBRitOutlinedTextField
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.feature.register.screen.common.FieldSectionHeader
+import com.obrit.feature.register.screen.common.ReplacementPeriodDropdown
 import com.obrit.feature.register.screen.common.rememberFocusBringIntoView
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -115,78 +99,13 @@ internal fun LastReplaceDateField(
     selected: ReplacementPeriod?,
     onChange: (ReplacementPeriod?) -> Unit,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var triggerSize by remember { mutableStateOf(IntSize.Zero) }
-    val displayLabel = selected?.let { period -> LAST_REPLACE_DATE_OPTIONS.first { it.second == period }.first }.orEmpty()
-
     Column(verticalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp)) {
         FieldSectionHeader(label = MANUAL_REGISTER_LAST_REPLACE_DATE_LABEL)
-        Box {
-            OBRitDropdown(
-                value = displayLabel,
-                onClick = { expanded = !expanded },
-                placeholder = MANUAL_REGISTER_LAST_REPLACE_DATE_PLACEHOLDER,
-                expanded = expanded,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .onSizeChanged { triggerSize = it },
-            )
-            if (expanded) {
-                LastReplaceDateMenu(
-                    selected = selected,
-                    triggerWidthPx = triggerSize.width,
-                    onDismiss = { expanded = false },
-                    onItemSelect = {
-                        onChange(it)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LastReplaceDateMenu(
-    selected: ReplacementPeriod?,
-    triggerWidthPx: Int,
-    onDismiss: () -> Unit,
-    onItemSelect: (ReplacementPeriod) -> Unit,
-) {
-    val density = LocalDensity.current
-    val menuGapPx = with(density) { LAST_REPLACE_DATE_MENU_GAP.roundToPx() }
-    val positionProvider =
-        remember(menuGapPx) { LastReplaceDateMenuPositionProvider(menuGapPx) }
-    Popup(
-        popupPositionProvider = positionProvider,
-        onDismissRequest = onDismiss,
-        properties = PopupProperties(focusable = true),
-    ) {
-        OBRitDropdownMenu(
-            items = LAST_REPLACE_DATE_OPTIONS.map { it.first },
-            selectedIndex = LAST_REPLACE_DATE_OPTIONS.indexOfFirst { it.second == selected }.takeIf { it >= 0 },
-            onItemClick = { index -> onItemSelect(LAST_REPLACE_DATE_OPTIONS[index].second) },
-            modifier = with(density) { Modifier.width(triggerWidthPx.toDp()) },
+        ReplacementPeriodDropdown(
+            selected = selected,
+            onChange = onChange,
+            placeholder = MANUAL_REGISTER_LAST_REPLACE_DATE_PLACEHOLDER,
         )
-    }
-}
-
-private class LastReplaceDateMenuPositionProvider(
-    private val verticalGapPx: Int,
-) : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
-    ): IntOffset {
-        val x = anchorBounds.left
-        val belowY = anchorBounds.bottom + verticalGapPx
-        val aboveY = anchorBounds.top - popupContentSize.height - verticalGapPx
-        val fitsBelow = belowY + popupContentSize.height <= windowSize.height
-        val y = if (fitsBelow) belowY else aboveY.coerceAtLeast(0)
-        return IntOffset(x, y)
     }
 }
 
@@ -295,12 +214,3 @@ private val SELECTABLE_FIELD_MIN_HEIGHT = AtomSpacing.S14.dp
 private val SELECTABLE_FIELD_SHAPE = RoundedCornerShape(AtomRadius.Middle.dp)
 private val SELECTABLE_FIELD_SEARCH_ICON_SIZE = AtomSpacing.S6.dp
 private val INFO_NOTE_ICON_SIZE = AtomSpacing.S4.dp
-private val LAST_REPLACE_DATE_MENU_GAP = 6.dp
-
-private val LAST_REPLACE_DATE_OPTIONS =
-    listOf(
-        "1주일 이내" to ReplacementPeriod.WITHIN_WEEK,
-        "2-4주 전" to ReplacementPeriod.WITHIN_MONTH,
-        "1-3개월 전" to ReplacementPeriod.WITHIN_THREE_MONTHS,
-        "3개월 이전" to ReplacementPeriod.OVER_THREE_MONTHS,
-    )
