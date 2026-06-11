@@ -2,6 +2,7 @@
 
 package com.obrit.feature.home.screen.homeSection
 
+import android.graphics.BlurMaskFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -11,7 +12,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -29,6 +32,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -85,32 +89,34 @@ internal fun ItemOrbitSection(
     val (physicsState, iconOffsets) = rememberGlassBallPhysics(items.size)
     val tilt = rememberGlassBallTilt()
 
-    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
-        GlassBallGroundShadow()
-        GlassBallContent(
-            items = items,
-            state = physicsState,
-            visualState =
-                GlassBallVisualState(
-                    normalRatio = normalRatio,
-                    warningRatio = negativeRatio,
-                    tilt = tilt,
-                ),
-            iconOffsets = iconOffsets,
-        )
-        GlassBallRatioLabel(
-            ratio = normalRatio,
-            label = "양호",
-            color = Color(SemanticColors.Text.Positive.Default),
-            modifier = Modifier.align(Alignment.CenterStart).padding(start = 20.dp),
-        )
-        GlassBallRatioLabel(
-            ratio = negativeRatio,
-            label = "경고",
-            color = Color(SemanticColors.Text.Warning.Default),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 20.dp),
-        )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val ballDiameter = minOf(GlassBallOuterDiameter, maxWidth * BALL_ROW_WIDTH_RATIO)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            GlassBallRatioLabel(
+                ratio = negativeRatio,
+                label = "경고",
+                color = Color(SemanticColors.Text.Warning.Default),
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, end = AtomSpacing.S2.dp),
+            )
+            GlassBallBox(
+                items = items,
+                physicsState = physicsState,
+                iconOffsets = iconOffsets,
+                visualState = GlassBallVisualState(normalRatio = normalRatio, warningRatio = negativeRatio, tilt = tilt),
+                modifier = Modifier.size(ballDiameter),
+            )
+            GlassBallRatioLabel(
+                ratio = normalRatio,
+                label = "양호",
+                horizontalAlignment = Alignment.Start,
+                color = Color(SemanticColors.Text.Positive.Default),
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, start = AtomSpacing.S2.dp),
+            )
+        }
     }
 }
 
@@ -267,6 +273,21 @@ private fun applyIconRepulsion(state: GlassBallPhysicsState) {
                 state.velY[j] += ny * impulse
             }
         }
+    }
+}
+
+@Composable
+private fun GlassBallBox(
+    items: List<HomeItemCard>,
+    physicsState: GlassBallPhysicsState,
+    iconOffsets: Array<MutableState<Offset>>,
+    visualState: GlassBallVisualState,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        GlassBallStatusRing(normalRatio = visualState.normalRatio, warningRatio = visualState.warningRatio)
+        GlassBallGroundShadow()
+        GlassBallContent(items = items, state = physicsState, visualState = visualState, iconOffsets = iconOffsets)
     }
 }
 
@@ -659,14 +680,14 @@ private fun buildRingBrush(
         positiveShare <= 0f -> SolidColor(GlassBallWarningColor)
         else -> {
             val transitionArc = minOf(STATUS_RING_TRANSITION_ARC, warningShare / 2f, positiveShare / 2f)
-            val warningArcHalf = warningShare / 2f
+            val positiveArcHalf = positiveShare / 2f
             Brush.sweepGradient(
-                0f to GlassBallWarningColor,
-                (warningArcHalf - transitionArc) to GlassBallWarningColor,
-                (warningArcHalf + transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf - transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf + transitionArc) to GlassBallWarningColor,
-                1f to GlassBallWarningColor,
+                0f to GlassBallPositiveColor,
+                (positiveArcHalf - transitionArc) to GlassBallPositiveColor,
+                (positiveArcHalf + transitionArc) to GlassBallWarningColor,
+                (1f - positiveArcHalf - transitionArc) to GlassBallWarningColor,
+                (1f - positiveArcHalf + transitionArc) to GlassBallPositiveColor,
+                1f to GlassBallPositiveColor,
             )
         }
     }
@@ -727,6 +748,8 @@ private val GlassBallSize = 200.dp
 
 // 상태 링과 그라운드 섀도를 포함하는 외곽 크기 (iOS: HomeOrbMetrics.outerDiameter = S40 + S16 = 224)
 private val GlassBallOuterDiameter = 224.dp
+
+private const val BALL_ROW_WIDTH_RATIO = 0.8f
 
 // 상태 링 선 굵기 (iOS: HomeOrbMetrics.ringLineWidth = S1_5 = 6)
 private val RingLineWidth = 6.dp
@@ -857,6 +880,10 @@ private val MassFactorCycle = floatArrayOf(0.7f, 1.0f, 1.4f, 0.9f)
 
 private val ORBIT_ICON_SIZE = AtomSpacing.S24.dp
 
+private const val LABEL_GLOW_ALPHA = 0.1f
+private const val LABEL_GLOW_BLUR_DP = 96f
+private const val LABEL_GLOW_RADIUS_DP = 145f
+
 // 텍스처 그래디언트 마스크 stop 위치 (iOS: HomeOrbGlassMetrics.textureMaskStops)
 private const val TEXTURE_MASK_STOP_1 = 0.38f
 private const val TEXTURE_MASK_STOP_2 = 0.68f
@@ -872,9 +899,30 @@ private fun GlassBallRatioLabel(
     label: String,
     color: Color,
     modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
 ) {
     val typography = LocalOBRitTypography.current
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier =
+            modifier.drawBehind {
+                val centerX = size.width / 2f
+                val centerY = size.height / 2f
+                val radius = LABEL_GLOW_RADIUS_DP.dp.toPx()
+                val blurRadius = LABEL_GLOW_BLUR_DP.dp.toPx()
+                drawIntoCanvas { canvas ->
+                    val paint =
+                        Paint().apply {
+                            asFrameworkPaint().apply {
+                                isAntiAlias = true
+                                this.color = color.copy(alpha = LABEL_GLOW_ALPHA).toArgb()
+                                maskFilter = BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL)
+                            }
+                        }
+                    canvas.drawCircle(Offset(centerX, centerY), radius, paint)
+                }
+            },
+        horizontalAlignment = horizontalAlignment,
+    ) {
         Text(
             text = "${(ratio * 100).roundToInt()}%",
             style = typography.xl3.copy(fontWeight = FontWeight.Bold),

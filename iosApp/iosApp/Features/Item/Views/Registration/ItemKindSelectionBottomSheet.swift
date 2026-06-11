@@ -83,7 +83,7 @@ private struct ItemKindSelectionRow: View {
         } label: {
             HStack(spacing: OBRitSpacing.s4) {
                 ItemImage(
-                    assetName: kind.imageAssetName,
+                    imageURL: kind.imageURL,
                     size: ItemRegistrationLayout.itemThumbnailSize
                 )
 

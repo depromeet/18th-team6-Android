@@ -78,6 +78,7 @@ struct ItemRegistrationView: View {
                         onSelectReplacementDate: viewModel.selectReplacementDate,
                         onIncrementQuantity: viewModel.incrementQuantity,
                         onDecrementQuantity: viewModel.decrementQuantity,
+                        onUpdateQuantity: viewModel.updateQuantity,
                         onShowDirectKindRegistration: viewModel.showDirectKindRegistration,
                         onUpdateDirectKindName: viewModel.updateDirectKindName,
                         onSelectImageOption: viewModel.selectImageOption,
@@ -176,6 +177,7 @@ struct ItemRegistrationAction {
     let onSelectReplacementDate: (ItemReplacementDateOption) -> Void
     let onIncrementQuantity: () -> Void
     let onDecrementQuantity: () -> Void
+    let onUpdateQuantity: (Int) -> Void
     let onShowDirectKindRegistration: () -> Void
     let onUpdateDirectKindName: (String) -> Void
     let onSelectImageOption: (ItemImageOption) -> Void

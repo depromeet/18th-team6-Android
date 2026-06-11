@@ -39,12 +39,15 @@ internal class ItemRepositoryImpl(
 
     override suspend fun createItems(params: List<CreateItemParams>): Result<List<Item>> =
         runCatchingWith {
-            itemRemoteDataSource
-                .createItems(
-                    BulkCreateItemRequest(
-                        items = params.map { itemParams -> itemParams.toCreateItemRequest() },
-                    ),
-                ).map { response -> response.toItem() }
+            params
+                .chunked(BULK_CREATE_ITEMS_CHUNK_SIZE)
+                .flatMap { chunk ->
+                    itemRemoteDataSource.createItems(
+                        BulkCreateItemRequest(
+                            items = chunk.map { itemParams -> itemParams.toCreateItemRequest() },
+                        ),
+                    )
+                }.map { response -> response.toItem() }
         }.recoverCatching { error ->
             if (error is RemoteError && error.statusCode == HTTP_STATUS_CONFLICT) {
                 throw CreateItemError.DuplicatedName()
@@ -112,6 +115,7 @@ internal class ItemRepositoryImpl(
         }
 }
 
+private const val BULK_CREATE_ITEMS_CHUNK_SIZE = 20
 private const val HTTP_STATUS_CONFLICT = 409
 
 private fun CreateItemParams.toCreateItemRequest() =

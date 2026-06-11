@@ -299,7 +299,7 @@ private struct SearchSuggestionListView: View {
                 } label: {
                     Text(highlightedKeyword(keyword))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .obritTextStyle(OBRitTypography.s, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                         .padding(.vertical, OBRitSpacing.s2)
                 }
                 .buttonStyle(.plain)
@@ -311,9 +311,8 @@ private struct SearchSuggestionListView: View {
 
     private func highlightedKeyword(_ keyword: String) -> AttributedString {
         var attributedKeyword = AttributedString(keyword)
-        let prefix = String(keyword.prefix(query.count))
 
-        if let range = attributedKeyword.range(of: prefix) {
+        if let range = attributedKeyword.range(of: query, options: [.caseInsensitive]) {
             attributedKeyword[range].foregroundColor = OBRitColors.green300
         }
 
@@ -346,9 +345,7 @@ private struct SearchResultListView: View {
                                 replaceLabel: item.replaceLabel,
                                 sparesLabel: item.sparesLabel
                             ) {
-                                Image(item.assetName)
-                                    .resizable()
-                                    .scaledToFit()
+                                OBRitRemoteImage(urlString: item.imageURL)
                                     .padding(OBRitSpacing.s2)
                             }
                         }
@@ -416,7 +413,7 @@ private struct SearchContentPreview: View {
                 query: "샤워기",
                 recentKeywords: [],
                 suggestedKeywords: [],
-                results: Array(HomeListTabSampleData.items.prefix(2)),
+                results: [],
                 displayMode: .results
             )
         ),

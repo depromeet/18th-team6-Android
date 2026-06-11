@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 @MainActor
 final class ItemRegistrationViewModel: ObservableObject {
@@ -16,8 +17,8 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     init(
-        itemKinds: [ItemKind] = ItemRegistrationSampleData.itemKinds,
-        imageOptions: [ItemImageOption] = ItemRegistrationSampleData.imageOptions
+        itemKinds: [ItemKind] = [],
+        imageOptions: [ItemImageOption] = []
     ) {
         let initialData = ItemRegistrationViewData(
             mode: .form,
@@ -77,7 +78,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             selectedKind: nil,
             itemName: "",
             lastReplacementDateOption: nil,
-            quantity: 1,
+            quantity: ItemRegistrationConfig.defaultQuantity,
             directKindName: "",
             selectedImageOption: imageOptions.first
         )
@@ -91,7 +92,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
                     data.draft.lastReplacementDateOption = .withinOneWeek
-                    data.draft.quantity = 1
+                    data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 }
             case "kindSheet":
                 update { data in
@@ -103,7 +104,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                     data.draft.selectedKind = data.itemKinds.first
                     data.draft.itemName = data.itemKinds.first?.title ?? "면도기"
                     data.draft.lastReplacementDateOption = .withinOneWeek
-                    data.draft.quantity = 1
+                    data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 }
             case "directKind":
                 update { $0.mode = .directKind }
@@ -181,6 +182,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         update { data in
             data.draft.selectedKind = kind
             data.draft.itemName = kind.title
+            data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
             data.kindSearchQuery = ""
             data.bottomSheet = nil
             data.selectedKindCandidate = nil
@@ -192,14 +194,26 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func incrementQuantity() {
+        guard data.draft.selectedKind != nil else { return }
         update {
             $0.draft.quantity = min($0.draft.quantity + 1, ItemRegistrationConfig.quantityMaximum)
         }
     }
 
     func decrementQuantity() {
+        guard data.draft.selectedKind != nil else { return }
         update {
             $0.draft.quantity = max($0.draft.quantity - 1, ItemRegistrationConfig.quantityMinimum)
+        }
+    }
+
+    func updateQuantity(_ quantity: Int) {
+        guard data.draft.selectedKind != nil else { return }
+        update {
+            $0.draft.quantity = min(
+                max(quantity, ItemRegistrationConfig.quantityMinimum),
+                ItemRegistrationConfig.quantityMaximum
+            )
         }
     }
 
@@ -265,7 +279,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                 id: (data.itemKinds.map(\.id).max() ?? 0) + ItemRegistrationConfig.nextIDIncrement,
                 title: name,
                 addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-                imageAssetName: imageOption.assetName
+                imageURL: imageOption.imageURL
             ), into: &data)
         }
     }
@@ -274,6 +288,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
         data.draft.selectedKind = kind
         data.draft.itemName = kind.title
+        data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
         data.draft.directKindName = ""
         data.kindSearchQuery = ""
         data.selectedKindCandidate = nil
@@ -283,13 +298,13 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     private func makeCreateItemRequest() -> ItemRegistrationCreateItemRequest? {
         guard let selectedKind = data.draft.selectedKind,
-              let lastReplacementPeriod = data.draft.lastReplacementDateOption?.apiPeriod else { return nil }
+              let lastReplacementDateOption = data.draft.lastReplacementDateOption else { return nil }
 
         return ItemRegistrationCreateItemRequest(
             categoryId: selectedKind.id,
             name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
             quantity: data.draft.quantity,
-            lastReplacementPeriod: lastReplacementPeriod
+            lastReplacementPeriod: lastReplacementDateOption.apiPeriod
         )
     }
 
@@ -328,7 +343,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         AppLog.enter(
             AppLog.itemRegistrationViewModel,
             "ItemRegistrationViewModel.submitFormTask",
-            "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
+            "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod?.rawValue ?? "nil")"
         )
         do {
             try await repository.createItem(request: request)
@@ -379,6 +394,7 @@ final class ItemRegistrationViewModel: ObservableObject {
             update { data in
                 data.itemKinds = catalog.itemKinds
                 data.draft.selectedKind = nil
+                data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 data.draft.selectedImageOption = catalog.imageOptions.first
                 data.kindSearchQuery = ""
                 data.imageOptions = catalog.imageOptions
@@ -404,6 +420,14 @@ enum ItemRegistrationViewEffect: Equatable {
 
 private extension Error {
     var itemRegistrationMessage: String {
+        if self is CreateItemError.DuplicatedName {
+            return "이미 사용중인 이름이에요."
+        }
+
+        if self is CreateCategoryError.DuplicatedName {
+            return "이미 등록된 소모품이에요."
+        }
+
         if let localizedError = self as? LocalizedError,
            let description = localizedError.errorDescription {
             return description

@@ -20,6 +20,7 @@ struct AppDependencies {
             writeService: writeService
         )
         let itemRegistrationWriteRepository = SharedItemRegistrationWriteRepository(writeService: writeService)
+        let searchRecentKeywordStore = UserDefaultsSearchRecentKeywordStore()
 
         return AppDependencies(
             refreshCenter: refreshCenter,
@@ -35,7 +36,8 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel(
-                    repository: SharedHomeListTabRepository(readService: readService)
+                    repository: SharedHomeListTabRepository(readService: readService),
+                    recentKeywordStore: searchRecentKeywordStore
                 )
             },
             makeItemRegistrationViewModel: {
@@ -57,9 +59,7 @@ struct AppDependencies {
         return AppDependencies(
             refreshCenter: AppRefreshCenter(),
             makeHomeViewModel: {
-                HomeViewModel(
-                    initialDashboard: HomeSampleData.dashboard
-                )
+                HomeViewModel(initialDashboard: HomeDashboard.empty)
             },
             makeHomeListTabViewModel: {
                 HomeListTabViewModel()

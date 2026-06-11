@@ -37,20 +37,21 @@ enum HomeOrbShaderSource {
         vec4 color = SKDefaultShading();
         vec2 centered = v_tex_coord - vec2(0.5, 0.5);
         float spriteEdge = smoothstep(0.30, 0.78, length(centered));
-        float warningMix = smoothstep(
-            max(0.0, u_positiveShare - u_transitionWidth),
-            min(1.0, u_positiveShare + u_transitionWidth),
+        float warningShare = 1.0 - u_positiveShare;
+        float warningMix = 1.0 - smoothstep(
+            max(0.0, warningShare - u_transitionWidth),
+            min(1.0, warningShare + u_transitionWidth),
             u_orbProgressX
         );
         warningMix = mix(warningMix, 0.0, step(0.999, u_positiveShare));
         warningMix = mix(warningMix, 1.0, step(u_positiveShare, 0.001));
         vec3 orbBase = mix(u_positiveTint, u_warningTint, warningMix);
         vec3 hardLightColor = hardLight(orbBase, color.rgb);
-        float depthLight = mix(0.68, 1.08, u_frontDepth);
-        float rimShade = 1.0 - spriteEdge * mix(0.16, 0.34, u_edgeFalloff);
+        float depthLight = mix(0.88, 1.14, u_frontDepth);
+        float rimShade = 1.0 - spriteEdge * mix(0.08, 0.22, u_edgeFalloff);
         color.rgb = mix(color.rgb, hardLightColor, u_hardLightAmount);
-        color.rgb *= depthLight * rimShade * (1.0 - u_shadowAmount);
-        color.a *= mix(0.72, 1.0, u_frontDepth) * (1.0 - spriteEdge * 0.16);
+        color.rgb *= depthLight * rimShade * (1.0 - u_shadowAmount * 0.62);
+        color.a *= mix(0.86, 1.0, u_frontDepth) * (1.0 - spriteEdge * 0.08);
         gl_FragColor = color;
     }
     """
@@ -63,7 +64,7 @@ enum HomeOrbShaderSource {
         shader.uniforms = [
             SKUniform(name: HomeOrbShaderUniform.frontDepth, float: 1),
             SKUniform(name: HomeOrbShaderUniform.edgeFalloff, float: 0),
-            SKUniform(name: HomeOrbShaderUniform.hardLightAmount, float: 0.62),
+            SKUniform(name: HomeOrbShaderUniform.hardLightAmount, float: 0.24),
             SKUniform(name: HomeOrbShaderUniform.orbProgressX, float: 0.5),
             SKUniform(name: HomeOrbShaderUniform.positiveShare, float: 0.62),
             SKUniform(name: HomeOrbShaderUniform.positiveTint, vectorFloat3: positiveTint.shaderRGB),

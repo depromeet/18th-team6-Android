@@ -105,8 +105,6 @@ private struct HomeDataUnavailableContentView: View {
         case loadFailed(message: String, onRetry: () -> Void)
     }
 
-    @State private var isFabMenuPresented = false
-
     let presentation: Presentation
     let action: HomeViewAction
 
@@ -118,8 +116,8 @@ private struct HomeDataUnavailableContentView: View {
 
                 VStack(spacing: 0) {
                     Color.clear.frame(height: geometry.safeAreaInsets.top)
-                    OBRitHomeTopBar(
-                        backgroundColor: false,
+                    OBRitHomeTopBar.transparent(
+                        showNotificationButton: false,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
                         onProfileClick: action.onProfile
@@ -136,16 +134,9 @@ private struct HomeDataUnavailableContentView: View {
                     Spacer(minLength: 0)
                     HStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionMenu(
-                            isPresented: $isFabMenuPresented,
-                            items: [
-                                OBRitFloatingActionMenuItem(
-                                    id: "itemRegistration",
-                                    title: "직접 등록",
-                                    action: action.onRegisterDirect
-                                )
-                            ],
-                            accessibilityLabel: "소모품 등록"
+                        OBRitFloatingActionButton(
+                            accessibilityLabel: "소모품 등록",
+                            action: action.onRegisterDirect
                         )
                         .padding(.trailing, OBRitSpacing.s5)
                         .padding(.bottom, OBRitSpacing.s6)

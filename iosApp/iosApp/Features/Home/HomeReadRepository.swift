@@ -24,7 +24,7 @@ enum HomeReadRepositoryError: LocalizedError, Equatable {
 actor HomeSampleDashboardRepository: HomeDashboardRepository {
     private let dashboardValue: HomeDashboard
 
-    init(dashboard: HomeDashboard = HomeSampleData.dashboard) {
+    init(dashboard: HomeDashboard = HomeDashboard.empty) {
         self.dashboardValue = dashboard
     }
 
@@ -88,7 +88,7 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
 actor HomeListTabSampleRepository: HomeListTabRepository {
     private let sourceItems: [HomeListTabItem]
 
-    init(items: [HomeListTabItem] = HomeListTabSampleData.items) {
+    init(items: [HomeListTabItem] = []) {
         self.sourceItems = items
     }
 
@@ -110,7 +110,7 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
                 totalItemCount: filteredItems.count,
                 nextCursor: nil,
                 hasNext: false,
-                allItemsForBounds: filteredItems
+                filterBounds: sourceItems.filterBounds
             )
         }
 
@@ -123,16 +123,19 @@ actor HomeListTabSampleRepository: HomeListTabRepository {
             totalItemCount: filteredItems.count,
             nextCursor: nextCursor,
             hasNext: nextCursor != nil,
-            allItemsForBounds: filteredItems
+            filterBounds: sourceItems.filterBounds
         )
     }
 }
 
 actor SharedHomeListTabRepository: HomeListTabRepository {
     private let readService: SharedReadService
+    private let metadataPageSize: Int32
+    private var cachedMetadata: [HomeListTabMetadata] = []
 
-    init(readService: SharedReadService) {
+    init(readService: SharedReadService, metadataPageSize: Int32 = 100) {
         self.readService = readService
+        self.metadataPageSize = metadataPageSize
     }
 
     func items(request: HomeListTabPageRequest) async throws -> HomeListTabPage {
@@ -140,11 +143,36 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
         let details = "cursor=\(String(describing: request.cursor)) size=\(request.size) sort=\(request.sortOption)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
+            if !request.filters.isEmpty {
+                let allItems = try await metadataItems(
+                    for: HomeListTabPageRequest(
+                        filters: .empty,
+                        sortOption: request.sortOption,
+                        cursor: nil,
+                        size: Int(metadataPageSize)
+                    ),
+                    firstSlice: nil
+                )
+                let filteredItems =
+                    allItems
+                        .filtered(by: request.filters)
+                        .sorted { lhs, rhs in
+                            request.sortOption.sortsInAscendingOrder(lhs, rhs)
+                        }
+                let page = filteredItems.page(cursor: request.cursor, size: request.size, filterBounds: allItems.filterBounds)
+                AppLog.success(
+                    AppLog.swiftRepository,
+                    event,
+                    "\(details) items=\(page.items.count) total=\(filteredItems.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                )
+                return page
+            }
+
             let slice = try await readService.getHomeItems(
                 params: HomeItemsParams(
                     order: request.sortOption.homeItemOrder,
-                    dDay: request.filters.maxReplacementDday.kotlinInt,
-                    spareQuantity: request.filters.maxStockCount.kotlinInt,
+                    dDay: nil,
+                    spareQuantity: nil,
                     cursor: request.cursor.kotlinLong,
                     size: KotlinInt(int: Int32(request.size))
                 )
@@ -155,24 +183,161 @@ actor SharedHomeListTabRepository: HomeListTabRepository {
                 .sorted { lhs, rhs in
                     request.sortOption.sortsInAscendingOrder(lhs, rhs)
                 }
+            let metadataItems = try await metadataItems(for: request, firstSlice: request.cursor == nil ? slice : nil)
 
             let page = HomeListTabPage(
                 items: items,
-                totalItemCount: items.count + (slice.hasNext ? 1 : 0),
+                totalItemCount: metadataItems.count,
                 nextCursor: slice.nextCursor?.int64Value,
                 hasNext: slice.hasNext,
-                allItemsForBounds: items
+                filterBounds: metadataItems.filterBounds
             )
             AppLog.success(
                 AppLog.swiftRepository,
                 event,
-                "\(details) items=\(items.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                "\(details) items=\(items.count) total=\(metadataItems.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
             )
             return page
         } catch {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw error
         }
+    }
+
+    private func metadataItems(
+        for request: HomeListTabPageRequest,
+        firstSlice: HomeItemCursorSlice?
+    ) async throws -> [HomeListTabItem] {
+        if let cachedMetadata = cachedMetadata.first(where: {
+            $0.matches(filters: request.filters, sortOption: request.sortOption)
+        }) {
+            return cachedMetadata.items
+        }
+
+        let items = try await loadMetadataItems(for: request, firstSlice: firstSlice)
+        cachedMetadata.removeAll {
+            $0.matches(filters: request.filters, sortOption: request.sortOption)
+        }
+        cachedMetadata.append(
+            HomeListTabMetadata(
+                filters: request.filters,
+                sortOption: request.sortOption,
+                items: items
+            )
+        )
+        return items
+    }
+
+    private func loadMetadataItems(
+        for request: HomeListTabPageRequest,
+        firstSlice: HomeItemCursorSlice?
+    ) async throws -> [HomeListTabItem] {
+        var items = firstSlice?.content.map(SharedHomeReadMapper.homeListItem) ?? []
+        var cursor = firstSlice?.nextCursor?.int64Value
+        var hasNext = firstSlice?.hasNext ?? true
+        var previousCursor: Int64?
+
+        while hasNext {
+            if cursor == nil, !items.isEmpty || firstSlice != nil {
+                AppLog.failure(
+                    AppLog.swiftRepository,
+                    "SharedHomeListTabRepository.loadMetadataItems",
+                    HomeListTabMetadataError.missingCursor
+                )
+                break
+            }
+
+            if let cursor, cursor == previousCursor {
+                AppLog.failure(
+                    AppLog.swiftRepository,
+                    "SharedHomeListTabRepository.loadMetadataItems",
+                    HomeListTabMetadataError.repeatedCursor,
+                    "cursor=\(cursor)"
+                )
+                break
+            }
+
+            previousCursor = cursor
+            let slice = try await readService.getHomeItems(
+                params: HomeItemsParams(
+                    order: request.sortOption.homeItemOrder,
+                    dDay: request.filters.maxReplacementDday.kotlinInt,
+                    spareQuantity: request.filters.maxStockCount.kotlinInt,
+                    cursor: cursor.map { KotlinLong(longLong: $0) },
+                    size: KotlinInt(int: metadataPageSize)
+                )
+            )
+
+            items.append(contentsOf: slice.content.map(SharedHomeReadMapper.homeListItem))
+            cursor = slice.nextCursor?.int64Value
+            hasNext = slice.hasNext
+        }
+
+        return items.sorted { lhs, rhs in
+            request.sortOption.sortsInAscendingOrder(lhs, rhs)
+        }
+    }
+}
+
+private struct HomeListTabMetadata {
+    let filters: HomeListTabFilters
+    let sortOption: HomeListTabSortOption
+    let items: [HomeListTabItem]
+
+    func matches(filters: HomeListTabFilters, sortOption: HomeListTabSortOption) -> Bool {
+        self.filters == filters && self.sortOption == sortOption
+    }
+}
+
+private enum HomeListTabMetadataError: LocalizedError {
+    case missingCursor
+    case repeatedCursor
+
+    var errorDescription: String? {
+        switch self {
+        case .missingCursor:
+            return "홈 목록 다음 페이지 커서가 비어 있어 전체 범위 계산을 멈췄어요."
+        case .repeatedCursor:
+            return "홈 목록 전체 범위를 계산하는 중 같은 커서가 반복됐어요."
+        }
+    }
+}
+
+private extension Array where Element == HomeListTabItem {
+    func filtered(by filters: HomeListTabFilters) -> [HomeListTabItem] {
+        filter { item in
+            let matchesDday = filters.maxReplacementDday.map { item.replacementDday <= $0 } ?? true
+            let matchesStock = filters.maxStockCount.map { item.stockCount <= $0 } ?? true
+            return matchesDday && matchesStock
+        }
+    }
+
+    func page(
+        cursor: Int64?,
+        size: Int,
+        filterBounds: HomeListTabFilterBounds?
+    ) -> HomeListTabPage {
+        let startIndex = Swift.min(Int(cursor ?? 0), count)
+        let endIndex = Swift.min(startIndex + size, count)
+        let nextCursor = endIndex < count ? Int64(endIndex) : nil
+        return HomeListTabPage(
+            items: Array(self[startIndex ..< endIndex]),
+            totalItemCount: count,
+            nextCursor: nextCursor,
+            hasNext: nextCursor != nil,
+            filterBounds: filterBounds
+        )
+    }
+
+    var filterBounds: HomeListTabFilterBounds? {
+        guard !isEmpty else { return nil }
+
+        return HomeListTabFilterBounds(
+            minReplacementDday: map(\.replacementDday).min() ?? 0,
+            maxReplacementDday: map(\.replacementDday).max() ?? 0,
+            minStockCount: map(\.stockCount).min() ?? 0,
+            maxStockCount: map(\.stockCount).max() ?? 0
+        )
     }
 }
 
@@ -216,20 +381,17 @@ private enum SharedHomeReadMapper {
     }
 
     static func homeItem(_ item: HomeItemCard) -> HomeItemItem {
-        let replacementDday = ddayValue(from: item.replacementDday)
-        let cardLevel = cardLevel(replacementDday: replacementDday, spareQuantity: Int(item.spareQuantity))
-
         return HomeItemItem(
-            id: Int(item.id),
+            id: Int(clamping: item.itemId),
             title: item.name,
             daysInUse: Int(item.daysInUse),
             stockCount: Int(item.spareQuantity),
             dDayLabel: item.replacementDday,
             replaceLabel: "교체 \(item.replacementDday)",
             sparesLabel: "여분 \(item.spareQuantity)개",
-            cardLevel: cardLevel,
+            cardLevel: cardLevel(itemBucket: item.itemBucket),
             imageColor: Color.clear,
-            orbAssetName: OBRitSharedAssetMapper.homeOrbAssetName(for: item.name)
+            imageURL: item.iconUrl
         )
     }
 
@@ -237,14 +399,14 @@ private enum SharedHomeReadMapper {
         let replacementDday = ddayValue(from: item.replacementDday)
 
         return HomeListTabItem(
-            id: Int(item.id),
+            id: Int(clamping: item.itemId),
             title: item.name,
             daysInUse: Int(item.daysInUse),
             stockCount: Int(item.spareQuantity),
             replacementDday: replacementDday,
             lastReplacementOrder: Int(item.daysInUse),
-            cardLevel: cardLevel(replacementDday: replacementDday, spareQuantity: Int(item.spareQuantity)),
-            assetName: OBRitSharedAssetMapper.itemAssetName(for: item.name)
+            cardLevel: cardLevel(itemBucket: item.itemBucket),
+            imageURL: item.iconUrl
         )
     }
 
@@ -253,35 +415,43 @@ private enum SharedHomeReadMapper {
             return 0
         }
 
-        if label.hasPrefix("D+"), let days = Int(label.dropFirst(2)) {
+        if let days = days(after: "D+", in: label) {
             return -days
         }
 
-        if label.hasPrefix("D-"), let days = Int(label.dropFirst(2)) {
+        if let days = days(after: "D-", in: label) {
             return days
         }
 
         return Int(label.filter { $0.isNumber || $0 == "-" }) ?? 0
     }
 
-    private static func cardLevel(replacementDday: Int, spareQuantity: Int) -> OBRitCardLevel {
-        if replacementDday <= 0 || spareQuantity <= 0 {
+    private static func days(after marker: String, in label: String) -> Int? {
+        guard let range = label.range(of: marker, options: .caseInsensitive) else { return nil }
+        let digits = label[range.upperBound...].prefix { character in
+            character.isNumber
+        }
+        return Int(digits)
+    }
+
+    private static func cardLevel(itemBucket: ItemBucket) -> OBRitCardLevel {
+        if itemBucket == .noneOverdue {
             return .l1
         }
 
-        if replacementDday <= 3 {
+        if itemBucket == .noneWarn {
             return .l2
         }
 
-        if replacementDday <= 7 {
+        if itemBucket == .hasOverdue {
             return .l3
         }
 
-        if replacementDday <= 14 {
+        if itemBucket == .hasWarn {
             return .l4
         }
 
-        if replacementDday <= 30 {
+        if itemBucket == .noneSafe {
             return .l5
         }
 

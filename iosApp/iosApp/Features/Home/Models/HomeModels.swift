@@ -10,6 +10,23 @@ struct HomeDashboard {
     }
 }
 
+extension HomeDashboard {
+    static let empty = HomeDashboard(
+        summary: HomeSummary(
+            status: "",
+            replacementStatus: "",
+            stockStatus: "",
+            positiveRatio: 0,
+            warningRatio: 0,
+            totalCount: 0,
+            warningCount: 0,
+            history: []
+        ),
+        warningItems: [],
+        usageItems: []
+    )
+}
+
 struct HomeSummary {
     let status: String
     let replacementStatus: String
@@ -101,14 +118,10 @@ struct HomeItemItem: Identifiable {
     let sparesLabel: String
     let cardLevel: OBRitCardLevel
     let imageColor: Color
-    let orbAssetName: String
+    let imageURL: String
 
     var riskRank: Int {
         cardLevel.homeRiskRank
-    }
-
-    var imageAssetName: String {
-        orbAssetName
     }
 
     var quickStatusFilters: Set<HomeStatusFilter> {
@@ -148,22 +161,22 @@ struct HomeItemItem: Identifiable {
 
 struct HomeOrbInteriorItem: Identifiable, Hashable {
     let id: Int
-    let assetName: String
+    let imageURL: String
     let weight: CGFloat
 
-    init(id: Int, assetName: String, weight: CGFloat = HomeOrbVisualConfig.defaultItemWeight) {
+    init(id: Int, imageURL: String, weight: CGFloat = HomeOrbVisualConfig.defaultItemWeight) {
         self.id = id
-        self.assetName = assetName
+        self.imageURL = imageURL
         self.weight = min(
             max(weight, HomeOrbVisualConfig.minimumItemWeight),
             HomeOrbVisualConfig.maximumWeightForSizing
         )
     }
 
-    init(id: Int, assetName: String, riskRank: Int) {
+    init(id: Int, imageURL: String, riskRank: Int) {
         self.init(
             id: id,
-            assetName: assetName,
+            imageURL: imageURL,
             weight: Self.weight(forRiskRank: riskRank)
         )
     }
@@ -178,7 +191,7 @@ extension HomeItemItem {
     var orbInteriorItem: HomeOrbInteriorItem {
         HomeOrbInteriorItem(
             id: id,
-            assetName: orbAssetName,
+            imageURL: imageURL,
             riskRank: riskRank
         )
     }

@@ -26,9 +26,10 @@ enum HomeOrbPhysicsConfig {
     static let boundaryFriction: CGFloat = 0.72
     static let boundaryRestitution: CGFloat = 0
 
-    static let stablePackingMultiplier: CGFloat = 1.8
-    static let physicsRadiusMinimumRatio: CGFloat = 10 / HomeOrbMetrics.glassBallDiameter
-    static let physicsRadiusVisualWidthRatio: CGFloat = 0.105
+    static let stablePackingMultiplier: CGFloat = 1.2
+    static let physicsRadiusMinimumRatio: CGFloat = 9 / HomeOrbMetrics.glassBallDiameter
+    static let physicsRadiusVisualWidthRatio: CGFloat = 0.12
+    static let visualBoundaryInsetRatio: CGFloat = 0.3
 }
 
 enum HomeOrbVisualConfig {
@@ -42,8 +43,8 @@ enum HomeOrbVisualConfig {
     static let itemWeightBase: CGFloat = 0.92
     static let itemWeightRiskScale: CGFloat = 0.055
     static let riskRankUpperBound = 7
-    static let itemTargetWidthBase: CGFloat = 0.8
-    static let itemTargetWidthWeightScale: CGFloat = 0.0525
+    static let itemTargetWidthBase: CGFloat = 0.56
+    static let itemTargetWidthWeightScale: CGFloat = 0.03675
     static let maximumWeightForSizing: CGFloat = 1.45
     static let minimumTextureAspectRatio: CGFloat = 0.2
     static let spriteAnchorPoint = CGPoint(x: 0.5, y: 0.42)
@@ -61,10 +62,10 @@ enum HomeOrbVisualConfig {
     static let visualScaleDepthFactor: CGFloat = 0.16
     static let visualScaleEdgeFactor: CGFloat = 0.12
     static let visualScaleMaximum: CGFloat = 1.06
-    static let visualAlphaMinimum: CGFloat = 0.45
-    static let visualAlphaBase: CGFloat = 0.58
-    static let visualAlphaDepthFactor: CGFloat = 0.34
-    static let visualAlphaEdgeFactor: CGFloat = 0.20
+    static let visualAlphaMinimum: CGFloat = 0.62
+    static let visualAlphaBase: CGFloat = 0.9
+    static let visualAlphaDepthFactor: CGFloat = 0.26
+    static let visualAlphaEdgeFactor: CGFloat = 0.05
     static let visualAlphaMaximum: CGFloat = 1
     static let shadowDepthFactor: CGFloat = 0.26
     static let shadowEdgeFactor: CGFloat = 0.18

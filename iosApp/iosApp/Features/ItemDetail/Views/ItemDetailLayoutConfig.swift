@@ -130,7 +130,7 @@ enum ItemDetailStatus {
 struct ItemDetailDisplayData: Identifiable {
     let id: Int
     let title: String
-    let imageAssetName: String
+    let imageURL: String
     let status: ItemDetailStatus
     let heroProgress: Double
     let lastReplacementDateText: String

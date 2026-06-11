@@ -24,7 +24,7 @@ public struct OBRitSnackbar: View {
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: contentSpacing) {
+        HStack(alignment: .center, spacing: contentSpacing) {
             if hasIcon {
                 OBRitIcon(kind: iconKind, color: iconColor)
                     .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)

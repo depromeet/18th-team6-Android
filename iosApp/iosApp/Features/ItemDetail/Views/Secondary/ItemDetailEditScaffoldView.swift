@@ -3,8 +3,6 @@ import SwiftUI
 struct ItemDetailEditScaffoldView: View {
     @Binding var draft: ItemDetailEditDraft
     @State private var replacementCycleInput: String
-    @State private var selectedImageOptionID: Int?
-    @State private var imageGridWidth = ItemDetailEditMetrics.referenceContentWidth
     @State private var hasAttemptedNameOverflow = false
 
     private let originalName: String
@@ -12,7 +10,6 @@ struct ItemDetailEditScaffoldView: View {
     let recommendedCycleDays: Int?
     let averageCycleDays: Int?
     let existingItemNames: [String]
-    let imageAssetNames: [String]
     let isProcessing: Bool
     let canSubmitOverride: Bool?
     let onClose: () -> Void
@@ -24,7 +21,6 @@ struct ItemDetailEditScaffoldView: View {
         recommendedCycleDays: Int? = nil,
         averageCycleDays: Int? = nil,
         existingItemNames: [String] = [],
-        imageAssetNames: [String] = ItemAssetCatalog.assetNames,
         isProcessing: Bool = false,
         canSubmit: Bool? = nil,
         onClose: @escaping () -> Void,
@@ -37,7 +33,6 @@ struct ItemDetailEditScaffoldView: View {
         self.recommendedCycleDays = recommendedCycleDays
         self.averageCycleDays = averageCycleDays
         self.existingItemNames = existingItemNames
-        self.imageAssetNames = imageAssetNames
         self.isProcessing = isProcessing
         self.canSubmitOverride = canSubmit
         self.onClose = onClose
@@ -56,7 +51,6 @@ struct ItemDetailEditScaffoldView: View {
                 VStack(alignment: .leading, spacing: ItemDetailEditMetrics.sectionSpacing) {
                     nameSection
                     replacementCycleSection
-                    imageSection
                 }
                 .padding(.horizontal, OBRitSpacing.s5)
                 .padding(.vertical, OBRitSpacing.s4)
@@ -135,40 +129,6 @@ struct ItemDetailEditScaffoldView: View {
         }
     }
 
-    private var imageSection: some View {
-        VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
-            sectionTitle("대표 이미지")
-
-            GeometryReader { geometry in
-                let imageSize = imageSize(in: geometry.size.width)
-
-                LazyVGrid(columns: imageGridColumns(in: geometry.size.width), spacing: ItemDetailEditMetrics.imageRowSpacing) {
-                    ForEach(imageOptions) { option in
-                        ItemDetailEditImageButton(
-                            assetName: option.assetName,
-                            size: imageSize,
-                            selected: isSelectedImageOption(option),
-                            accessibilityLabel: option.accessibilityLabel,
-                            onSelect: {
-                                selectedImageOptionID = option.id
-                                draft.imageAssetName = option.assetName
-                                dismissKeyboard()
-                            }
-                        )
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onAppear {
-                    imageGridWidth = geometry.size.width
-                }
-                .onChange(of: geometry.size.width) { _, newWidth in
-                    imageGridWidth = newWidth
-                }
-            }
-            .frame(height: imageGridHeight(for: imageGridWidth))
-        }
-    }
-
     private var bottomBar: some View {
         OBRitFilledTextButton(
             text: isProcessing ? "편집 중" : "편집 완료",
@@ -210,58 +170,8 @@ struct ItemDetailEditScaffoldView: View {
         validationResult.nameHelperMessage
     }
 
-    private var imageOptions: [ItemDetailEditImageOption] {
-        imageAssetNames.enumerated().map { index, assetName in
-            ItemDetailEditImageOption(
-                id: index,
-                assetName: assetName,
-                accessibilityLabel: "\(index + 1)번째 \(imageAccessibilityName(for: assetName)) 대표 이미지"
-            )
-        }
-    }
-
-    private func imageGridHeight(for availableWidth: CGFloat) -> CGFloat {
-        guard !imageOptions.isEmpty else { return 0 }
-
-        let imageSize = imageSize(in: availableWidth)
-        let rowCount = ceil(CGFloat(imageOptions.count) / CGFloat(ItemDetailEditMetrics.imageColumnCount))
-        return rowCount * imageSize +
-            max(0, rowCount - 1) * ItemDetailEditMetrics.imageRowSpacing
-    }
-
-    private func imageGridColumns(in availableWidth: CGFloat) -> [GridItem] {
-        let columnCount = ItemDetailEditMetrics.imageColumnCount
-        let imageSize = imageSize(in: availableWidth)
-        let totalImageWidth = imageSize * CGFloat(columnCount)
-        let spacing = max(
-            OBRitSpacing.s2,
-            (availableWidth - totalImageWidth) / CGFloat(columnCount - 1)
-        )
-
-        return Array(
-            repeating: GridItem(.fixed(imageSize), spacing: spacing, alignment: .leading),
-            count: columnCount
-        )
-    }
-
-    private func imageSize(in availableWidth: CGFloat) -> CGFloat {
-        min(
-            ItemDetailEditMetrics.maximumImageSize,
-            max(
-                ItemDetailEditMetrics.minimumImageSize,
-                availableWidth * ItemDetailEditMetrics.imageWidthRatio
-            )
-        )
-    }
-
     private var canSubmit: Bool {
         canSubmitOverride ?? validationResult.canSubmit
-    }
-
-    private func isSelectedImageOption(_ option: ItemDetailEditImageOption) -> Bool {
-        let selectedID = selectedImageOptionID ?? imageOptions.first { $0.assetName == draft.imageAssetName }?.id
-
-        return option.id == selectedID && option.assetName == draft.imageAssetName
     }
 
     private var validationResult: ItemDetailEditValidationResult {
@@ -288,10 +198,6 @@ struct ItemDetailEditScaffoldView: View {
     private func submitEdit() {
         normalizeReplacementCycleInput()
         onSubmit()
-    }
-
-    private func imageAccessibilityName(for assetName: String) -> String {
-        ItemAssetCatalog.accessibilityNames[assetName] ?? "소모품"
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -338,67 +244,7 @@ struct ItemDetailEditScaffoldView: View {
     }
 }
 
-private struct ItemDetailEditImageOption: Identifiable, Equatable {
-    let id: Int
-    let assetName: String
-    let accessibilityLabel: String
-}
-
-private struct ItemDetailEditImageButton: View {
-    let assetName: String
-    let size: CGFloat
-    let selected: Bool
-    let accessibilityLabel: String
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            Image(assetName)
-                .resizable()
-                .scaledToFill()
-                .frame(
-                    width: size,
-                    height: size
-                )
-                .background(OBRitColors.gray750)
-                .clipShape(Circle())
-                .overlay {
-                    if selected {
-                        Circle()
-                            .stroke(OBRitColors.backgroundPositiveDefault, lineWidth: ItemDetailEditMetrics.selectedImageBorderWidth)
-                    }
-                }
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityValue(selected ? "선택됨" : "선택 안 됨")
-    }
-}
-
 private enum ItemDetailEditMetrics {
     static let sectionSpacing: CGFloat = 36
-    static let imageColumnCount = 5
-    static let referenceContentWidth: CGFloat = 372
-    static let imageWidthRatio: CGFloat = 60 / 372
-    static let minimumImageSize: CGFloat = 48
-    static let maximumImageSize: CGFloat = 60
-    static let imageRowSpacing: CGFloat = 12
-    static let selectedImageBorderWidth: CGFloat = 2
     static let bottomButtonHeight: CGFloat = 60
-}
-
-#Preview {
-    @Previewable @State var draft = ItemDetailEditDraft(item: ItemDetailDomainSampleData.item(id: 1))
-
-    ItemDetailEditScaffoldView(
-        draft: $draft,
-        validation: .duplicateName,
-        recommendedCycleDays: 30,
-        averageCycleDays: 31,
-        existingItemNames: ItemDetailDomainSampleData.items.map(\.name),
-        onClose: {},
-        onSubmit: {}
-    )
 }

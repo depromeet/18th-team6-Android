@@ -4,7 +4,7 @@ import Foundation
 final class RegistrationMethodViewModel: ObservableObject {
     @Published private(set) var state: RegistrationMethodViewState
 
-    init(options: [RegistrationMethodOption] = RegistrationMethodSampleData.options) {
+    init(options: [RegistrationMethodOption] = RegistrationMethodDefaults.options) {
         self.state = .success(options)
     }
 }
