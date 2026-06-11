@@ -20,6 +20,14 @@ struct HomeContentView: View {
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
+                    let homeTabMinHeight = max(
+                        0,
+                        geometry.size.height -
+                            geometry.safeAreaInsets.top -
+                            OBRitSpacing.s14 -
+                            OBRitSpacing.s32
+                    )
+
                     VStack(spacing: 0) {
                         Color.clear.frame(height: geometry.safeAreaInsets.top)
                         OBRitHomeTopBar(
@@ -35,6 +43,7 @@ struct HomeContentView: View {
                             selectedWarningSort: selectedWarningSort,
                             quickItems: visibleQuickItems,
                             previewItems: visibleWarningItems,
+                            emptyStateMinHeight: homeTabMinHeight,
                             onOpenPreviewSortSheet: {
                                 isPreviewSortSheetPresented = true
                             },
@@ -45,23 +54,25 @@ struct HomeContentView: View {
                 }
                 .ignoresSafeArea(edges: .top)
 
-                VStack {
-                    Spacer(minLength: 0)
-                    HStack {
+                if dashboard.hasRegisteredItems {
+                    VStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionMenu(
-                            isPresented: $isFabMenuPresented,
-                            items: [
-                                OBRitFloatingActionMenuItem(
-                                    id: "itemRegistration",
-                                    title: "직접 등록",
-                                    action: action.onRegisterDirect
-                                )
-                            ],
-                            accessibilityLabel: "소모품 등록"
-                        )
+                        HStack {
+                            Spacer(minLength: 0)
+                            OBRitFloatingActionMenu(
+                                isPresented: $isFabMenuPresented,
+                                items: [
+                                    OBRitFloatingActionMenuItem(
+                                        id: "itemRegistration",
+                                        title: "직접 등록",
+                                        action: action.onRegisterDirect
+                                    )
+                                ],
+                                accessibilityLabel: "소모품 등록"
+                            )
                             .padding(.trailing, OBRitSpacing.s5)
                             .padding(.bottom, OBRitSpacing.s6)
+                        }
                     }
                 }
 

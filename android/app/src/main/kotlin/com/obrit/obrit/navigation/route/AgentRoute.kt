@@ -11,4 +11,9 @@ sealed interface AgentRoute : Route {
     data class AgentDetail(
         val id: Int,
     ) : AgentRoute
+
+    @Serializable
+    data class AgentDetailEdit(
+        val id: Long,
+    ) : AgentRoute
 }

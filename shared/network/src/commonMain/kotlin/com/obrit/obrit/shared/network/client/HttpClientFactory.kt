@@ -57,12 +57,12 @@ internal fun HttpClientConfig<*>.configureOBRitHttpClient(
         logger =
             object : Logger {
                 override fun log(message: String) {
-                    println(message)
+                    println("[OBRit][Ktor] $message")
                 }
             }
         level =
             if (configuration.enableLogging) {
-                LogLevel.BODY
+                LogLevel.HEADERS
             } else {
                 LogLevel.NONE
             }

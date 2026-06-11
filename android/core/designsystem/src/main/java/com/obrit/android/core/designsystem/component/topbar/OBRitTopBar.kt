@@ -253,6 +253,8 @@ private fun TopBarTitle(
     )
 }
 
+// 동일 디자인이 feature/register의 CategorySelectionBottomSheet.kt의 CategorySearchField에도 복사되어 있다.
+// Figma SSOT에 검색창이 정식 컴포넌트로 등록되면 designsystem으로 추출하고 양쪽을 교체할 것.
 @Composable
 @Suppress("LongMethod")
 private fun TopBarSearchInput(

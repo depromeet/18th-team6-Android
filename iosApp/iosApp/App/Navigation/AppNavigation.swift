@@ -5,6 +5,7 @@ struct AppNavigation {
     static func destination(
         for route: AppRoute,
         selectedMainTab: MainTab,
+        dependencies: AppDependencies,
         onSetRoot: @escaping (AppRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void,
         onBack: @escaping () -> Void,
@@ -45,6 +46,7 @@ struct AppNavigation {
         case .main:
             MainNavigation(
                 selectedTab: selectedMainTab,
+                dependencies: dependencies,
                 onNavigateItem: onNavigateItem,
                 onSelectMainTab: onSelectMainTab
             )

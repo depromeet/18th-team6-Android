@@ -4,8 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMotionUsageDescription</key>
-	<string>기울기에 따라 홈 유리볼의 움직임을 자연스럽게 표현하기 위해 사용합니다.</string>
+	<string>기기 움직임을 사용해 홈 화면 오브젝트의 움직임 효과를 제공합니다.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>pretendard_black.ttf</string>

@@ -40,7 +40,7 @@ struct HomeStatusOverviewCard: View {
         }
         .padding(HomeStatusOverviewLayoutMetrics.cardPadding)
         .frame(maxWidth: .infinity, minHeight: HomeStatusOverviewLayoutMetrics.minimumCardHeight)
-        .background(OBRitColors.common100)
+        .background(OBRitColors.common1000)
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("내 상태 현황")
@@ -189,10 +189,10 @@ private struct HomeStatusOverviewMeterBars: View {
                         )
                     )
 
-                ForEach(0..<dividerCount, id: \.self) { index in
+                ForEach(0 ..< dividerCount, id: \.self) { index in
                     // 검은색 divider
                     RoundedRectangle(cornerRadius: 0)
-                        .fill(OBRitColors.common100)
+                        .fill(OBRitColors.common1000)
                         .frame(
                             width: HomeStatusOverviewLayoutMetrics.meterDividerWidth,
                             height: HomeStatusOverviewLayoutMetrics.meterBarHeight

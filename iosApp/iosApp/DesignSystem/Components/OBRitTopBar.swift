@@ -115,25 +115,24 @@ public struct OBRitDepthTopBar: View {
 
 public struct OBRitSearchTopBar: View {
     @Binding private var query: String
-    @FocusState private var isSearchFocused: Bool
+    private let searchFocus: FocusState<Bool>.Binding
     private let placeholder: String
     private let backgroundColor: Bool
-    private let focusOnAppear: Bool
     private let onBackClick: () -> Void
     private let onSubmit: () -> Void
 
     public init(
         query: Binding<String>,
+        searchFocus: FocusState<Bool>.Binding,
         placeholder: String = "원하시는 소모품을 검색해보세요",
         backgroundColor: Bool = true,
-        focusOnAppear: Bool = false,
         onBackClick: @escaping () -> Void,
         onSubmit: @escaping () -> Void = {}
     ) {
         self._query = query
+        self.searchFocus = searchFocus
         self.placeholder = placeholder
         self.backgroundColor = backgroundColor
-        self.focusOnAppear = focusOnAppear
         self.onBackClick = onBackClick
         self.onSubmit = onSubmit
     }
@@ -148,7 +147,7 @@ public struct OBRitSearchTopBar: View {
                         .lineLimit(1)
                         .tint(OBRitColors.common00)
                         .submitLabel(.search)
-                        .focused($isSearchFocused)
+                        .focused(searchFocus)
                         .onSubmit(onSubmit)
                         .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                     Image(systemName: "magnifyingglass")
@@ -164,10 +163,6 @@ public struct OBRitSearchTopBar: View {
             }
             .padding(.leading, OBRitSpacing.s3)
             .padding(.trailing, OBRitSpacing.s3)
-        }
-        .onAppear {
-            guard focusOnAppear else { return }
-            isSearchFocused = true
         }
     }
 }

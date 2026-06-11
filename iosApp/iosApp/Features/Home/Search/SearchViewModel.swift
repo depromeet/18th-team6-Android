@@ -4,41 +4,129 @@ import Foundation
 final class SearchViewModel: ObservableObject {
     @Published private(set) var state: SearchViewState
 
-    private let sourceItems: [HomeListTabItem]
+    private let repository: HomeListTabRepository?
+    private let recentKeywordStore: SearchRecentKeywordStore?
+    private var sourceItems: [HomeListTabItem]
     private var query = ""
     private var recentKeywords: [String]
+    private var isLoading = false
+    private var automaticallyLoads: Bool
+    private var didStartInitialLoad = false
+    private let pageSize = 100
+    private let maxBootstrapPageCount = 5
+
+    var currentQuery: String {
+        query
+    }
+
+    var canRequestInitialFocus: Bool {
+        if case .loading = state {
+            return false
+        }
+
+        return true
+    }
 
     init(
         sourceItems: [HomeListTabItem] = HomeListTabSampleData.items,
-        recentKeywords: [String] = ["샤워기", "수세미", "정수기 필터", "수건"]
+        recentKeywords: [String] = ["샤워기", "수세미", "정수기 필터", "수건"],
+        recentKeywordStore: SearchRecentKeywordStore? = nil
     ) {
+        let initialRecentKeywords = recentKeywordStore?.loadKeywords().normalizedRecentKeywords() ??
+            recentKeywords.normalizedRecentKeywords()
+        self.repository = nil
+        self.recentKeywordStore = recentKeywordStore
         self.sourceItems = sourceItems.uniqueByTitle()
-        self.recentKeywords = recentKeywords
+        self.recentKeywords = initialRecentKeywords
+        self.automaticallyLoads = false
         self.state = .success(
             SearchViewData(
                 query: "",
-                recentKeywords: recentKeywords,
+                recentKeywords: initialRecentKeywords,
                 suggestedKeywords: [],
                 results: [],
-                displayMode: recentKeywords.isEmpty ? .emptyRecent : .recentKeywords
+                displayMode: initialRecentKeywords.isEmpty ? .emptyRecent : .recentKeywords
             )
         )
         publish()
     }
 
+    init(
+        repository: HomeListTabRepository,
+        recentKeywords: [String] = [],
+        recentKeywordStore: SearchRecentKeywordStore? = nil,
+        automaticallyLoads: Bool = true
+    ) {
+        let initialRecentKeywords = recentKeywordStore?.loadKeywords().normalizedRecentKeywords() ??
+            recentKeywords.normalizedRecentKeywords()
+        self.repository = repository
+        self.recentKeywordStore = recentKeywordStore
+        self.sourceItems = []
+        self.recentKeywords = initialRecentKeywords
+        self.automaticallyLoads = automaticallyLoads
+        self.state = automaticallyLoads ? .loading : .success(
+            SearchViewData(
+                query: "",
+                recentKeywords: initialRecentKeywords,
+                suggestedKeywords: [],
+                results: [],
+                displayMode: initialRecentKeywords.isEmpty ? .emptyRecent : .recentKeywords
+            )
+        )
+    }
+
+    func loadIfNeeded() {
+        guard automaticallyLoads, !didStartInitialLoad else { return }
+        didStartInitialLoad = true
+        load()
+    }
+
+    func load() {
+        guard let repository else {
+            AppLog.enter(AppLog.searchViewModel, "SearchViewModel.load", "repository=sample")
+            publish()
+            return
+        }
+
+        guard !isLoading else {
+            AppLog.success(AppLog.searchViewModel, "SearchViewModel.load", "skipped=alreadyLoading")
+            return
+        }
+
+        isLoading = true
+        state = .loading
+        AppLog.enter(AppLog.searchViewModel, "SearchViewModel.load", "pageSize=\(pageSize)")
+        Task {
+            await loadItems(using: repository)
+        }
+    }
+
+    func retry() {
+        load()
+    }
+
     func updateQuery(_ query: String) {
+        guard self.query != query else { return }
+
         self.query = query
         publish()
+        AppLog.success(
+            AppLog.searchViewModel,
+            "SearchViewModel.updateQuery",
+            "queryLength=\(query.count) sourceCount=\(sourceItems.count)"
+        )
     }
 
     func selectKeyword(_ keyword: String) {
         query = keyword
         recentKeywords.moveToFront(keyword)
+        persistRecentKeywords()
         publish(forceResults: true)
     }
 
     func removeRecentKeyword(_ keyword: String) {
         recentKeywords.removeAll { $0 == keyword }
+        persistRecentKeywords()
         publish()
     }
 
@@ -46,7 +134,12 @@ final class SearchViewModel: ObservableObject {
         let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedQuery.isEmpty else { return }
         recentKeywords.moveToFront(normalizedQuery)
+        persistRecentKeywords()
         publish(forceResults: true)
+    }
+
+    private func persistRecentKeywords() {
+        recentKeywordStore?.saveKeywords(recentKeywords)
     }
 
     private func publish(forceResults: Bool = false) {
@@ -103,12 +196,95 @@ final class SearchViewModel: ObservableObject {
         guard !normalizedQuery.isEmpty else { return [] }
         return sourceItems
             .map(\.title)
-            .filter { $0.range(of: normalizedQuery, options: [.caseInsensitive, .anchored]) != nil }
+            .filter { $0.range(of: normalizedQuery, options: [.caseInsensitive]) != nil }
             .uniqued()
+    }
+
+    private func loadItems(using repository: HomeListTabRepository) async {
+        AppLog.enter(AppLog.searchViewModel, "SearchViewModel.loadItems")
+        do {
+            sourceItems = try await fetchAllItems(using: repository).uniqueByTitle()
+            isLoading = false
+            publish()
+            AppLog.success(AppLog.searchViewModel, "SearchViewModel.loadItems", "sourceCount=\(sourceItems.count)")
+        } catch {
+            isLoading = false
+            state = .loadFailed(message: error.searchMessage)
+            AppLog.failure(AppLog.searchViewModel, "SearchViewModel.loadItems", error)
+        }
+    }
+
+    private func fetchAllItems(using repository: HomeListTabRepository) async throws -> [HomeListTabItem] {
+        var cursor: Int64?
+        var allItems: [HomeListTabItem] = []
+        var loadedPageCount = 0
+
+        repeat {
+            loadedPageCount += 1
+            AppLog.enter(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems.page",
+                "page=\(loadedPageCount) cursor=\(String(describing: cursor))"
+            )
+            let page = try await repository.items(
+                request: HomeListTabPageRequest(
+                    filters: .empty,
+                    sortOption: .replacementDueSoon,
+                    cursor: cursor,
+                    size: pageSize
+                )
+            )
+            allItems.append(contentsOf: page.items)
+            AppLog.success(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems.page",
+                "page=\(loadedPageCount) items=\(page.items.count) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+            )
+
+            let previousCursor = cursor
+            if !page.hasNext {
+                cursor = nil
+                break
+            }
+
+            cursor = page.nextCursor
+            if cursor == nil || cursor == previousCursor {
+                AppLog.failure(
+                    AppLog.searchViewModel,
+                    "SearchViewModel.fetchAllItems.page",
+                    SearchBootstrapError.repeatedCursor,
+                    "cursor=\(String(describing: cursor))"
+                )
+                break
+            }
+        } while cursor != nil && loadedPageCount < maxBootstrapPageCount
+
+        if cursor != nil {
+            AppLog.success(
+                AppLog.searchViewModel,
+                "SearchViewModel.fetchAllItems",
+                "stopped=maxBootstrapPageCount max=\(maxBootstrapPageCount) loadedItems=\(allItems.count)"
+            )
+        }
+
+        return allItems
+    }
+}
+
+private enum SearchBootstrapError: LocalizedError {
+    case repeatedCursor
+
+    var errorDescription: String? {
+        switch self {
+        case .repeatedCursor:
+            return "검색 목록 페이지 cursor가 반복되어 로드를 중단했어요."
+        }
     }
 }
 
 enum SearchViewState: Equatable {
+    case loading
+    case loadFailed(message: String)
     case success(SearchViewData)
 }
 
@@ -148,5 +324,28 @@ private extension Array where Element == String {
     func uniqued() -> [String] {
         var seen = Set<String>()
         return filter { seen.insert($0).inserted }
+    }
+
+    func normalizedRecentKeywords() -> [String] {
+        var normalizedKeywords: [String] = []
+
+        for keyword in self {
+            let trimmedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedKeyword.isEmpty, !normalizedKeywords.contains(trimmedKeyword) else { continue }
+            normalizedKeywords.append(trimmedKeyword)
+        }
+
+        return normalizedKeywords
+    }
+}
+
+private extension Error {
+    var searchMessage: String {
+        if let localizedError = self as? LocalizedError,
+           let description = localizedError.errorDescription {
+            return description
+        }
+
+        return "검색할 소모품 목록을 불러오지 못했어요."
     }
 }

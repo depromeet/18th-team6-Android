@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -19,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
@@ -67,6 +70,8 @@ fun OBRitCardGrid(
                 text = title,
                 style = typography.xl.copy(fontWeight = FontWeight.Bold),
                 color = colors.common00,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
@@ -107,6 +112,7 @@ fun OBRitCardList(
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
     val badgeStyle = typography.xs.copy(fontWeight = FontWeight.Bold)
+    val badgeMaxWidth = LocalConfiguration.current.screenWidthDp.dp * BADGE_ROW_MAX_WIDTH_FRACTION
 
     Row(
         modifier =
@@ -131,6 +137,8 @@ fun OBRitCardList(
                 text = title,
                 style = typography.xl.copy(fontWeight = FontWeight.Bold),
                 color = colors.common00,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S0_5.dp),
@@ -145,10 +153,15 @@ fun OBRitCardList(
                     text = "째 사용중",
                     style = typography.s.copy(fontWeight = FontWeight.Medium),
                     color = listInUseSuffixColor(colors = colors, level = level),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp)) {
+        Row(
+            modifier = Modifier.widthIn(max = badgeMaxWidth),
+            horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
+        ) {
             CardBadge(
                 text = replaceLabel,
                 containerColor = listFirstBadgeContainerColor(colors = colors, level = level),
@@ -279,6 +292,7 @@ private val OBRitCardShape = RoundedCornerShape(AtomRadius.ExtraLarge.dp)
 private val OBRitCardBadgeShape = RoundedCornerShape(AtomRadius.Small.dp)
 private val GridCardSize = 160.dp
 private val ListImageSize = 48.dp
+private const val BADGE_ROW_MAX_WIDTH_FRACTION = 0.5f
 
 @Preview(name = "OBRitCardGrid L1", showBackground = true)
 @Composable

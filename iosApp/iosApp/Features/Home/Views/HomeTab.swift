@@ -7,32 +7,38 @@ struct HomeTab: View {
     let selectedWarningSort: HomeWarningSort
     let quickItems: [HomeItemItem]
     let previewItems: [HomeItemItem]
+    let emptyStateMinHeight: CGFloat
     let onOpenPreviewSortSheet: () -> Void
     let action: HomeViewAction
 
     var body: some View {
         VStack(spacing: 0) {
-            HomeTodayStatusSection(summary: dashboard.summary)
-            HomeInventorySection(summary: dashboard.summary, items: dashboard.usageItems)
-            if isQuickItemVisible {
-                HomeQuickItemSection(
-                    items: quickItems,
-                    selectedFilter: selectedStatusFilter,
-                    filterCounts: statusFilterCounts,
-                    onSelectFilter: action.onSelectStatusFilter,
-                    onSelect: action.onSelectItem
-                )
-                HomePreviewSection(
-                    items: previewItems,
-                    selectedSort: selectedWarningSort,
-                    onOpenSortSheet: onOpenPreviewSortSheet,
-                    onShowList: action.onShowList,
-                    onSelect: action.onSelectItem
-                )
+            if dashboard.hasRegisteredItems {
+                HomeTodayStatusSection(summary: dashboard.summary)
+                HomeInventorySection(summary: dashboard.summary, items: dashboard.usageItems)
+                if isQuickItemVisible {
+                    HomeQuickItemSection(
+                        items: quickItems,
+                        selectedFilter: selectedStatusFilter,
+                        filterCounts: statusFilterCounts,
+                        onSelectFilter: action.onSelectStatusFilter,
+                        onSelect: action.onSelectItem
+                    )
+                    HomePreviewSection(
+                        items: previewItems,
+                        selectedSort: selectedWarningSort,
+                        onOpenSortSheet: onOpenPreviewSortSheet,
+                        onShowList: action.onShowList,
+                        onSelect: action.onSelectItem
+                    )
+                }
             }
             HomeUsageListSection(
                 items: dashboard.usageItems,
-                onSelect: action.onSelectItem
+                showsHeader: dashboard.hasRegisteredItems,
+                emptyStateMinHeight: dashboard.hasRegisteredItems ? nil : emptyStateMinHeight,
+                onSelect: action.onSelectItem,
+                onRegister: action.onRegisterDirect
             )
         }
     }

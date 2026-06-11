@@ -2,17 +2,21 @@ import SwiftUI
 
 struct MainNavigation: View {
     @State private var isGnbHiddenByContent = false
+    @State private var isGnbDisabledByContent = false
 
     let selectedTab: MainTab
+    let dependencies: AppDependencies
     let onNavigateItem: (ItemRoute) -> Void
     let onSelectMainTab: (MainTab) -> Void
 
     init(
         selectedTab: MainTab,
+        dependencies: AppDependencies,
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void
     ) {
         self.selectedTab = selectedTab
+        self.dependencies = dependencies
         self.onNavigateItem = onNavigateItem
         self.onSelectMainTab = onSelectMainTab
     }
@@ -26,7 +30,8 @@ struct MainNavigation: View {
             }
             .padding(.bottom, OBRitSpacing.s6)
             .opacity(gnbOpacity)
-            .allowsHitTesting(!isGnbHiddenByContent)
+            .disabled(isGnbDisabledByContent)
+            .allowsHitTesting(!isGnbInteractionDisabled)
             .accessibilityHidden(isGnbHiddenByContent)
             .zIndex(1)
         }
@@ -41,16 +46,23 @@ struct MainNavigation: View {
         switch selectedTab {
         case .home:
             HomeView(
+                viewModelFactory: dependencies.makeHomeViewModel,
+                refreshCenter: dependencies.refreshCenter,
                 onNavigateItem: onNavigateItem,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
                 },
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
+                },
+                onRegisteredItemsAvailabilityChange: { hasRegisteredItems in
+                    isGnbDisabledByContent = !hasRegisteredItems
                 }
             )
         case .homeListTab:
             HomeListTab(
+                viewModelFactory: dependencies.makeHomeListTabViewModel,
+                refreshCenter: dependencies.refreshCenter,
                 onNavigate: onNavigateItem,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
@@ -59,8 +71,16 @@ struct MainNavigation: View {
         }
     }
 
+    private var isGnbInteractionDisabled: Bool {
+        isGnbHiddenByContent || isGnbDisabledByContent
+    }
+
     private var gnbOpacity: Double {
-        isGnbHiddenByContent ? 0 : 1
+        if isGnbHiddenByContent {
+            return 0
+        }
+
+        return isGnbDisabledByContent ? 0.45 : 1
     }
 }
 

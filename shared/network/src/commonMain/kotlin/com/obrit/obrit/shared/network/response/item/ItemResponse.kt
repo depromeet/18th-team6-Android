@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ItemResponse(
-    @SerialName("id") val id: Long,
+    @SerialName("itemId") val id: Long,
     @SerialName("categoryId") val categoryId: Long,
     @SerialName("categoryName") val categoryName: String,
     @SerialName("name") val name: String,
-    @SerialName("count") val count: Int,
+    @SerialName("spareQuantity") val count: Int,
     @SerialName("replacementIntervalDays") val replacementIntervalDays: Int,
     @SerialName("lastReplacedDate") val lastReplacedDate: String? = null,
     @SerialName("nextReplacementDate") val nextReplacementDate: String? = null,

@@ -2,18 +2,22 @@ import SwiftUI
 import UIKit
 
 struct OBRitNavigation: View {
+    let dependencies: AppDependencies
+
     @State private var rootRoute: AppRoute
     @State private var selectedMainTab: MainTab
     @State private var path: NavigationPath
 
-    init() {
+    init(dependencies: AppDependencies = .preview) {
+        self.dependencies = dependencies
+
         #if DEBUG
-        let debugConfiguration = Self.debugInitialConfiguration
-        let initialRootRoute = debugConfiguration.rootRoute
-        let initialPath = debugConfiguration.path
+            let debugConfiguration = Self.debugInitialConfiguration
+            let initialRootRoute = debugConfiguration.rootRoute
+            let initialPath = debugConfiguration.path
         #else
-        let initialRootRoute = AppRoute.main(.home)
-        let initialPath = NavigationPath()
+            let initialRootRoute = AppRoute.main(.home)
+            let initialPath = NavigationPath()
         #endif
         _rootRoute = State(initialValue: initialRootRoute)
         _selectedMainTab = State(initialValue: initialRootRoute.mainTab ?? .home)
@@ -25,6 +29,7 @@ struct OBRitNavigation: View {
             AppNavigation.destination(
                 for: rootRoute,
                 selectedMainTab: selectedMainTab,
+                dependencies: dependencies,
                 onSetRoot: setRoot,
                 onSelectMainTab: selectMainTab,
                 onBack: popRoute,
@@ -37,6 +42,7 @@ struct OBRitNavigation: View {
                 AppNavigation.destination(
                     for: route,
                     selectedMainTab: selectedMainTab,
+                    dependencies: dependencies,
                     onSetRoot: setRoot,
                     onSelectMainTab: selectMainTab,
                     onBack: popRoute,
@@ -49,6 +55,7 @@ struct OBRitNavigation: View {
             .navigationDestination(for: ItemRoute.self) { route in
                 ItemNavigation.destination(
                     for: route,
+                    dependencies: dependencies,
                     onBack: popRoute,
                     onNavigate: { navigate(to: $0) },
                     onSetMainRoot: { setRoot(.main($0)) }
@@ -57,7 +64,13 @@ struct OBRitNavigation: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
         }
-        .background(OBRitInteractivePopGestureEnabler(canPop: !path.isEmpty))
+        .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
+        .background(
+            OBRitInteractivePopGestureEnabler(
+                canPop: !path.isEmpty,
+                backgroundColor: OBRitNavigationBackground.uiColor
+            )
+        )
     }
 
     private func setRoot(_ route: AppRoute) {
@@ -96,27 +109,27 @@ struct OBRitNavigation: View {
     }
 
     #if DEBUG
-    private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
-        var initialPath = NavigationPath()
-        let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
+        private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
+            var initialPath = NavigationPath()
+            let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
 
-        switch route {
-        case "onboarding":
-            return (.onboarding, initialPath)
-        case "registrationPrompt":
-            return (.registrationPrompt, initialPath)
-        case "initialItemRegistration":
-            return (.initialItemRegistration, initialPath)
-        case "registrationMethod":
-            initialPath.append(ItemRoute.registrationMethod)
-            return (.main(.home), initialPath)
-        case "itemRegistration":
-            initialPath.append(ItemRoute.itemRegistration)
-            return (.main(.home), initialPath)
-        default:
-            return (.main(.home), initialPath)
+            switch route {
+            case "onboarding":
+                return (.onboarding, initialPath)
+            case "registrationPrompt":
+                return (.registrationPrompt, initialPath)
+            case "initialItemRegistration":
+                return (.initialItemRegistration, initialPath)
+            case "registrationMethod":
+                initialPath.append(ItemRoute.registrationMethod)
+                return (.main(.home), initialPath)
+            case "itemRegistration":
+                initialPath.append(ItemRoute.itemRegistration)
+                return (.main(.home), initialPath)
+            default:
+                return (.main(.home), initialPath)
+            }
         }
-    }
     #endif
 }
 
@@ -131,26 +144,42 @@ private enum OBRitNavigationAnimation {
     static let slide = Animation.easeInOut(duration: 0.28)
 }
 
+private enum OBRitNavigationBackground {
+    static let swiftUIColor = OBRitColors.backgroundDefaultDefault
+
+    static var uiColor: UIColor {
+        UIColor(swiftUIColor)
+    }
+}
+
 private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable {
     let canPop: Bool
+    let backgroundColor: UIColor
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
 
     func makeUIViewController(context: Context) -> UIViewController {
-        UIViewController()
+        let viewController = UIViewController()
+        viewController.view.backgroundColor = backgroundColor
+        return viewController
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        context.coordinator.configure(canPop: canPop, from: uiViewController)
+        uiViewController.view.backgroundColor = backgroundColor
+        context.coordinator.configure(
+            canPop: canPop,
+            backgroundColor: backgroundColor,
+            from: uiViewController
+        )
     }
 
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         private weak var navigationController: UINavigationController?
         private var canPop = false
 
-        func configure(canPop: Bool, from viewController: UIViewController) {
+        func configure(canPop: Bool, backgroundColor: UIColor, from viewController: UIViewController) {
             self.canPop = canPop
 
             DispatchQueue.main.async { [weak self, weak viewController] in
@@ -160,6 +189,8 @@ private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable 
                 }
 
                 self.navigationController = navigationController
+                viewController?.view.window?.backgroundColor = backgroundColor
+                navigationController.view.backgroundColor = backgroundColor
                 navigationController.interactivePopGestureRecognizer?.isEnabled = true
                 navigationController.interactivePopGestureRecognizer?.delegate = self
             }

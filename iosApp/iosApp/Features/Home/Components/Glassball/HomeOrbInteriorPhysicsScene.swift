@@ -136,8 +136,8 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
         // 크기와 충돌 반경이 그대로면 body를 다시 만들지 않아 현재 속도와 회전을 보존한다.
         guard
             pair.spriteNode.size != targetSize ||
-                abs(pair.physicsRadius - targetPhysicsRadius) > 0.5 ||
-                pair.physicsNode.physicsBody == nil
+            abs(pair.physicsRadius - targetPhysicsRadius) > 0.5 ||
+            pair.physicsNode.physicsBody == nil
         else {
             return
         }
