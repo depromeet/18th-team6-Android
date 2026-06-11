@@ -22,7 +22,7 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
                 id: Int(clamping: category.id),
                 title: category.name,
                 addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-                imageAssetName: imageOption.assetName
+                imageURL: category.iconUrl
             )
             AppLog.success(AppLog.swiftRepository, event, "kindId=\(kind.id)")
             return kind
@@ -38,14 +38,14 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
         }
 
         let event = "SharedItemRegistrationWriteRepository.createItem"
-        let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod.rawValue)"
+        let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod?.rawValue ?? "nil")"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             _ = try await writeService.createItem(
                 categoryId: Int64(request.categoryId),
                 name: request.name,
                 count: KotlinInt(int: Int32(request.quantity)),
-                lastReplacementPeriod: request.lastReplacementPeriod.rawValue,
+                lastReplacementPeriod: request.lastReplacementPeriod?.rawValue,
                 replacementIntervalDays: nil
             )
             AppLog.success(AppLog.swiftRepository, event, details)

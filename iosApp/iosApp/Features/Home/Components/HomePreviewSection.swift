@@ -35,9 +35,7 @@ struct HomePreviewSection: View {
                             replaceLabel: item.replaceLabel,
                             sparesLabel: item.sparesLabel
                         ) {
-                            Image(item.imageAssetName)
-                                .resizable()
-                                .scaledToFit()
+                            OBRitRemoteImage(urlString: item.imageURL)
                         }
                     }
                     .buttonStyle(.plain)

@@ -124,66 +124,160 @@ private struct OBRitGnbIcon: View {
     var body: some View {
         switch item {
         case .home:
-            OBRitGnbHomeShape()
+            OBRitGnbHomeIconShape()
                 .fill(color, style: FillStyle(eoFill: true))
+                .frame(
+                    width: OBRitGnbMetrics.homeIconWidth,
+                    height: OBRitGnbMetrics.homeIconHeight
+                )
         case .list:
-            OBRitGnbListIcon(color: color)
+            OBRitGnbListIconShape()
+                .fill(color)
         }
     }
 }
 
-private struct OBRitGnbHomeShape: Shape {
+private struct OBRitGnbHomeIconShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let w = rect.width
-        let h = rect.height
 
-        path.move(to: CGPoint(x: rect.minX + w * 0.16, y: rect.minY + h * 0.44))
-        path.addLine(to: CGPoint(x: rect.minX + w * 0.50, y: rect.minY + h * 0.16))
-        path.addLine(to: CGPoint(x: rect.minX + w * 0.84, y: rect.minY + h * 0.44))
-        path.addLine(to: CGPoint(x: rect.minX + w * 0.78, y: rect.minY + h * 0.84))
-        path.addLine(to: CGPoint(x: rect.minX + w * 0.22, y: rect.minY + h * 0.84))
+        path.move(to: CGPoint(x: 10.7087, y: 0.292786))
+        path.addLine(to: CGPoint(x: 19.7087, y: 9.29279))
+        path.addCurve(
+            to: CGPoint(x: 19.0017, y: 10.9998),
+            control1: CGPoint(x: 20.3387, y: 9.92279),
+            control2: CGPoint(x: 19.8927, y: 10.9998)
+        )
+        path.addLine(to: CGPoint(x: 18.0017, y: 10.9998))
+        path.addLine(to: CGPoint(x: 18.0017, y: 16.9998))
+        path.addCurve(
+            to: CGPoint(x: 17.1231, y: 19.1211),
+            control1: CGPoint(x: 18.0017, y: 17.7954),
+            control2: CGPoint(x: 17.6857, y: 18.5585)
+        )
+        path.addCurve(
+            to: CGPoint(x: 15.0017, y: 19.9998),
+            control1: CGPoint(x: 16.5605, y: 19.6837),
+            control2: CGPoint(x: 15.7974, y: 19.9998)
+        )
+        path.addLine(to: CGPoint(x: 5.00175, y: 19.9998))
+        path.addCurve(
+            to: CGPoint(x: 2.88043, y: 19.1211),
+            control1: CGPoint(x: 4.2061, y: 19.9998),
+            control2: CGPoint(x: 3.44304, y: 19.6837)
+        )
+        path.addCurve(
+            to: CGPoint(x: 2.00175, y: 16.9998),
+            control1: CGPoint(x: 2.31782, y: 18.5585),
+            control2: CGPoint(x: 2.00175, y: 17.7954)
+        )
+        path.addLine(to: CGPoint(x: 2.00175, y: 10.9998))
+        path.addLine(to: CGPoint(x: 1.00175, y: 10.9998))
+        path.addCurve(
+            to: CGPoint(x: 0.294748, y: 9.29279),
+            control1: CGPoint(x: 0.111748, y: 10.9998),
+            control2: CGPoint(x: -0.335252, y: 9.92279)
+        )
+        path.addLine(to: CGPoint(x: 9.29475, y: 0.292786))
+        path.addCurve(
+            to: CGPoint(x: 10.0017, y: 0),
+            control1: CGPoint(x: 9.48228, y: 0.105315),
+            control2: CGPoint(x: 9.73658, y: 0)
+        )
+        path.addCurve(
+            to: CGPoint(x: 10.7087, y: 0.292786),
+            control1: CGPoint(x: 10.2669, y: 0),
+            control2: CGPoint(x: 10.5212, y: 0.105315)
+        )
         path.closeSubpath()
 
-        path.addRoundedRect(
-            in: CGRect(
-                x: rect.minX + w * 0.42,
-                y: rect.minY + h * 0.58,
-                width: w * 0.16,
-                height: h * 0.20
-            ),
-            cornerSize: CGSize(width: w * 0.04, height: w * 0.04)
+        path.move(to: CGPoint(x: 11.5017, y: 8.99979))
+        path.addLine(to: CGPoint(x: 8.50175, y: 8.99979))
+        path.addCurve(
+            to: CGPoint(x: 7.44109, y: 9.43913),
+            control1: CGPoint(x: 8.10392, y: 8.99979),
+            control2: CGPoint(x: 7.72239, y: 9.15782)
         )
-        return path
+        path.addCurve(
+            to: CGPoint(x: 7.00175, y: 10.4998),
+            control1: CGPoint(x: 7.15978, y: 9.72043),
+            control2: CGPoint(x: 7.00175, y: 10.102)
+        )
+        path.addLine(to: CGPoint(x: 7.00175, y: 13.4998))
+        path.addCurve(
+            to: CGPoint(x: 7.44109, y: 14.5604),
+            control1: CGPoint(x: 7.00175, y: 13.8976),
+            control2: CGPoint(x: 7.15978, y: 14.2791)
+        )
+        path.addCurve(
+            to: CGPoint(x: 8.50175, y: 14.9998),
+            control1: CGPoint(x: 7.72239, y: 14.8418),
+            control2: CGPoint(x: 8.10392, y: 14.9998)
+        )
+        path.addLine(to: CGPoint(x: 11.5017, y: 14.9998))
+        path.addCurve(
+            to: CGPoint(x: 12.5624, y: 14.5604),
+            control1: CGPoint(x: 11.8996, y: 14.9998),
+            control2: CGPoint(x: 12.2811, y: 14.8418)
+        )
+        path.addCurve(
+            to: CGPoint(x: 13.0017, y: 13.4998),
+            control1: CGPoint(x: 12.8437, y: 14.2791),
+            control2: CGPoint(x: 13.0017, y: 13.8976)
+        )
+        path.addLine(to: CGPoint(x: 13.0017, y: 10.4998))
+        path.addCurve(
+            to: CGPoint(x: 12.5624, y: 9.43913),
+            control1: CGPoint(x: 13.0017, y: 10.102),
+            control2: CGPoint(x: 12.8437, y: 9.72043)
+        )
+        path.addCurve(
+            to: CGPoint(x: 11.5017, y: 8.99979),
+            control1: CGPoint(x: 12.2811, y: 9.15782),
+            control2: CGPoint(x: 11.8996, y: 8.99979)
+        )
+
+        return path.applying(
+            CGAffineTransform(
+                a: rect.width / OBRitGnbMetrics.homeIconVectorWidth,
+                b: 0,
+                c: 0,
+                d: rect.height / OBRitGnbMetrics.homeIconVectorHeight,
+                tx: rect.minX,
+                ty: rect.minY
+            )
+        )
     }
 }
 
-private struct OBRitGnbListIcon: View {
-    let color: Color
+private struct OBRitGnbListIconShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let scaleX = rect.width / OBRitGnbMetrics.listIconVectorSize
+        let scaleY = rect.height / OBRitGnbMetrics.listIconVectorSize
 
-    var body: some View {
-        GeometryReader { proxy in
-            let size = min(proxy.size.width, proxy.size.height)
-            let dot = size * 0.14
-            let lineHeight = size * 0.11
-            let lineWidth = size * 0.44
-            let lineX = size * 0.42
-            let rows = [size * 0.24, size * 0.50, size * 0.76]
-
-            ZStack(alignment: .topLeading) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, centerY in
-                    Circle()
-                        .fill(color)
-                        .frame(width: dot, height: dot)
-                        .position(x: size * 0.24, y: centerY)
-                    RoundedRectangle(cornerRadius: lineHeight / 2)
-                        .fill(color)
-                        .frame(width: lineWidth, height: lineHeight)
-                        .position(x: lineX + lineWidth / 2, y: centerY)
-                }
-            }
-            .frame(width: size, height: size)
+        func scaledRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> CGRect {
+            CGRect(
+                x: rect.minX + x * scaleX,
+                y: rect.minY + y * scaleY,
+                width: width * scaleX,
+                height: height * scaleY
+            )
         }
+
+        var path = Path()
+        let lineYPositions: [CGFloat] = [5, 11, 17]
+        let dotYPositions: [CGFloat] = [4.005, 10.005, 16.005]
+
+        lineYPositions.forEach { y in
+            path.addRoundedRect(
+                in: scaledRect(x: 9, y: y, width: 12, height: 2),
+                cornerSize: CGSize(width: scaleX, height: scaleY)
+            )
+        }
+        dotYPositions.forEach { y in
+            path.addEllipse(in: scaledRect(x: 3, y: y, width: 4, height: 4))
+        }
+        return path
     }
 }
 
@@ -192,6 +286,11 @@ private enum OBRitGnbMetrics {
     static let itemWidth: CGFloat = 56
     static let horizontalInset: CGFloat = 5
     static let hairline: CGFloat = 1
+    static let homeIconWidth: CGFloat = 20.0037
+    static let homeIconHeight: CGFloat = 19.9998
+    static let homeIconVectorWidth: CGFloat = 20.0037
+    static let homeIconVectorHeight: CGFloat = 19.9998
+    static let listIconVectorSize: CGFloat = 24
 }
 
 private extension View {

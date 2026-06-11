@@ -8,8 +8,8 @@ final class OnboardingViewModel: ObservableObject {
     private var selectedOptionIds: Set<Int>
 
     init(
-        options: [OnboardingItemOption] = OnboardingSampleData.options,
-        selectedOptionIds: Set<Int> = [1]
+        options: [OnboardingItemOption] = [],
+        selectedOptionIds: Set<Int> = []
     ) {
         self.options = options
         self.selectedOptionIds = selectedOptionIds

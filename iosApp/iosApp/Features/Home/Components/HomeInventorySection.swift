@@ -84,10 +84,12 @@ private struct HomeRatioLabel: View {
 
     var body: some View {
         let backgroundSize = HomeRatioLabelMetrics.backgroundSize(orbScale: orbScale)
+        let valueOffsetX = alignment == .trailing ? HomeRatioLabelMetrics.trailingValueOpticalCorrection : 0
 
         VStack(alignment: alignment, spacing: 0) {
             Text("\(value)%")
                 .obritTextStyle(OBRitTypography.s3xl, weight: OBRitFontWeight.bold, color: color)
+                .offset(x: valueOffsetX)
             Text(label)
                 .obritTextStyle(OBRitTypography.xl, color: color)
         }
@@ -105,6 +107,7 @@ private struct HomeRatioLabel: View {
 }
 
 private enum HomeRatioLabelMetrics {
+    static let trailingValueOpticalCorrection = OBRitSpacing.px
     static let backgroundWidthRatio: CGFloat = 291 / HomeOrbMetrics.outerDiameter
     static let backgroundHeightRatio: CGFloat = 292 / HomeOrbMetrics.outerDiameter
     static let backgroundBlurRadiusRatio: CGFloat = 48 / HomeOrbMetrics.outerDiameter

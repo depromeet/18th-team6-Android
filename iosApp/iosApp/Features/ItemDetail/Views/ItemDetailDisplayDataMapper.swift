@@ -30,7 +30,7 @@ extension ItemDetailDisplayData {
         self.init(
             id: item.id,
             title: item.name,
-            imageAssetName: item.imageAssetName,
+            imageURL: item.imageURL,
             status: visualStatus,
             heroProgress: min(max(Double(daysInUse) / Double(intervalDays), 0), 1),
             lastReplacementDateText: Self.koreanMonthDay(item.currentCycleStartedAt, calendar: calendar),

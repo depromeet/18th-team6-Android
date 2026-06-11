@@ -17,8 +17,8 @@ protocol ItemRegistrationWriteRepository {
 struct ItemRegistrationSampleCatalogRepository: ItemRegistrationCatalogRepository {
     func catalog() async throws -> ItemRegistrationCatalog {
         ItemRegistrationCatalog(
-            itemKinds: ItemRegistrationSampleData.itemKinds,
-            imageOptions: ItemRegistrationSampleData.imageOptions
+            itemKinds: [],
+            imageOptions: []
         )
     }
 }
@@ -29,7 +29,7 @@ actor ItemRegistrationSampleWriteRepository: ItemRegistrationWriteRepository {
             id: ItemRegistrationConfig.emptyIDBase,
             title: name,
             addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-            imageAssetName: imageOption.assetName
+            imageURL: imageOption.imageURL
         )
     }
 

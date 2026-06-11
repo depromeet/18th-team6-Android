@@ -68,7 +68,10 @@ struct ItemKindPickerField: View {
     let onClick: () -> Void
 
     var body: some View {
-        Button(action: onClick) {
+        Button {
+            dismissKeyboard()
+            onClick()
+        } label: {
             HStack(spacing: OBRitSpacing.s2) {
                 Text(value.isEmpty ? placeholder : value)
                     .lineLimit(ItemRegistrationLayout.singleLineLimit)
@@ -352,12 +355,13 @@ struct ItemQuantityCard: View {
 
     var body: some View {
         let isKindSelected = kind != nil
+        let displayQuantity = isKindSelected ? quantity : ItemRegistrationConfig.defaultQuantity
 
         VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
             HStack(spacing: OBRitSpacing.s4) {
                 if let kind {
                     ItemImage(
-                        assetName: kind.imageAssetName,
+                        imageURL: kind.imageURL,
                         size: ItemRegistrationLayout.itemThumbnailSize
                     )
                 } else {
@@ -380,7 +384,7 @@ struct ItemQuantityCard: View {
                     Text(
                         ItemRegistrationText.quantityText(
                             prefix: quantityLabelPrefix,
-                            quantity: isKindSelected ? quantity : ItemRegistrationConfig.quantityMinimum
+                            quantity: displayQuantity
                         )
                     )
                         .lineLimit(ItemRegistrationLayout.singleLineLimit)
@@ -393,12 +397,14 @@ struct ItemQuantityCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 OBRitStepper(
-                    value: quantity,
+                    value: displayQuantity,
                     size: .small,
                     minimumValue: ItemRegistrationConfig.quantityMinimum,
+                    maximumValue: ItemRegistrationConfig.quantityMaximum,
                     isEnabled: isKindSelected,
                     onDecrement: action.onDecrementQuantity,
-                    onIncrement: action.onIncrementQuantity
+                    onIncrement: action.onIncrementQuantity,
+                    onValueChange: action.onUpdateQuantity
                 )
             }
             .padding(OBRitSpacing.s5)
@@ -427,9 +433,7 @@ struct ItemImageOptionButton: View {
 
     var body: some View {
         Button(action: onSelect) {
-            Image(option.assetName)
-                .resizable()
-                .scaledToFill()
+            OBRitRemoteImage(urlString: option.imageURL, contentMode: .fill)
                 .frame(
                     width: ItemRegistrationLayout.imageOptionSize,
                     height: ItemRegistrationLayout.imageOptionSize
@@ -448,13 +452,11 @@ struct ItemImageOptionButton: View {
 }
 
 struct ItemImage: View {
-    let assetName: String
+    let imageURL: String
     let size: CGFloat
 
     var body: some View {
-        Image(assetName)
-            .resizable()
-            .scaledToFill()
+        OBRitRemoteImage(urlString: imageURL, contentMode: .fill)
             .frame(width: size, height: size)
             .clipShape(Circle())
     }

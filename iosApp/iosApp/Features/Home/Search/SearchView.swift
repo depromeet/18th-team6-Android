@@ -345,9 +345,7 @@ private struct SearchResultListView: View {
                                 replaceLabel: item.replaceLabel,
                                 sparesLabel: item.sparesLabel
                             ) {
-                                Image(item.assetName)
-                                    .resizable()
-                                    .scaledToFit()
+                                OBRitRemoteImage(urlString: item.imageURL)
                                     .padding(OBRitSpacing.s2)
                             }
                         }
@@ -415,7 +413,7 @@ private struct SearchContentPreview: View {
                 query: "샤워기",
                 recentKeywords: [],
                 suggestedKeywords: [],
-                results: Array(HomeListTabSampleData.items.prefix(2)),
+                results: [],
                 displayMode: .results
             )
         ),

@@ -1,4 +1,6 @@
+import Foundation
 import SpriteKit
+import UIKit
 
 final class HomeOrbInteriorPhysicsScene: SKScene {
     private var itemNodes: [Int: HomeOrbInteriorNodePair] = [:]
@@ -53,6 +55,7 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
         let staleIds = itemNodes.keys.filter { !visibleIds.contains($0) }
         for id in staleIds {
             // 입력에서 사라진 item은 physics node와 sprite node를 함께 제거해야 z-order와 충돌체가 남지 않는다.
+            itemNodes[id]?.remoteImageTask?.cancel()
             itemNodes[id]?.physicsNode.removeFromParent()
             itemNodes[id]?.spriteNode.removeFromParent()
             itemNodes[id] = nil
@@ -132,6 +135,8 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
             boundaryRadius: boundaryRadius(for: size),
             in: size
         )
+        pair.targetMaxSide = targetWidth
+        HomeOrbInteriorNodeFactory.configureTexture(for: pair, imageURL: item.imageURL)
 
         // 크기와 충돌 반경이 그대로면 body를 다시 만들지 않아 현재 속도와 회전을 보존한다.
         guard
@@ -178,11 +183,11 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
     }
 
     private func boundaryRadius(for size: CGSize) -> CGFloat {
-        // item이 edge에 붙어 잘리지 않도록 최대 예상 물리 반경만큼 boundary를 안으로 당긴다.
+        // item이 edge에 붙어 잘리지 않도록 최대 예상 표시 여백만큼 boundary를 안으로 당긴다.
         let diameter = min(size.width, size.height)
         return max(
             diameter * HomeOrbPhysicsConfig.minimumBoundaryRadiusRatio,
-            protectedContentRadius(for: size) - HomeOrbInteriorSizing.maximumPhysicsRadiusEstimate(in: size)
+            protectedContentRadius(for: size) - HomeOrbInteriorSizing.maximumVisualBoundaryInsetEstimate(in: size)
         )
     }
 
@@ -195,16 +200,25 @@ final class HomeOrbInteriorPhysicsScene: SKScene {
 private final class HomeOrbInteriorNodePair {
     let physicsNode: SKNode
     let spriteNode: SKSpriteNode
+    var imageURL: String
+    var loadedImageURL: String?
+    var remoteImageTask: Task<Void, Never>?
     var physicsRadius: CGFloat = 0
+    var targetMaxSide: CGFloat = 0
     var visualPosition: CGPoint
     var visualRotation: CGFloat
 
-    init(physicsNode: SKNode, spriteNode: SKSpriteNode) {
+    init(physicsNode: SKNode, spriteNode: SKSpriteNode, imageURL: String) {
         // 물리 node는 충돌만 담당하고, sprite node는 shader/depth/damping 표시만 담당한다.
         self.physicsNode = physicsNode
         self.spriteNode = spriteNode
+        self.imageURL = imageURL
         self.visualPosition = physicsNode.position
         self.visualRotation = physicsNode.zRotation
+    }
+
+    deinit {
+        remoteImageTask?.cancel()
     }
 }
 
@@ -218,9 +232,8 @@ private enum HomeOrbInteriorNodeFactory {
         physicsNode.position = position
         physicsNode.zRotation = rotation
 
-        let texture = SKTexture(imageNamed: item.assetName)
-        let spriteNode = SKSpriteNode(texture: texture)
-        spriteNode.name = item.assetName
+        let spriteNode = SKSpriteNode(texture: placeholderTexture())
+        spriteNode.name = item.imageURL
         spriteNode.position = position
         spriteNode.zRotation = rotation
         spriteNode.blendMode = .alpha
@@ -231,7 +244,8 @@ private enum HomeOrbInteriorNodeFactory {
 
         return HomeOrbInteriorNodePair(
             physicsNode: physicsNode,
-            spriteNode: spriteNode
+            spriteNode: spriteNode,
+            imageURL: item.imageURL
         )
     }
 
@@ -260,6 +274,67 @@ private enum HomeOrbInteriorNodeFactory {
         pair.physicsNode.physicsBody?.linearDamping = HomeOrbPhysicsConfig.itemLinearDamping
         pair.physicsNode.physicsBody?.angularDamping = HomeOrbPhysicsConfig.itemAngularDamping
     }
+
+    static func configureTexture(for pair: HomeOrbInteriorNodePair, imageURL: String) {
+        guard pair.loadedImageURL != imageURL else { return }
+
+        pair.imageURL = imageURL
+        pair.loadedImageURL = nil
+        pair.spriteNode.name = imageURL
+        pair.spriteNode.texture = placeholderTexture()
+        pair.remoteImageTask?.cancel()
+        guard !imageURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        pair.remoteImageTask = Task { [weak pair] in
+            guard let data = await HomeOrbRemoteImageDataCache.shared.data(for: imageURL) else { return }
+
+            await MainActor.run {
+                guard
+                    let pair,
+                    pair.imageURL == imageURL,
+                    let image = UIImage(data: data)
+                else {
+                    return
+                }
+
+                pair.spriteNode.texture = SKTexture(image: image)
+                pair.spriteNode.size = HomeOrbInteriorSizing.targetSize(
+                    imageSize: image.size,
+                    targetWidth: pair.targetMaxSide
+                )
+                pair.loadedImageURL = imageURL
+            }
+        }
+    }
+
+    private static func placeholderTexture() -> SKTexture {
+        SKTexture(image: UIImage())
+    }
+}
+
+private actor HomeOrbRemoteImageDataCache {
+    static let shared = HomeOrbRemoteImageDataCache()
+
+    private var cache: [String: Data] = [:]
+
+    func data(for urlString: String) async -> Data? {
+        let trimmedURLString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURLString.isEmpty else { return nil }
+
+        if let cachedData = cache[trimmedURLString] {
+            return cachedData
+        }
+
+        guard let url = URL(string: trimmedURLString) else { return nil }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            cache[trimmedURLString] = data
+            return data
+        } catch {
+            return nil
+        }
+    }
 }
 
 private enum HomeOrbInteriorSizing {
@@ -274,15 +349,30 @@ private enum HomeOrbInteriorSizing {
 
     static func targetSize(for pair: HomeOrbInteriorNodePair, targetWidth: CGFloat) -> CGSize {
         let textureSize = pair.spriteNode.texture?.size() ?? CGSize(width: 1, height: 1)
+        return targetSize(imageSize: textureSize, targetWidth: targetWidth)
+    }
+
+    static func targetSize(imageSize: CGSize, targetWidth: CGFloat) -> CGSize {
         let aspectRatio = max(
-            textureSize.height / max(textureSize.width, HomeOrbVisualConfig.minimumRatioTotal),
+            imageSize.height / max(imageSize.width, HomeOrbVisualConfig.minimumRatioTotal),
             HomeOrbVisualConfig.minimumTextureAspectRatio
         )
+
+        if aspectRatio > 1 {
+            return CGSize(width: targetWidth / aspectRatio, height: targetWidth)
+        }
+
         return CGSize(width: targetWidth, height: targetWidth * aspectRatio)
     }
 
     static func maximumPhysicsRadiusEstimate(in size: CGSize) -> CGFloat {
         maximumVisualWidth(in: size) * HomeOrbPhysicsConfig.physicsRadiusVisualWidthRatio
+    }
+
+    static func maximumVisualBoundaryInsetEstimate(in size: CGSize) -> CGFloat {
+        maximumVisualWidth(in: size) *
+            HomeOrbVisualConfig.visualScaleMaximum *
+            HomeOrbPhysicsConfig.visualBoundaryInsetRatio
     }
 
     static func physicsRadius(

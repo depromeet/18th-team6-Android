@@ -12,9 +12,7 @@ struct ItemDetailStockCard: View {
                 ZStack {
                     Circle()
                         .fill(OBRitColors.gray750)
-                    Image(item.imageAssetName)
-                        .resizable()
-                        .scaledToFit()
+                    OBRitRemoteImage(urlString: item.imageURL)
                         .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
                 }
                 .frame(width: 52, height: 52)

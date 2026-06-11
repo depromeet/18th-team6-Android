@@ -48,9 +48,7 @@ struct OnboardingView: View {
                                     viewModel.toggleOption(option)
                                 } label: {
                                     HStack(spacing: OnboardingLayoutConfig.optionContentGap) {
-                                        Image(option.imageAssetName)
-                                            .resizable()
-                                            .scaledToFit()
+                                        OBRitRemoteImage(urlString: option.imageURL)
                                             .frame(width: OnboardingLayoutConfig.optionImageSize, height: OnboardingLayoutConfig.optionImageSize)
                                             .padding(8)
                                             .background(selected ? OBRitColors.common00 : OBRitColors.gray750)
