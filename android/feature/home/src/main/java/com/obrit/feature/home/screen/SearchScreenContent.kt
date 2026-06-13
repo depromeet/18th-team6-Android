@@ -12,17 +12,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import android.app.Activity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -37,7 +42,9 @@ import com.obrit.android.core.designsystem.component.topbar.OBRitSearchTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.feature.home.screen.homeSection.QuickItemListItem
 import com.obrit.feature.home.viewmodel.SearchUiState
+import com.obrit.obrit.shared.model.home.HomeItemCard
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.android.core.designsystem.R as DesignSystemR
 
@@ -49,26 +56,39 @@ internal fun SearchScreenContent(
 ) {
     val colors = LocalOBRitColor.current
     val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val view = LocalView.current
 
     LaunchedEffect(Unit) {
+        delay(100)
         focusRequester.requestFocus()
-        keyboardController?.show()
+        val activity = view.context as? Activity ?: return@LaunchedEffect
+        WindowCompat.getInsetsController(activity.window, view)
+            .show(WindowInsetsCompat.Type.ime())
     }
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(colors.gray900),
+                .background(colors.gray900)
+                .statusBarsPadding(),
     ) {
         OBRitSearchTopBar(
             query = state.query,
             onQueryChange = action.onQueryChange,
             onBackClick = action.onBackClick,
             focusRequester = focusRequester,
+            onSearch = action.onSearch,
         )
         when {
+            state.searchResults != null && state.searchResults.isNotEmpty() ->
+                SearchResultContent(
+                    results = state.searchResults,
+                    onItemClick = action.onItemClick,
+                    modifier = Modifier.weight(1f),
+                )
+            state.searchResults != null && state.searchResults.isEmpty() ->
+                SearchNoResultContent(modifier = Modifier.weight(1f))
             state.query.isNotEmpty() ->
                 SearchSuggestionContent(
                     suggestions = state.suggestions,
@@ -85,6 +105,53 @@ internal fun SearchScreenContent(
                 )
             else -> SearchEmptyContent(modifier = Modifier.weight(1f))
         }
+    }
+}
+
+@Composable
+private fun SearchResultContent(
+    results: List<HomeItemCard>,
+    onItemClick: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    Column(modifier = modifier.fillMaxSize()) {
+        Text(
+            text = "검색 결과",
+            style = typography.base.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            color = colors.gray500,
+            modifier = Modifier.padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S4.dp),
+        )
+        LazyColumn {
+            items(items = results, key = { it.itemId }) { item ->
+                QuickItemListItem(item = item, onItemClick = onItemClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchNoResultContent(modifier: Modifier = Modifier) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth().padding(top = AtomSpacing.S24.dp),
+    ) {
+        Text(
+            text = "소모품 검색 결과가 없어요!",
+            style = typography.xl3.copy(fontWeight = FontWeight.Bold),
+            color = colors.common00,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = "소모품의 이름을 검색해 보세요",
+            modifier = modifier.padding(top = AtomSpacing.S2.dp),
+            style = typography.base.copy(fontWeight = FontWeight.Medium),
+            color = colors.gray500,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -241,7 +308,9 @@ private fun SearchScreenContentEmptyPreview() {
                     onQueryChange = {},
                     onKeywordClick = {},
                     onRemoveKeyword = {},
+                    onSearch = {},
                     onBackClick = {},
+                    onItemClick = {},
                 ),
         )
     }
@@ -258,7 +327,9 @@ private fun SearchScreenContentRecentPreview() {
                     onQueryChange = {},
                     onKeywordClick = {},
                     onRemoveKeyword = {},
+                    onSearch = {},
                     onBackClick = {},
+                    onItemClick = {},
                 ),
         )
     }
@@ -279,7 +350,9 @@ private fun SearchScreenContentSuggestionPreview() {
                     onQueryChange = {},
                     onKeywordClick = {},
                     onRemoveKeyword = {},
+                    onSearch = {},
                     onBackClick = {},
+                    onItemClick = {},
                 ),
         )
     }

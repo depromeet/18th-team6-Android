@@ -13,6 +13,7 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit,
+    onItemClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = koinViewModel(),
 ) {
@@ -29,7 +30,9 @@ fun SearchScreen(
                 onQueryChange = viewModel::onQueryChange,
                 onKeywordClick = viewModel::onKeywordClick,
                 onRemoveKeyword = viewModel::onRemoveKeyword,
+                onSearch = viewModel::onSearch,
                 onBackClick = viewModel::onBackClick,
+                onItemClick = onItemClick,
             ),
         modifier = modifier,
     )
@@ -45,5 +48,7 @@ internal data class SearchScreenAction(
     val onQueryChange: (String) -> Unit,
     val onKeywordClick: (String) -> Unit,
     val onRemoveKeyword: (String) -> Unit,
+    val onSearch: () -> Unit,
     val onBackClick: () -> Unit,
+    val onItemClick: (Long) -> Unit,
 )
