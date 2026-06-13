@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -127,6 +130,7 @@ fun OBRitSearchTopBar(
     modifier: Modifier = Modifier,
     placeholder: String = OBRIT_TOP_BAR_SEARCH_PLACEHOLDER,
     focusRequester: FocusRequester = remember { FocusRequester() },
+    onSearch: () -> Unit = {},
 ) {
     TopBarRoot(modifier = modifier) {
         TopBarIconButton(
@@ -143,6 +147,7 @@ fun OBRitSearchTopBar(
             onQueryChange = onQueryChange,
             placeholder = placeholder,
             focusRequester = focusRequester,
+            onSearch = onSearch,
             modifier =
                 Modifier
                     .padding(
@@ -262,6 +267,7 @@ private fun TopBarSearchInput(
     onQueryChange: (String) -> Unit,
     placeholder: String,
     focusRequester: FocusRequester,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -291,6 +297,8 @@ private fun TopBarSearchInput(
         singleLine = true,
         textStyle = textStyle,
         cursorBrush = SolidColor(colors.common00),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
     ) { innerTextField ->
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -310,7 +318,9 @@ private fun TopBarSearchInput(
                 painter = painterResource(id = R.drawable.ic_topbar_search),
                 contentDescription = null,
                 tint = colors.common00,
-                modifier = Modifier.size(OBRitTopBarIconSize),
+                modifier = Modifier
+                    .size(OBRitTopBarIconSize)
+                    .clickable(onClick = onSearch),
             )
         }
     }
