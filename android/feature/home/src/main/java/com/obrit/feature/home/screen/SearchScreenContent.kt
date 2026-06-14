@@ -1,5 +1,6 @@
 package com.obrit.feature.home.screen
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,20 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import android.app.Activity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -38,14 +37,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.obrit.android.core.designsystem.component.topbar.OBRitSearchTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.home.screen.homeSection.QuickItemListItem
 import com.obrit.feature.home.viewmodel.SearchUiState
-import com.obrit.obrit.shared.model.home.HomeItemCard
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
+import com.obrit.obrit.shared.model.home.HomeItemCard
+import kotlinx.coroutines.delay
 import com.obrit.android.core.designsystem.R as DesignSystemR
 
 @Composable
@@ -87,8 +89,10 @@ internal fun SearchScreenContent(
                     onItemClick = action.onItemClick,
                     modifier = Modifier.weight(1f),
                 )
+
             state.searchResults != null && state.searchResults.isEmpty() ->
                 SearchNoResultContent(modifier = Modifier.weight(1f))
+
             state.query.isNotEmpty() ->
                 SearchSuggestionContent(
                     suggestions = state.suggestions,
@@ -96,6 +100,7 @@ internal fun SearchScreenContent(
                     onKeywordClick = action.onKeywordClick,
                     modifier = Modifier.weight(1f),
                 )
+
             state.recentKeywords.isNotEmpty() ->
                 SearchRecentContent(
                     keywords = state.recentKeywords,
@@ -103,6 +108,7 @@ internal fun SearchScreenContent(
                     onRemoveKeyword = action.onRemoveKeyword,
                     modifier = Modifier.weight(1f),
                 )
+
             else -> SearchEmptyContent(modifier = Modifier.weight(1f))
         }
     }
@@ -116,15 +122,21 @@ private fun SearchResultContent(
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
-    Column(modifier = modifier.fillMaxSize()) {
+
+    Column(modifier = modifier
+        .fillMaxSize()
+        .padding(horizontal = AtomSpacing.S5.dp)) {
         Text(
             text = "검색 결과",
-            style = typography.base.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            style = typography.base.copy(fontWeight = FontWeight.Bold),
             color = colors.gray500,
-            modifier = Modifier.padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S4.dp),
+            modifier = Modifier.padding(
+                horizontal = AtomSpacing.S5.dp,
+                vertical = AtomSpacing.S4.dp
+            ),
         )
-        LazyColumn {
-            items(items = results, key = { it.itemId }) { item ->
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            results.forEach { item ->
                 QuickItemListItem(item = item, onItemClick = onItemClick)
             }
         }
@@ -137,7 +149,9 @@ private fun SearchNoResultContent(modifier: Modifier = Modifier) {
     val typography = LocalOBRitTypography.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth().padding(top = AtomSpacing.S24.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = AtomSpacing.S24.dp),
     ) {
         Text(
             text = "소모품 검색 결과가 없어요!",
@@ -215,9 +229,10 @@ private fun SearchRecentContent(
     val typography = LocalOBRitTypography.current
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(top = AtomSpacing.S4.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(top = AtomSpacing.S4.dp),
     ) {
         Row(
             modifier =
