@@ -3,7 +3,9 @@ package com.obrit.feature.home.data
 import android.content.Context
 import com.obrit.feature.home.model.MAX_SEARCH_HISTORY
 
-class SearchHistoryDataSource(private val context: Context) {
+class SearchHistoryDataSource(
+    private val context: Context,
+) {
     private val prefs by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }

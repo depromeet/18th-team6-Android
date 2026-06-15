@@ -13,8 +13,8 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit,
-    onItemClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
+    onItemClick: (Long) -> Unit = {},
     viewModel: SearchViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()

@@ -22,7 +22,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -31,8 +34,10 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +56,7 @@ import kotlinx.coroutines.delay
 import com.obrit.android.core.designsystem.R as DesignSystemR
 
 @Composable
+@Suppress("LongMethod")
 internal fun SearchScreenContent(
     state: SearchUiState,
     action: SearchScreenAction,
@@ -59,12 +65,25 @@ internal fun SearchScreenContent(
     val colors = LocalOBRitColor.current
     val focusRequester = remember { FocusRequester() }
     val view = LocalView.current
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(state.query)) }
+
+    LaunchedEffect(state.query) {
+        if (textFieldValue.text != state.query) {
+            textFieldValue =
+                TextFieldValue(
+                    text = state.query,
+                    selection = TextRange(state.query.length),
+                )
+        }
+    }
 
     LaunchedEffect(Unit) {
+        @Suppress("MagicNumber")
         delay(100)
         focusRequester.requestFocus()
         val activity = view.context as? Activity ?: return@LaunchedEffect
-        WindowCompat.getInsetsController(activity.window, view)
+        WindowCompat
+            .getInsetsController(activity.window, view)
             .show(WindowInsetsCompat.Type.ime())
     }
 
@@ -76,8 +95,11 @@ internal fun SearchScreenContent(
                 .statusBarsPadding(),
     ) {
         OBRitSearchTopBar(
-            query = state.query,
-            onQueryChange = action.onQueryChange,
+            query = textFieldValue,
+            onQueryChange = { newValue ->
+                textFieldValue = newValue
+                action.onQueryChange(newValue.text)
+            },
             onBackClick = action.onBackClick,
             focusRequester = focusRequester,
             onSearch = action.onSearch,
@@ -123,17 +145,21 @@ private fun SearchResultContent(
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
 
-    Column(modifier = modifier
-        .fillMaxSize()
-        .padding(horizontal = AtomSpacing.S5.dp)) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(horizontal = AtomSpacing.S5.dp),
+    ) {
         Text(
             text = "검색 결과",
             style = typography.base.copy(fontWeight = FontWeight.Bold),
             color = colors.gray500,
-            modifier = Modifier.padding(
-                horizontal = AtomSpacing.S5.dp,
-                vertical = AtomSpacing.S4.dp
-            ),
+            modifier =
+                Modifier.padding(
+                    horizontal = AtomSpacing.S5.dp,
+                    vertical = AtomSpacing.S4.dp,
+                ),
         )
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             results.forEach { item ->
@@ -149,9 +175,10 @@ private fun SearchNoResultContent(modifier: Modifier = Modifier) {
     val typography = LocalOBRitTypography.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = AtomSpacing.S24.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(top = AtomSpacing.S24.dp),
     ) {
         Text(
             text = "소모품 검색 결과가 없어요!",
@@ -161,7 +188,7 @@ private fun SearchNoResultContent(modifier: Modifier = Modifier) {
         )
         Text(
             text = "소모품의 이름을 검색해 보세요",
-            modifier = modifier.padding(top = AtomSpacing.S2.dp),
+            modifier = Modifier.padding(top = AtomSpacing.S2.dp),
             style = typography.base.copy(fontWeight = FontWeight.Medium),
             color = colors.gray500,
             textAlign = TextAlign.Center,
@@ -219,6 +246,7 @@ private fun buildHighlightedText(
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun SearchRecentContent(
     keywords: List<String>,
     onKeywordClick: (String) -> Unit,

@@ -14,9 +14,8 @@ import com.obrit.obrit.shared.model.home.HomeItemOrder
 import com.obrit.obrit.shared.model.home.HomeItemsParams
 import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import com.obrit.obrit.shared.model.home.MyStatusSummary
-import android.util.Log
-import kotlin.coroutines.cancellation.CancellationException
 import org.orbitmvi.orbit.viewmodel.container
+import kotlin.coroutines.cancellation.CancellationException
 
 class HomeViewModel internal constructor(
     private val homeRepository: HomeRepository,
@@ -27,43 +26,44 @@ class HomeViewModel internal constructor(
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
             try {
-            val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
-            val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
-            val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
-            val itemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT)) }
-            val usageItemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD)) }
-            val catalogDeferred = vmAsync {
-                homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT, size = 100))
-            }
-            val categoriesDeferred = vmAsync { categoryRepository.getCategories() }
+                val overallStatusDeferred = vmAsync { homeRepository.getOverallStatus() }
+                val myStatusSummaryDeferred = vmAsync { homeRepository.getMyStatusSummary() }
+                val bucketsDeferred = vmAsync { homeRepository.getBuckets() }
+                val itemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT)) }
+                val usageItemsDeferred = vmAsync { homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.USED_OLD)) }
+                val catalogDeferred =
+                    vmAsync {
+                        homeRepository.getItems(HomeItemsParams(order = HomeItemOrder.REPLACEMENT_URGENT, size = 100))
+                    }
+                val categoriesDeferred = vmAsync { categoryRepository.getCategories() }
 
-            val overallStatus = overallStatusDeferred.await().getOrNull()
-            val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
-            val buckets = bucketsDeferred.await().getOrNull()
-            val items = itemsDeferred.await().getOrNull()
-            val usageItems = usageItemsDeferred.await().getOrNull()
-            val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null && usageItems != null
-            if (!allLoaded) {
-                reduce { HomeUiState.LoadFailed }
-                return@container
-            }
+                val overallStatus = overallStatusDeferred.await().getOrNull()
+                val myStatusSummary = myStatusSummaryDeferred.await().getOrNull()
+                val buckets = bucketsDeferred.await().getOrNull()
+                val items = itemsDeferred.await().getOrNull()
+                val usageItems = usageItemsDeferred.await().getOrNull()
+                val allLoaded = overallStatus != null && myStatusSummary != null && buckets != null && items != null && usageItems != null
+                if (!allLoaded) {
+                    reduce { HomeUiState.LoadFailed }
+                    return@container
+                }
 
-            catalogDeferred.await().getOrNull()?.let { catalog ->
-                itemCatalogCache.save(catalog.content)
-                Log.d(TAG, "ItemCatalogCache saved: ${catalog.content.size} items")
-            } ?: Log.w(TAG, "ItemCatalogCache: catalog fetch failed")
+                catalogDeferred.await().getOrNull()?.let { catalog ->
+                    itemCatalogCache.save(catalog.content)
+                }
 
-            categoriesDeferred.await().getOrNull()?.let { categories ->
-                val names = categories.map { it.name }.distinct()
-                searchHistoryDataSource.saveItemCatalog(names)
-                Log.d(TAG, "saveItemCatalog: ${names.size} names -> $names")
-            } ?: Log.w(TAG, "saveItemCatalog: categories fetch failed")
+                categoriesDeferred.await().getOrNull()?.let { categories ->
+                    val names = categories.map { it.name }.distinct()
+                    searchHistoryDataSource.saveItemCatalog(names)
+                }
 
-            reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, createMockStatus()) }
+                reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, createMockStatus()) }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
-                Log.e(TAG, "HomeViewModel init failed", e)
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception,
+            ) {
                 reduce { HomeUiState.LoadFailed }
             }
         }
@@ -200,9 +200,6 @@ class HomeViewModel internal constructor(
 
     fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
 
-    companion object {
-        private const val TAG = "HomeViewModel"
-    }
 }
 
 sealed interface HomeUiState {

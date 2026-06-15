@@ -21,9 +21,10 @@ internal fun HomeScreenLoadingContent(modifier: Modifier = Modifier) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(colors.gray900),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(colors.gray900),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

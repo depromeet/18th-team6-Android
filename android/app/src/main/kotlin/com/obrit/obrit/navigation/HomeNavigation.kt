@@ -12,6 +12,7 @@ import com.obrit.feature.home.screen.SearchScreen
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
+@Suppress("LongMethod")
 fun HomeNavigation(
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
