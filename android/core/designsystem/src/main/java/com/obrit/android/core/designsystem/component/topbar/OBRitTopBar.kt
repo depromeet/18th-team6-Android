@@ -25,15 +25,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -123,9 +124,10 @@ fun OBRitDepthTopBar(
 }
 
 @Composable
+@Suppress("LongParameterList")
 fun OBRitSearchTopBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = OBRIT_TOP_BAR_SEARCH_PLACEHOLDER,
@@ -261,10 +263,10 @@ private fun TopBarTitle(
 // 동일 디자인이 feature/register의 CategorySelectionBottomSheet.kt의 CategorySearchField에도 복사되어 있다.
 // Figma SSOT에 검색창이 정식 컴포넌트로 등록되면 designsystem으로 추출하고 양쪽을 교체할 것.
 @Composable
-@Suppress("LongMethod")
+@Suppress("LongMethod", "LongParameterList")
 private fun TopBarSearchInput(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     placeholder: String,
     focusRequester: FocusRequester,
     onSearch: () -> Unit,
@@ -305,7 +307,7 @@ private fun TopBarSearchInput(
             horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                if (query.isEmpty()) {
+                if (query.text.isEmpty()) {
                     Text(
                         text = placeholder,
                         style = placeholderStyle,
@@ -318,9 +320,10 @@ private fun TopBarSearchInput(
                 painter = painterResource(id = R.drawable.ic_topbar_search),
                 contentDescription = null,
                 tint = colors.common00,
-                modifier = Modifier
-                    .size(OBRitTopBarIconSize)
-                    .clickable(onClick = onSearch),
+                modifier =
+                    Modifier
+                        .size(OBRitTopBarIconSize)
+                        .clickable(onClick = onSearch),
             )
         }
     }
@@ -386,7 +389,7 @@ private fun OBRitDepthTopBarPreview() {
 private fun OBRitSearchTopBarPreview() {
     OBRitTopBarPreviewContainer {
         OBRitSearchTopBar(
-            query = "",
+            query = TextFieldValue(""),
             onQueryChange = {},
             onBackClick = {},
         )
