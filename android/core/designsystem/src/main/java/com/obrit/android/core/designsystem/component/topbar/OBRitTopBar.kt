@@ -77,7 +77,7 @@ fun OBRitHomeTopBar(
                 contentDescription = OBRIT_TOP_BAR_SEARCH_DESCRIPTION,
             )
 
-            if (!showAlertAndMyPage) {
+            if (showAlertAndMyPage) {
                 TopBarIconButton(
                     iconRes = R.drawable.ic_topbar_bell,
                     onClick = onNotificationClick,
