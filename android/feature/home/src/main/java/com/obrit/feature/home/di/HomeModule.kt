@@ -5,6 +5,7 @@ import com.obrit.feature.home.data.SearchHistoryDataSource
 import com.obrit.feature.home.viewmodel.HomeViewModel
 import com.obrit.feature.home.viewmodel.SearchViewModel
 import org.koin.android.ext.koin.androidContext
+import com.obrit.feature.home.viewmodel.HomeViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
