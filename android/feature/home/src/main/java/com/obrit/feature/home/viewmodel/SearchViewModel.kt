@@ -74,7 +74,6 @@ class SearchViewModel(
         intent {
             postSideEffect(SearchSideEffect.NavigateBack)
         }
-
 }
 
 @Immutable

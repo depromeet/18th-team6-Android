@@ -61,7 +61,7 @@ class HomeViewModel internal constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (
-                @Suppress("TooGenericExceptionCaught")
+                @Suppress("TooGenericExceptionCaught", "SwallowedException")
                 e: Exception,
             ) {
                 reduce { HomeUiState.LoadFailed }
@@ -199,7 +199,6 @@ class HomeViewModel internal constructor(
         }
 
     fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
-
 }
 
 sealed interface HomeUiState {

@@ -52,6 +52,7 @@ fun OBRitHomeTopBar(
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showAlertAndMyPage: Boolean = false,
 ) {
     TopBarRoot(modifier = modifier) {
         Image(
@@ -75,16 +76,19 @@ fun OBRitHomeTopBar(
                 onClick = onSearchClick,
                 contentDescription = OBRIT_TOP_BAR_SEARCH_DESCRIPTION,
             )
-            TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_bell,
-                onClick = onNotificationClick,
-                contentDescription = OBRIT_TOP_BAR_NOTIFICATION_DESCRIPTION,
-            )
-            TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_person,
-                onClick = onProfileClick,
-                contentDescription = OBRIT_TOP_BAR_PROFILE_DESCRIPTION,
-            )
+
+            if (!showAlertAndMyPage) {
+                TopBarIconButton(
+                    iconRes = R.drawable.ic_topbar_bell,
+                    onClick = onNotificationClick,
+                    contentDescription = OBRIT_TOP_BAR_NOTIFICATION_DESCRIPTION,
+                )
+                TopBarIconButton(
+                    iconRes = R.drawable.ic_topbar_person,
+                    onClick = onProfileClick,
+                    contentDescription = OBRIT_TOP_BAR_PROFILE_DESCRIPTION,
+                )
+            }
         }
     }
 }
