@@ -4,12 +4,12 @@ struct ItemKind: Identifiable, Equatable {
     let id: Int
     let title: String
     let addedCount: Int
-    let imageAssetName: String
+    let imageURL: String
 }
 
 struct ItemImageOption: Identifiable, Equatable {
     let id: Int
-    let assetName: String
+    let imageURL: String
 }
 
 struct ItemRegistrationDraft: Equatable {
@@ -25,7 +25,7 @@ struct ItemRegistrationCreateItemRequest: Equatable {
     let categoryId: Int
     let name: String
     let quantity: Int
-    let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod
+    let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod?
 }
 
 enum ItemRegistrationLastReplacementPeriod: String, Equatable {
@@ -111,7 +111,7 @@ struct ItemRegistrationViewData: Equatable {
     var canSubmitForm: Bool {
         draft.selectedKind != nil &&
             !draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.lastReplacementDateOption?.apiPeriod != nil &&
+            draft.lastReplacementDateOption != nil &&
             draft.quantity >= ItemRegistrationConfig.quantityMinimum &&
             !isProcessing
     }

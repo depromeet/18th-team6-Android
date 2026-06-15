@@ -28,7 +28,7 @@ final class SearchViewModel: ObservableObject {
     }
 
     init(
-        sourceItems: [HomeListTabItem] = HomeListTabSampleData.items,
+        sourceItems: [HomeListTabItem] = [],
         recentKeywords: [String] = ["샤워기", "수세미", "정수기 필터", "수건"],
         recentKeywordStore: SearchRecentKeywordStore? = nil
     ) {

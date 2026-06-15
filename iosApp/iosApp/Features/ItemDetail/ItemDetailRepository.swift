@@ -37,7 +37,7 @@ enum ItemDetailRepositoryError: LocalizedError, Equatable {
 actor ItemDetailSampleRepository: ItemDetailRepository {
     private var itemsByID: [Int: ItemDetailItem]
 
-    init(items: [ItemDetailItem] = ItemDetailDomainSampleData.items) {
+    init(items: [ItemDetailItem] = []) {
         self.itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
     }
 
@@ -80,7 +80,7 @@ actor ItemDetailSampleRepository: ItemDetailRepository {
 actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
     private var itemsByID: [Int: ItemDetailItem]
 
-    init(items: [ItemDetailItem] = ItemDetailDomainSampleData.items) {
+    init(items: [ItemDetailItem] = []) {
         self.itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
     }
 
@@ -109,7 +109,7 @@ actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
         var updated = original
         updated.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.replacementCycle = ItemDetailReplacementCycle(intervalDays: draft.replacementCycleDays)
-        updated.imageAssetName = draft.imageAssetName
+        updated.imageURL = draft.imageURL
         updated.updatedAt = Date()
         itemsByID[itemId] = updated
         return updated

@@ -96,7 +96,7 @@ private enum HomeOrbInteriorInput {
         var seenIds = Set<Int>()
         var visibleItems: [HomeOrbInteriorItem] = []
 
-        for item in items where !item.assetName.isEmpty && seenIds.insert(item.id).inserted {
+        for item in items where !item.imageURL.isEmpty && seenIds.insert(item.id).inserted {
             visibleItems.append(item)
 
             if visibleItems.count == HomeOrbVisualConfig.maxVisibleItemCount {

@@ -6,12 +6,18 @@ public enum OBRitStepperSize {
 }
 
 public struct OBRitStepper: View {
+    @State private var editableValueText: String
+    @FocusState private var isValueFocused: Bool
+
     private let valueText: String
+    private let minimumValue: Int
+    private let maximumValue: Int?
     private let size: OBRitStepperSize
     private let isMinimum: Bool
     private let isEnabled: Bool
     private let onDecrement: (() -> Void)?
     private let onIncrement: (() -> Void)?
+    private let onValueChange: ((Int) -> Void)?
 
     public init(
         valueText: String = "N",
@@ -21,28 +27,39 @@ public struct OBRitStepper: View {
         onDecrement: (() -> Void)? = nil,
         onIncrement: (() -> Void)? = nil
     ) {
+        _editableValueText = State(initialValue: valueText)
         self.valueText = valueText
+        self.minimumValue = 0
+        self.maximumValue = nil
         self.size = size
         self.isMinimum = isMinimum
         self.isEnabled = isEnabled
         self.onDecrement = onDecrement
         self.onIncrement = onIncrement
+        self.onValueChange = nil
     }
 
     public init(
         value: Int,
         size: OBRitStepperSize = .small,
         minimumValue: Int = 0,
+        maximumValue: Int? = nil,
         isEnabled: Bool = true,
         onDecrement: (() -> Void)? = nil,
-        onIncrement: (() -> Void)? = nil
+        onIncrement: (() -> Void)? = nil,
+        onValueChange: ((Int) -> Void)? = nil
     ) {
-        self.valueText = "\(value)"
+        let valueText = "\(value)"
+        _editableValueText = State(initialValue: valueText)
+        self.valueText = valueText
+        self.minimumValue = minimumValue
+        self.maximumValue = maximumValue
         self.size = size
         self.isMinimum = value <= minimumValue
         self.isEnabled = isEnabled
         self.onDecrement = onDecrement
         self.onIncrement = onIncrement
+        self.onValueChange = onValueChange
     }
 
     public var body: some View {
@@ -57,7 +74,15 @@ public struct OBRitStepper: View {
     private var smallStepper: some View {
         HStack(spacing: OBRitStepperMetrics.smallGap) {
             stepperButton(symbol: .minus, size: .small, disabled: !isEnabled || isMinimum, action: onDecrement)
-            smallValue
+            valueView(
+                typography: OBRitStepperTypography.lg,
+                frame: CGSize(
+                    width: OBRitStepperMetrics.smallControlSize,
+                    height: OBRitStepperMetrics.smallControlSize
+                )
+            )
+            .background(OBRitColors.gray600)
+            .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
             stepperButton(symbol: .plus, size: .small, disabled: !isEnabled, action: onIncrement)
         }
         .padding(.vertical, OBRitSpacing.s1)
@@ -65,27 +90,79 @@ public struct OBRitStepper: View {
         .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
     }
 
-    private var smallValue: some View {
-        Text(valueText)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .obritTextStyle(OBRitStepperTypography.lg, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-            .frame(width: OBRitStepperMetrics.smallControlSize, height: OBRitStepperMetrics.smallControlSize)
-            .background(OBRitColors.gray600)
-            .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
-    }
-
     private var largeStepper: some View {
         HStack(spacing: OBRitSpacing.s8) {
             stepperButton(symbol: .minus, size: .large, disabled: !isEnabled || isMinimum, action: onDecrement)
-            Text(valueText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .obritTextStyle(OBRitStepperTypography.xl7, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-                .frame(minWidth: 21)
+            valueView(
+                typography: OBRitStepperTypography.xl7,
+                frame: CGSize(width: OBRitStepperMetrics.largeValueMinWidth, height: OBRitStepperMetrics.largeButtonSize)
+            )
             stepperButton(symbol: .plus, size: .large, disabled: !isEnabled, action: onIncrement)
         }
         .frame(width: OBRitStepperMetrics.largeWidth)
+    }
+
+    @ViewBuilder
+    private func valueView(
+        typography: OBRitTypography.TextToken,
+        frame: CGSize
+    ) -> some View {
+        if onValueChange == nil {
+            Text(valueText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .obritTextStyle(typography, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                .frame(minWidth: frame.width, minHeight: frame.height)
+        } else {
+            TextField("", text: $editableValueText)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .focused($isValueFocused)
+                .disabled(!isEnabled)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .tint(OBRitColors.common00)
+                .obritTextStyle(typography, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
+                .frame(width: frame.width, height: frame.height)
+                .contentShape(Rectangle())
+                .accessibilityLabel(Text("quantity"))
+                .onChange(of: valueText) { _, newValue in
+                    guard newValue != editableValueText else { return }
+                    editableValueText = newValue
+                }
+                .onChange(of: editableValueText) { _, newValue in
+                    updateValue(from: newValue)
+                }
+                .onChange(of: isValueFocused) { _, isFocused in
+                    guard !isFocused, editableValueText.isEmpty else { return }
+                    editableValueText = valueText
+                }
+        }
+    }
+
+    private func updateValue(from text: String) {
+        let digits = text.filter(\.isNumber)
+        guard digits == text else {
+            editableValueText = digits
+            return
+        }
+
+        guard let parsedValue = Int(digits) else { return }
+        let clampedValue = clamp(parsedValue)
+        let clampedText = "\(clampedValue)"
+
+        if clampedText != digits {
+            editableValueText = clampedText
+        }
+
+        if clampedText != valueText {
+            onValueChange?(clampedValue)
+        }
+    }
+
+    private func clamp(_ value: Int) -> Int {
+        let upperBoundedValue = maximumValue.map { min(value, $0) } ?? value
+        return max(upperBoundedValue, minimumValue)
     }
 
     private func stepperButton(
@@ -155,6 +232,7 @@ private enum OBRitStepperMetrics {
     static let smallControlSize: CGFloat = 36
     static let largeWidth: CGFloat = 197
     static let largeButtonSize: CGFloat = 56
+    static let largeValueMinWidth: CGFloat = 21
 }
 
 private enum OBRitStepperSymbol: Shape, Equatable {

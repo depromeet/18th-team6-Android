@@ -11,8 +11,8 @@ final class HomeListTabViewModel: ObservableObject {
     private var bottomSheet: HomeListTabBottomSheet?
     private var isFilterBarVisible = true
     private var items: [HomeListTabItem] = []
-    private var itemsForBounds: [HomeListTabItem] = []
-    private var totalItemCount = 0
+    private var totalItemCount: Int?
+    private var filterBounds: HomeListTabFilterBounds?
     private var nextCursor: Int64?
     private var hasNext = false
     private var isLoadingMore = false
@@ -31,6 +31,7 @@ final class HomeListTabViewModel: ObservableObject {
     }
 
     func openFilterSheet() {
+        guard let filterBounds else { return }
         draftFilters = filters.withDefaults(bounds: filterBounds)
         bottomSheet = .filter
         publish()
@@ -57,12 +58,14 @@ final class HomeListTabViewModel: ObservableObject {
     }
 
     func applyFilters() {
+        guard let filterBounds else { return }
         filters = draftFilters.removingDefaults(bounds: filterBounds)
         bottomSheet = nil
         reload()
     }
 
     func resetDraftFilters() {
+        guard let filterBounds else { return }
         draftFilters = HomeListTabFilters.empty.withDefaults(bounds: filterBounds)
         publish()
     }
@@ -128,17 +131,6 @@ final class HomeListTabViewModel: ObservableObject {
         )
     }
 
-    private var filterBounds: HomeListTabFilterBounds {
-        let sourceItems = itemsForBounds.isEmpty ? items : itemsForBounds
-
-        return HomeListTabFilterBounds(
-            minReplacementDday: sourceItems.map(\.replacementDday).min() ?? 0,
-            maxReplacementDday: sourceItems.map(\.replacementDday).max() ?? 0,
-            minStockCount: sourceItems.map(\.stockCount).min() ?? 0,
-            maxStockCount: sourceItems.map(\.stockCount).max() ?? 0
-        )
-    }
-
     private func loadFirstPage() async {
         AppLog.enter(
             AppLog.homeListTabViewModel,
@@ -155,21 +147,22 @@ final class HomeListTabViewModel: ObservableObject {
                 )
             )
             items = page.items
-            itemsForBounds = page.allItemsForBounds
             totalItemCount = page.totalItemCount
+            filterBounds = page.filterBounds
             nextCursor = page.nextCursor
             hasNext = page.hasNext
             isLoadingMore = false
+            isFilterBarVisible = true
             publish()
             AppLog.success(
                 AppLog.homeListTabViewModel,
                 "HomeListTabViewModel.loadFirstPage",
-                "items=\(page.items.count) total=\(page.totalItemCount) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                "items=\(page.items.count) total=\(page.totalItemCountLabel) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
             )
         } catch {
             items = []
-            itemsForBounds = []
-            totalItemCount = 0
+            totalItemCount = nil
+            filterBounds = nil
             nextCursor = nil
             hasNext = false
             isLoadingMore = false
@@ -194,8 +187,8 @@ final class HomeListTabViewModel: ObservableObject {
                 )
             )
             items.append(contentsOf: page.items)
-            itemsForBounds = page.allItemsForBounds.isEmpty ? itemsForBounds : page.allItemsForBounds
-            totalItemCount = page.totalItemCount
+            totalItemCount = page.totalItemCount ?? totalItemCount
+            filterBounds = page.filterBounds ?? filterBounds
             nextCursor = page.nextCursor
             hasNext = page.hasNext
             isLoadingMore = false
@@ -203,13 +196,19 @@ final class HomeListTabViewModel: ObservableObject {
             AppLog.success(
                 AppLog.homeListTabViewModel,
                 "HomeListTabViewModel.loadNextPage",
-                "items=\(page.items.count) total=\(page.totalItemCount) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
+                "items=\(page.items.count) total=\(page.totalItemCountLabel) nextCursor=\(String(describing: page.nextCursor)) hasNext=\(page.hasNext)"
             )
         } catch {
             isLoadingMore = false
             publish()
             AppLog.failure(AppLog.homeListTabViewModel, "HomeListTabViewModel.loadNextPage", error)
         }
+    }
+}
+
+private extension HomeListTabPage {
+    var totalItemCountLabel: String {
+        totalItemCount.map(String.init) ?? "unknown"
     }
 }
 

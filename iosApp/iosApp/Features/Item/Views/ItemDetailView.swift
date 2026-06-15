@@ -174,7 +174,7 @@ struct ItemDetailView: View {
         if modal.isLowStock {
             ItemDetailReplacementCompletionModal(
                 itemName: modal.itemName,
-                itemImageAssetName: modal.imageAssetName,
+                itemImageURL: modal.imageURL,
                 remainingSpareQuantity: modal.remainingSpareQuantity,
                 recordedAtText: modal.recordedAtText,
                 onConfirm: { completionModal = nil },
@@ -183,7 +183,7 @@ struct ItemDetailView: View {
         } else {
             ItemDetailReplacementCompletionModal(
                 itemName: modal.itemName,
-                itemImageAssetName: modal.imageAssetName,
+                itemImageURL: modal.imageURL,
                 daysComparedToPrevious: modal.daysComparedToPrevious,
                 nextReplacementLabel: modal.nextReplacementLabel,
                 recordedAtText: modal.recordedAtText,

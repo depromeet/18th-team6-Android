@@ -83,9 +83,7 @@ private struct HomeUsageRow: View {
                 ZStack {
                     Circle()
                         .fill(OBRitColors.backgroundDefaultSecondary)
-                    Image(item.imageAssetName)
-                        .resizable()
-                        .scaledToFit()
+                    OBRitRemoteImage(urlString: item.imageURL)
                 }
                 .frame(
                     width: HomeUsageListLayoutMetrics.thumbnailSize,

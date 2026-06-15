@@ -58,7 +58,7 @@ enum ItemRegistrationConfig {
     static let itemNameMaxLength = 15
     static let kindNameMaxLength = 15
     static let quantityMinimum = 1
-    static let defaultQuantity = 1
+    static let defaultQuantity = 0
     static let quantityMaximum = 99
     static let emptyIDBase = 0
     static let nextIDIncrement = 1
@@ -93,7 +93,6 @@ enum ItemRegistrationText {
 
 enum ItemRegistrationAsset {
     static let searchSymbol = "magnifyingglass"
-    static let fallbackItemImage = "item_razor"
     static let completeBadge = "item_registration_complete_badge"
 }
 

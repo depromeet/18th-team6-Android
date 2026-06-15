@@ -65,7 +65,7 @@ struct ItemDetailStockManagementSheet: View {
             }
         }
         .onAppear {
-            quantityInput = "\(quantity)"
+            beginInitialQuantityEditing()
         }
         .onChange(of: quantity) { _, newValue in
             guard !isQuantityEditing else { return }
@@ -106,6 +106,9 @@ struct ItemDetailStockManagementSheet: View {
                 .minimumScaleFactor(0.7)
                 .obritTextStyle(OBRitTypography.s7xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 .frame(width: ItemDetailStockSheetMetrics.valueWidth, height: OBRitSpacing.s11)
+                .onAppear {
+                    focusQuantityField()
+                }
                 .onChange(of: isQuantityFocused) { _, isFocused in
                     if !isFocused {
                         finishQuantityEditing()
@@ -155,7 +158,17 @@ struct ItemDetailStockManagementSheet: View {
     private func beginQuantityEditing() {
         quantityInput = "\(quantity)"
         isQuantityEditing = true
+    }
+
+    private func beginInitialQuantityEditing() {
+        quantity = initialQuantity
+        quantityInput = "\(initialQuantity)"
+        isQuantityEditing = true
+    }
+
+    private func focusQuantityField() {
         Task { @MainActor in
+            await Task.yield()
             isQuantityFocused = true
         }
     }
@@ -172,7 +185,7 @@ struct ItemDetailStockManagementSheet: View {
     private func updateQuantityInput(_ newValue: String) {
         let digits = newValue.filter(\.isNumber)
         let maximumDigitCount = "\(ItemDetailConfig.maximumSpareQuantity)".count
-        let clippedDigits = String(digits.prefix(maximumDigitCount))
+        let clippedDigits = String(digits.prefix(maximumDigitCount + 1))
 
         guard let value = Int(clippedDigits) else {
             quantityInput = ""

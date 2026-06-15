@@ -16,7 +16,7 @@ enum RegistrationMethodViewState {
     case success([RegistrationMethodOption])
 }
 
-enum RegistrationMethodSampleData {
+enum RegistrationMethodDefaults {
     static let options: [RegistrationMethodOption] = [
         RegistrationMethodOption(
             id: .direct,

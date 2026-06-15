@@ -2,7 +2,7 @@ import Foundation
 
 struct ItemDetailCompletionModalData: Equatable {
     let itemName: String
-    let imageAssetName: String
+    let imageURL: String
     let remainingSpareQuantity: Int
     let isLowStock: Bool
     let daysComparedToPrevious: Int
@@ -21,7 +21,7 @@ struct ItemDetailCompletionModalData: Equatable {
         ) ?? data.item.currentCycleStartedAt
 
         self.itemName = data.item.name
-        self.imageAssetName = data.item.imageAssetName
+        self.imageURL = data.item.imageURL
         self.remainingSpareQuantity = data.item.spareQuantity
         self.isLowStock = data.spareSummary.isLowStock
         self.daysComparedToPrevious = latestUsedDays - previousUsedDays
