@@ -12,7 +12,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -90,32 +89,34 @@ internal fun ItemOrbitSection(
     val (physicsState, iconOffsets) = rememberGlassBallPhysics(items.size)
     val tilt = rememberGlassBallTilt()
 
-    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        GlassBallStatusRing(normalRatio = normalRatio, warningRatio = negativeRatio)
-        GlassBallGroundShadow()
-        GlassBallContent(
-            items = items,
-            state = physicsState,
-            visualState =
-                GlassBallVisualState(
-                    normalRatio = normalRatio,
-                    warningRatio = negativeRatio,
-                    tilt = tilt,
-                ),
-            iconOffsets = iconOffsets,
-        )
-        GlassBallRatioLabel(
-            ratio = normalRatio,
-            label = "양호",
-            color = Color(SemanticColors.Text.Positive.Default),
-            modifier = Modifier.align(Alignment.CenterStart).padding(start = 20.dp),
-        )
-        GlassBallRatioLabel(
-            ratio = negativeRatio,
-            label = "경고",
-            color = Color(SemanticColors.Text.Warning.Default),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 20.dp),
-        )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val ballDiameter = minOf(GlassBallOuterDiameter, maxWidth * BALL_ROW_WIDTH_RATIO)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            GlassBallRatioLabel(
+                ratio = negativeRatio,
+                label = "경고",
+                color = Color(SemanticColors.Text.Warning.Default),
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, end = AtomSpacing.S2.dp),
+            )
+            GlassBallBox(
+                items = items,
+                physicsState = physicsState,
+                iconOffsets = iconOffsets,
+                visualState = GlassBallVisualState(normalRatio = normalRatio, warningRatio = negativeRatio, tilt = tilt),
+                modifier = Modifier.size(ballDiameter),
+            )
+            GlassBallRatioLabel(
+                ratio = normalRatio,
+                label = "양호",
+                horizontalAlignment = Alignment.Start,
+                color = Color(SemanticColors.Text.Positive.Default),
+                modifier = Modifier.weight(1f).padding(top = AtomSpacing.S12.dp, start = AtomSpacing.S2.dp),
+            )
+        }
     }
 }
 
@@ -679,14 +680,6 @@ private fun buildRingBrush(
         positiveShare <= 0f -> SolidColor(GlassBallWarningColor)
         else -> {
             val transitionArc = minOf(STATUS_RING_TRANSITION_ARC, warningShare / 2f, positiveShare / 2f)
-            val warningArcHalf = warningShare / 2f
-            Brush.sweepGradient(
-                0f to GlassBallWarningColor,
-                (warningArcHalf - transitionArc) to GlassBallWarningColor,
-                (warningArcHalf + transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf - transitionArc) to GlassBallPositiveColor,
-                (1f - warningArcHalf + transitionArc) to GlassBallWarningColor,
-                1f to GlassBallWarningColor,
             val positiveArcHalf = positiveShare / 2f
             Brush.sweepGradient(
                 0f to GlassBallPositiveColor,
