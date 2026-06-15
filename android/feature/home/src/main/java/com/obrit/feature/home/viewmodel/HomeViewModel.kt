@@ -214,7 +214,7 @@ sealed interface HomeUiState {
         val items: HomeItemCursorSlice,
         val usageItems: List<HomeItemCard>,
         val status: HomeStatus,
-        val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
+        val listSortOrder: ConsumableListSortOrder = ConsumableListSortOrder.LEAST_SPARE,
         val ddayRange: IntRange,
         val ddayFilterMax: Int,
         val spareRange: IntRange,
