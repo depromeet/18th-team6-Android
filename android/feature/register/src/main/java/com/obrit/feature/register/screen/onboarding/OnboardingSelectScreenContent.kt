@@ -101,7 +101,7 @@ private fun OnboardingSelectBody(
                     OnboardingSelectCard(
                         name = category.name,
                         iconUrl = category.iconUrl,
-                        addedCount = category.itemCount,
+                        addedCount = 0,
                         selected = category.id in state.selectedIds,
                         onToggle = { onToggle(category.id) },
                     )
