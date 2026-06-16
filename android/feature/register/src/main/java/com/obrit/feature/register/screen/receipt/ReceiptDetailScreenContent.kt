@@ -122,6 +122,8 @@ private fun ReceiptDetailBody(
             onPeriodChange = onPeriodChange,
             onQuantityChange = onQuantityChange,
         )
+        // 화면이 짧아 스크롤될 때도 indicator가 CTA에 붙지 않도록 Figma 기준 간격(약 40dp)을 보장한다.
+        Spacer(Modifier.height(RECEIPT_DETAIL_INDICATOR_TO_CTA_GAP))
     }
 }
 
@@ -369,6 +371,7 @@ private const val RECEIPT_DETAIL_PAGE_MIN_SCALE = 0.9f
 private const val RECEIPT_DETAIL_PAGE_MIN_ALPHA = 0.3f
 
 private val RECEIPT_DETAIL_SECTION_GAP = AtomSpacing.S10.dp
+private val RECEIPT_DETAIL_INDICATOR_TO_CTA_GAP = AtomSpacing.S10.dp
 private val RECEIPT_DETAIL_PAGER_CONTENT_PADDING = AtomSpacing.S9.dp
 private val RECEIPT_DETAIL_PAGE_SPACING = AtomSpacing.S3.dp
 private val RECEIPT_DETAIL_INDICATOR_VERTICAL_PADDING = AtomSpacing.S3.dp
