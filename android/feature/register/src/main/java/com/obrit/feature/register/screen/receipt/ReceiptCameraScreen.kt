@@ -7,7 +7,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -59,14 +60,15 @@ import java.io.File
  * 갤러리 선택 / 직접 촬영 / 전후면 전환 / 좌상단 X(→홈) 동작을 제공한다.
  *
  * 범위는 UI-only. 촬영·선택 결과 [Uri]는 보관만 하며 업로드 연동은 차후 작업이다.
+ * 분석 API 연동 전까지는 임시 딜레이 후 [onAnalysisComplete]로 결과 화면 이동만 수행한다.
  */
 @Composable
 fun ReceiptCameraScreen(
     onClose: () -> Unit,
+    onAnalysisComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-
     var hasCameraPermission by remember { mutableStateOf(context.hasCameraPermission()) }
     var showGuide by remember { mutableStateOf(true) }
     var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
@@ -74,72 +76,84 @@ fun ReceiptCameraScreen(
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
     var isAnalyzing by remember { mutableStateOf(false) }
 
-    // 카메라 촬영이든 갤러리 선택이든 이미지가 확정되면 분석 로딩으로 진입한다.
     val onImageReady: (Uri) -> Unit = { uri ->
         capturedUri = uri
         isAnalyzing = true
     }
-
     val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            hasCameraPermission = granted
-        }
+        rememberLauncherForActivityResult(RequestPermission()) { hasCameraPermission = it }
     val galleryLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) onImageReady(uri)
-        }
+        rememberLauncherForActivityResult(PickVisualMedia()) { if (it != null) onImageReady(it) }
 
+    ReceiptCameraEffects(
+        hasCameraPermission = hasCameraPermission,
+        isAnalyzing = isAnalyzing,
+        onRequestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+        onGuideComplete = { showGuide = false },
+        onAnalysisComplete = onAnalysisComplete,
+    )
+    ReceiptCameraContent(
+        hasCameraPermission = hasCameraPermission,
+        showGuide = showGuide,
+        lensFacing = lensFacing,
+        capturedUri = capturedUri,
+        isAnalyzing = isAnalyzing,
+        onClose = onClose,
+        onGalleryLaunch = { galleryLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
+        onCapture = { imageCapture?.captureToCache(context) { uri -> onImageReady(uri) } },
+        onFlip = { lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK },
+        onImageCaptureReady = { imageCapture = it },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun ReceiptCameraEffects(
+    hasCameraPermission: Boolean,
+    isAnalyzing: Boolean,
+    onRequestPermission: () -> Unit,
+    onGuideComplete: () -> Unit,
+    onAnalysisComplete: () -> Unit,
+) {
     LaunchedEffect(Unit) {
-        if (!hasCameraPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
+        if (!hasCameraPermission) onRequestPermission()
     }
-
     LaunchedEffect(Unit) {
         delay(GUIDE_DURATION_MILLIS)
-        showGuide = false
+        onGuideComplete()
     }
+    // 분석 API 연동 시 임시 딜레이를 실제 응답 처리로 교체.
+    LaunchedEffect(isAnalyzing) {
+        if (isAnalyzing) {
+            delay(ANALYZING_MOCK_DURATION_MILLIS)
+            onAnalysisComplete()
+        }
+    }
+}
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(Color.Black),
-    ) {
+@Composable
+private fun ReceiptCameraContent(
+    hasCameraPermission: Boolean,
+    showGuide: Boolean,
+    lensFacing: Int,
+    capturedUri: Uri?,
+    isAnalyzing: Boolean,
+    onClose: () -> Unit,
+    onGalleryLaunch: () -> Unit,
+    onCapture: () -> Unit,
+    onFlip: () -> Unit,
+    onImageCaptureReady: (ImageCapture) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
         if (hasCameraPermission) {
             CameraPreview(
                 lensFacing = lensFacing,
-                onImageCaptureReady = { imageCapture = it },
+                onImageCaptureReady = onImageCaptureReady,
                 modifier = Modifier.fillMaxSize(),
             )
         }
-
-        if (showGuide) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = GUIDE_DIM_ALPHA)),
-            )
-            // 컷아웃과 동일한 안전영역(상단 바 아래 ~ 하단 컨트롤 위) 중앙에 배치한다.
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.statusBars)
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(
-                            top = TOP_BAR_HEIGHT.dp,
-                            bottom = (CONTROLS_BLOCK_HEIGHT + CONTROLS_BOTTOM_PADDING).dp,
-                        ),
-                contentAlignment = Alignment.Center,
-            ) {
-                ReceiptGuide()
-            }
-        } else {
-            ReceiptScanOverlay()
-        }
-
+        ReceiptCameraGuideOrScan(showGuide = showGuide)
         ReceiptCameraTopBar(
             onClose = onClose,
             modifier =
@@ -147,40 +161,49 @@ fun ReceiptCameraScreen(
                     .align(Alignment.TopCenter)
                     .windowInsetsPadding(WindowInsets.statusBars),
         )
-
         ReceiptCameraControls(
-            onGalleryClick = {
-                galleryLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                )
-            },
-            onShutterClick = {
-                imageCapture?.captureToCache(context) { uri -> onImageReady(uri) }
-            },
-            onFlipClick = {
-                lensFacing =
-                    if (lensFacing == CameraSelector.LENS_FACING_BACK) {
-                        CameraSelector.LENS_FACING_FRONT
-                    } else {
-                        CameraSelector.LENS_FACING_BACK
-                    }
-            },
+            onGalleryClick = onGalleryLaunch,
+            onShutterClick = onCapture,
+            onFlipClick = onFlip,
             modifier =
                 Modifier
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(bottom = CONTROLS_BOTTOM_PADDING.dp),
         )
-
-        // 이미지가 확정되면 분석 로딩 오버레이가 전체를 덮어 조작을 차단한다.
-        // TODO: 분석 API 연동 시 성공 응답에서 isAnalyzing=false + 결과 화면 이동.
         val analyzingUri = capturedUri
         if (isAnalyzing && analyzingUri != null) {
-            ReceiptAnalyzingOverlay(
-                imageUri = analyzingUri,
-                modifier = Modifier.fillMaxSize(),
-            )
+            ReceiptAnalyzingOverlay(imageUri = analyzingUri, modifier = Modifier.fillMaxSize())
         }
+    }
+}
+
+@Composable
+private fun ReceiptCameraGuideOrScan(showGuide: Boolean) {
+    if (showGuide) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = GUIDE_DIM_ALPHA)),
+        )
+        // 컷아웃과 동일한 안전영역(상단 바 아래 ~ 하단 컨트롤 위) 중앙에 배치한다.
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(
+                        top = TOP_BAR_HEIGHT.dp,
+                        bottom = (CONTROLS_BLOCK_HEIGHT + CONTROLS_BOTTOM_PADDING).dp,
+                    ),
+            contentAlignment = Alignment.Center,
+        ) {
+            ReceiptGuide()
+        }
+    } else {
+        ReceiptScanOverlay()
     }
 }
 
@@ -273,6 +296,7 @@ private fun ImageCapture.captureToCache(
 }
 
 private const val GUIDE_DURATION_MILLIS = 2000L
+private const val ANALYZING_MOCK_DURATION_MILLIS = 2000L
 private const val GUIDE_DIM_ALPHA = 0.6f
 private const val TOP_BAR_HEIGHT = 56
 private const val TOP_BAR_SIDE_PADDING = 12

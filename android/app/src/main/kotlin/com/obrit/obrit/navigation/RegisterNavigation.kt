@@ -15,6 +15,10 @@ import com.obrit.feature.register.screen.manual.ManualRegisterNavigation
 import com.obrit.feature.register.screen.manual.ManualRegisterScreen
 import com.obrit.feature.register.screen.manual.PendingCategory
 import com.obrit.feature.register.screen.receipt.ReceiptCameraScreen
+import com.obrit.feature.register.screen.receipt.ReceiptDetailNavigation
+import com.obrit.feature.register.screen.receipt.ReceiptDetailScreen
+import com.obrit.feature.register.screen.receipt.ReceiptResultNavigation
+import com.obrit.feature.register.screen.receipt.ReceiptResultScreen
 import com.obrit.obrit.navigation.route.RegisterRoute
 import com.obrit.obrit.shared.model.categories.Category
 
@@ -24,7 +28,8 @@ fun RegisterNavigation(
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val registerBackStack = rememberNavBackStack(RegisterRoute.ManualRegister)
+    // TODO: 영수증 등록 UI 개발용 임시 진입점 — 작업 완료 후 ManualRegister로 복원
+    val registerBackStack = rememberNavBackStack(RegisterRoute.ReceiptCamera)
     // DirectRegister → ManualRegister 복귀 시 단발성으로 전달되는 카테고리.
     // 사용 즉시 null로 초기화되며 process death 복구는 의도적으로 다루지 않는다.
     var pendingCategory by remember { mutableStateOf<Category?>(null) }
@@ -75,6 +80,42 @@ fun RegisterNavigation(
                 entry<RegisterRoute.ReceiptCamera> {
                     ReceiptCameraScreen(
                         onClose = onExit,
+                        onAnalysisComplete = {
+                            registerBackStack.add(RegisterRoute.ReceiptResult)
+                        },
+                        modifier = Modifier,
+                    )
+                }
+                entry<RegisterRoute.ReceiptResult> {
+                    ReceiptResultScreen(
+                        navigation =
+                            ReceiptResultNavigation(
+                                onBack = { registerBackStack.removeLastOrNull() },
+                                onNext = { itemNames ->
+                                    registerBackStack.add(RegisterRoute.ReceiptDetail(itemNames))
+                                },
+                                onDirectRegister = {
+                                    registerBackStack.add(RegisterRoute.DirectRegister)
+                                },
+                            ),
+                        pendingCategory =
+                            PendingCategory(
+                                category = pendingCategory,
+                                onConsumed = { pendingCategory = null },
+                            ),
+                        modifier = Modifier,
+                    )
+                }
+                entry<RegisterRoute.ReceiptDetail> { key ->
+                    ReceiptDetailScreen(
+                        itemNames = key.itemNames,
+                        navigation =
+                            ReceiptDetailNavigation(
+                                onBack = { registerBackStack.removeLastOrNull() },
+                                onComplete = {
+                                    registerBackStack.add(RegisterRoute.RegisterComplete)
+                                },
+                            ),
                         modifier = Modifier,
                     )
                 }

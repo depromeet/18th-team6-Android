@@ -15,4 +15,12 @@ sealed interface RegisterRoute : Route {
 
     @Serializable
     data object ReceiptCamera : RegisterRoute
+
+    @Serializable
+    data object ReceiptResult : RegisterRoute
+
+    @Serializable
+    data class ReceiptDetail(
+        val itemNames: List<String>,
+    ) : RegisterRoute
 }

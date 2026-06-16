@@ -43,9 +43,6 @@ internal fun ReceiptAnalyzingOverlay(
     imageUri: Uri,
     modifier: Modifier = Modifier,
 ) {
-    val typography = LocalOBRitTypography.current
-    val colors = LocalOBRitColor.current
-
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -73,24 +70,31 @@ internal fun ReceiptAnalyzingOverlay(
             verticalArrangement = Arrangement.spacedBy(SPINNER_TEXT_GAP.dp),
         ) {
             LoadingSpinner()
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(TEXT_GAP.dp),
-            ) {
-                Text(
-                    text = WAIT_TEXT,
-                    style = typography.xl.copy(fontWeight = FontWeight.Medium),
-                    color = colors.gray100,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = ANALYZING_TEXT,
-                    style = typography.xl5.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            ReceiptAnalyzingTextBlock()
         }
+    }
+}
+
+@Composable
+private fun ReceiptAnalyzingTextBlock() {
+    val typography = LocalOBRitTypography.current
+    val colors = LocalOBRitColor.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(TEXT_GAP.dp),
+    ) {
+        Text(
+            text = WAIT_TEXT,
+            style = typography.xl.copy(fontWeight = FontWeight.Medium),
+            color = colors.gray100,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = ANALYZING_TEXT,
+            style = typography.xl5.copy(fontWeight = FontWeight.Bold),
+            color = Color.White,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
