@@ -219,11 +219,23 @@ public struct OBRitOutlinedTextField<LeadingIcon: View, TrailingIcon: View>: Vie
     @ViewBuilder
     private var inputField: some View {
         if inputType.isSecure {
-            configuredInputField(SecureField("", text: $text))
+            configuredInputField(SecureField("", text: lengthLimitedText))
                 .lineLimit(1)
         } else {
-            configuredInputField(TextField("", text: $text, axis: singleLine ? .horizontal : .vertical))
+            configuredInputField(TextField("", text: lengthLimitedText, axis: singleLine ? .horizontal : .vertical))
                 .lineLimit(singleLine ? 1 : nil)
+        }
+    }
+
+    private var lengthLimitedText: Binding<String> {
+        Binding {
+            text
+        } set: { newValue in
+            guard let maxLength else {
+                text = newValue
+                return
+            }
+            text = String(newValue.prefix(maxLength))
         }
     }
 
