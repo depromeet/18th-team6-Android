@@ -145,17 +145,23 @@ struct HomeItemItem: Identifiable {
             return 0
         }
 
-        if dDayLabel.hasPrefix("D+"),
-           let days = Int(dDayLabel.dropFirst(2)) {
+        if let days = days(after: "D+") {
             return -days
         }
 
-        if dDayLabel.hasPrefix("D-"),
-           let days = Int(dDayLabel.dropFirst(2)) {
+        if let days = days(after: "D-") {
             return days
         }
 
         return 0
+    }
+
+    private func days(after marker: String) -> Int? {
+        guard let range = dDayLabel.range(of: marker, options: .caseInsensitive) else { return nil }
+        let digits = dDayLabel[range.upperBound...].prefix { character in
+            character.isNumber
+        }
+        return Int(digits)
     }
 }
 
