@@ -30,8 +30,7 @@ fun RegisterNavigation(
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // TODO: 영수증 등록 UI 개발용 임시 진입점 — 작업 완료 후 ManualRegister로 복원
-    val registerBackStack = rememberNavBackStack(RegisterRoute.ReceiptCamera)
+    val registerBackStack = rememberNavBackStack(RegisterRoute.ManualRegister)
     // DirectRegister → ManualRegister 복귀 시 단발성으로 전달되는 카테고리.
     // 사용 즉시 null로 초기화되며 process death 복구는 의도적으로 다루지 않는다.
     var pendingCategory by remember { mutableStateOf<Category?>(null) }
