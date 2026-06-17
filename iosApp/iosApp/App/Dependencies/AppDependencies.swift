@@ -6,6 +6,7 @@ struct AppDependencies {
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
+    let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
     let makeItemDetailViewModel: @MainActor (Int) -> ItemDetailViewModel
     let makeItemDetailEditViewModel: @MainActor (Int) -> ItemDetailEditViewModel
@@ -40,6 +41,15 @@ struct AppDependencies {
                     recentKeywordStore: searchRecentKeywordStore
                 )
             },
+            makeOnboardingViewModel: {
+                OnboardingViewModel(
+                    repository: SharedOnboardingRepository(
+                        readService: readService,
+                        writeService: writeService
+                    ),
+                    initialOptions: []
+                )
+            },
             makeItemRegistrationViewModel: {
                 ItemRegistrationViewModel(
                     catalogRepository: itemReadRepository,
@@ -66,6 +76,9 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel()
+            },
+            makeOnboardingViewModel: {
+                OnboardingViewModel()
             },
             makeItemRegistrationViewModel: {
                 ItemRegistrationViewModel()

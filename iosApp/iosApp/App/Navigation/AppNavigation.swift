@@ -26,9 +26,14 @@ struct AppNavigation {
                 }
             }
         case .onboarding:
-            OnboardingView {
-                onNavigateApp(.registrationPrompt)
-            }
+            OnboardingView(
+                viewModelFactory: dependencies.makeOnboardingViewModel,
+                onBack: onBack,
+                onComplete: {
+                    dependencies.refreshCenter.refreshItems()
+                    onSetRoot(.main(.home))
+                }
+            )
         case .registrationPrompt:
             RegistrationPromptView(
                 onRegister: {
