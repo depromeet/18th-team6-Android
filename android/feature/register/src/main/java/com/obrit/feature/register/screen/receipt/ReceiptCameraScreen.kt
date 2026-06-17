@@ -70,6 +70,7 @@ import java.io.File
  * 이미지가 확정되면 [ReceiptCameraViewModel]이 영수증 분석 API를 호출하고,
  * 성공 시 [onAnalysisComplete]로 결과를 전달한다. 실패 시 수동 재시도 오버레이를 보여준다.
  */
+@Suppress("LongMethod")
 @Composable
 fun ReceiptCameraScreen(
     onClose: () -> Unit,
@@ -146,6 +147,7 @@ fun ReceiptCameraScreen(
     )
 }
 
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 private fun ReceiptCameraContent(
     hasCameraPermission: Boolean,
@@ -206,26 +208,28 @@ private fun ReceiptCameraContent(
 @Composable
 private fun ReceiptCameraGuideOrScan(showGuide: Boolean) {
     if (showGuide) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = GUIDE_DIM_ALPHA)),
-        )
-        // 컷아웃과 동일한 안전영역(상단 바 아래 ~ 하단 컨트롤 위) 중앙에 배치한다.
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(
-                        top = TOP_BAR_HEIGHT.dp,
-                        bottom = (CONTROLS_BLOCK_HEIGHT + CONTROLS_BOTTOM_PADDING).dp,
-                    ),
-            contentAlignment = Alignment.Center,
-        ) {
-            ReceiptGuide()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = GUIDE_DIM_ALPHA)),
+            )
+            // 컷아웃과 동일한 안전영역(상단 바 아래 ~ 하단 컨트롤 위) 중앙에 배치한다.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(
+                            top = TOP_BAR_HEIGHT.dp,
+                            bottom = (CONTROLS_BLOCK_HEIGHT + CONTROLS_BOTTOM_PADDING).dp,
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                ReceiptGuide()
+            }
         }
     } else {
         ReceiptScanOverlay()

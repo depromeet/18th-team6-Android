@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.obrit.feature.register.screen.receipt
 
 import androidx.compose.foundation.background
@@ -135,31 +137,33 @@ private fun ReceiptDetailPagerSection(
     onQuantityChange: (Long, Int) -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { forms.size })
-    HorizontalPager(
-        state = pagerState,
-        contentPadding = PaddingValues(horizontal = RECEIPT_DETAIL_PAGER_CONTENT_PADDING),
-        pageSpacing = RECEIPT_DETAIL_PAGE_SPACING,
-        beyondViewportPageCount = 1,
-        modifier = Modifier.fillMaxWidth(),
-    ) { page ->
-        val form = forms.getOrNull(page) ?: return@HorizontalPager
-        ReceiptDetailCard(
-            form = form,
-            onNameChange = { value -> onNameChange(form.id, value) },
-            onPeriodChange = { period -> onPeriodChange(form.id, period) },
-            onQuantityChange = { value -> onQuantityChange(form.id, value) },
-            modifier = Modifier.pageTransition(pagerState = pagerState, page = page),
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalPager(
+            state = pagerState,
+            contentPadding = PaddingValues(horizontal = RECEIPT_DETAIL_PAGER_CONTENT_PADDING),
+            pageSpacing = RECEIPT_DETAIL_PAGE_SPACING,
+            beyondViewportPageCount = 1,
+            modifier = Modifier.fillMaxWidth(),
+        ) { page ->
+            val form = forms.getOrNull(page) ?: return@HorizontalPager
+            ReceiptDetailCard(
+                form = form,
+                onNameChange = { value -> onNameChange(form.id, value) },
+                onPeriodChange = { period -> onPeriodChange(form.id, period) },
+                onQuantityChange = { value -> onQuantityChange(form.id, value) },
+                modifier = Modifier.pageTransition(pagerState = pagerState, page = page),
+            )
+        }
+        Spacer(Modifier.height(AtomSpacing.S2.dp))
+        ReceiptDetailPageIndicator(
+            pageCount = forms.size,
+            currentPage = pagerState.currentPage,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = RECEIPT_DETAIL_INDICATOR_VERTICAL_PADDING),
         )
     }
-    Spacer(Modifier.height(AtomSpacing.S2.dp))
-    ReceiptDetailPageIndicator(
-        pageCount = forms.size,
-        currentPage = pagerState.currentPage,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = RECEIPT_DETAIL_INDICATOR_VERTICAL_PADDING),
-    )
 }
 
 // Figma: 중앙 카드 기준 양옆 카드는 90% 축소 + 30% 투명도. 스와이프 진행률에 따라 보간한다.
@@ -380,4 +384,3 @@ private val RECEIPT_DETAIL_INDICATOR_DOT_SIZE = AtomSpacing.S2.dp
 private val RECEIPT_DETAIL_ESSENTIAL_ICON_SIZE = AtomSpacing.S5.dp
 private val RECEIPT_DETAIL_INFO_ICON_SIZE = AtomSpacing.S4.dp
 private val RECEIPT_DETAIL_CTA_BOTTOM_PADDING = AtomSpacing.S10.dp
-

@@ -64,9 +64,9 @@ private fun Bitmap.applyExifOrientation(
         }.getOrNull() ?: ExifInterface.ORIENTATION_NORMAL
     val degrees =
         when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            ExifInterface.ORIENTATION_ROTATE_90 -> ROTATE_90_DEGREES
+            ExifInterface.ORIENTATION_ROTATE_180 -> ROTATE_180_DEGREES
+            ExifInterface.ORIENTATION_ROTATE_270 -> ROTATE_270_DEGREES
             else -> return this
         }
     val matrix = Matrix().apply { postRotate(degrees) }
@@ -116,6 +116,9 @@ private fun Bitmap.compressToJpeg(quality: Int): ByteArray =
 // 서버가 webp 업로드를 거부해 JPEG로 인코딩한다(서버 개발자 확인).
 // MAX_UPLOAD_BYTES는 nginx 기본 client_max_body_size(1m=1,048,576) 미만으로 두어 413을 피한다.
 // 서버 body 제한이 풀리면 더 올릴 수 있다.
+private const val ROTATE_90_DEGREES = 90f
+private const val ROTATE_180_DEGREES = 180f
+private const val ROTATE_270_DEGREES = 270f
 private const val MAX_IMAGE_DIMENSION = 2048
 private const val MAX_UPLOAD_BYTES = 1_000_000
 private const val INITIAL_QUALITY = 90

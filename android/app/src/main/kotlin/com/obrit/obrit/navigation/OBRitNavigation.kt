@@ -12,6 +12,7 @@ import com.obrit.obrit.navigation.route.RegisterRoute
 import com.obrit.obrit.storage.OnboardingStorage
 import org.koin.compose.koinInject
 
+@Suppress("LongMethod")
 @Composable
 fun OBRitNavigation(modifier: Modifier = Modifier) {
     val onboardingStorage = koinInject<OnboardingStorage>()

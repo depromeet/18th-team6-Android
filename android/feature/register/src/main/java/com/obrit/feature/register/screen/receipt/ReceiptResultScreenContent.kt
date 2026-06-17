@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.obrit.feature.register.screen.receipt
 
 import androidx.compose.foundation.background
@@ -415,4 +417,3 @@ private val RECEIPT_RESULT_DELETE_ICON_SIZE = AtomSpacing.S5.dp
 private val RECEIPT_RESULT_SCROLL_FADE_HEIGHT = AtomSpacing.S10.dp
 private val RECEIPT_RESULT_CTA_BOTTOM_PADDING = AtomSpacing.S5.dp
 private val RECEIPT_RESULT_CTA_TO_DIRECT_GAP = AtomSpacing.S4.dp
-
