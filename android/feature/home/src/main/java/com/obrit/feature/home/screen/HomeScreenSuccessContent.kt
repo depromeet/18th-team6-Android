@@ -3,6 +3,7 @@ package com.obrit.feature.home.screen
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,8 +13,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -66,6 +69,7 @@ internal fun HomeScreenSuccessContent(
 ) {
     val colors = LocalOBRitColor.current
     var selectedTab by remember { mutableStateOf(OBRitGnbTab.Home) }
+    var fabExpanded by remember { mutableStateOf(false) }
     Box(
         modifier =
             modifier
@@ -111,12 +115,45 @@ internal fun HomeScreenSuccessContent(
                 )
             }
         }
+        if (fabExpanded) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { fabExpanded = false },
+                        ),
+            )
+        }
         HomeGnbBar(
             selectedTab = selectedTab,
             onTabSelect = { selectedTab = it },
-            onRegisterClick = action.onRegisterClick,
+            fabExpanded = fabExpanded,
+            onFabToggle = { fabExpanded = !fabExpanded },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        if (fabExpanded) {
+            HomeFabMenu(
+                onReceiptRegisterClick = {
+                    fabExpanded = false
+                    action.onReceiptRegisterClick()
+                },
+                onManualRegisterClick = {
+                    fabExpanded = false
+                    action.onManualRegisterClick()
+                },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(
+                            end = HomeGnbHorizontalPadding,
+                            bottom = HomeGnbBottomPadding + HomeFabSize + HomeFabMenuGap,
+                        ),
+            )
+        }
     }
 }
 
@@ -124,7 +161,8 @@ internal fun HomeScreenSuccessContent(
 private fun HomeGnbBar(
     selectedTab: OBRitGnbTab,
     onTabSelect: (OBRitGnbTab) -> Unit,
-    onRegisterClick: () -> Unit,
+    fabExpanded: Boolean,
+    onFabToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -144,7 +182,8 @@ private fun HomeGnbBar(
             modifier = Modifier.align(Alignment.Center),
         )
         HomeFab(
-            onClick = onRegisterClick,
+            expanded = fabExpanded,
+            onClick = onFabToggle,
             modifier = Modifier.align(Alignment.CenterEnd),
         )
     }
@@ -152,6 +191,7 @@ private fun HomeGnbBar(
 
 @Composable
 private fun HomeFab(
+    expanded: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -162,15 +202,58 @@ private fun HomeFab(
                 .homeFabShadow()
                 .size(HomeFabSize)
                 .clip(CircleShape)
-                .background(colors.common00)
+                .background(if (expanded) colors.gray600 else colors.common00)
                 .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_gnb_fab),
+            painter = painterResource(id = if (expanded) R.drawable.ic_topbar_close else R.drawable.ic_gnb_fab),
             contentDescription = null,
-            tint = colors.gray900,
+            tint = if (expanded) colors.common00 else colors.gray900,
             modifier = Modifier.size(HomeFabIconSize),
+        )
+    }
+}
+
+@Composable
+private fun HomeFabMenu(
+    onReceiptRegisterClick: () -> Unit,
+    onManualRegisterClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalOBRitColor.current
+    Column(
+        modifier =
+            modifier
+                .width(HomeFabMenuWidth)
+                .clip(RoundedCornerShape(HomeFabMenuRadius))
+                .background(colors.gray50)
+                .padding(vertical = AtomSpacing.S2.dp),
+    ) {
+        HomeFabMenuItem(text = "이미지 등록", onClick = onReceiptRegisterClick)
+        HomeFabMenuItem(text = "직접 등록", onClick = onManualRegisterClick)
+    }
+}
+
+@Composable
+private fun HomeFabMenuItem(
+    text: String,
+    onClick: () -> Unit,
+) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = AtomSpacing.S5.dp, vertical = AtomSpacing.S3.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = typography.xl.copy(fontWeight = FontWeight.Bold),
+            color = colors.gray900,
         )
     }
 }
@@ -317,11 +400,14 @@ private fun ScrollToTopOnResumeEffect(scrollState: ScrollState) {
 }
 
 private val HomeFabSize = 56.dp
-private val HomeFabIconSize = 30.dp
+private val HomeFabIconSize = 24.dp
 private val HomeFabShadowBlur = 24.dp
 private val HomeFabShadowOffsetY = 16.dp
 private val HomeGnbHorizontalPadding = AtomSpacing.S5.dp
 private val HomeGnbBottomPadding = AtomSpacing.S5.dp
+private val HomeFabMenuGap = AtomSpacing.S2.dp
+private val HomeFabMenuWidth = 120.dp
+private val HomeFabMenuRadius = 16.dp
 private val HomeGnbContentBottomPadding = HomeFabSize + HomeGnbBottomPadding + AtomSpacing.S5.dp
 private const val HOME_FAB_SHADOW_ALPHA = 0.24f
 private const val ORBIT_ITEMS_SIZE = 10

@@ -12,7 +12,8 @@ import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
 fun HomeNavigation(
-    onRegisterClick: () -> Unit,
+    onReceiptRegisterClick: () -> Unit,
+    onManualRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
@@ -28,7 +29,8 @@ fun HomeNavigation(
                         onSearchClick = {},
                         onNotificationClick = {},
                         onProfileClick = {},
-                        onRegisterClick = onRegisterClick,
+                        onReceiptRegisterClick = onReceiptRegisterClick,
+                        onManualRegisterClick = onManualRegisterClick,
                         onMoreClick = { homeBackStack.add(HomeRoute.ConsumableList) },
                         onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
                         modifier = Modifier,
