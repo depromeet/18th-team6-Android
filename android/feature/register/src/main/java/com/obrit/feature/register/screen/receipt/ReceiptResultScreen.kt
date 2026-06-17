@@ -5,21 +5,28 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.obrit.feature.register.screen.manual.PendingCategory
+import com.obrit.feature.register.viewmodel.ReceiptDraftItem
 import com.obrit.feature.register.viewmodel.ReceiptResultSideEffect
 import com.obrit.feature.register.viewmodel.ReceiptResultViewModel
 import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.receipts.ReceiptAnalysis
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun ReceiptResultScreen(
+    analysis: ReceiptAnalysis,
     navigation: ReceiptResultNavigation,
     modifier: Modifier = Modifier,
     pendingCategory: PendingCategory? = null,
     viewModel: ReceiptResultViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
+
+    LaunchedEffect(analysis) {
+        viewModel.init(analysis)
+    }
 
     LaunchedEffect(pendingCategory?.category?.id) {
         val handle = pendingCategory ?: return@LaunchedEffect
@@ -43,7 +50,7 @@ fun ReceiptResultScreen(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is ReceiptResultSideEffect.OnNext -> navigation.onNext(sideEffect.itemNames)
+            is ReceiptResultSideEffect.OnNext -> navigation.onNext(sideEffect.receiptImageUrl, sideEffect.items)
             is ReceiptResultSideEffect.OnBack -> navigation.onBack()
             is ReceiptResultSideEffect.OnNavigateToDirectRegister -> navigation.onDirectRegister()
         }
@@ -52,7 +59,7 @@ fun ReceiptResultScreen(
 
 data class ReceiptResultNavigation(
     val onBack: () -> Unit,
-    val onNext: (itemNames: List<String>) -> Unit,
+    val onNext: (receiptImageUrl: String, items: List<ReceiptDraftItem>) -> Unit,
     val onDirectRegister: () -> Unit,
 )
 

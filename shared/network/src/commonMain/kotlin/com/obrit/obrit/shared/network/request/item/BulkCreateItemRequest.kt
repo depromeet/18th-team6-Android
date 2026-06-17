@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class BulkCreateItemRequest(
     @SerialName("items") val items: List<CreateItemRequest>,
+    @SerialName("receiptImageUrl") val receiptImageUrl: String? = null,
 )

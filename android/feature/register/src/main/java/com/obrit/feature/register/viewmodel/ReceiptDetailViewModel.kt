@@ -2,24 +2,38 @@ package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
+import com.obrit.obrit.shared.data.repository.ItemRepository
+import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.ReplacementPeriod
 import org.orbitmvi.orbit.viewmodel.container
 
-class ReceiptDetailViewModel : BaseContainerHost<ReceiptDetailUiState, ReceiptDetailSideEffect>() {
+class ReceiptDetailViewModel(
+    private val itemRepository: ItemRepository,
+) : BaseContainerHost<ReceiptDetailUiState, ReceiptDetailSideEffect>() {
     override val container =
         container<ReceiptDetailUiState, ReceiptDetailSideEffect>(ReceiptDetailUiState())
 
-    fun initForms(names: List<String>) =
-        intent {
-            reduce {
-                state.copy(
-                    forms =
-                        names.mapIndexed { index, name ->
-                            ReceiptDetailForm(id = index + 1L, name = name)
-                        },
-                )
-            }
+    fun initForms(
+        items: List<ReceiptDraftItem>,
+        receiptImageUrl: String,
+    ) = intent {
+        reduce {
+            state.copy(
+                receiptImageUrl = receiptImageUrl,
+                forms =
+                    items.mapIndexed { index, item ->
+                        ReceiptDetailForm(
+                            id = index + 1L,
+                            name = item.name,
+                            quantity = item.quantity,
+                            categoryId = item.categoryId,
+                            newCategoryName = item.newCategoryName,
+                            newCategoryDefaultReplacementIntervalDays = item.newCategoryDefaultReplacementIntervalDays,
+                        )
+                    },
+            )
         }
+    }
 
     fun onNameChange(
         id: Long,
@@ -39,8 +53,22 @@ class ReceiptDetailViewModel : BaseContainerHost<ReceiptDetailUiState, ReceiptDe
     fun onSubmit() =
         intent {
             if (!state.isSubmitEnabled) return@intent
-            // 분석 API 연동 시 itemRepository.createItems()로 bulk 등록 교체 (categoryId 필요).
-            postSideEffect(ReceiptDetailSideEffect.OnComplete)
+            reduce { state.copy(isSubmitting = true) }
+            val params =
+                state.forms.map { form ->
+                    CreateItemParams(
+                        categoryId = form.categoryId,
+                        name = form.name,
+                        spareQuantity = form.quantity,
+                        lastReplacementPeriod = form.lastReplacementPeriod,
+                        newCategoryName = form.newCategoryName,
+                        newCategoryDefaultReplacementIntervalDays = form.newCategoryDefaultReplacementIntervalDays,
+                    )
+                }
+            itemRepository
+                .createItems(params, receiptImageUrl = state.receiptImageUrl.ifBlank { null })
+                .onSuccess { postSideEffect(ReceiptDetailSideEffect.OnComplete) }
+                .onFailure { reduce { state.copy(isSubmitting = false) } }
         }
 
     fun onBack() =
@@ -63,9 +91,11 @@ class ReceiptDetailViewModel : BaseContainerHost<ReceiptDetailUiState, ReceiptDe
 @Immutable
 data class ReceiptDetailUiState(
     val forms: List<ReceiptDetailForm> = emptyList(),
+    val receiptImageUrl: String = "",
+    val isSubmitting: Boolean = false,
 ) {
     val isSubmitEnabled: Boolean
-        get() = forms.isNotEmpty() && forms.all { it.isComplete }
+        get() = forms.isNotEmpty() && forms.all { it.isComplete } && !isSubmitting
 }
 
 @Immutable
@@ -74,6 +104,9 @@ data class ReceiptDetailForm(
     val name: String,
     val lastReplacementPeriod: ReplacementPeriod? = null,
     val quantity: Int = RECEIPT_DETAIL_DEFAULT_QUANTITY,
+    val categoryId: Long? = null,
+    val newCategoryName: String? = null,
+    val newCategoryDefaultReplacementIntervalDays: Int? = null,
 ) {
     val isComplete: Boolean
         get() =

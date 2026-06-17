@@ -8,6 +8,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpResponseValidator
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -42,6 +43,9 @@ internal fun HttpClientConfig<*>.configureOBRitHttpClient(
     configuration: NetworkConfiguration,
 ) {
     expectSuccess = false
+
+    // 기본 타임아웃은 두지 않고, 긴 처리가 필요한 요청(예: 영수증 OCR 분석)에서 per-request로 설정한다.
+    install(HttpTimeout)
 
     install(DefaultRequest) {
         url(normalizeBaseUrl(configuration.baseUrl))

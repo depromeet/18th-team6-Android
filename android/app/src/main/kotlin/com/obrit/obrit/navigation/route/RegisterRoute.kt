@@ -20,7 +20,5 @@ sealed interface RegisterRoute : Route {
     data object ReceiptResult : RegisterRoute
 
     @Serializable
-    data class ReceiptDetail(
-        val itemNames: List<String>,
-    ) : RegisterRoute
+    data object ReceiptDetail : RegisterRoute
 }

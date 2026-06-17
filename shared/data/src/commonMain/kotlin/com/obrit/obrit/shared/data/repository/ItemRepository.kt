@@ -11,7 +11,10 @@ interface ItemRepository {
 
     suspend fun createItem(params: CreateItemParams): Result<Item>
 
-    suspend fun createItems(params: List<CreateItemParams>): Result<List<Item>>
+    suspend fun createItems(
+        params: List<CreateItemParams>,
+        receiptImageUrl: String? = null,
+    ): Result<List<Item>>
 
     suspend fun patchItem(params: PatchItemParams): Result<Item>
 

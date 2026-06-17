@@ -50,7 +50,15 @@ import androidx.core.net.toUri
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
+import com.obrit.feature.register.viewmodel.ReceiptCameraSideEffect
+import com.obrit.feature.register.viewmodel.ReceiptCameraViewModel
+import com.obrit.obrit.shared.model.receipts.ReceiptAnalysis
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import org.koin.androidx.compose.koinViewModel
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 import java.io.File
 
 /**
@@ -59,76 +67,83 @@ import java.io.File
  * 진입 시 안내 문구를 보여주고, 잠시 후 컷아웃 뷰파인더로 전환한다(타이머).
  * 갤러리 선택 / 직접 촬영 / 전후면 전환 / 좌상단 X(→홈) 동작을 제공한다.
  *
- * 범위는 UI-only. 촬영·선택 결과 [Uri]는 보관만 하며 업로드 연동은 차후 작업이다.
- * 분석 API 연동 전까지는 임시 딜레이 후 [onAnalysisComplete]로 결과 화면 이동만 수행한다.
+ * 이미지가 확정되면 [ReceiptCameraViewModel]이 영수증 분석 API를 호출하고,
+ * 성공 시 [onAnalysisComplete]로 결과를 전달한다. 실패 시 수동 재시도 오버레이를 보여준다.
  */
 @Composable
 fun ReceiptCameraScreen(
     onClose: () -> Unit,
-    onAnalysisComplete: () -> Unit,
+    onAnalysisComplete: (ReceiptAnalysis) -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: ReceiptCameraViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
+    val state by viewModel.collectAsState()
     var hasCameraPermission by remember { mutableStateOf(context.hasCameraPermission()) }
     var showGuide by remember { mutableStateOf(true) }
     var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
-    var isAnalyzing by remember { mutableStateOf(false) }
+    var retryToken by remember { mutableIntStateOf(0) }
+    // 이미지 확정 직후부터 분석 API 호출 전(다운스케일·WebP 인코딩) 구간에도 오버레이를 띄우기 위한 로컬 플래그.
+    var isProcessing by remember { mutableStateOf(false) }
 
     val onImageReady: (Uri) -> Unit = { uri ->
         capturedUri = uri
-        isAnalyzing = true
+        isProcessing = true
     }
     val permissionLauncher =
         rememberLauncherForActivityResult(RequestPermission()) { hasCameraPermission = it }
     val galleryLauncher =
         rememberLauncherForActivityResult(PickVisualMedia()) { if (it != null) onImageReady(it) }
 
-    ReceiptCameraEffects(
-        hasCameraPermission = hasCameraPermission,
-        isAnalyzing = isAnalyzing,
-        onRequestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
-        onGuideComplete = { showGuide = false },
-        onAnalysisComplete = onAnalysisComplete,
-    )
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+    LaunchedEffect(Unit) {
+        delay(GUIDE_DURATION_MILLIS)
+        showGuide = false
+    }
+    // 이미지 확정/재시도 시 업로드용으로 다운스케일·압축한 bytes를 읽어 분석을 시작한다.
+    // 자동 루프 없이 retryToken으로만 재실행.
+    LaunchedEffect(capturedUri, retryToken) {
+        val uri = capturedUri ?: return@LaunchedEffect
+        val bytes = withContext(Dispatchers.IO) { context.readReceiptImage(uri) }
+        if (bytes == null) {
+            isProcessing = false
+            return@LaunchedEffect
+        }
+        viewModel.analyze(bytes, uri.toReceiptFileName())
+    }
+    // 분석 실패가 확정되면 에러 오버레이가 보이도록 진행 중 플래그를 내린다.
+    LaunchedEffect(state.isError) {
+        if (state.isError) isProcessing = false
+    }
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is ReceiptCameraSideEffect.OnAnalyzed -> onAnalysisComplete(sideEffect.analysis)
+        }
+    }
+
     ReceiptCameraContent(
         hasCameraPermission = hasCameraPermission,
         showGuide = showGuide,
         lensFacing = lensFacing,
         capturedUri = capturedUri,
-        isAnalyzing = isAnalyzing,
+        isAnalyzing = isProcessing || state.isAnalyzing,
+        isError = state.isError,
         onClose = onClose,
+        onRetry = {
+            viewModel.onErrorDismiss()
+            isProcessing = true
+            retryToken++
+        },
         onGalleryLaunch = { galleryLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
         onCapture = { imageCapture?.captureToCache(context) { uri -> onImageReady(uri) } },
-        onFlip = { lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK },
+        onFlip = { lensFacing = lensFacing.toggledLens() },
         onImageCaptureReady = { imageCapture = it },
         modifier = modifier,
     )
-}
-
-@Composable
-private fun ReceiptCameraEffects(
-    hasCameraPermission: Boolean,
-    isAnalyzing: Boolean,
-    onRequestPermission: () -> Unit,
-    onGuideComplete: () -> Unit,
-    onAnalysisComplete: () -> Unit,
-) {
-    LaunchedEffect(Unit) {
-        if (!hasCameraPermission) onRequestPermission()
-    }
-    LaunchedEffect(Unit) {
-        delay(GUIDE_DURATION_MILLIS)
-        onGuideComplete()
-    }
-    // 분석 API 연동 시 임시 딜레이를 실제 응답 처리로 교체.
-    LaunchedEffect(isAnalyzing) {
-        if (isAnalyzing) {
-            delay(ANALYZING_MOCK_DURATION_MILLIS)
-            onAnalysisComplete()
-        }
-    }
 }
 
 @Composable
@@ -138,7 +153,9 @@ private fun ReceiptCameraContent(
     lensFacing: Int,
     capturedUri: Uri?,
     isAnalyzing: Boolean,
+    isError: Boolean,
     onClose: () -> Unit,
+    onRetry: () -> Unit,
     onGalleryLaunch: () -> Unit,
     onCapture: () -> Unit,
     onFlip: () -> Unit,
@@ -171,9 +188,17 @@ private fun ReceiptCameraContent(
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(bottom = CONTROLS_BOTTOM_PADDING.dp),
         )
-        val analyzingUri = capturedUri
-        if (isAnalyzing && analyzingUri != null) {
-            ReceiptAnalyzingOverlay(imageUri = analyzingUri, modifier = Modifier.fillMaxSize())
+        val overlayUri = capturedUri
+        if (overlayUri != null && isAnalyzing) {
+            ReceiptAnalyzingOverlay(imageUri = overlayUri, modifier = Modifier.fillMaxSize())
+        }
+        if (overlayUri != null && isError) {
+            ReceiptAnalyzeErrorOverlay(
+                imageUri = overlayUri,
+                onRetry = onRetry,
+                onClose = onClose,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
@@ -274,6 +299,13 @@ private fun Context.hasCameraPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
         PackageManager.PERMISSION_GRANTED
 
+private fun Int.toggledLens(): Int =
+    if (this == CameraSelector.LENS_FACING_BACK) {
+        CameraSelector.LENS_FACING_FRONT
+    } else {
+        CameraSelector.LENS_FACING_BACK
+    }
+
 private fun ImageCapture.captureToCache(
     context: Context,
     onSaved: (Uri) -> Unit,
@@ -295,8 +327,13 @@ private fun ImageCapture.captureToCache(
     )
 }
 
+// 업로드 바이트는 항상 JPEG로 재인코딩되므로 확장자도 .jpg로 맞춘다.
+private fun Uri.toReceiptFileName(): String {
+    val base = lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.') ?: "receipt"
+    return "$base.jpg"
+}
+
 private const val GUIDE_DURATION_MILLIS = 2000L
-private const val ANALYZING_MOCK_DURATION_MILLIS = 2000L
 private const val GUIDE_DIM_ALPHA = 0.6f
 private const val TOP_BAR_HEIGHT = 56
 private const val TOP_BAR_SIDE_PADDING = 12
