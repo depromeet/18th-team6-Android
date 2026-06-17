@@ -99,9 +99,9 @@ struct HomeContentView: View {
 #Preview {
     HomeContentView(
         dashboard: HomeDashboard.empty,
-        selectedStatusFilter: .replacementDanger,
+        selectedStatusFilter: .danger,
         statusFilterCounts: [:],
-        selectedWarningSort: .replacementRisk,
+        selectedWarningSort: .lowStock,
         visibleQuickItems: [],
         visibleWarningItems: [],
         onBottomSheetVisibleChange: { _ in },
