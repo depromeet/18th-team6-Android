@@ -28,9 +28,6 @@ enum ItemRegistrationLayout {
     static let radioBorderWidth: CGFloat = 1.5
     static let radioOuterSize: CGFloat = 21
     static let transparentOpacity: CGFloat = 0
-    static let completeBadgeWidth: CGFloat = 245
-    static let completeBadgeHeight: CGFloat = 255
-    static let completeContentBottomPaddingRatio: CGFloat = 0.07
     static let designWidth: CGFloat = 412
 
     static var imageGridColumns: [GridItem] {
@@ -93,7 +90,6 @@ enum ItemRegistrationText {
 
 enum ItemRegistrationAsset {
     static let searchSymbol = "magnifyingglass"
-    static let completeBadge = "item_registration_complete_badge"
 }
 
 #if DEBUG
