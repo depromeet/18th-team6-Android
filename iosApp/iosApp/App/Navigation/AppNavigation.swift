@@ -53,6 +53,9 @@ struct AppNavigation {
                 selectedTab: selectedMainTab,
                 dependencies: dependencies,
                 onNavigateItem: onNavigateItem,
+                onShowOnboarding: {
+                    onNavigateApp(.onboarding)
+                },
                 onSelectMainTab: onSelectMainTab
             )
             .navigationBarBackButtonHidden(true)

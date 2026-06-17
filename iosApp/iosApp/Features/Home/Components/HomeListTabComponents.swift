@@ -13,6 +13,7 @@ struct HomeListTabAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
+    let onLogoEasterEgg: () -> Void
     let onRegisterDirect: () -> Void
     let onSelectItem: (Int) -> Void
     let onRetry: () -> Void
@@ -135,7 +136,8 @@ private struct HomeListPinnedTopOverlay: View {
                     showNotificationButton: false,
                     onSearchClick: action.onSearch,
                     onNotificationClick: action.onNotification,
-                    onProfileClick: action.onProfile
+                    onProfileClick: action.onProfile,
+                    onLogoEasterEgg: action.onLogoEasterEgg
                 )
             }
             .background(OBRitColors.backgroundDefaultDefault)

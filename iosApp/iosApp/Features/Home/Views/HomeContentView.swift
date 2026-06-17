@@ -51,7 +51,8 @@ struct HomeContentView: View {
                         showNotificationButton: false,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
-                        onProfileClick: action.onProfile
+                        onProfileClick: action.onProfile,
+                        onLogoEasterEgg: action.onLogoEasterEgg
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -109,6 +110,7 @@ struct HomeContentView: View {
             onSearch: {},
             onNotification: {},
             onProfile: {},
+            onLogoEasterEgg: {},
             onRegisterDirect: {},
             onShowList: {},
             onSelectItem: { _ in },

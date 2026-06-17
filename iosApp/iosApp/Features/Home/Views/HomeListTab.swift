@@ -5,6 +5,7 @@ struct HomeListTab: View {
     @ObservedObject private var refreshCenter: AppRefreshCenter
 
     let onNavigate: (ItemRoute) -> Void
+    let onShowOnboarding: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     @MainActor
@@ -12,23 +13,27 @@ struct HomeListTab: View {
         viewModelFactory: @MainActor @escaping () -> HomeListTabViewModel,
         refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigate: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.refreshCenter = refreshCenter
         self.onNavigate = onNavigate
+        self.onShowOnboarding = onShowOnboarding
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
 
     @MainActor
     init(
         onNavigate: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void = {},
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         self.init(
             viewModelFactory: AppDependencies.preview.makeHomeListTabViewModel,
             refreshCenter: AppDependencies.preview.refreshCenter,
             onNavigate: onNavigate,
+            onShowOnboarding: onShowOnboarding,
             onBottomSheetVisibleChange: onBottomSheetVisibleChange
         )
     }
@@ -40,6 +45,7 @@ struct HomeListTab: View {
                 onSearch: { onNavigate(.search) },
                 onNotification: {},
                 onProfile: {},
+                onLogoEasterEgg: onShowOnboarding,
                 onRegisterDirect: { onNavigate(.itemRegistration) },
                 onSelectItem: { onNavigate(.detail(itemId: $0)) },
                 onRetry: viewModel.reload,
