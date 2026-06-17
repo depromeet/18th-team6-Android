@@ -13,6 +13,7 @@ struct ItemDetailEditScaffoldView: View {
     let isProcessing: Bool
     let canSubmitOverride: Bool?
     let onClose: () -> Void
+    let onOpenKindSheet: () -> Void
     let onSubmit: () -> Void
 
     init(
@@ -24,6 +25,7 @@ struct ItemDetailEditScaffoldView: View {
         isProcessing: Bool = false,
         canSubmit: Bool? = nil,
         onClose: @escaping () -> Void,
+        onOpenKindSheet: @escaping () -> Void = {},
         onSubmit: @escaping () -> Void
     ) {
         self._draft = draft
@@ -36,6 +38,7 @@ struct ItemDetailEditScaffoldView: View {
         self.isProcessing = isProcessing
         self.canSubmitOverride = canSubmit
         self.onClose = onClose
+        self.onOpenKindSheet = onOpenKindSheet
         self.onSubmit = onSubmit
     }
 
@@ -50,6 +53,7 @@ struct ItemDetailEditScaffoldView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: ItemDetailEditMetrics.sectionSpacing) {
                     nameSection
+                    kindSection
                     replacementCycleSection
                 }
                 .padding(.horizontal, OBRitSpacing.s5)
@@ -126,6 +130,18 @@ struct ItemDetailEditScaffoldView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var kindSection: some View {
+        VStack(alignment: .leading, spacing: OBRitSpacing.s4) {
+            sectionTitle("소모품 종류")
+
+            ItemKindPickerField(
+                value: draft.selectedKind?.title ?? "",
+                placeholder: "소모품 종류를 선택해주세요",
+                onClick: onOpenKindSheet
+            )
         }
     }
 

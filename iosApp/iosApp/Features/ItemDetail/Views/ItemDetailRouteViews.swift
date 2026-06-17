@@ -4,6 +4,9 @@ struct ItemDetailEditRouteView: View {
     @StateObject private var viewModel: ItemDetailEditViewModel
     @State private var draft: ItemDetailEditDraft?
     @State private var isExitConfirmationPresented = false
+    @State private var isKindSheetPresented = false
+    @State private var kindSearchQuery = ""
+    @State private var selectedKindCandidate: ItemKind?
     @State private var snackbar: ItemDetailEditSnackbarPresentation?
     @State private var snackbarDismissTask: Task<Void, Never>?
 
@@ -35,37 +38,44 @@ struct ItemDetailEditRouteView: View {
     }
 
     var body: some View {
-        ZStack {
-            content
+        GeometryReader { geometry in
+            ZStack {
+                content
+                    .frame(width: geometry.size.width, height: geometry.size.height)
 
-            if isExitConfirmationPresented {
-                OBRitColors.backgroundDefaultDimDefault
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        isExitConfirmationPresented = false
-                    }
+                if isExitConfirmationPresented {
+                    OBRitColors.backgroundDefaultDimDefault
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            isExitConfirmationPresented = false
+                        }
 
-                ItemDetailConfirmationModal(
-                    kind: .editExit,
-                    onCancel: {
-                        isExitConfirmationPresented = false
-                    },
-                    onConfirm: onBack
-                )
-                .transition(.scale.combined(with: .opacity))
-            }
-
-            if let snackbar {
-                VStack {
-                    Spacer(minLength: 0)
-
-                    OBRitSnackbar(message: snackbar.message, icon: .error)
-                        .padding(.horizontal, OBRitSpacing.s5)
-                        .padding(.bottom, OBRitSpacing.s6)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    ItemDetailConfirmationModal(
+                        kind: .editExit,
+                        onCancel: {
+                            isExitConfirmationPresented = false
+                        },
+                        onConfirm: onBack
+                    )
+                    .transition(.scale.combined(with: .opacity))
                 }
-                .allowsHitTesting(false)
-                .animation(.easeOut(duration: 0.18), value: snackbar.id)
+
+                if case let .success(data) = viewModel.state, isKindSheetPresented {
+                    kindSelectionSheet(data: data, geometry: geometry)
+                }
+
+                if let snackbar {
+                    VStack {
+                        Spacer(minLength: 0)
+
+                        OBRitSnackbar(message: snackbar.message, icon: .error)
+                            .padding(.horizontal, OBRitSpacing.s5)
+                            .padding(.bottom, OBRitSpacing.s6)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    .allowsHitTesting(false)
+                    .animation(.easeOut(duration: 0.18), value: snackbar.id)
+                }
             }
         }
         .onChange(of: viewModel.effect) { _, effect in
@@ -95,6 +105,9 @@ struct ItemDetailEditRouteView: View {
                 onClose: {
                     isExitConfirmationPresented = true
                 },
+                onOpenKindSheet: {
+                    openKindSheet(data: data)
+                },
                 onSubmit: {
                     viewModel.submit(draft: draftBinding(for: data.item).wrappedValue)
                 }
@@ -105,6 +118,98 @@ struct ItemDetailEditRouteView: View {
                 }
             }
         }
+    }
+
+    private func kindSelectionSheet(
+        data: ItemDetailEditViewData,
+        geometry: GeometryProxy
+    ) -> some View {
+        let bottomPadding = bottomSheetBottomPadding(in: geometry)
+
+        return ZStack(alignment: .bottom) {
+            Color.black.opacity(ItemRegistrationLayout.bottomSheetDimOpacity)
+                .ignoresSafeArea()
+                .onTapGesture(perform: dismissKindSheet)
+
+            VStack {
+                Spacer(minLength: ItemRegistrationLayout.spacerMinimumLength)
+                ItemKindSelectionBottomSheet(
+                    kinds: data.itemKinds,
+                    selectedKind: draftBinding(for: data.item).wrappedValue.selectedKind,
+                    selectedKindCandidate: selectedKindCandidate,
+                    query: kindSearchQuery,
+                    contentHeight: bottomSheetContentHeight(in: geometry, bottomPadding: bottomPadding),
+                    bottomPadding: bottomPadding,
+                    onDismiss: dismissKindSheet,
+                    onUpdateQuery: updateKindSearchQuery,
+                    onSelectCandidate: { kind in
+                        selectedKindCandidate = kind
+                    },
+                    onConfirmSelection: {
+                        confirmKindSelection(data: data)
+                    }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            .ignoresSafeArea(.container, edges: .bottom)
+        }
+        .animation(.easeOut(duration: ItemRegistrationLayout.bottomSheetAnimationDuration), value: isKindSheetPresented)
+    }
+
+    private func openKindSheet(data: ItemDetailEditViewData) {
+        let currentDraft = draftBinding(for: data.item).wrappedValue
+        kindSearchQuery = ""
+        selectedKindCandidate = currentDraft.selectedKind ?? data.itemKinds.first
+        isKindSheetPresented = true
+    }
+
+    private func dismissKindSheet() {
+        isKindSheetPresented = false
+        kindSearchQuery = ""
+        selectedKindCandidate = nil
+    }
+
+    private func updateKindSearchQuery(_ query: String) {
+        kindSearchQuery = query
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard case let .success(data) = viewModel.state else {
+            selectedKindCandidate = nil
+            return
+        }
+
+        selectedKindCandidate = data.itemKinds.first {
+            normalizedQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(normalizedQuery)
+        }
+    }
+
+    private func confirmKindSelection(data: ItemDetailEditViewData) {
+        guard let selectedKind = selectedKindCandidate else { return }
+
+        var updatedDraft = draftBinding(for: data.item).wrappedValue
+        updatedDraft.selectedKind = selectedKind
+        updatedDraft.imageURL = selectedKind.imageURL
+        draft = updatedDraft
+        dismissKindSheet()
+    }
+
+    private func bottomSheetContentHeight(
+        in geometry: GeometryProxy,
+        bottomPadding: CGFloat
+    ) -> CGFloat {
+        let availableHeight = geometry.size.height
+            - geometry.safeAreaInsets.top
+            - ItemRegistrationLayout.bottomSheetTopPadding
+            - ItemRegistrationLayout.bottomSheetHeaderHeight
+            - bottomPadding
+        return min(ItemRegistrationLayout.kindSheetMaxContentHeight, max(0, availableHeight))
+    }
+
+    private func bottomSheetBottomPadding(in geometry: GeometryProxy) -> CGFloat {
+        max(
+            OBRitSpacing.s5,
+            min(geometry.safeAreaInsets.bottom, ItemRegistrationLayout.bottomSheetMaximumSafeAreaPadding)
+        )
     }
 
     private func draftBinding(for item: ItemDetailItem) -> Binding<ItemDetailEditDraft> {

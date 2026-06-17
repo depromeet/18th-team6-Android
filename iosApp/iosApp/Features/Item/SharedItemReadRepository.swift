@@ -20,17 +20,8 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         let categories = try await readService.getCategories()
         let categoryIcons = try await readService.getCategoryIcons()
 
-        let kinds = categories.map { category in
-            ItemKind(
-                id: Int(clamping: category.id),
-                title: category.name,
-                addedCount: Int(category.itemCount),
-                imageURL: category.iconUrl
-            )
-        }
-
         return ItemRegistrationCatalog(
-            itemKinds: kinds,
+            itemKinds: Self.itemKinds(from: categories),
             imageOptions: Self.imageOptions(from: categoryIcons)
         )
     }
@@ -139,7 +130,8 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
             item: makeDetailItem(from: item, histories: loadedHistories, categories: loadedCategories),
             existingItemNames: items
                 .filter { $0.id != Int64(itemId) }
-                .map(\.name)
+                .map(\.name),
+            itemKinds: Self.itemKinds(from: loadedCategories)
         )
     }
 
@@ -208,6 +200,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         return ItemDetailItem(
             id: Int(clamping: item.id),
             name: item.name,
+            kindId: Int(clamping: item.categoryId),
             kindName: item.categoryName,
             imageURL: Self.categoryIconURL(categoryId: item.categoryId, categories: categories),
             spareQuantity: Int(item.count),
@@ -222,6 +215,17 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
 
     private static func categoryIconURL(categoryId: Int64, categories: [Shared.Category]) -> String {
         categories.first { $0.id == categoryId }?.iconUrl ?? ""
+    }
+
+    private static func itemKinds(from categories: [Shared.Category]) -> [ItemKind] {
+        categories.map { category in
+            ItemKind(
+                id: Int(clamping: category.id),
+                title: category.name,
+                addedCount: Int(category.itemCount),
+                imageURL: category.iconUrl
+            )
+        }
     }
 
     private func makeReplacementRecords(

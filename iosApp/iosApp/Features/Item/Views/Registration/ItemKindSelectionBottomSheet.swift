@@ -1,42 +1,96 @@
 import SwiftUI
 
 struct ItemKindSelectionBottomSheet: View {
-    let data: ItemRegistrationViewData
-    let action: ItemRegistrationAction
+    private let kinds: [ItemKind]
+    private let selectedKind: ItemKind?
+    private let selectedKindCandidate: ItemKind?
+    private let query: String
     let contentHeight: CGFloat
     let bottomPadding: CGFloat
+    private let onDismiss: () -> Void
+    private let onUpdateQuery: (String) -> Void
+    private let onSelectCandidate: (ItemKind) -> Void
+    private let onConfirmSelection: () -> Void
+    private let onDirectRegister: (() -> Void)?
+
+    init(
+        data: ItemRegistrationViewData,
+        action: ItemRegistrationAction,
+        contentHeight: CGFloat,
+        bottomPadding: CGFloat
+    ) {
+        self.init(
+            kinds: data.itemKinds,
+            selectedKind: data.draft.selectedKind,
+            selectedKindCandidate: data.selectedKindCandidate,
+            query: data.kindSearchQuery,
+            contentHeight: contentHeight,
+            bottomPadding: bottomPadding,
+            onDismiss: action.onDismissBottomSheet,
+            onUpdateQuery: action.onUpdateKindSearchQuery,
+            onSelectCandidate: action.onSelectKindCandidate,
+            onConfirmSelection: action.onConfirmKindSelection,
+            onDirectRegister: action.onShowDirectKindRegistration
+        )
+    }
+
+    init(
+        kinds: [ItemKind],
+        selectedKind: ItemKind?,
+        selectedKindCandidate: ItemKind?,
+        query: String,
+        contentHeight: CGFloat,
+        bottomPadding: CGFloat,
+        onDismiss: @escaping () -> Void,
+        onUpdateQuery: @escaping (String) -> Void,
+        onSelectCandidate: @escaping (ItemKind) -> Void,
+        onConfirmSelection: @escaping () -> Void,
+        onDirectRegister: (() -> Void)? = nil
+    ) {
+        self.kinds = kinds
+        self.selectedKind = selectedKind
+        self.selectedKindCandidate = selectedKindCandidate
+        self.query = query
+        self.contentHeight = contentHeight
+        self.bottomPadding = bottomPadding
+        self.onDismiss = onDismiss
+        self.onUpdateQuery = onUpdateQuery
+        self.onSelectCandidate = onSelectCandidate
+        self.onConfirmSelection = onConfirmSelection
+        self.onDirectRegister = onDirectRegister
+    }
 
     var body: some View {
-        let filteredKinds = data.filteredKinds
+        let displayKinds = filteredKinds
 
         OBRitBottomSheet(
             contentHeight: contentHeight,
             bottomPadding: bottomPadding,
-            onDismiss: action.onDismissBottomSheet
+            onDismiss: onDismiss
         ) {
             VStack(alignment: .leading, spacing: OBRitSpacing.s8) {
                 ItemSearchInputField(
-                    text: data.kindSearchQuery,
+                    text: query,
                     placeholder: "원하시는 소모품을 검색해보세요",
-                    onTextChange: action.onUpdateKindSearchQuery
+                    onTextChange: onUpdateQuery
                 )
 
                 VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
                     ItemSheetCountText(
-                        prefix: data.kindSearchQuery.isEmpty ? "전체 소모품" : "검색 결과",
-                        count: data.kindSearchQuery.isEmpty ? data.itemKinds.count : filteredKinds.count
+                        prefix: query.isEmpty ? "전체 소모품" : "검색 결과",
+                        count: query.isEmpty ? kinds.count : displayKinds.count
                     )
 
-                    if filteredKinds.isEmpty {
-                        ItemKindNoResultView(action: action)
+                    if displayKinds.isEmpty {
+                        ItemKindNoResultView(onDirectRegister: onDirectRegister)
                     } else {
                         ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: OBRitSpacing.s2) {
-                                ForEach(filteredKinds) { kind in
+                                ForEach(displayKinds) { kind in
                                     ItemKindSelectionRow(
                                         kind: kind,
-                                        selected: kind == data.kindCandidateForDisplay,
-                                        action: action
+                                        selected: kind == kindCandidateForDisplay,
+                                        onSelect: { onSelectCandidate(kind) }
                                     )
                                 }
                             }
@@ -45,14 +99,26 @@ struct ItemKindSelectionBottomSheet: View {
                         .overlay(alignment: .bottom) {
                             ItemSheetGradientButton(
                                 text: "소모품 종류 선택하기",
-                                enabled: data.selectedKindCandidate != nil,
-                                action: action.onConfirmKindSelection
+                                enabled: selectedKindCandidate != nil,
+                                action: onConfirmSelection
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    private var filteredKinds: [ItemKind] {
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedQuery.isEmpty else { return kinds }
+        return kinds.filter {
+            $0.title.localizedCaseInsensitiveContains(normalizedQuery)
+        }
+    }
+
+    private var kindCandidateForDisplay: ItemKind? {
+        selectedKindCandidate ?? selectedKind
     }
 }
 
@@ -75,12 +141,10 @@ private struct ItemSheetCountText: View {
 private struct ItemKindSelectionRow: View {
     let kind: ItemKind
     let selected: Bool
-    let action: ItemRegistrationAction
+    let onSelect: () -> Void
 
     var body: some View {
-        Button {
-            action.onSelectKindCandidate(kind)
-        } label: {
+        Button(action: onSelect) {
             HStack(spacing: OBRitSpacing.s4) {
                 ItemImage(
                     imageURL: kind.imageURL,
@@ -141,7 +205,7 @@ private struct ItemKindSelectionRadioIndicator: View {
 }
 
 private struct ItemKindNoResultView: View {
-    let action: ItemRegistrationAction
+    let onDirectRegister: (() -> Void)?
 
     var body: some View {
         VStack(spacing: OBRitSpacing.s5) {
@@ -160,12 +224,14 @@ private struct ItemKindNoResultView: View {
                     )
             }
 
-            OBRitFilledTextButton(
-                text: "직접 등록",
-                size: .small,
-                color: .white,
-                action: action.onShowDirectKindRegistration
-            )
+            if let onDirectRegister {
+                OBRitFilledTextButton(
+                    text: "직접 등록",
+                    size: .small,
+                    color: .white,
+                    action: onDirectRegister
+                )
+            }
         }
         .frame(maxWidth: .infinity)
         .frame(height: ItemRegistrationLayout.kindNoResultHeight)
