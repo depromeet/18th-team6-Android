@@ -294,7 +294,7 @@ private fun ItemListPreview() {
                     HomeItemCard(3L, "샴푸", 22, "교체 D-2", 0, "", ItemBucket.HAS_OVERDUE),
                     HomeItemCard(4L, "필터", 10, "교체 D-10", 3, "", ItemBucket.NONE_SAFE),
                 ),
-            sortOrder = ConsumableListSortOrder.REPLACE_IMMINENT,
+            sortOrder = ConsumableListSortOrder.LEAST_SPARE,
             onSortOrderChange = {},
             onMoreClick = {},
             onItemClick = {},
