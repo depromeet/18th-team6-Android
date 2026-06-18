@@ -20,6 +20,8 @@ import com.obrit.obrit.shared.network.source.HomeRemoteDataSource
 import com.obrit.obrit.shared.network.source.HomeRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSource
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSourceImpl
+import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSource
+import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.UserRemoteDataSource
 import com.obrit.obrit.shared.network.source.UserRemoteDataSourceImpl
 import io.ktor.client.HttpClient
@@ -43,6 +45,7 @@ val networkModule =
         single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
         single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
         single<ItemRemoteDataSource> { ItemRemoteDataSourceImpl(get(), get()) }
+        single<ReceiptRemoteDataSource> { ReceiptRemoteDataSourceImpl(get(), get()) }
         single<CategoryRemoteDataSource> { CategoryRemoteDataSourceImpl(get(), get()) }
         single<HomeRemoteDataSource> { HomeRemoteDataSourceImpl(get(), get()) }
     }
