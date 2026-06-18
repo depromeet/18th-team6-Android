@@ -24,14 +24,14 @@ struct HomeTab: View {
                         onSelectFilter: action.onSelectStatusFilter,
                         onSelect: action.onSelectItem
                     )
-                    HomePreviewSection(
-                        items: previewItems,
-                        selectedSort: selectedWarningSort,
-                        onOpenSortSheet: onOpenPreviewSortSheet,
-                        onShowList: action.onShowList,
-                        onSelect: action.onSelectItem
-                    )
                 }
+                HomePreviewSection(
+                    items: previewItems,
+                    selectedSort: selectedWarningSort,
+                    onOpenSortSheet: onOpenPreviewSortSheet,
+                    onShowList: action.onShowList,
+                    onSelect: action.onSelectItem
+                )
             }
             HomeUsageListSection(
                 items: dashboard.usageItems,
