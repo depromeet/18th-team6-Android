@@ -12,11 +12,15 @@ struct OBRitNavigation: View {
         self.dependencies = dependencies
 
         #if DEBUG
-            let debugConfiguration = Self.debugInitialConfiguration
+            let debugConfiguration = Self.debugInitialConfiguration(
+                onboardingCompletionStore: dependencies.onboardingCompletionStore
+            )
             let initialRootRoute = debugConfiguration.rootRoute
             let initialPath = debugConfiguration.path
         #else
-            let initialRootRoute = AppRoute.main(.home)
+            let initialRootRoute = Self.initialRootRoute(
+                onboardingCompletionStore: dependencies.onboardingCompletionStore
+            )
             let initialPath = NavigationPath()
         #endif
         _rootRoute = State(initialValue: initialRootRoute)
@@ -109,7 +113,9 @@ struct OBRitNavigation: View {
     }
 
     #if DEBUG
-        private static var debugInitialConfiguration: (rootRoute: AppRoute, path: NavigationPath) {
+        private static func debugInitialConfiguration(
+            onboardingCompletionStore: OnboardingCompletionStore
+        ) -> (rootRoute: AppRoute, path: NavigationPath) {
             var initialPath = NavigationPath()
             let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
 
@@ -127,10 +133,16 @@ struct OBRitNavigation: View {
                 initialPath.append(ItemRoute.itemRegistration)
                 return (.main(.home), initialPath)
             default:
-                return (.main(.home), initialPath)
+                return (initialRootRoute(onboardingCompletionStore: onboardingCompletionStore), initialPath)
             }
         }
     #endif
+
+    private static func initialRootRoute(
+        onboardingCompletionStore: OnboardingCompletionStore
+    ) -> AppRoute {
+        onboardingCompletionStore.hasCompletedOnboarding ? .main(.home) : .onboarding
+    }
 }
 
 private extension AppRoute {

@@ -3,6 +3,7 @@ import Shared
 
 struct AppDependencies {
     let refreshCenter: AppRefreshCenter
+    let onboardingCompletionStore: OnboardingCompletionStore
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
@@ -25,6 +26,7 @@ struct AppDependencies {
 
         return AppDependencies(
             refreshCenter: refreshCenter,
+            onboardingCompletionStore: UserDefaultsOnboardingCompletionStore(),
             makeHomeViewModel: {
                 HomeViewModel(
                     repository: SharedHomeDashboardRepository(readService: readService)
@@ -68,6 +70,7 @@ struct AppDependencies {
     static var preview: AppDependencies {
         return AppDependencies(
             refreshCenter: AppRefreshCenter(),
+            onboardingCompletionStore: PreviewOnboardingCompletionStore(hasCompletedOnboarding: true),
             makeHomeViewModel: {
                 HomeViewModel(initialDashboard: HomeDashboard.empty)
             },

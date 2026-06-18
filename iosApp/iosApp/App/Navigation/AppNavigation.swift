@@ -30,6 +30,7 @@ struct AppNavigation {
                 viewModelFactory: dependencies.makeOnboardingViewModel,
                 onBack: onBack,
                 onComplete: {
+                    dependencies.onboardingCompletionStore.markCompleted()
                     dependencies.refreshCenter.refreshItems()
                     onSetRoot(.main(.home))
                 }
