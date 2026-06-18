@@ -5,6 +5,7 @@ struct HomeView: View {
     @ObservedObject private var refreshCenter: AppRefreshCenter
 
     let onNavigateItem: (ItemRoute) -> Void
+    let onShowOnboarding: () -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
     let onRegisteredItemsAvailabilityChange: (Bool) -> Void
@@ -14,6 +15,7 @@ struct HomeView: View {
         viewModelFactory: @MainActor @escaping () -> HomeViewModel,
         refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigateItem: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void,
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in },
         onRegisteredItemsAvailabilityChange: @escaping (Bool) -> Void = { _ in }
@@ -21,6 +23,7 @@ struct HomeView: View {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.refreshCenter = refreshCenter
         self.onNavigateItem = onNavigateItem
+        self.onShowOnboarding = onShowOnboarding
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
         self.onRegisteredItemsAvailabilityChange = onRegisteredItemsAvailabilityChange
@@ -69,6 +72,7 @@ struct HomeView: View {
             onSearch: { onNavigateItem(.search) },
             onNotification: {},
             onProfile: {},
+            onLogoEasterEgg: onShowOnboarding,
             onRegisterDirect: { onNavigateItem(.itemRegistration) },
             onShowList: onShowListTab,
             onSelectItem: { onNavigateItem(.detail(itemId: $0)) },
@@ -92,6 +96,7 @@ struct HomeViewAction {
     let onSearch: () -> Void
     let onNotification: () -> Void
     let onProfile: () -> Void
+    let onLogoEasterEgg: () -> Void
     let onRegisterDirect: () -> Void
     let onShowList: () -> Void
     let onSelectItem: (Int) -> Void
@@ -120,7 +125,8 @@ private struct HomeDataUnavailableContentView: View {
                         showNotificationButton: false,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
-                        onProfileClick: action.onProfile
+                        onProfileClick: action.onProfile,
+                        onLogoEasterEgg: action.onLogoEasterEgg
                     )
 
                     dataStateMessage

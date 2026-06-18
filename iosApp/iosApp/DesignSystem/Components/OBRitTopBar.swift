@@ -1,46 +1,58 @@
 import SwiftUI
 
 public struct OBRitHomeTopBar: View {
+    @State private var logoTapCount = 0
+
     private let backgroundColor: Bool
     private let showNotificationButton: Bool
     private let onSearchClick: () -> Void
     private let onNotificationClick: () -> Void
     private let onProfileClick: () -> Void
+    private let onLogoEasterEgg: () -> Void
 
     public init(
         backgroundColor: Bool = true,
         showNotificationButton: Bool = true,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
-        onProfileClick: @escaping () -> Void
+        onProfileClick: @escaping () -> Void,
+        onLogoEasterEgg: @escaping () -> Void = {}
     ) {
         self.backgroundColor = backgroundColor
         self.showNotificationButton = showNotificationButton
         self.onSearchClick = onSearchClick
         self.onNotificationClick = onNotificationClick
         self.onProfileClick = onProfileClick
+        self.onLogoEasterEgg = onLogoEasterEgg
     }
 
     public static func transparent(
         showNotificationButton: Bool = true,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
-        onProfileClick: @escaping () -> Void
+        onProfileClick: @escaping () -> Void,
+        onLogoEasterEgg: @escaping () -> Void = {}
     ) -> OBRitHomeTopBar {
         OBRitHomeTopBar(
             backgroundColor: false,
             showNotificationButton: showNotificationButton,
             onSearchClick: onSearchClick,
             onNotificationClick: onNotificationClick,
-            onProfileClick: onProfileClick
+            onProfileClick: onProfileClick,
+            onLogoEasterEgg: onLogoEasterEgg
         )
     }
 
     public var body: some View {
         TopBarRoot(backgroundColor: backgroundColor) {
             HStack {
-                OBRitLogo()
-                    .frame(width: 69, height: 24, alignment: .leading)
+                Button(action: handleLogoClick) {
+                    OBRitLogo()
+                        .frame(width: 69, height: 24, alignment: .leading)
+                        .frame(width: 92, height: OBRitSpacing.s10, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -54,6 +66,13 @@ public struct OBRitHomeTopBar: View {
             .padding(.leading, OBRitSpacing.s5)
             .padding(.trailing, OBRitSpacing.s3)
         }
+    }
+
+    private func handleLogoClick() {
+        logoTapCount += 1
+        guard logoTapCount >= 3 else { return }
+        logoTapCount = 0
+        onLogoEasterEgg()
     }
 }
 

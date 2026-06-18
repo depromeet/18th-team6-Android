@@ -387,7 +387,7 @@ private enum SharedHomeReadMapper {
             daysInUse: Int(item.daysInUse),
             stockCount: Int(item.spareQuantity),
             dDayLabel: item.replacementDday,
-            replaceLabel: "교체 \(item.replacementDday)",
+            replaceLabel: replacementLabel(from: item.replacementDday),
             sparesLabel: "여분 \(item.spareQuantity)개",
             cardLevel: cardLevel(itemBucket: item.itemBucket),
             imageColor: Color.clear,
@@ -424,6 +424,14 @@ private enum SharedHomeReadMapper {
         }
 
         return Int(label.filter { $0.isNumber || $0 == "-" }) ?? 0
+    }
+
+    private static func replacementLabel(from label: String) -> String {
+        if label.hasPrefix("교체") {
+            return label
+        }
+
+        return "교체 \(label)"
     }
 
     private static func days(after marker: String, in label: String) -> Int? {

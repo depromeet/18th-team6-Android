@@ -171,51 +171,6 @@ struct ItemRegistrationCompleteView: View {
     let action: ItemRegistrationAction
 
     var body: some View {
-        GeometryReader { geometry in
-            let horizontalPadding = ItemRegistrationLayout.horizontalPadding(for: geometry.size.width)
-
-            VStack(spacing: ItemRegistrationLayout.zeroSpacing) {
-                Spacer(minLength: ItemRegistrationLayout.spacerMinimumLength)
-
-                VStack(spacing: OBRitSpacing.s9) {
-                    Image(ItemRegistrationAsset.completeBadge)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(
-                            width: ItemRegistrationLayout.completeBadgeWidth,
-                            height: ItemRegistrationLayout.completeBadgeHeight
-                        )
-
-                    VStack(spacing: OBRitSpacing.s4) {
-                        Text("소모품이 등록되었어요!")
-                            .lineLimit(ItemRegistrationLayout.singleLineLimit)
-                            .obritTextStyle(
-                                OBRitTypography.s6xl,
-                                weight: OBRitFontWeight.bold,
-                                color: OBRitColors.common00
-                            )
-
-                        Text("이제부터 OBRIT이 간편하게\n소모품을 관리해드릴게요")
-                            .multilineTextAlignment(.center)
-                            .obritTextStyle(
-                                OBRitTypography.xl,
-                                weight: OBRitFontWeight.medium,
-                                color: OBRitColors.textDefaultSecondary
-                            )
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, geometry.size.height * ItemRegistrationLayout.completeContentBottomPaddingRatio)
-
-                Spacer(minLength: ItemRegistrationLayout.spacerMinimumLength)
-
-                ItemBottomButton(
-                    text: "홈 화면으로 돌아가기",
-                    enabled: true,
-                    horizontalPadding: horizontalPadding,
-                    action: action.onComplete
-                )
-            }
-        }
+        RegistrationCompleteScreen(action: action.onComplete)
     }
 }

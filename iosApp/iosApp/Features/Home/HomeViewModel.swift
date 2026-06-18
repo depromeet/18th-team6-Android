@@ -18,13 +18,18 @@ final class HomeViewModel: ObservableObject {
         self.dashboard = initialDashboard
         self.didStartInitialLoad = initialDashboard != nil
         self.state = initialDashboard.map(HomeViewState.success) ?? .loading
-        self.selectedStatusFilter = initialDashboard.flatMap(Self.firstVisibleStatusFilter(in:)) ?? .replacementDanger
-        self.selectedWarningSort = .replacementRisk
+        self.selectedStatusFilter = initialDashboard.flatMap(Self.firstVisibleStatusFilter(in:)) ?? .danger
+        self.selectedWarningSort = .lowStock
     }
 
     var statusFilterCounts: [HomeStatusFilter: Int] {
         guard let dashboard else { return [:] }
         return HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
+            if filter == .danger {
+                result[filter] = dashboard.summary.warningCount
+                return
+            }
+
             result[filter] = dashboard.warningItems.filter { $0.quickStatusFilters.contains(filter) }.count
         }
     }
@@ -45,6 +50,13 @@ final class HomeViewModel: ObservableObject {
         }
 
         switch selectedWarningSort {
+        case .lowStock:
+            return filteredItems.sorted {
+                if $0.stockCount == $1.stockCount {
+                    return $0.replacementDday < $1.replacementDday
+                }
+                return $0.stockCount < $1.stockCount
+            }
         case .replacementRisk:
             return filteredItems.sorted {
                 if $0.replacementDday == $1.replacementDday {
@@ -58,6 +70,10 @@ final class HomeViewModel: ObservableObject {
                     return $0.replacementDday < $1.replacementDday
                 }
                 return $0.daysInUse > $1.daysInUse
+            }
+        case .alphabetical:
+            return filteredItems.sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
             }
         }
     }
@@ -95,7 +111,7 @@ final class HomeViewModel: ObservableObject {
             let dashboard = try await repository.dashboard()
             self.dashboard = dashboard
             if statusFilterCounts[selectedStatusFilter, default: 0] == 0 {
-                selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .replacementDanger
+                selectedStatusFilter = Self.firstVisibleStatusFilter(in: dashboard) ?? .danger
             }
             state = .success(dashboard)
             AppLog.success(
@@ -130,19 +146,12 @@ final class HomeViewModel: ObservableObject {
         for filter: HomeStatusFilter
     ) -> [HomeItemItem] {
         switch filter {
-        case .replacementDanger, .replacementWarning:
+        case .danger, .warning:
             return items.sorted {
                 if $0.replacementDday == $1.replacementDday {
                     return $0.stockCount < $1.stockCount
                 }
                 return $0.replacementDday < $1.replacementDday
-            }
-        case .spareShortage:
-            return items.sorted {
-                if $0.stockCount == $1.stockCount {
-                    return $0.replacementDday < $1.replacementDday
-                }
-                return $0.stockCount < $1.stockCount
             }
         }
     }

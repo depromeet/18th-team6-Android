@@ -214,7 +214,7 @@ struct ItemTextInputField: View {
                             )
                     }
 
-                    TextField("", text: $localText, axis: singleLine ? .horizontal : .vertical)
+                    TextField("", text: lengthLimitedText, axis: singleLine ? .horizontal : .vertical)
                         .lineLimit(singleLine ? ItemRegistrationLayout.singleLineLimit : nil)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -263,17 +263,21 @@ struct ItemTextInputField: View {
                     )
             }
         }
-        .onChange(of: localText) { _, newValue in
-            let clippedText = String(newValue.prefix(maxLength))
-            if clippedText != newValue {
-                localText = clippedText
-            }
-            onTextChange(clippedText)
-        }
         .onChange(of: text) { _, newValue in
             let clippedText = String(newValue.prefix(maxLength))
             guard clippedText != localText else { return }
             localText = clippedText
+        }
+    }
+
+    private var lengthLimitedText: Binding<String> {
+        Binding {
+            localText
+        } set: { newValue in
+            let clippedText = String(newValue.prefix(maxLength))
+            guard clippedText != localText else { return }
+            localText = clippedText
+            onTextChange(clippedText)
         }
     }
 }
