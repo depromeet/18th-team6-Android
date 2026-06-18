@@ -128,3 +128,50 @@ iOS 상세 편집에서 선택한 대표 이미지가 서버에 저장된다.
 
 편집 완료 후 홈, 리스트, 상세 화면을 다시 조회해도 동일한 이미지가 유지된다.
 
+## 3. 교체 완료 API의 여분 수량 차감 보장
+
+### 현재 상황
+
+`POST /items/{itemId}/replacements` 호출 후 응답의 `spareQuantity`가 기존 수량 그대로 내려오는 경우가 있다.
+
+예를 들어 교체 완료 전 여분 수량이 3개인 소모품을 교체 완료 처리하면, 기대 응답은 `spareQuantity: 2`지만 현재 응답이 `spareQuantity: 3`으로 유지될 수 있다.
+
+```json
+{
+  "itemId": 1,
+  "categoryId": 10,
+  "categoryName": "욕실",
+  "name": "칫솔",
+  "spareQuantity": 2,
+  "replacementIntervalDays": 30,
+  "lastReplacedDate": "2026-06-19",
+  "nextReplacementDate": "2026-07-19"
+}
+```
+
+### 원인
+
+Android 상세 화면은 `itemRepository.createReplacement()`가 반환한 `Item.count`를 그대로 상세 상태의 여분 수량으로 사용한다.
+
+iOS 상세 화면도 `SharedWriteService.createReplacement()`가 반환한 `Item.count`를 그대로 상세 상태의 여분 수량으로 사용해야 한다.
+
+따라서 교체 완료에 따른 여분 수량 차감은 클라이언트가 별도 `PATCH /items/{itemId}/spare-count`를 호출해서 맞추는 것이 아니라, 서버가 교체 완료 처리와 함께 보장해야 한다.
+
+### 요청사항
+
+`POST /items/{itemId}/replacements`에서 교체 기록 생성과 여분 수량 차감을 하나의 서버 트랜잭션으로 처리한다.
+
+- 교체 기록을 생성한다.
+- `lastReplacedDate`를 요청의 `replacedDate`로 갱신한다.
+- 현재 `spareQuantity`가 1 이상이면 `spareQuantity - 1`로 갱신한다.
+- 현재 `spareQuantity`가 0이면 0으로 유지한다.
+- 응답 `ItemResponse.spareQuantity`는 차감이 반영된 최신 값을 내려준다.
+- 이후 `GET /items`, `GET /home/items`, `GET /items/{itemId}/replacements`와 관련 홈/상세 데이터도 같은 서버 상태를 반영한다.
+
+교체 기록 생성은 성공했지만 여분 수량 차감은 실패하는 부분 성공 상태가 생기지 않도록 원자적으로 처리되어야 한다.
+
+### 기대효과
+
+Android와 iOS가 동일하게 교체 완료 API 응답만으로 화면 상태를 갱신할 수 있다.
+
+클라이언트가 교체 완료 후 별도 여분 수량 수정 API를 호출하지 않아도 되어, 네트워크 실패나 동시 요청으로 교체 기록과 여분 수량이 어긋나는 상황을 줄일 수 있다.
