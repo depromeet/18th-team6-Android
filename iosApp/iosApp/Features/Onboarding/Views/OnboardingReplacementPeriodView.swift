@@ -19,28 +19,32 @@ struct OnboardingReplacementPeriodView: View {
                 )
 
                 VStack(spacing: OBRitSpacing.s5) {
-                    TabView(selection: currentItemIDBinding) {
-                        ForEach(data.selectedOptions) { option in
-                            OnboardingItemDetailCard(
-                                option: option,
-                                name: data.itemName(for: option),
-                                period: data.replacementPeriod(for: option),
-                                quantity: data.quantity(for: option),
-                                isPeriodDropdownExpanded: pickerItemID == option.id,
-                                action: action,
-                                onTogglePeriodDropdown: {
-                                    togglePicker(for: option)
-                                },
-                                onSelectPeriod: { period in
-                                    select(period, for: option)
-                                }
-                            )
-                            .tag(Optional(option.id))
-                            .padding(.horizontal, OBRitSpacing.s4)
+                    ZStack(alignment: .top) {
+                        TabView(selection: currentItemIDBinding) {
+                            ForEach(data.selectedOptions) { option in
+                                OnboardingItemDetailCard(
+                                    option: option,
+                                    name: data.itemName(for: option),
+                                    period: data.replacementPeriod(for: option),
+                                    quantity: data.quantity(for: option),
+                                    isPeriodDropdownExpanded: pickerItemID == option.id,
+                                    action: action,
+                                    onTogglePeriodDropdown: {
+                                        togglePicker(for: option)
+                                    },
+                                    onSelectPeriod: { period in
+                                        select(period, for: option)
+                                    }
+                                )
+                                .tag(Optional(option.id))
+                                .padding(.horizontal, OBRitSpacing.s4)
+                            }
                         }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .frame(height: OnboardingDetailMetrics.cardPagerRenderHeight(expanded: pickerItemID != nil))
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .frame(height: OnboardingDetailMetrics.cardPagerHeight(expanded: pickerItemID != nil))
+                    .frame(height: OnboardingDetailMetrics.cardPagerHeight)
+                    .zIndex(pickerItemID == nil ? 0 : 1)
 
                     OnboardingDetailIndicator(
                         options: data.selectedOptions,
@@ -105,20 +109,26 @@ private struct OnboardingDetailIndicator: View {
     let currentItemID: Int?
 
     var body: some View {
-        HStack(spacing: OBRitSpacing.s2) {
-            ForEach(options) { option in
-                Circle()
-                    .fill(option.id == currentItemID ? OBRitColors.textPositiveDefault : OBRitColors.gray700)
-                    .frame(width: OBRitSpacing.s2, height: OBRitSpacing.s2)
-            }
-        }
-        .frame(maxWidth: .infinity)
+        OBRitPageIndicator(
+            count: options.count,
+            selectedIndex: selectedIndex
+        )
         .opacity(options.count > 1 ? 1 : 0)
+    }
+
+    private var selectedIndex: Int {
+        guard let currentItemID,
+              let index = options.firstIndex(where: { $0.id == currentItemID }) else {
+            return 0
+        }
+        return index
     }
 }
 
 private enum OnboardingDetailMetrics {
-    static func cardPagerHeight(expanded: Bool) -> CGFloat {
-        expanded ? 520 : 360
+    static let cardPagerHeight: CGFloat = 360
+
+    static func cardPagerRenderHeight(expanded: Bool) -> CGFloat {
+        expanded ? 520 : cardPagerHeight
     }
 }

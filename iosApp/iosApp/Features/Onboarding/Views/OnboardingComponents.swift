@@ -119,62 +119,11 @@ struct OnboardingProgressView: View {
 
     var body: some View {
         HStack(spacing: OBRitSpacing.s1) {
-            OnboardingProgressNumber(text: "1", state: state(for: 1))
+            OBRitNumber(text: "1", selected: currentStep == 1)
             Rectangle()
                 .fill(OBRitColors.gray750)
                 .frame(width: OBRitSpacing.s7, height: 1)
-            OnboardingProgressNumber(text: "2", state: state(for: 2))
-        }
-    }
-
-    private func state(for step: Int) -> OnboardingProgressNumberState {
-        if step == currentStep {
-            return .current
-        }
-        if step < currentStep {
-            return .completed
-        }
-        return .pending
-    }
-}
-
-enum OnboardingProgressNumberState {
-    case current
-    case completed
-    case pending
-}
-
-struct OnboardingProgressNumber: View {
-    let text: String
-    let state: OnboardingProgressNumberState
-
-    var body: some View {
-        Text(text)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: contentColor)
-            .frame(width: OBRitSpacing.s7, height: OBRitSpacing.s7)
-            .background(containerColor)
-            .clipShape(Circle())
-    }
-
-    private var containerColor: Color {
-        switch state {
-        case .current:
-            return OBRitColors.common00
-        case .completed, .pending:
-            return OBRitColors.gray750
-        }
-    }
-
-    private var contentColor: Color {
-        switch state {
-        case .current:
-            return OBRitColors.common1000
-        case .completed:
-            return OBRitColors.gray450
-        case .pending:
-            return OBRitColors.common00
+            OBRitNumber(text: "2", selected: currentStep == 2)
         }
     }
 }
@@ -235,8 +184,10 @@ struct OnboardingCategoryCard: View {
 
                 Spacer(minLength: 0)
 
-                OnboardingCheckBox(checked: selected)
+                OBRitCheckBox(checked: selected)
                     .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
             .padding(.horizontal, OBRitSpacing.s5)
             .padding(.vertical, OBRitSpacing.s4)
@@ -439,12 +390,7 @@ struct OnboardingRequiredField<Content: View>: View {
                         weight: OBRitFontWeight.semiBold,
                         color: OBRitColors.common00
                     )
-                Text("*")
-                    .obritTextStyle(
-                        OBRitTypography.base,
-                        weight: OBRitFontWeight.bold,
-                        color: OBRitColors.textWarningDefault
-                    )
+                OBRitEssential()
                     .padding(.top, OnboardingLayoutMetrics.requiredMarkerTopPadding)
             }
 
@@ -455,7 +401,6 @@ struct OnboardingRequiredField<Content: View>: View {
 
 struct OnboardingItemNameInputField: View {
     @State private var localText: String
-    @FocusState private var isFocused: Bool
 
     let text: String
     let placeholder: String
@@ -476,48 +421,23 @@ struct OnboardingItemNameInputField: View {
     }
 
     var body: some View {
-        HStack(spacing: OBRitSpacing.s2) {
-            ZStack(alignment: .leading) {
-                if localText.isEmpty {
-                    Text(placeholder)
-                        .lineLimit(1)
-                        .obritTextStyle(
-                            OBRitTypography.xl,
-                            weight: OBRitFontWeight.medium,
-                            color: OBRitColors.gray700
-                        )
-                }
-
-                TextField("", text: lengthLimitedText)
-                    .lineLimit(1)
-                    .submitLabel(.done)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .focused($isFocused)
-                    .tint(OBRitColors.common00)
-                    .obritTextStyle(
-                        OBRitTypography.xl,
-                        weight: OBRitFontWeight.medium,
-                        color: OBRitColors.common00
-                    )
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text("\(min(localText.count, maxLength))/\(maxLength)")
-                .lineLimit(1)
-                .obritTextStyle(
-                    OBRitTypography.s,
-                    weight: OBRitFontWeight.medium,
-                    color: OBRitColors.common00
-                )
-        }
-        .frame(height: OBRitSpacing.s14)
-        .padding(.horizontal, OBRitSpacing.s5)
-        .background(OBRitColors.gray800)
-        .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
-        .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
-        .onTapGesture {
-            isFocused = true
+        OBRitOutlinedTextField(
+            text: lengthLimitedText,
+            placeholder: placeholder,
+            containerColor: OBRitColors.gray800,
+            maxLength: maxLength,
+            singleLine: true,
+            inputType: .custom(
+                keyboardType: .default,
+                autocapitalization: .never,
+                autocorrectionDisabled: true
+            ),
+            hasLeadingIcon: false,
+            hasTrailingIcon: false
+        ) {
+            EmptyView()
+        } trailingIcon: {
+            EmptyView()
         }
         .onChange(of: text) { _, newValue in
             let clippedText = String(newValue.prefix(maxLength))
@@ -555,25 +475,6 @@ struct OnboardingItemImage: View {
             .clipShape(Circle())
         }
         .frame(width: size, height: size)
-    }
-}
-
-struct OnboardingCheckBox: View {
-    let checked: Bool
-
-    var body: some View {
-        ZStack {
-            if checked {
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(OBRitColors.green300)
-                OBRitIcon(kind: .check, color: OBRitColors.gray900)
-                    .padding(3)
-            } else {
-                RoundedRectangle(cornerRadius: 3)
-                    .stroke(OBRitColors.gray400, lineWidth: 1.4)
-            }
-        }
-        .frame(width: 21, height: 21)
     }
 }
 
