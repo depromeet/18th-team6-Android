@@ -115,6 +115,7 @@ actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
             updated.kindName = selectedKind.title
             updated.imageURL = selectedKind.imageURL
         }
+        updated.spareQuantity = draft.spareQuantity
         updated.replacementCycle = ItemDetailReplacementCycle(intervalDays: draft.replacementCycleDays)
         updated.updatedAt = Date()
         itemsByID[itemId] = updated

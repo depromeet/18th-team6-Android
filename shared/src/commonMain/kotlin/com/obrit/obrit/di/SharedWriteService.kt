@@ -78,6 +78,7 @@ class SharedWriteService(
     @Throws(Throwable::class)
     suspend fun patchItem(
         itemId: Long,
+        categoryId: Long?,
         name: String?,
         count: Int?,
         lastReplacedDate: String?,
@@ -88,6 +89,7 @@ class SharedWriteService(
             .patchItem(
                 PatchItemParams(
                     itemId = itemId,
+                    categoryId = categoryId,
                     name = name,
                     count = count,
                     lastReplacedDate = lastReplacedDate?.let(::ReplacementDate),

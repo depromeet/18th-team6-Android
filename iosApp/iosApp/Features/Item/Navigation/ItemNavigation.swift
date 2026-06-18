@@ -64,6 +64,7 @@ struct ItemNavigation {
                 ItemDetailView(
                     itemId: itemId,
                     viewModelFactory: dependencies.makeItemDetailViewModel,
+                    refreshCenter: dependencies.refreshCenter,
                     onBack: onBack,
                     onNavigate: onNavigate,
                     onMutationCompleted: dependencies.refreshCenter.refreshItems

@@ -54,6 +54,7 @@ struct ItemDetailEditScaffoldView: View {
                 VStack(alignment: .leading, spacing: ItemDetailEditMetrics.sectionSpacing) {
                     nameSection
                     kindSection
+                    quantitySection
                     replacementCycleSection
                 }
                 .padding(.horizontal, OBRitSpacing.s5)
@@ -145,6 +146,80 @@ struct ItemDetailEditScaffoldView: View {
         }
     }
 
+    private var quantitySection: some View {
+        VStack(alignment: .leading, spacing: OBRitSpacing.s4) {
+            sectionTitle("등록할 수량")
+
+            VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
+                HStack(spacing: OBRitSpacing.s4) {
+                    quantityThumbnail
+
+                    VStack(alignment: .leading, spacing: OBRitSpacing.s1) {
+                        Text(draft.selectedKind?.title ?? "-")
+                            .lineLimit(1)
+                            .obritTextStyle(
+                                OBRitTypography.xl,
+                                weight: OBRitFontWeight.bold,
+                                color: OBRitColors.common00
+                            )
+
+                        Text("전체 \(draft.spareQuantity)개")
+                            .lineLimit(1)
+                            .obritTextStyle(
+                                OBRitTypography.small,
+                                weight: OBRitFontWeight.medium,
+                                color: OBRitColors.common00.opacity(ItemDetailEditMetrics.secondaryTextOpacity)
+                            )
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    OBRitStepper(
+                        value: draft.spareQuantity,
+                        size: .small,
+                        minimumValue: ItemDetailConfig.minimumSpareQuantity,
+                        maximumValue: ItemDetailConfig.maximumSpareQuantity,
+                        onDecrement: decrementQuantity,
+                        onIncrement: incrementQuantity,
+                        onValueChange: updateQuantity
+                    )
+                }
+                .padding(OBRitSpacing.s5)
+                .background(OBRitColors.backgroundDefaultSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
+
+                HStack(spacing: OBRitSpacing.s1_5) {
+                    OBRitIcon(kind: .info, color: OBRitColors.textDefaultTertiary)
+                        .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+
+                    Text("소모품의 전체 수량을 수정할 수 있어요.")
+                        .fixedSize(horizontal: false, vertical: true)
+                        .obritTextStyle(
+                            OBRitTypography.base,
+                            weight: OBRitFontWeight.semiBold,
+                            color: OBRitColors.textDefaultTertiary
+                        )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var quantityThumbnail: some View {
+        if let imageURL = draft.selectedKind?.imageURL, !imageURL.isEmpty {
+            ItemImage(
+                imageURL: imageURL,
+                size: ItemDetailEditMetrics.quantityThumbnailSize
+            )
+        } else {
+            Circle()
+                .fill(OBRitColors.gray750)
+                .frame(
+                    width: ItemDetailEditMetrics.quantityThumbnailSize,
+                    height: ItemDetailEditMetrics.quantityThumbnailSize
+                )
+        }
+    }
+
     private var bottomBar: some View {
         OBRitFilledTextButton(
             text: isProcessing ? "편집 중" : "편집 완료",
@@ -216,6 +291,21 @@ struct ItemDetailEditScaffoldView: View {
         onSubmit()
     }
 
+    private func decrementQuantity() {
+        updateQuantity(draft.spareQuantity - 1)
+    }
+
+    private func incrementQuantity() {
+        updateQuantity(draft.spareQuantity + 1)
+    }
+
+    private func updateQuantity(_ quantity: Int) {
+        draft.spareQuantity = min(
+            max(quantity, ItemDetailConfig.minimumSpareQuantity),
+            ItemDetailConfig.maximumSpareQuantity
+        )
+    }
+
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
             .lineLimit(1)
@@ -263,4 +353,6 @@ struct ItemDetailEditScaffoldView: View {
 private enum ItemDetailEditMetrics {
     static let sectionSpacing: CGFloat = 36
     static let bottomButtonHeight: CGFloat = 60
+    static let quantityThumbnailSize: CGFloat = 52
+    static let secondaryTextOpacity: CGFloat = 0.75
 }
