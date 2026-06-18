@@ -9,7 +9,7 @@ actor ReceiptAnalyzeSampleRepository: ReceiptAnalyzeRepository {
     func analyze(imageData: Data, fileName: String) async throws -> ReceiptAnalyzeResult {
         ReceiptAnalyzeResult(
             receiptImageURL: "",
-            purchasedDate: nil,
+            purchasedDate: "2026-01-01",
             items: [
                 ReceiptAnalyzeResultItem(
                     id: 0,
@@ -17,8 +17,35 @@ actor ReceiptAnalyzeSampleRepository: ReceiptAnalyzeRepository {
                     suggestedCategoryName: "면도기",
                     categoryId: 1,
                     iconURL: "",
-                    quantity: 1,
+                    quantity: 0,
                     suggestedReplacementIntervalDays: 30
+                ),
+                ReceiptAnalyzeResultItem(
+                    id: 1,
+                    suggestedName: "정수기 필터",
+                    suggestedCategoryName: "정수기 필터",
+                    categoryId: 2,
+                    iconURL: "",
+                    quantity: 0,
+                    suggestedReplacementIntervalDays: 90
+                ),
+                ReceiptAnalyzeResultItem(
+                    id: 2,
+                    suggestedName: "칫솔",
+                    suggestedCategoryName: "칫솔",
+                    categoryId: 3,
+                    iconURL: "",
+                    quantity: 0,
+                    suggestedReplacementIntervalDays: 30
+                ),
+                ReceiptAnalyzeResultItem(
+                    id: 3,
+                    suggestedName: "세탁 세제",
+                    suggestedCategoryName: "세탁 세제",
+                    categoryId: 4,
+                    iconURL: "",
+                    quantity: 0,
+                    suggestedReplacementIntervalDays: 60
                 )
             ]
         )

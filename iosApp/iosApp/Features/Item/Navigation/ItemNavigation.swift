@@ -23,6 +23,10 @@ struct ItemNavigation {
                     onBack: onBack,
                     onDirectRegistration: {
                         onNavigate(.itemRegistration)
+                    },
+                    onComplete: {
+                        dependencies.refreshCenter.refreshItems()
+                        onSetMainRoot(.home)
                     }
                 )
             case .itemRegistration:

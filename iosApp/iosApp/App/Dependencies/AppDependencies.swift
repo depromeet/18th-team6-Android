@@ -23,7 +23,10 @@ struct AppDependencies {
             readService: readService,
             writeService: writeService
         )
-        let itemRegistrationWriteRepository = SharedItemRegistrationWriteRepository(writeService: writeService)
+        let itemRegistrationWriteRepository = SharedItemRegistrationWriteRepository(
+            readService: readService,
+            writeService: writeService
+        )
         let searchRecentKeywordStore = UserDefaultsSearchRecentKeywordStore()
 
         return AppDependencies(
@@ -62,7 +65,8 @@ struct AppDependencies {
             },
             makeReceiptAnalyzeViewModel: {
                 ReceiptAnalyzeViewModel(
-                    repository: SharedReceiptAnalyzeRepository(receiptService: receiptService)
+                    repository: SharedReceiptAnalyzeRepository(receiptService: receiptService),
+                    writeRepository: itemRegistrationWriteRepository
                 )
             },
             makeItemDetailViewModel: { itemId in

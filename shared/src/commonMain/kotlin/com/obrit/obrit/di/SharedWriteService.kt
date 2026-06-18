@@ -38,6 +38,23 @@ class SharedWriteService(
         }
 
     @Throws(Throwable::class)
+    suspend fun createItems(
+        params: List<CreateItemParams>,
+        receiptImageUrl: String?,
+    ): List<Item> =
+        logged(
+            event = "SharedWriteService.createItems",
+            details = "count=${params.size} receiptImageUrl=${receiptImageUrl != null}",
+        ) {
+            repositoryProvider
+                .itemRepository()
+                .createItems(
+                    params = params.map { it.validatedForCreate() },
+                    receiptImageUrl = receiptImageUrl,
+                ).getOrThrow()
+        }
+
+    @Throws(Throwable::class)
     suspend fun createItem(
         categoryId: Long,
         name: String,
