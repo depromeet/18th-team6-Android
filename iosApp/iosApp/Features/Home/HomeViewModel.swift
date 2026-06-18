@@ -25,11 +25,6 @@ final class HomeViewModel: ObservableObject {
     var statusFilterCounts: [HomeStatusFilter: Int] {
         guard let dashboard else { return [:] }
         return HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
-            if filter == .danger {
-                result[filter] = dashboard.summary.warningCount
-                return
-            }
-
             result[filter] = dashboard.warningItems.filter { $0.quickStatusFilters.contains(filter) }.count
         }
     }

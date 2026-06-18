@@ -70,13 +70,24 @@ actor SharedHomeDashboardRepository: HomeDashboardRepository {
 
             let (status, slice) = try await (overallStatus, itemsSlice)
             let warningItems = slice.content.map(SharedHomeReadMapper.homeItem)
+            let replacementWarningCount = warningItems.filter {
+                $0.quickStatusFilters.contains(.warning)
+            }.count
 
             let dashboard = HomeDashboard(
-                summary: SharedHomeReadMapper.summary(status: status, summary: mySummary),
+                summary: SharedHomeReadMapper.summary(
+                    status: status,
+                    summary: mySummary,
+                    warningCount: replacementWarningCount
+                ),
                 warningItems: warningItems,
                 usageItems: warningItems.sorted { $0.daysInUse > $1.daysInUse }
             )
-            AppLog.success(AppLog.swiftRepository, event, "warningCount=\(warningItems.count)")
+            AppLog.success(
+                AppLog.swiftRepository,
+                event,
+                "warningCount=\(warningItems.count) replacementWarningCount=\(replacementWarningCount)"
+            )
             return dashboard
         } catch {
             AppLog.failure(AppLog.swiftRepository, event, error)
@@ -361,7 +372,11 @@ private enum SharedHomeReadMapper {
         )
     }
 
-    static func summary(status: HomeOverallStatus, summary: MyStatusSummary) -> HomeSummary {
+    static func summary(
+        status: HomeOverallStatus,
+        summary: MyStatusSummary,
+        warningCount: Int
+    ) -> HomeSummary {
         let ownPercent = normalizedPercent(summary.score)
         let averagePercent = normalizedPercent(summary.averageScore)
         let positiveRatio = Int((ownPercent * 100).rounded())
@@ -373,7 +388,7 @@ private enum SharedHomeReadMapper {
             positiveRatio: positiveRatio,
             warningRatio: 100 - positiveRatio,
             totalCount: Int(summary.totalCount),
-            warningCount: Int(summary.needReplaceCount),
+            warningCount: warningCount,
             history: [averagePercent],
             ownStatusPercent: ownPercent,
             averageStatusPercent: averagePercent
