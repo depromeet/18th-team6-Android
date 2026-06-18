@@ -236,7 +236,6 @@ private struct HomeListScrollableContent: View {
                                 sparesLabel: item.sparesLabel
                             ) {
                                 OBRitRemoteImage(urlString: item.imageURL)
-                                    .padding(OBRitSpacing.s2)
                             }
                         }
                         .buttonStyle(.plain)
