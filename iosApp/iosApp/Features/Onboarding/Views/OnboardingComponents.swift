@@ -69,9 +69,16 @@ struct OnboardingStepScaffold<Content: View, BottomBar: View>: View {
                     .padding(.horizontal, horizontalPadding)
                     .padding(.bottom, OnboardingLayoutMetrics.scrollBottomPadding)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .background(
+                    OBRitColors.backgroundDefaultDefault
+                        .contentShape(Rectangle())
+                        .onTapGesture(perform: dismissKeyboard)
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
+            .dismissKeyboardOnBackgroundTap()
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 OnboardingBottomBarContainer(horizontalPadding: horizontalPadding) {
                     bottomBar()
