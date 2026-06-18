@@ -9,6 +9,7 @@ struct AppDependencies {
     let makeSearchViewModel: @MainActor () -> SearchViewModel
     let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
+    let makeReceiptAnalyzeViewModel: @MainActor () -> ReceiptAnalyzeViewModel
     let makeItemDetailViewModel: @MainActor (Int) -> ItemDetailViewModel
     let makeItemDetailEditViewModel: @MainActor (Int) -> ItemDetailEditViewModel
 
@@ -17,6 +18,7 @@ struct AppDependencies {
         let repositoryProvider = SharedRepositoryProvider()
         let readService = SharedReadService(repositoryProvider: repositoryProvider)
         let writeService = SharedWriteService(repositoryProvider: repositoryProvider)
+        let receiptService = SharedReceiptService(repositoryProvider: repositoryProvider)
         let itemReadRepository = SharedItemReadRepository(
             readService: readService,
             writeService: writeService
@@ -58,6 +60,11 @@ struct AppDependencies {
                     writeRepository: itemRegistrationWriteRepository
                 )
             },
+            makeReceiptAnalyzeViewModel: {
+                ReceiptAnalyzeViewModel(
+                    repository: SharedReceiptAnalyzeRepository(receiptService: receiptService)
+                )
+            },
             makeItemDetailViewModel: { itemId in
                 ItemDetailViewModel(itemId: itemId, repository: itemReadRepository)
             },
@@ -85,6 +92,9 @@ struct AppDependencies {
             },
             makeItemRegistrationViewModel: {
                 ItemRegistrationViewModel()
+            },
+            makeReceiptAnalyzeViewModel: {
+                ReceiptAnalyzeViewModel()
             },
             makeItemDetailViewModel: { itemId in
                 ItemDetailViewModel(itemId: itemId)

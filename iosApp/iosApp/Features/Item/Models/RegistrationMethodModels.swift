@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RegistrationMethodOption: Identifiable {
     enum Kind {
+        case receipt
         case direct
     }
 
@@ -18,6 +19,13 @@ enum RegistrationMethodViewState {
 
 enum RegistrationMethodDefaults {
     static let options: [RegistrationMethodOption] = [
+        RegistrationMethodOption(
+            id: .receipt,
+            title: "영수증으로 등록하기",
+            subtitle: "사진을 분석해 소모품 후보를 찾아요",
+            symbolName: "doc.text.viewfinder",
+            accentColor: OBRitColors.green300
+        ),
         RegistrationMethodOption(
             id: .direct,
             title: "직접 등록하기",

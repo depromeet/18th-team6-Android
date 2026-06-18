@@ -67,6 +67,8 @@ struct RegistrationMethodView: View {
                                 ForEach(options) { option in
                                     RegistrationMethodOptionCard(option: option) {
                                         switch option.id {
+                                        case .receipt:
+                                            onNavigate(.receiptAnalyze)
                                         case .direct:
                                             onNavigate(.itemRegistration)
                                         }

@@ -17,6 +17,14 @@ struct ItemNavigation {
                     onNavigate: onNavigate,
                     onBack: onBack
                 )
+            case .receiptAnalyze:
+                ReceiptAnalyzeView(
+                    viewModelFactory: dependencies.makeReceiptAnalyzeViewModel,
+                    onBack: onBack,
+                    onDirectRegistration: {
+                        onNavigate(.itemRegistration)
+                    }
+                )
             case .itemRegistration:
                 ItemRegistrationView(
                     viewModelFactory: dependencies.makeItemRegistrationViewModel,
