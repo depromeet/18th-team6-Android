@@ -10,6 +10,7 @@ data class AnalyzedItem(
     val suggestedName: String,
     val categoryId: Long?,
     val suggestedCategoryName: String,
+    val iconUrl: String,
     val quantity: Int,
     val suggestedReplacementIntervalDays: Int,
 )

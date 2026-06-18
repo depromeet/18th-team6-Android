@@ -21,10 +21,11 @@ class ReceiptDetailViewModel(
             state.copy(
                 receiptImageUrl = receiptImageUrl,
                 forms =
-                    items.mapIndexed { index, item ->
+                    items.map { item ->
                         ReceiptDetailForm(
-                            id = index + 1L,
+                            id = item.id,
                             name = item.name,
+                            lastReplacementPeriod = item.lastReplacementPeriod,
                             quantity = item.quantity,
                             categoryId = item.categoryId,
                             newCategoryName = item.newCategoryName,
@@ -115,6 +116,18 @@ data class ReceiptDetailForm(
                 lastReplacementPeriod != null &&
                 quantity >= RECEIPT_DETAIL_DEFAULT_QUANTITY
 }
+
+// Detail 편집값을 nav 보존 저장소로 flush 할 때 사용한다. 교체일자를 포함해 그대로 담는다.
+fun ReceiptDetailForm.toDraftItem(): ReceiptDraftItem =
+    ReceiptDraftItem(
+        id = id,
+        name = name,
+        quantity = quantity,
+        lastReplacementPeriod = lastReplacementPeriod,
+        categoryId = categoryId,
+        newCategoryName = newCategoryName,
+        newCategoryDefaultReplacementIntervalDays = newCategoryDefaultReplacementIntervalDays,
+    )
 
 sealed interface ReceiptDetailSideEffect {
     data object OnComplete : ReceiptDetailSideEffect

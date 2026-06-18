@@ -19,17 +19,22 @@ class ReceiptResultViewModel(
 
     fun init(analysis: ReceiptAnalysis) =
         intent {
+            // Result 컴포지션은 Detail로 갔다 오면 dispose 후 재진입하며 init이 다시 호출된다.
+            // VM은 백스택에서 살아있으므로, 사용자의 삭제/추가가 덮어써지지 않게 VM 수명당 1회만 시드한다.
+            if (state.isInitialized) return@intent
             reduce {
                 state.copy(
+                    isInitialized = true,
                     purchaseDate = analysis.purchasedDate.toDisplayDate(),
                     receiptImageUrl = analysis.receiptImageUrl,
+                    nextId = analysis.items.size + 1L,
                     items =
                         analysis.items.mapIndexed { index, item ->
                             ReceiptResultItem(
                                 id = index + 1L,
                                 name = item.suggestedCategoryName,
                                 suggestedName = item.suggestedName,
-                                iconUrl = "",
+                                iconUrl = item.iconUrl,
                                 recognizedCount = item.quantity,
                                 quantity = item.quantity,
                                 categoryId = item.categoryId,
@@ -58,7 +63,12 @@ class ReceiptResultViewModel(
 
     fun onCategoryConfirm(category: Category) =
         intent {
-            reduce { state.copy(items = state.items + category.toReceiptResultItem(nextItemId(state.items))) }
+            reduce {
+                state.copy(
+                    items = state.items + category.toReceiptResultItem(state.nextId),
+                    nextId = state.nextId + 1,
+                )
+            }
         }
 
     fun applyPendingCategory(category: Category) =
@@ -66,7 +76,8 @@ class ReceiptResultViewModel(
             reduce {
                 state.copy(
                     categories = state.categories + category,
-                    items = state.items + category.toReceiptResultItem(nextItemId(state.items)),
+                    items = state.items + category.toReceiptResultItem(state.nextId),
+                    nextId = state.nextId + 1,
                 )
             }
         }
@@ -98,6 +109,10 @@ data class ReceiptResultUiState(
     val receiptImageUrl: String = "",
     val items: List<ReceiptResultItem> = emptyList(),
     val categories: List<Category> = emptyList(),
+    // 추가 항목에 부여할 다음 id. 삭제 후 재추가 시 id 재사용을 막기 위해 단조 증가만 한다.
+    val nextId: Long = 1L,
+    // 분석 결과 시드 완료 여부. 컴포지션 재진입 시 init 재실행으로 편집이 덮어써지는 것을 막는다.
+    val isInitialized: Boolean = false,
 ) {
     val isNextEnabled: Boolean
         get() = items.isNotEmpty()
@@ -129,8 +144,6 @@ sealed interface ReceiptResultSideEffect {
     data object OnNavigateToDirectRegister : ReceiptResultSideEffect
 }
 
-private fun nextItemId(items: List<ReceiptResultItem>): Long = (items.maxOfOrNull { it.id } ?: 0L) + 1
-
 private fun Category.toReceiptResultItem(id: Long): ReceiptResultItem =
     ReceiptResultItem(
         id = id,
@@ -144,8 +157,11 @@ private fun Category.toReceiptResultItem(id: Long): ReceiptResultItem =
 
 private fun ReceiptResultItem.toDraftItem(): ReceiptDraftItem =
     ReceiptDraftItem(
+        id = id,
         name = suggestedName,
         quantity = quantity,
+        // 교체일자는 Detail(2페이지) 전용. Result→draft 시점엔 항상 null이며 병합 단계에서 보존값이 채워진다.
+        lastReplacementPeriod = null,
         categoryId = categoryId,
         newCategoryName = newCategoryName,
         newCategoryDefaultReplacementIntervalDays = newCategoryDefaultReplacementIntervalDays,

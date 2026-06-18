@@ -17,6 +17,7 @@ data class AnalyzedItemResponse(
     @SerialName("suggestedName") val suggestedName: String,
     @SerialName("categoryId") val categoryId: Long? = null,
     @SerialName("suggestedCategoryName") val suggestedCategoryName: String,
+    @SerialName("iconUrl") val iconUrl: String,
     @SerialName("quantity") val quantity: Int,
     @SerialName("suggestedReplacementIntervalDays") val suggestedReplacementIntervalDays: Int,
 )
@@ -33,6 +34,7 @@ private fun AnalyzedItemResponse.toAnalyzedItem() =
         suggestedName = suggestedName,
         categoryId = categoryId,
         suggestedCategoryName = suggestedCategoryName,
+        iconUrl = iconUrl,
         quantity = quantity,
         suggestedReplacementIntervalDays = suggestedReplacementIntervalDays,
     )

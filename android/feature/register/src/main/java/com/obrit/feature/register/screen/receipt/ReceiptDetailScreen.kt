@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import com.obrit.feature.register.viewmodel.ReceiptDetailSideEffect
 import com.obrit.feature.register.viewmodel.ReceiptDetailViewModel
 import com.obrit.feature.register.viewmodel.ReceiptDraftItem
+import com.obrit.feature.register.viewmodel.toDraftItem
 import com.obrit.obrit.shared.model.items.ReplacementPeriod
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
@@ -22,8 +23,16 @@ fun ReceiptDetailScreen(
 ) {
     val state by viewModel.collectAsState()
 
-    LaunchedEffect(items, receiptImageUrl) {
+    // 엔트리당 1회만 시드한다. 아래 flush가 nav 저장소를 갱신해도 재시드 루프가 생기지 않게 Unit 키를 쓴다.
+    LaunchedEffect(Unit) {
         viewModel.initForms(items, receiptImageUrl)
+    }
+
+    // 편집값을 nav 보존 저장소로 흘려보낸다. 시스템 back 등 모든 이탈 경로에서 보존된다.
+    LaunchedEffect(state.forms) {
+        if (state.forms.isNotEmpty()) {
+            navigation.onFormsChange(state.forms.map { it.toDraftItem() })
+        }
     }
 
     ReceiptDetailScreenContent(
@@ -50,6 +59,7 @@ fun ReceiptDetailScreen(
 data class ReceiptDetailNavigation(
     val onBack: () -> Unit,
     val onComplete: () -> Unit,
+    val onFormsChange: (List<ReceiptDraftItem>) -> Unit,
 )
 
 internal data class ReceiptDetailScreenAction(

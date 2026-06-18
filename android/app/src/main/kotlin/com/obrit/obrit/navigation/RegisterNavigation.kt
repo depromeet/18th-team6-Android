@@ -104,7 +104,10 @@ fun RegisterNavigation(
                                     onBack = { registerBackStack.removeLastOrNull() },
                                     onNext = { imageUrl, items ->
                                         receiptImageUrl = imageUrl
-                                        receiptDraftItems = items
+                                        // 직전 Detail 방문에서 보존된 편집값을 id 기준으로 병합한다.
+                                        // 살아있는 항목은 편집값 복원, 새 항목은 fresh, 삭제 항목은 자연 폐기.
+                                        val saved = receiptDraftItems.associateBy { it.id }
+                                        receiptDraftItems = items.map { item -> saved[item.id] ?: item }
                                         registerBackStack.add(RegisterRoute.ReceiptDetail)
                                     },
                                     onDirectRegister = {
@@ -130,6 +133,7 @@ fun RegisterNavigation(
                                 onComplete = {
                                     registerBackStack.add(RegisterRoute.RegisterComplete)
                                 },
+                                onFormsChange = { forms -> receiptDraftItems = forms },
                             ),
                         modifier = Modifier,
                     )
