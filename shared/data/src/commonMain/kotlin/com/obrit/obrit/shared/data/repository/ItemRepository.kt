@@ -3,11 +3,14 @@ package com.obrit.obrit.shared.data.repository
 import com.obrit.obrit.shared.model.ReplacementDate
 import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
+import com.obrit.obrit.shared.model.items.ItemDetail
 import com.obrit.obrit.shared.model.items.PatchItemParams
 import com.obrit.obrit.shared.model.items.ReplacementHistory
 
 interface ItemRepository {
     suspend fun getItems(): Result<List<Item>>
+
+    suspend fun getItem(itemId: Long): Result<ItemDetail>
 
     suspend fun createItem(params: CreateItemParams): Result<Item>
 

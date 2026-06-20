@@ -8,4 +8,5 @@ data class PatchItemParams(
     val count: Int? = null,
     val lastReplacedDate: ReplacementDate? = null,
     val replacementIntervalDays: Int? = null,
+    val iconId: Long? = null,
 )

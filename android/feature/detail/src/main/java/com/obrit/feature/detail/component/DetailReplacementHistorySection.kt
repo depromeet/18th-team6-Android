@@ -382,7 +382,7 @@ private fun detailReplacementHistoryBrandPreviewRecords(): List<DetailReplacemen
             startedDate = LocalDate.of(2026, 1, 1),
             endedDate = LocalDate.of(2026, 2, 3),
             usageDays = 33,
-            dateLabel = "02/03",
+            dateLabel = "2/3",
             progressDisplayRatio = 0.99,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -390,7 +390,7 @@ private fun detailReplacementHistoryBrandPreviewRecords(): List<DetailReplacemen
             startedDate = LocalDate.of(2026, 2, 3),
             endedDate = LocalDate.of(2026, 3, 10),
             usageDays = 35,
-            dateLabel = "03/10",
+            dateLabel = "3/10",
             progressDisplayRatio = 0.75,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -398,7 +398,7 @@ private fun detailReplacementHistoryBrandPreviewRecords(): List<DetailReplacemen
             startedDate = LocalDate.of(2026, 3, 10),
             endedDate = LocalDate.of(2026, 4, 14),
             usageDays = 35,
-            dateLabel = "04/14",
+            dateLabel = "4/14",
             progressDisplayRatio = 0.84,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -406,7 +406,7 @@ private fun detailReplacementHistoryBrandPreviewRecords(): List<DetailReplacemen
             startedDate = LocalDate.of(2026, 4, 14),
             endedDate = LocalDate.of(2026, 5, 1),
             usageDays = 17,
-            dateLabel = "05/01",
+            dateLabel = "5/1",
             progressDisplayRatio = 1.0,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -427,7 +427,7 @@ private fun detailReplacementHistoryMaxUsagePreviewRecords(): List<DetailReplace
             startedDate = LocalDate.of(2026, 1, 1),
             endedDate = LocalDate.of(2026, 1, 31),
             usageDays = 30,
-            dateLabel = "01/31",
+            dateLabel = "1/31",
             progressDisplayRatio = 1.0,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -435,7 +435,7 @@ private fun detailReplacementHistoryMaxUsagePreviewRecords(): List<DetailReplace
             startedDate = LocalDate.of(2026, 1, 31),
             endedDate = LocalDate.of(2026, 3, 17),
             usageDays = 45,
-            dateLabel = "03/17",
+            dateLabel = "3/17",
             progressDisplayRatio = 1.0,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -443,7 +443,7 @@ private fun detailReplacementHistoryMaxUsagePreviewRecords(): List<DetailReplace
             startedDate = LocalDate.of(2026, 3, 17),
             endedDate = LocalDate.of(2026, 5, 6),
             usageDays = 50,
-            dateLabel = "05/06",
+            dateLabel = "5/6",
             progressDisplayRatio = 1.0,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -451,7 +451,7 @@ private fun detailReplacementHistoryMaxUsagePreviewRecords(): List<DetailReplace
             startedDate = LocalDate.of(2026, 5, 6),
             endedDate = LocalDate.of(2026, 5, 16),
             usageDays = 10,
-            dateLabel = "05/16",
+            dateLabel = "5/16",
             progressDisplayRatio = 0.33,
         ),
         detailReplacementHistoryPreviewRecord(
@@ -472,7 +472,7 @@ private fun detailReplacementHistoryEmptySlotPreviewRecords(): List<DetailReplac
             startedDate = LocalDate.of(2026, 3, 1),
             endedDate = LocalDate.of(2026, 3, 9),
             usageDays = 8,
-            dateLabel = "03/09",
+            dateLabel = "3/9",
             progressDisplayRatio = 0.5,
         ),
         detailReplacementHistoryPreviewRecord(

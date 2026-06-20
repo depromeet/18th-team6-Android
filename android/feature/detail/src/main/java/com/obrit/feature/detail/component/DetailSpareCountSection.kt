@@ -2,7 +2,6 @@
 
 package com.obrit.feature.detail.component
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,13 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -125,7 +118,7 @@ private fun DetailRepresentativeImage(
         if (representativeImageUrl.isNullOrBlank()) {
             "${itemName.ifBlank { "소모품" }} 대표 이미지 자리"
         } else {
-            "${itemName.ifBlank { "소모품" }} 대표 이미지 준비 중"
+            "${itemName.ifBlank { "소모품" }} 대표 이미지"
         }
 
     Box(
@@ -143,81 +136,7 @@ private fun DetailRepresentativeImage(
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-        ) {
-            SpareToothbrushPlaceholder(modifier = Modifier.size(SPARE_COUNT_TOOTHBRUSH_SIZE))
-        }
-    }
-}
-
-@Composable
-private fun SpareToothbrushPlaceholder(modifier: Modifier = Modifier) {
-    val colors = LocalOBRitColor.current
-
-    Canvas(modifier = modifier) {
-        val canvasWidth = size.width
-        val canvasHeight = size.height
-        val center = Offset(canvasWidth / 2f, canvasHeight / 2f)
-
-        rotate(degrees = -42f, pivot = center) {
-            drawLine(
-                brush =
-                    Brush.linearGradient(
-                        colors =
-                            listOf(
-                                colors.blue50,
-                                colors.blue200,
-                                colors.blue300,
-                            ),
-                    ),
-                start = Offset(canvasWidth * 0.12f, canvasHeight * 0.66f),
-                end = Offset(canvasWidth * 0.68f, canvasHeight * 0.66f),
-                strokeWidth = canvasHeight * 0.2f,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = colors.common00.copy(alpha = 0.55f),
-                start = Offset(canvasWidth * 0.18f, canvasHeight * 0.6f),
-                end = Offset(canvasWidth * 0.57f, canvasHeight * 0.6f),
-                strokeWidth = canvasHeight * 0.05f,
-                cap = StrokeCap.Round,
-            )
-            drawRoundRect(
-                brush =
-                    Brush.linearGradient(
-                        colors =
-                            listOf(
-                                colors.blue100,
-                                colors.blue250,
-                            ),
-                    ),
-                topLeft = Offset(canvasWidth * 0.62f, canvasHeight * 0.56f),
-                size = Size(canvasWidth * 0.24f, canvasHeight * 0.16f),
-                cornerRadius =
-                    CornerRadius(
-                        x = canvasHeight * 0.08f,
-                        y = canvasHeight * 0.08f,
-                    ),
-            )
-
-            repeat(TOOTHBRUSH_BRISTLE_COLUMN_COUNT) { column ->
-                repeat(TOOTHBRUSH_BRISTLE_ROW_COUNT) { row ->
-                    drawRoundRect(
-                        color = colors.common00.copy(alpha = 0.82f - row * 0.14f),
-                        topLeft =
-                            Offset(
-                                x = canvasWidth * (0.66f + column * 0.045f),
-                                y = canvasHeight * (0.31f + row * 0.075f),
-                            ),
-                        size = Size(canvasWidth * 0.04f, canvasHeight * 0.19f),
-                        cornerRadius =
-                            CornerRadius(
-                                x = canvasHeight * 0.025f,
-                                y = canvasHeight * 0.025f,
-                            ),
-                    )
-                }
-            }
-        }
+        )
     }
 }
 
@@ -262,6 +181,3 @@ private val SPARE_COUNT_BOTTOM_PADDING = 17.dp
 private val SPARE_COUNT_TITLE_BOTTOM_SPACING = 15.dp
 private val SPARE_COUNT_ROW_ITEM_SPACING = 16.dp
 private val SPARE_COUNT_IMAGE_BACKGROUND_SIZE = 52.dp
-private val SPARE_COUNT_TOOTHBRUSH_SIZE = 34.dp
-private const val TOOTHBRUSH_BRISTLE_COLUMN_COUNT = 4
-private const val TOOTHBRUSH_BRISTLE_ROW_COUNT = 3

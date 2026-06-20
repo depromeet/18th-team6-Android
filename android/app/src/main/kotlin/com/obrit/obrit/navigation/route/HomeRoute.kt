@@ -17,4 +17,9 @@ sealed interface HomeRoute : Route {
     data class Detail(
         val itemId: Int,
     ) : HomeRoute
+
+    @Serializable
+    data class DetailEdit(
+        val itemId: Long,
+    ) : HomeRoute
 }

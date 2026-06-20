@@ -3,9 +3,11 @@ package com.obrit.obrit.shared.data.repository
 import com.obrit.obrit.shared.model.ReplacementDate
 import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
+import com.obrit.obrit.shared.model.items.ItemDetail
 import com.obrit.obrit.shared.model.items.PatchItemParams
 import com.obrit.obrit.shared.model.items.ReplacementHistory
 import com.obrit.obrit.shared.model.items.error.CreateItemError
+import com.obrit.obrit.shared.model.items.error.GetItemError
 import com.obrit.obrit.shared.network.error.RemoteError
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.item.BulkCreateItemRequest
@@ -14,6 +16,7 @@ import com.obrit.obrit.shared.network.request.item.CreateReplacementRequest
 import com.obrit.obrit.shared.network.request.item.PatchItemRequest
 import com.obrit.obrit.shared.network.request.item.UpdateSpareCountRequest
 import com.obrit.obrit.shared.network.response.item.toItem
+import com.obrit.obrit.shared.network.response.item.toItemDetail
 import com.obrit.obrit.shared.network.response.item.toReplacementHistory
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSource
 
@@ -23,6 +26,16 @@ internal class ItemRepositoryImpl(
     override suspend fun getItems(): Result<List<Item>> =
         runCatchingWith {
             itemRemoteDataSource.getItems().map { response -> response.toItem() }
+        }
+
+    override suspend fun getItem(itemId: Long): Result<ItemDetail> =
+        runCatchingWith {
+            itemRemoteDataSource.getItem(itemId).toItemDetail()
+        }.recoverCatching { error ->
+            if (error is RemoteError && error.statusCode == HTTP_STATUS_NOT_FOUND) {
+                throw GetItemError.NotFound()
+            }
+            throw error
         }
 
     override suspend fun createItem(params: CreateItemParams): Result<Item> =
@@ -70,6 +83,7 @@ internal class ItemRepositoryImpl(
                             count = params.count,
                             lastReplacedDate = params.lastReplacedDate?.value,
                             replacementIntervalDays = params.replacementIntervalDays,
+                            iconId = params.iconId,
                         ),
                 ).toItem()
         }
@@ -121,6 +135,7 @@ internal class ItemRepositoryImpl(
 
 private const val BULK_CREATE_ITEMS_CHUNK_SIZE = 20
 private const val HTTP_STATUS_CONFLICT = 409
+private const val HTTP_STATUS_NOT_FOUND = 404
 
 private fun CreateItemParams.toCreateItemRequest() =
     CreateItemRequest(

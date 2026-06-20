@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.component.snackbar.OBRitSnackbar
+import com.obrit.feature.detail.component.DetailBackExitConfirmDialog
 import com.obrit.feature.detail.viewmodel.DetailEditSideEffect
 import com.obrit.feature.detail.viewmodel.DetailEditViewModel
 import kotlinx.coroutines.delay
@@ -35,8 +36,22 @@ fun DetailEditScreen(
 ) {
     val state by viewModel.collectAsState()
     var saveFailureMessage by remember { mutableStateOf<String?>(null) }
+    var isExitConfirmVisible by remember { mutableStateOf(false) }
 
-    BackHandler(onBack = onCloseClick)
+    val requestCloseConfirm = {
+        isExitConfirmVisible = true
+    }
+    val dismissCloseConfirm = {
+        isExitConfirmVisible = false
+    }
+    val confirmClose = {
+        isExitConfirmVisible = false
+        onCloseClick()
+    }
+
+    BackHandler(enabled = !isExitConfirmVisible) {
+        requestCloseConfirm()
+    }
 
     LaunchedEffect(consumableId) {
         viewModel.load(consumableId)
@@ -54,7 +69,7 @@ fun DetailEditScreen(
             state = state,
             action =
                 DetailEditScreenAction(
-                    onCloseClick = onCloseClick,
+                    onCloseClick = requestCloseConfirm,
                     onRetryClick = {
                         viewModel.load(consumableId)
                     },
@@ -63,6 +78,7 @@ fun DetailEditScreen(
                             consumableId = result.consumableId,
                             name = result.name,
                             replacementIntervalDays = result.replacementIntervalDays,
+                            representativeIconId = result.representativeIconId,
                         )
                     },
                 ),
@@ -73,6 +89,13 @@ fun DetailEditScreen(
             message = saveFailureMessage,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+
+        if (isExitConfirmVisible) {
+            DetailBackExitConfirmDialog(
+                onCancelClick = dismissCloseConfirm,
+                onExitClick = confirmClose,
+            )
+        }
     }
 
     viewModel.collectSideEffect { sideEffect ->
@@ -83,6 +106,7 @@ fun DetailEditScreen(
                         consumableId = sideEffect.consumableId,
                         name = sideEffect.name,
                         replacementIntervalDays = sideEffect.replacementIntervalDays,
+                        representativeIconId = sideEffect.representativeIconId,
                     ),
                 )
             }
@@ -97,6 +121,7 @@ data class DetailEditSubmitResult(
     val consumableId: Long,
     val name: String,
     val replacementIntervalDays: Int,
+    val representativeIconId: Long?,
 )
 
 internal data class DetailEditScreenAction(

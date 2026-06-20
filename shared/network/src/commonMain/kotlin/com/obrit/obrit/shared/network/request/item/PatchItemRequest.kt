@@ -9,4 +9,5 @@ data class PatchItemRequest(
     @SerialName("spareQuantity") val count: Int? = null,
     @SerialName("lastReplacedDate") val lastReplacedDate: String? = null,
     @SerialName("replacementIntervalDays") val replacementIntervalDays: Int? = null,
+    @SerialName("iconId") val iconId: Long? = null,
 )
