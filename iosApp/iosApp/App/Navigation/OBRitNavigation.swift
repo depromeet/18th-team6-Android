@@ -132,6 +132,9 @@ struct OBRitNavigation: View {
             case "itemRegistration":
                 initialPath.append(ItemRoute.itemRegistration)
                 return (.main(.home), initialPath)
+            case "receiptAnalyze":
+                initialPath.append(ItemRoute.receiptAnalyze)
+                return (.main(.home), initialPath)
             default:
                 return (initialRootRoute(onboardingCompletionStore: onboardingCompletionStore), initialPath)
             }

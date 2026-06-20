@@ -25,11 +25,6 @@ final class HomeViewModel: ObservableObject {
     var statusFilterCounts: [HomeStatusFilter: Int] {
         guard let dashboard else { return [:] }
         return HomeStatusFilter.allCases.reduce(into: [:]) { result, filter in
-            if filter == .danger {
-                result[filter] = dashboard.summary.warningCount
-                return
-            }
-
             result[filter] = dashboard.warningItems.filter { $0.quickStatusFilters.contains(filter) }.count
         }
     }
@@ -45,34 +40,31 @@ final class HomeViewModel: ObservableObject {
 
     var visibleWarningItems: [HomeItemItem] {
         guard let dashboard else { return [] }
-        let filteredItems = dashboard.warningItems.filter {
-            $0.quickStatusFilters.contains(selectedStatusFilter)
-        }
 
         switch selectedWarningSort {
         case .lowStock:
-            return filteredItems.sorted {
+            return dashboard.warningItems.sorted {
                 if $0.stockCount == $1.stockCount {
                     return $0.replacementDday < $1.replacementDday
                 }
                 return $0.stockCount < $1.stockCount
             }
         case .replacementRisk:
-            return filteredItems.sorted {
+            return dashboard.warningItems.sorted {
                 if $0.replacementDday == $1.replacementDday {
                     return $0.stockCount < $1.stockCount
                 }
                 return $0.replacementDday < $1.replacementDday
             }
         case .longestUse:
-            return filteredItems.sorted {
+            return dashboard.warningItems.sorted {
                 if $0.daysInUse == $1.daysInUse {
                     return $0.replacementDday < $1.replacementDday
                 }
                 return $0.daysInUse > $1.daysInUse
             }
         case .alphabetical:
-            return filteredItems.sorted {
+            return dashboard.warningItems.sorted {
                 $0.title.localizedStandardCompare($1.title) == .orderedAscending
             }
         }

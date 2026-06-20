@@ -63,9 +63,9 @@ struct HomeContentView: View {
                         Spacer(minLength: 0)
                         HStack {
                             Spacer(minLength: 0)
-                            OBRitFloatingActionButton(
-                                accessibilityLabel: "소모품 등록",
-                                action: action.onRegisterDirect
+                            HomeRegistrationFloatingActionMenu(
+                                onRegisterImage: action.onRegisterImage,
+                                onRegisterDirect: action.onRegisterDirect
                             )
                             .padding(.trailing, OBRitSpacing.s5)
                             .padding(.bottom, OBRitSpacing.s6)
@@ -111,6 +111,7 @@ struct HomeContentView: View {
             onNotification: {},
             onProfile: {},
             onLogoEasterEgg: {},
+            onRegisterImage: {},
             onRegisterDirect: {},
             onShowList: {},
             onSelectItem: { _ in },

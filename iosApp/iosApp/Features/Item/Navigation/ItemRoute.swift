@@ -1,5 +1,6 @@
 enum ItemRoute: OBRitRoute {
     case registrationMethod
+    case receiptAnalyze
     case itemRegistration
     case itemDetailInput
     case search

@@ -5,6 +5,7 @@ import com.obrit.obrit.shared.data.repository.AgentSessionRepository
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
+import com.obrit.obrit.shared.data.repository.ReceiptRepository
 
 class SharedRepositoryProvider {
     fun agentRepository(): AgentRepository = ensureSharedKoin().get()
@@ -16,4 +17,6 @@ class SharedRepositoryProvider {
     fun homeRepository(): HomeRepository = ensureSharedKoin().get()
 
     fun itemRepository(): ItemRepository = ensureSharedKoin().get()
+
+    fun receiptRepository(): ReceiptRepository = ensureSharedKoin().get()
 }

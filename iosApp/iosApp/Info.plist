@@ -8,6 +8,8 @@
 	<false/>
 	<key>NSMotionUsageDescription</key>
 	<string>기기 움직임을 사용해 홈 화면 오브젝트의 움직임 효과를 제공합니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>영수증 사진을 촬영해 소모품을 분석합니다.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>pretendard_black.ttf</string>

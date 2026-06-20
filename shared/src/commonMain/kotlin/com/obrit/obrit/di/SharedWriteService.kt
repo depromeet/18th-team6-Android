@@ -38,6 +38,23 @@ class SharedWriteService(
         }
 
     @Throws(Throwable::class)
+    suspend fun createItems(
+        params: List<CreateItemParams>,
+        receiptImageUrl: String?,
+    ): List<Item> =
+        logged(
+            event = "SharedWriteService.createItems",
+            details = "count=${params.size} receiptImageUrl=${receiptImageUrl != null}",
+        ) {
+            repositoryProvider
+                .itemRepository()
+                .createItems(
+                    params = params.map { it.validatedForCreate() },
+                    receiptImageUrl = receiptImageUrl,
+                ).getOrThrow()
+        }
+
+    @Throws(Throwable::class)
     suspend fun createItem(
         categoryId: Long,
         name: String,
@@ -76,24 +93,11 @@ class SharedWriteService(
         }
 
     @Throws(Throwable::class)
-    suspend fun patchItem(
-        itemId: Long,
-        name: String?,
-        count: Int?,
-        lastReplacedDate: String?,
-        replacementIntervalDays: Int?,
-    ): Item =
+    suspend fun patchItem(params: PatchItemParams): Item =
         repositoryProvider
             .itemRepository()
-            .patchItem(
-                PatchItemParams(
-                    itemId = itemId,
-                    name = name,
-                    count = count,
-                    lastReplacedDate = lastReplacedDate?.let(::ReplacementDate),
-                    replacementIntervalDays = replacementIntervalDays,
-                ),
-            ).getOrThrow()
+            .patchItem(params)
+            .getOrThrow()
 
     @Throws(Throwable::class)
     suspend fun createReplacement(

@@ -7,6 +7,7 @@ struct ItemDetailView: View {
     let onMutationCompleted: () -> Void
 
     @StateObject private var viewModel: ItemDetailViewModel
+    @ObservedObject private var refreshCenter: AppRefreshCenter
     @State private var stockDraftQuantity = 0
     @State private var isStockSheetPresented = false
     @State private var completionModal: ItemDetailCompletionModalData?
@@ -17,6 +18,7 @@ struct ItemDetailView: View {
     init(
         itemId: Int,
         viewModelFactory: @MainActor @escaping (Int) -> ItemDetailViewModel,
+        refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onBack: @escaping () -> Void,
         onNavigate: @escaping (ItemRoute) -> Void,
         onMutationCompleted: @escaping () -> Void = {}
@@ -26,6 +28,7 @@ struct ItemDetailView: View {
         self.onNavigate = onNavigate
         self.onMutationCompleted = onMutationCompleted
         _viewModel = StateObject(wrappedValue: viewModelFactory(itemId))
+        _refreshCenter = ObservedObject(wrappedValue: refreshCenter)
     }
 
     @MainActor
@@ -37,6 +40,7 @@ struct ItemDetailView: View {
         self.init(
             itemId: itemId,
             viewModelFactory: AppDependencies.preview.makeItemDetailViewModel,
+            refreshCenter: AppDependencies.preview.refreshCenter,
             onBack: onBack,
             onNavigate: onNavigate
         )
@@ -50,6 +54,9 @@ struct ItemDetailView: View {
         }
         .onChange(of: viewModel.effect) { _, effect in
             handleEffect(effect)
+        }
+        .onChange(of: refreshCenter.itemRefreshToken) { _, _ in
+            viewModel.refresh()
         }
         .onDisappear {
             snackbarDismissTask?.cancel()

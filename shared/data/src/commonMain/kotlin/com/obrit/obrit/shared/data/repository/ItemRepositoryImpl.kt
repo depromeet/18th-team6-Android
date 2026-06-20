@@ -79,6 +79,7 @@ internal class ItemRepositoryImpl(
                     itemId = params.itemId,
                     request =
                         PatchItemRequest(
+                            categoryId = params.categoryId,
                             name = params.name,
                             count = params.count,
                             lastReplacedDate = params.lastReplacedDate?.value,

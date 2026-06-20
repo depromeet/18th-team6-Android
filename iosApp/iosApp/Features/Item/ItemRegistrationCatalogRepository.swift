@@ -12,6 +12,7 @@ protocol ItemRegistrationCatalogRepository {
 protocol ItemRegistrationWriteRepository {
     func createKind(name: String, imageOption: ItemImageOption) async throws -> ItemKind
     func createItem(request: ItemRegistrationCreateItemRequest) async throws
+    func createItems(request: ItemRegistrationCreateItemsRequest) async throws
 }
 
 struct ItemRegistrationSampleCatalogRepository: ItemRegistrationCatalogRepository {
@@ -34,5 +35,8 @@ actor ItemRegistrationSampleWriteRepository: ItemRegistrationWriteRepository {
     }
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
+    }
+
+    func createItems(request: ItemRegistrationCreateItemsRequest) async throws {
     }
 }

@@ -46,6 +46,7 @@ struct HomeListTab: View {
                 onNotification: {},
                 onProfile: {},
                 onLogoEasterEgg: onShowOnboarding,
+                onRegisterImage: { onNavigate(.receiptAnalyze) },
                 onRegisterDirect: { onNavigate(.itemRegistration) },
                 onSelectItem: { onNavigate(.detail(itemId: $0)) },
                 onRetry: viewModel.reload,

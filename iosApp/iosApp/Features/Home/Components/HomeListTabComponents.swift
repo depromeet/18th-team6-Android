@@ -14,6 +14,7 @@ struct HomeListTabAction {
     let onNotification: () -> Void
     let onProfile: () -> Void
     let onLogoEasterEgg: () -> Void
+    let onRegisterImage: () -> Void
     let onRegisterDirect: () -> Void
     let onSelectItem: (Int) -> Void
     let onRetry: () -> Void
@@ -58,9 +59,9 @@ private struct HomeListTabShellView: View {
                     Spacer(minLength: 0)
                     HStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionButton(
-                            accessibilityLabel: "소모품 등록",
-                            action: action.onRegisterDirect
+                        HomeRegistrationFloatingActionMenu(
+                            onRegisterImage: action.onRegisterImage,
+                            onRegisterDirect: action.onRegisterDirect
                         )
                         .padding(.trailing, OBRitSpacing.s5)
                         .padding(.bottom, OBRitSpacing.s6)

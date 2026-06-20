@@ -28,6 +28,20 @@ struct ItemRegistrationCreateItemRequest: Equatable {
     let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod?
 }
 
+struct ItemRegistrationCreateItemsRequest: Equatable {
+    let items: [ItemRegistrationCreateItemsRequestItem]
+    let receiptImageURL: String?
+}
+
+struct ItemRegistrationCreateItemsRequestItem: Equatable {
+    let categoryId: Int?
+    let name: String
+    let quantity: Int
+    let lastReplacementPeriod: ItemRegistrationLastReplacementPeriod?
+    let newCategoryName: String?
+    let newCategoryDefaultReplacementIntervalDays: Int?
+}
+
 enum ItemRegistrationLastReplacementPeriod: String, Equatable {
     case withinWeek = "WITHIN_WEEK"
     case withinMonth = "WITHIN_MONTH"

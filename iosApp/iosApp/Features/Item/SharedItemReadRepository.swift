@@ -142,18 +142,22 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
     ) async throws -> ItemDetailItem {
         do {
             let trimmedName = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            let item = try await writeService.patchItem(
+            let selectedKind = draft.selectedKind
+            let item = try await writeService.patchItem(params: PatchItemParams(
                 itemId: Int64(itemId),
+                categoryId: selectedKind?.id == original.kindId
+                    ? nil
+                    : selectedKind.map { KotlinLong(longLong: Int64($0.id)) },
                 name: trimmedName == original.name ? nil : trimmedName,
-                count: nil,
+                count: draft.spareQuantity == original.spareQuantity
+                    ? nil
+                    : KotlinInt(int: Int32(draft.spareQuantity)),
                 lastReplacedDate: nil,
                 replacementIntervalDays: draft.replacementCycleDays == original.replacementCycle.intervalDays
                     ? nil
                     : KotlinInt(int: Int32(draft.replacementCycleDays))
-            )
-            var updated = try await makeDetailItem(from: item, updatedAt: Date())
-            updated.imageURL = draft.imageURL
-            return updated
+            ))
+            return try await makeDetailItem(from: item, updatedAt: Date())
         } catch {
             throw presentationError(
                 from: error,

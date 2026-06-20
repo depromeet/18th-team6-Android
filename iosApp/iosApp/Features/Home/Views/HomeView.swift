@@ -73,6 +73,7 @@ struct HomeView: View {
             onNotification: {},
             onProfile: {},
             onLogoEasterEgg: onShowOnboarding,
+            onRegisterImage: { onNavigateItem(.receiptAnalyze) },
             onRegisterDirect: { onNavigateItem(.itemRegistration) },
             onShowList: onShowListTab,
             onSelectItem: { onNavigateItem(.detail(itemId: $0)) },
@@ -97,6 +98,7 @@ struct HomeViewAction {
     let onNotification: () -> Void
     let onProfile: () -> Void
     let onLogoEasterEgg: () -> Void
+    let onRegisterImage: () -> Void
     let onRegisterDirect: () -> Void
     let onShowList: () -> Void
     let onSelectItem: (Int) -> Void
@@ -140,9 +142,9 @@ private struct HomeDataUnavailableContentView: View {
                     Spacer(minLength: 0)
                     HStack {
                         Spacer(minLength: 0)
-                        OBRitFloatingActionButton(
-                            accessibilityLabel: "소모품 등록",
-                            action: action.onRegisterDirect
+                        HomeRegistrationFloatingActionMenu(
+                            onRegisterImage: action.onRegisterImage,
+                            onRegisterDirect: action.onRegisterDirect
                         )
                         .padding(.trailing, OBRitSpacing.s5)
                         .padding(.bottom, OBRitSpacing.s6)

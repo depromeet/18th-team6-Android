@@ -17,6 +17,18 @@ struct ItemNavigation {
                     onNavigate: onNavigate,
                     onBack: onBack
                 )
+            case .receiptAnalyze:
+                ReceiptAnalyzeView(
+                    viewModelFactory: dependencies.makeReceiptAnalyzeViewModel,
+                    onBack: onBack,
+                    onDirectRegistration: {
+                        onNavigate(.itemRegistration)
+                    },
+                    onComplete: {
+                        dependencies.refreshCenter.refreshItems()
+                        onSetMainRoot(.home)
+                    }
+                )
             case .itemRegistration:
                 ItemRegistrationView(
                     viewModelFactory: dependencies.makeItemRegistrationViewModel,
@@ -56,6 +68,7 @@ struct ItemNavigation {
                 ItemDetailView(
                     itemId: itemId,
                     viewModelFactory: dependencies.makeItemDetailViewModel,
+                    refreshCenter: dependencies.refreshCenter,
                     onBack: onBack,
                     onNavigate: onNavigate,
                     onMutationCompleted: dependencies.refreshCenter.refreshItems
