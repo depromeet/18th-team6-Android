@@ -4,14 +4,16 @@ package com.obrit.feature.detail.viewmodel
 
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
-import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.obrit.shared.data.repository.AgentRepository
-import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.model.ReplacementDate
 import com.obrit.obrit.shared.model.agents.Agent
 import com.obrit.obrit.shared.model.items.Item
+import com.obrit.obrit.shared.model.items.ItemDetail
+import com.obrit.obrit.shared.model.items.ItemDetailReplacement
+import com.obrit.obrit.shared.model.items.ItemDetailStatus
 import com.obrit.obrit.shared.model.items.ReplacementHistory
+import com.obrit.obrit.shared.model.items.error.GetItemError
 import org.orbitmvi.orbit.syntax.Syntax
 import org.orbitmvi.orbit.viewmodel.container
 import java.time.LocalDate
@@ -20,7 +22,6 @@ import java.time.temporal.ChronoUnit
 class DetailViewModel internal constructor(
     private val agentRepository: AgentRepository,
     private val itemRepository: ItemRepository,
-    private val categoryRepository: CategoryRepository,
 ) : BaseContainerHost<DetailUiState, DetailSideEffect>() {
     override val container = container<DetailUiState, DetailSideEffect>(DetailUiState.Loading)
 
@@ -209,7 +210,82 @@ class DetailViewModel internal constructor(
         }
 
     @Suppress("LongMethod")
+    fun onSpareCountCompleteClick(count: Int) =
+        intent {
+            val currentState = state as? DetailUiState.ConsumableSuccess ?: return@intent
+            val today = dateProvider.today()
+            if (!currentState.canStartConsumableMutation) {
+                return@intent
+            }
+
+            val sanitizedCount = count.coerceIn(MIN_SPARE_COUNT, MAX_SPARE_COUNT)
+            val mutationGeneration = nextDetailLoadGeneration()
+            reduce {
+                currentState
+                    .copy(isSpareProcessing = true)
+                    .withActionAvailability(today)
+            }
+
+            val updateResult =
+                itemRepository.patchSpareCount(
+                    itemId = currentState.consumableId,
+                    count = sanitizedCount,
+                )
+            if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
+                return@intent
+            }
+
+            updateResult
+                .onSuccess { updatedItem ->
+                    val refreshedDetail = itemRepository.getItem(currentState.consumableId).getOrNull()
+                    if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
+                        return@onSuccess
+                    }
+
+                    if (refreshedDetail != null) {
+                        reduce {
+                            refreshedDetail.toDetailSuccess(today)
+                        }
+                    } else {
+                        val latestState = state as? DetailUiState.ConsumableSuccess ?: return@onSuccess
+                        reduce {
+                            latestState
+                                .withSpareCount(updatedItem.count)
+                                .withActionAvailability(today)
+                        }
+                    }
+                    postSideEffect(DetailSideEffect.ShowSnackbar(DetailUserMessage.SPARE_UPDATE_SUCCEEDED))
+                }.onFailure {
+                    if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
+                        return@onFailure
+                    }
+                    val latestState = state as? DetailUiState.ConsumableSuccess ?: return@onFailure
+                    reduce {
+                        latestState
+                            .copy(isSpareProcessing = false)
+                            .withActionAvailability(today)
+                    }
+                    postSideEffect(DetailSideEffect.ShowSnackbar(DetailUserMessage.SPARE_UPDATE_FAILED))
+                }
+        }
+
     fun onReplaceCompleteClick() =
+        intent {
+            val currentState = state as? DetailUiState.ConsumableSuccess ?: return@intent
+            val today = dateProvider.today()
+            if (!currentState.canStartReplacement(today)) {
+                return@intent
+            }
+
+            postSideEffect(
+                DetailSideEffect.ShowReplacementCompletionDialog(
+                    feedback = currentState.toPendingReplacementCompletionFeedback(today),
+                ),
+            )
+        }
+
+    @Suppress("LongMethod")
+    fun onReplaceCompletionConfirm() =
         intent {
             val currentState = state as? DetailUiState.ConsumableSuccess ?: return@intent
             val today = dateProvider.today()
@@ -238,6 +314,18 @@ class DetailViewModel internal constructor(
 
             replaceResult
                 .onSuccess { replacedItem ->
+                    val refreshedDetail = itemRepository.getItem(currentState.consumableId).getOrNull()
+                    if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
+                        return@onSuccess
+                    }
+                    if (refreshedDetail != null) {
+                        val successState = refreshedDetail.toDetailSuccess(today)
+                        reduce {
+                            successState
+                        }
+                        return@onSuccess
+                    }
+
                     val effectiveReplacementDate =
                         replacedItem.lastReplacedDate.toLocalDateOrNull() ?: today
                     val effectiveReplacementDateValue =
@@ -267,14 +355,15 @@ class DetailViewModel internal constructor(
                             lastReplacedDate = effectiveReplacementDateValue,
                         )
 
-                    reduce {
+                    val successState =
                         stateItem.toDetailSuccess(
                             histories = histories,
                             representativeImageUrl = currentState.representativeImageUrl,
                             today = today,
                         )
+                    reduce {
+                        successState
                     }
-                    postSideEffect(DetailSideEffect.ReplaceCompletedFeedback)
                 }.onFailure {
                     if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
                         return@onFailure
@@ -332,7 +421,6 @@ class DetailViewModel internal constructor(
             )
         }
 
-    @Suppress("LongMethod")
     private suspend fun Syntax<DetailUiState, DetailSideEffect>.loadDetailIntoState(
         consumableId: Long,
         loadGeneration: Long,
@@ -345,51 +433,20 @@ class DetailViewModel internal constructor(
             }
         }
 
-        val items = itemRepository.getItems().getOrNull()
+        val result = itemRepository.getItem(consumableId)
         if (isCurrentDetailLoad(loadGeneration)) {
-            val item = items?.firstOrNull { candidate -> candidate.id == consumableId }
-
-            when {
-                items == null -> handleLoadFailure(keepCurrentOnFailure)
-                item == null -> reduce { DetailUiState.NotFound }
-                else ->
-                    loadItemDetailAssets(
-                        item = item,
-                        loadGeneration = loadGeneration,
-                        keepCurrentOnFailure = keepCurrentOnFailure,
-                    )
-            }
-        }
-    }
-
-    private suspend fun Syntax<DetailUiState, DetailSideEffect>.loadItemDetailAssets(
-        item: Item,
-        loadGeneration: Long,
-        keepCurrentOnFailure: Boolean,
-    ) {
-        val historiesDeferred = vmAsync { itemRepository.getReplacementHistories(itemId = item.id) }
-        val categoriesDeferred = vmAsync { categoryRepository.getCategories() }
-        val histories = historiesDeferred.await().getOrNull()
-        val categories = categoriesDeferred.await().getOrNull()
-        if (isCurrentDetailLoad(loadGeneration)) {
-            when {
-                histories == null -> handleLoadFailure(keepCurrentOnFailure)
-                else -> {
-                    val categoryImageUrl =
-                        categories
-                            ?.firstOrNull { category -> category.id == item.categoryId }
-                            ?.iconUrl
-                            ?.takeIf { it.isNotBlank() }
-
+            result
+                .onSuccess { itemDetail ->
                     reduce {
-                        item.toDetailSuccess(
-                            histories = histories,
-                            representativeImageUrl = categoryImageUrl,
-                            today = dateProvider.today(),
-                        )
+                        itemDetail.toDetailSuccess(today = dateProvider.today())
+                    }
+                }.onFailure { error ->
+                    if (error.isNotFound()) {
+                        reduce { DetailUiState.NotFound }
+                    } else {
+                        handleLoadFailure(keepCurrentOnFailure)
                     }
                 }
-            }
         }
     }
 
@@ -447,6 +504,7 @@ sealed interface DetailUiState {
         val isSpareManagementEnabled: Boolean,
         val isReplaceCtaEnabled: Boolean,
         val isReplaceProcessing: Boolean,
+        val isSpareProcessing: Boolean,
         val isDeleteProcessing: Boolean,
         val isDeleteConfirmVisible: Boolean,
         val pendingDeleteConsumableId: Long?,
@@ -492,6 +550,16 @@ data class DetailReplacementRecordUiState(
     val dateLabel: String,
     val progressDisplayRatio: Double,
     val isCurrent: Boolean,
+)
+
+@Immutable
+data class DetailReplacementCompletionFeedback(
+    val itemName: String,
+    val representativeImageUrl: String?,
+    val spareCount: Int,
+    val recommendedReplacementIntervalDays: Int,
+    val nextReplacementDate: LocalDate?,
+    val replacementRecords: List<DetailReplacementRecordUiState>,
 )
 
 @Immutable
@@ -554,6 +622,8 @@ enum class DetailMenuAction {
 enum class DetailUserMessage {
     LOAD_FAILED,
     REPLACE_FAILED,
+    SPARE_UPDATE_SUCCEEDED,
+    SPARE_UPDATE_FAILED,
     DELETE_FAILED,
 }
 
@@ -576,11 +646,42 @@ sealed interface DetailSideEffect {
 
     data object NavigateAfterDelete : DetailSideEffect
 
-    data object ReplaceCompletedFeedback : DetailSideEffect
+    data class ShowReplacementCompletionDialog(
+        val feedback: DetailReplacementCompletionFeedback,
+    ) : DetailSideEffect
 
     data class ShowSnackbar(
         val message: DetailUserMessage,
     ) : DetailSideEffect
+}
+
+private fun DetailUiState.ConsumableSuccess.toPendingReplacementCompletionFeedback(today: LocalDate): DetailReplacementCompletionFeedback {
+    val completedRecords = replacementRecords.filterNot { record -> record.isCurrent }
+    val completedCurrentRecord =
+        DetailReplacementRecordUiState(
+            id = null,
+            startedDate = lastReplacedDate,
+            endedDate = today,
+            usageDays = currentUsageDays,
+            usageDaysLabel = currentUsageDays.toString(),
+            dateLabel = today.toMonthDayLabel(),
+            progressDisplayRatio = progressDisplayRatio,
+            isCurrent = false,
+        )
+
+    return DetailReplacementCompletionFeedback(
+        itemName = itemName,
+        representativeImageUrl = representativeImageUrl,
+        spareCount = (spareCount - 1).coerceAtLeast(0),
+        recommendedReplacementIntervalDays = recommendedReplacementIntervalDays,
+        nextReplacementDate =
+            computedNextReplacementDate(
+                lastReplacementDate = today,
+                replacementIntervalDays = recommendedReplacementIntervalDays,
+                fallbackNextReplacementDate = null,
+            ),
+        replacementRecords = completedRecords + completedCurrentRecord,
+    )
 }
 
 @Suppress("LongMethod")
@@ -655,6 +756,7 @@ internal fun Item.toDetailSuccess(
         isSpareManagementEnabled = true,
         isReplaceCtaEnabled = lastReplacementDate?.isBefore(today) != false,
         isReplaceProcessing = false,
+        isSpareProcessing = false,
         isDeleteProcessing = false,
         isDeleteConfirmVisible = false,
         pendingDeleteConsumableId = null,
@@ -672,6 +774,72 @@ private fun Agent.toLegacySuccess(): DetailUiState.LegacyAgentSuccess =
                 timestamp = timestamp.toString(),
             ),
     )
+
+@Suppress("LongMethod")
+internal fun ItemDetail.toDetailSuccess(today: LocalDate): DetailUiState.ConsumableSuccess {
+    val sanitizedSpareCount = spareQuantity.coerceAtLeast(0)
+    val sanitizedReplacementIntervalDays = recommendedCycleDays.coerceAtLeast(0)
+    val lastReplacementDate = lastReplacedDate.toLocalDateOrNull()
+    val resolvedNextReplacementDate =
+        nextReplacementDate.toLocalDateOrNull()
+            ?: computedNextReplacementDate(
+                lastReplacementDate = lastReplacementDate,
+                replacementIntervalDays = sanitizedReplacementIntervalDays,
+                fallbackNextReplacementDate = null,
+            )
+    val resolvedDDay = toDetailDDay(fallbackDate = resolvedNextReplacementDate, today = today)
+    val progressRawRatio = progressPercentage.coerceAtLeast(0.0) / PERCENT_SCALE
+    val statusGrade =
+        status.toDetailStatusGrade(
+            progressRawRatio = progressRawRatio,
+            replacementIntervalDays = sanitizedReplacementIntervalDays,
+        )
+    val replacementRecords =
+        recentReplacements
+            .toDetailReplacementRecords(sanitizedReplacementIntervalDays)
+            .ifEmpty {
+                listOf(
+                    currentReplacementRecord(
+                        startedDate = lastReplacementDate,
+                        currentUsageDays = usedDays.coerceAtLeast(0),
+                        replacementIntervalDays = sanitizedReplacementIntervalDays,
+                    ),
+                )
+            }
+    val spareStatus = sanitizedSpareCount.toSpareStatus()
+
+    return DetailUiState.ConsumableSuccess(
+        consumableId = id,
+        categoryName = category.name,
+        itemName = name,
+        representativeImageUrl = iconUrl?.takeIf { value -> value.isNotBlank() },
+        lastReplacedDate = lastReplacementDate,
+        nextReplacementDate = resolvedNextReplacementDate,
+        recommendedReplacementIntervalDays = sanitizedReplacementIntervalDays,
+        currentUsageDays = usedDays.coerceAtLeast(0),
+        spareCount = sanitizedSpareCount,
+        replacementRecords = replacementRecords.takeLast(MAX_RECENT_REPLACEMENT_RECORDS),
+        averageReplacementIntervalDays =
+            myAverageCycleDays
+                .takeIf { average -> average > 0.0 }
+                ?: sanitizedReplacementIntervalDays.toDouble(),
+        dDayValue = resolvedDDay.value,
+        dDayLabel = resolvedDDay.label,
+        dDayDirection = resolvedDDay.direction,
+        progressRawRatio = progressRawRatio,
+        progressDisplayRatio = progressRawRatio.coerceIn(MIN_PROGRESS_RATIO, MAX_PROGRESS_RATIO),
+        statusGrade = statusGrade,
+        colorTone = statusGrade.toColorTone(),
+        spareStatus = spareStatus,
+        isSpareManagementEnabled = true,
+        isReplaceCtaEnabled = lastReplacementDate?.isBefore(today) != false,
+        isReplaceProcessing = false,
+        isSpareProcessing = false,
+        isDeleteProcessing = false,
+        isDeleteConfirmVisible = false,
+        pendingDeleteConsumableId = null,
+    )
+}
 
 @Suppress("LongMethod")
 private fun DetailUiState.ConsumableSuccess.recalculateForToday(today: LocalDate): DetailUiState.ConsumableSuccess {
@@ -720,6 +888,16 @@ private fun DetailUiState.ConsumableSuccess.recalculateForToday(today: LocalDate
     ).withActionAvailability(today)
 }
 
+private fun DetailUiState.ConsumableSuccess.withSpareCount(count: Int): DetailUiState.ConsumableSuccess {
+    val sanitizedCount = count.coerceAtLeast(0)
+
+    return copy(
+        spareCount = sanitizedCount,
+        spareStatus = sanitizedCount.toSpareStatus(),
+        isSpareProcessing = false,
+    )
+}
+
 private fun DetailReplacementRecordUiState.withProgressDisplayRatio(replacementIntervalDays: Int): DetailReplacementRecordUiState =
     copy(
         progressDisplayRatio =
@@ -741,7 +919,7 @@ private fun DetailUiState.ConsumableSuccess.withActionAvailability(today: LocalD
 }
 
 private val DetailUiState.ConsumableSuccess.hasPendingMutation: Boolean
-    get() = isDeleteProcessing || isDeleteConfirmVisible || isReplaceProcessing
+    get() = isDeleteProcessing || isDeleteConfirmVisible || isReplaceProcessing || isSpareProcessing
 
 private val DetailUiState.ConsumableSuccess.canStartConsumableMutation: Boolean
     get() = !hasPendingMutation
@@ -756,6 +934,7 @@ private fun DetailUiState.ConsumableSuccess.canConfirmDelete(consumableId: Long?
     return isDeleteConfirmVisible &&
         !isDeleteProcessing &&
         !isReplaceProcessing &&
+        !isSpareProcessing &&
         pendingConsumableId == this.consumableId &&
         isRequestedItem
 }
@@ -862,7 +1041,7 @@ private fun DetailCompletedCycle.toRecord(replacementIntervalDays: Int): DetailR
         endedDate = endedDate,
         usageDays = usageDays,
         usageDaysLabel = usageDays.toString(),
-        dateLabel = endedDate.toString(),
+        dateLabel = endedDate.toMonthDayLabel(),
         progressDisplayRatio =
             usageDays
                 .toProgressRawRatio(replacementIntervalDays)
@@ -881,13 +1060,64 @@ private fun currentReplacementRecord(
         endedDate = null,
         usageDays = currentUsageDays,
         usageDaysLabel = currentUsageDays.toString(),
-        dateLabel = startedDate?.toString().orEmpty(),
+        dateLabel = startedDate?.toMonthDayLabel().orEmpty(),
         progressDisplayRatio =
             currentUsageDays
                 .toProgressRawRatio(replacementIntervalDays)
                 .coerceIn(MIN_PROGRESS_RATIO, MAX_PROGRESS_RATIO),
         isCurrent = true,
     )
+
+private fun ItemDetail.toDetailDDay(
+    fallbackDate: LocalDate?,
+    today: LocalDate,
+): DetailDDay {
+    val fallback = fallbackDate.toDDay(today)
+
+    return DetailDDay(
+        value = dDay ?: fallback.value,
+        label = dDayLabel.ifBlank { fallback.label },
+        direction = dDay.toDDayDirection(fallback.direction),
+    )
+}
+
+private fun Int?.toDDayDirection(fallback: DetailDDayDirection): DetailDDayDirection =
+    when {
+        this == null -> fallback
+        this > 0 -> DetailDDayDirection.UPCOMING
+        this == 0 -> DetailDDayDirection.TODAY
+        else -> DetailDDayDirection.OVERDUE
+    }
+
+private fun List<ItemDetailReplacement>.toDetailReplacementRecords(replacementIntervalDays: Int): List<DetailReplacementRecordUiState> =
+    mapNotNull { replacement ->
+        replacement.toDetailReplacementRecord(replacementIntervalDays)
+    }
+
+private fun ItemDetailReplacement.toDetailReplacementRecord(replacementIntervalDays: Int): DetailReplacementRecordUiState? {
+    val replacementDate = date.toLocalDateOrNull() ?: return null
+    val sanitizedUsageDays = cycleDays.coerceAtLeast(0)
+    val startedDate =
+        if (current) {
+            replacementDate
+        } else {
+            replacementDate.minusDays(sanitizedUsageDays.toLong())
+        }
+
+    return DetailReplacementRecordUiState(
+        id = id,
+        startedDate = startedDate,
+        endedDate = if (current) null else replacementDate,
+        usageDays = sanitizedUsageDays,
+        usageDaysLabel = sanitizedUsageDays.toString(),
+        dateLabel = replacementDate.toMonthDayLabel(),
+        progressDisplayRatio =
+            sanitizedUsageDays
+                .toProgressRawRatio(replacementIntervalDays)
+                .coerceIn(MIN_PROGRESS_RATIO, MAX_PROGRESS_RATIO),
+        isCurrent = current,
+    )
+}
 
 private fun averageReplacementIntervalDays(
     completedCycles: List<DetailCompletedCycle>,
@@ -934,6 +1164,18 @@ private fun DetailStatusGrade.toColorTone(): DetailColorTone =
         -> DetailColorTone.WARNING
     }
 
+private fun ItemDetailStatus.toDetailStatusGrade(
+    progressRawRatio: Double,
+    replacementIntervalDays: Int,
+): DetailStatusGrade =
+    when (this) {
+        ItemDetailStatus.GOOD -> DetailStatusGrade.GOOD
+        ItemDetailStatus.WARNING -> DetailStatusGrade.WARNING
+        ItemDetailStatus.DANGER -> DetailStatusGrade.DANGER
+        ItemDetailStatus.LOW_STOCK -> DetailStatusGrade.WARNING
+        ItemDetailStatus.UNKNOWN -> progressRawRatio.toStatusGrade(replacementIntervalDays)
+    }
+
 private fun Int.toSpareStatus(): DetailSpareStatus {
     val sanitizedCount = coerceAtLeast(0)
     val hasSpare = sanitizedCount > 0
@@ -953,7 +1195,11 @@ private fun LocalDate.daysUntil(targetDate: LocalDate): Int =
         .coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong())
         .toInt()
 
+private fun LocalDate.toMonthDayLabel(): String = "$monthValue/$dayOfMonth"
+
 private fun ReplacementDate?.toLocalDateOrNull(): LocalDate? = this?.value?.toLocalDateOrNull()
+
+private fun Throwable.isNotFound(): Boolean = this is GetItemError.NotFound
 
 private fun String.toLocalDateOrNull(): LocalDate? {
     val dateString =
@@ -1037,6 +1283,9 @@ private const val PREVIOUS_REPLACEMENT_HISTORY_ID = -1L
 private const val ITEM_LAST_REPLACED_HISTORY_ID = Long.MIN_VALUE
 private const val MIN_PROGRESS_RATIO = 0.0
 private const val MAX_PROGRESS_RATIO = 1.0
+private const val MIN_SPARE_COUNT = 0
+private const val MAX_SPARE_COUNT = 99
+private const val PERCENT_SCALE = 100.0
 private const val PERFECT_PROGRESS_THRESHOLD = 0.5
 private const val GOOD_PROGRESS_THRESHOLD = 0.8
 private const val ISO_LOCAL_DATE_LENGTH = 10

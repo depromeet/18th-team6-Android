@@ -15,7 +15,7 @@ import org.koin.compose.koinInject
 @Composable
 fun OBRitNavigation(modifier: Modifier = Modifier) {
     val onboardingStorage = koinInject<OnboardingStorage>()
-    val initialRoute = if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start
+    val initialRoute = HomeRoute.Home
     val backStack = rememberNavBackStack(initialRoute)
     NavDisplay(
         backStack = backStack,

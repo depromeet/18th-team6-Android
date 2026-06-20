@@ -1,10 +1,16 @@
 package com.obrit.obrit.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.obrit.feature.detail.screen.DetailEditScreen
+import com.obrit.feature.detail.screen.DetailEditSubmitResult
 import com.obrit.feature.detail.screen.DetailScreen
 import com.obrit.feature.home.screen.HomeScreen
 import com.obrit.feature.home.screen.ItemListScreen
@@ -16,6 +22,7 @@ fun HomeNavigation(
     modifier: Modifier = Modifier,
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
+    var detailEditResult by remember { mutableStateOf<DetailEditSubmitResult?>(null) }
 
     NavDisplay(
         backStack = homeBackStack,
@@ -45,6 +52,26 @@ fun HomeNavigation(
                     DetailScreen(
                         id = entry.itemId,
                         onBackClick = { homeBackStack.removeLastOrNull() },
+                        onEditClick = { itemId ->
+                            homeBackStack.add(HomeRoute.DetailEdit(itemId))
+                        },
+                        editResult = detailEditResult,
+                        onEditResultConsume = {
+                            detailEditResult = null
+                        },
+                        modifier = Modifier,
+                    )
+                }
+                entry<HomeRoute.DetailEdit> { entry ->
+                    DetailEditScreen(
+                        consumableId = entry.itemId,
+                        onCloseClick = {
+                            homeBackStack.removeLastOrNull()
+                        },
+                        onCompleteClick = { result ->
+                            detailEditResult = result
+                            homeBackStack.removeLastOrNull()
+                        },
                         modifier = Modifier,
                     )
                 }

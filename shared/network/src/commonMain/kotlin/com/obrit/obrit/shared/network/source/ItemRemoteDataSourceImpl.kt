@@ -8,6 +8,7 @@ import com.obrit.obrit.shared.network.request.item.CreateReplacementRequest
 import com.obrit.obrit.shared.network.request.item.PatchItemRequest
 import com.obrit.obrit.shared.network.request.item.UpdateSpareCountRequest
 import com.obrit.obrit.shared.network.response.ApiResponse
+import com.obrit.obrit.shared.network.response.item.ItemDetailResponse
 import com.obrit.obrit.shared.network.response.item.ItemResponse
 import com.obrit.obrit.shared.network.response.item.ReplacementHistoryResponse
 import com.obrit.obrit.shared.network.response.requireData
@@ -31,6 +32,16 @@ internal class ItemRemoteDataSourceImpl(
             .get(ITEMS_PATH) {
                 userIdHeader(userId)
             }.body<ApiResponse<List<ItemResponse>>>()
+            .requireData()
+    }
+
+    override suspend fun getItem(itemId: Long): ItemDetailResponse {
+        val userId = userIdProvider.get()
+
+        return httpClient
+            .get("$ITEMS_PATH/$itemId") {
+                userIdHeader(userId)
+            }.body<ApiResponse<ItemDetailResponse>>()
             .requireData()
     }
 

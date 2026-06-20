@@ -8,6 +8,7 @@ import com.obrit.obrit.shared.model.home.HomeItemsParams
 import com.obrit.obrit.shared.model.home.HomeOverallStatus
 import com.obrit.obrit.shared.model.home.MyStatusSummary
 import com.obrit.obrit.shared.model.items.Item
+import com.obrit.obrit.shared.model.items.ItemDetail
 import com.obrit.obrit.shared.model.items.ReplacementHistory
 
 /**
@@ -35,6 +36,16 @@ class SharedReadService(
         ) {
             val items = repositoryProvider.itemRepository().getItems().getOrThrow()
             items to "count=${items.size}"
+        }
+
+    @Throws(Throwable::class)
+    suspend fun getItem(itemId: Long): ItemDetail =
+        logged(
+            event = "SharedReadService.getItem",
+            enterDetails = "itemId=$itemId",
+        ) {
+            val item = repositoryProvider.itemRepository().getItem(itemId).getOrThrow()
+            item to "itemId=${item.id}"
         }
 
     @Throws(Throwable::class)

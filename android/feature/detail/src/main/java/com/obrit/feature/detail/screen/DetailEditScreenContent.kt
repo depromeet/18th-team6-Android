@@ -6,8 +6,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,6 +62,7 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.detail.component.DetailRemoteImage
 import com.obrit.feature.detail.viewmodel.DetailEditUiState
+import com.obrit.obrit.shared.model.categories.CategoryIcon
 
 @Composable
 internal fun DetailEditScreenContent(
@@ -110,6 +113,12 @@ private fun DetailEditSuccessContent(
                 .orEmpty(),
         )
     }
+    var selectedRepresentativeIconId by remember(
+        state.consumableId,
+        state.selectedRepresentativeIconId,
+    ) {
+        mutableStateOf(state.selectedRepresentativeIconId)
+    }
     val nameValidation =
         validateDetailEditName(
             inputName = itemName,
@@ -119,7 +128,8 @@ private fun DetailEditSuccessContent(
     val replacementCycleDays = replacementCycleText.toIntOrNull()
     val isNameChanged = !itemName.trim().equals(state.itemName.trim(), ignoreCase = true)
     val isReplacementCycleChanged = replacementCycleDays != state.replacementIntervalDays
-    val hasPersistableChanges = isNameChanged || isReplacementCycleChanged
+    val isRepresentativeIconChanged = selectedRepresentativeIconId != state.selectedRepresentativeIconId
+    val hasPersistableChanges = isNameChanged || isReplacementCycleChanged || isRepresentativeIconChanged
     val canSubmit =
         itemName.trim().isNotEmpty() &&
             nameValidation != DetailEditNameValidation.Duplicate &&
@@ -166,7 +176,7 @@ private fun DetailEditSuccessContent(
                     )
                     Spacer(modifier = Modifier.height(DETAIL_EDIT_SECTION_GAP))
                     DetailEditReplacementCycleSection(
-                        title = itemName.trim().ifEmpty { state.itemName },
+                        title = state.categoryName,
                         replacementCycleText = replacementCycleText,
                         onReplacementCycleChange = { changedValue ->
                             replacementCycleText = changedValue.filter { char -> char.isDigit() }
@@ -178,7 +188,11 @@ private fun DetailEditSuccessContent(
                     Spacer(modifier = Modifier.height(DETAIL_EDIT_SECTION_GAP))
                     DetailEditRepresentativeImageSection(
                         itemName = itemName.trim().ifEmpty { state.itemName },
-                        representativeImageUrl = state.representativeImageUrl,
+                        representativeIcons = state.representativeIcons,
+                        selectedRepresentativeIconId = selectedRepresentativeIconId,
+                        onRepresentativeIconClick = { iconId ->
+                            selectedRepresentativeIconId = iconId
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(modifier = Modifier.height(DETAIL_EDIT_SCROLL_BOTTOM_SPACER_HEIGHT))
@@ -197,6 +211,10 @@ private fun DetailEditSuccessContent(
                                 consumableId = state.consumableId,
                                 name = submittedItemName,
                                 replacementIntervalDays = submittedReplacementCycleDays,
+                                representativeIconId =
+                                    selectedRepresentativeIconId.takeIf {
+                                        isRepresentativeIconChanged
+                                    },
                             ),
                         )
                     },
@@ -313,21 +331,57 @@ private fun DetailEditReplacementCycleSection(
 @Composable
 private fun DetailEditRepresentativeImageSection(
     itemName: String,
-    representativeImageUrl: String?,
+    representativeIcons: List<CategoryIcon>,
+    selectedRepresentativeIconId: Long?,
+    onRepresentativeIconClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         DetailEditSectionTitle(text = DETAIL_EDIT_REPRESENTATIVE_IMAGE_SECTION_TITLE)
         Spacer(modifier = Modifier.height(DETAIL_EDIT_IMAGE_GRID_TOP_PADDING))
-        Row(
+        DetailEditRepresentativeIconGrid(
+            itemName = itemName,
+            representativeIcons = representativeIcons,
+            selectedRepresentativeIconId = selectedRepresentativeIconId,
+            onRepresentativeIconClick = onRepresentativeIconClick,
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DetailEditRepresentativeImageItem(
-                itemName = itemName,
-                representativeImageUrl = representativeImageUrl,
-            )
-        }
+        )
+    }
+}
+
+@Composable
+private fun DetailEditRepresentativeIconGrid(
+    itemName: String,
+    representativeIcons: List<CategoryIcon>,
+    selectedRepresentativeIconId: Long?,
+    onRepresentativeIconClick: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(DETAIL_EDIT_IMAGE_ICON_GRID_ROW_GAP),
+    ) {
+        representativeIcons
+            .chunked(DETAIL_EDIT_IMAGE_ICON_GRID_COLUMNS)
+            .forEach { rowIcons ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    rowIcons.forEach { icon ->
+                        DetailEditRepresentativeImageItem(
+                            itemName = itemName,
+                            representativeImageUrl = icon.url,
+                            selected = icon.id == selectedRepresentativeIconId,
+                            onClick = { onRepresentativeIconClick(icon.id) },
+                        )
+                    }
+                    repeat(DETAIL_EDIT_IMAGE_ICON_GRID_COLUMNS - rowIcons.size) {
+                        Spacer(modifier = Modifier.size(DETAIL_EDIT_IMAGE_ITEM_OUTER_SIZE))
+                    }
+                }
+            }
     }
 }
 
@@ -496,9 +550,21 @@ private fun DetailEditCycleGuideRow(
 private fun DetailEditRepresentativeImageItem(
     itemName: String,
     representativeImageUrl: String?,
+    selected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
+    val borderModifier =
+        if (selected) {
+            Modifier.border(
+                width = DETAIL_EDIT_IMAGE_SELECTED_BORDER_WIDTH,
+                color = colors.green300,
+                shape = CircleShape,
+            )
+        } else {
+            Modifier
+        }
     val imageDescription =
         if (representativeImageUrl.isNullOrBlank()) {
             "${itemName.ifBlank { "소모품" }} 대표 이미지 자리"
@@ -510,7 +576,9 @@ private fun DetailEditRepresentativeImageItem(
         modifier =
             modifier
                 .size(DETAIL_EDIT_IMAGE_ITEM_OUTER_SIZE)
-                .clip(CircleShape),
+                .then(borderModifier)
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -657,7 +725,16 @@ private fun DetailEditScreenContentPreview() {
                     categoryName = "욕실",
                     replacementIntervalDays = 30,
                     averageReplacementIntervalDays = 28,
-                    representativeImageUrl = null,
+                    representativeImageUrl = "https://example.com/icon-1.png",
+                    representativeIcons =
+                        listOf(
+                            CategoryIcon(id = 1L, url = "https://example.com/icon-1.png"),
+                            CategoryIcon(id = 2L, url = "https://example.com/icon-2.png"),
+                            CategoryIcon(id = 3L, url = "https://example.com/icon-3.png"),
+                            CategoryIcon(id = 4L, url = "https://example.com/icon-4.png"),
+                            CategoryIcon(id = 5L, url = "https://example.com/icon-5.png"),
+                        ),
+                    selectedRepresentativeIconId = 1L,
                     existingNames = listOf("수건", "샤워필터"),
                     isSaveProcessing = false,
                 ),
@@ -680,6 +757,7 @@ private val DETAIL_EDIT_HELPER_TOP_PADDING = 10.dp
 private val DETAIL_EDIT_CYCLE_GUIDE_TOP_PADDING = 10.dp
 private val DETAIL_EDIT_CYCLE_GUIDE_GAP = 6.dp
 private val DETAIL_EDIT_IMAGE_GRID_TOP_PADDING = 24.dp
+private val DETAIL_EDIT_IMAGE_ICON_GRID_ROW_GAP = 12.dp
 private val DETAIL_EDIT_SCROLL_BOTTOM_SPACER_HEIGHT = 116.dp
 private val DETAIL_EDIT_BUTTON_VERTICAL_PADDING = 16.dp
 private val DETAIL_EDIT_FIELD_HORIZONTAL_PADDING = 20.dp
@@ -687,9 +765,11 @@ private val DETAIL_EDIT_FIELD_VERTICAL_PADDING = 17.dp
 private val DETAIL_EDIT_FIELD_BORDER_WIDTH = 1.dp
 private val DETAIL_EDIT_IMAGE_ITEM_OUTER_SIZE = 70.dp
 private val DETAIL_EDIT_IMAGE_ITEM_INNER_SIZE = 62.dp
+private val DETAIL_EDIT_IMAGE_SELECTED_BORDER_WIDTH = 2.dp
 private val DETAIL_EDIT_STATUS_ICON_SIZE = 16.dp
 private val DETAIL_EDIT_HELPER_ICON_TEXT_GAP = 8.dp
 private val DETAIL_EDIT_FIELD_SHAPE = RoundedCornerShape(10.dp)
+private const val DETAIL_EDIT_IMAGE_ICON_GRID_COLUMNS = 5
 private const val DETAIL_EDIT_NAME_MAX_LENGTH = 15
 private const val DETAIL_EDIT_TITLE = "편집하기"
 private const val DETAIL_EDIT_LOADING_TEXT = "편집 정보를 불러오고 있어요."

@@ -35,16 +35,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import com.obrit.android.core.designsystem.R
-import com.obrit.android.core.designsystem.component.modal.OBRitModal
-import com.obrit.android.core.designsystem.component.modal.OBRitModalAppearance
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
@@ -89,11 +83,12 @@ internal fun DetailHeaderSection(
         )
     }
 
-    DetailDeleteConfirmPopup(
-        isVisible = isDeleteConfirmVisible,
-        onConfirmClick = action.onDeleteConfirmClick,
-        onCancelClick = action.onDeleteCancelClick,
-    )
+    if (isDeleteConfirmVisible) {
+        DetailDeleteConfirmDialog(
+            onCancelClick = action.onDeleteCancelClick,
+            onDeleteClick = action.onDeleteConfirmClick,
+        )
+    }
 }
 
 @Composable
@@ -309,62 +304,6 @@ private fun DetailHeaderMoreMenuItem(
     }
 }
 
-@Composable
-private fun DetailDeleteConfirmPopup(
-    isVisible: Boolean,
-    onConfirmClick: () -> Unit,
-    onCancelClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (!isVisible) {
-        return
-    }
-
-    Popup(
-        popupPositionProvider = DetailDeleteConfirmPopupPositionProvider,
-        onDismissRequest = onCancelClick,
-        properties = PopupProperties(focusable = true),
-    ) {
-        DetailDeleteConfirmModal(
-            onConfirmClick = onConfirmClick,
-            onCancelClick = onCancelClick,
-            modifier = modifier,
-        )
-    }
-}
-
-private object DetailDeleteConfirmPopupPositionProvider : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
-    ): IntOffset =
-        IntOffset(
-            x = ((windowSize.width - popupContentSize.width) / 2).coerceAtLeast(0),
-            y = ((windowSize.height - popupContentSize.height) / 2).coerceAtLeast(0),
-        )
-}
-
-@Composable
-private fun DetailDeleteConfirmModal(
-    onConfirmClick: () -> Unit,
-    onCancelClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    OBRitModal(
-        title = DETAIL_DELETE_CONFIRM_TITLE,
-        description = DETAIL_DELETE_CONFIRM_DESCRIPTION,
-        primaryButtonText = DETAIL_DELETE_CONFIRM_BUTTON_TEXT,
-        onPrimaryButtonClick = onConfirmClick,
-        appearance = OBRitModalAppearance.Dark,
-        showImage = false,
-        secondaryButtonText = DETAIL_DELETE_CANCEL_BUTTON_TEXT,
-        onSecondaryButtonClick = onCancelClick,
-        modifier = modifier,
-    )
-}
-
 @Preview(name = "DetailHeaderSection", widthDp = 412, heightDp = 56)
 @Composable
 private fun DetailHeaderSectionPreview() {
@@ -400,17 +339,6 @@ private fun DetailHeaderMoreMenuPreview() {
     }
 }
 
-@Preview(name = "DetailDeleteConfirmDialog")
-@Composable
-private fun DetailDeleteConfirmDialogPreview() {
-    OBRitTheme(dynamicColor = false) {
-        DetailDeleteConfirmModal(
-            onConfirmClick = {},
-            onCancelClick = {},
-        )
-    }
-}
-
 private val DETAIL_HEADER_TOP_BAR_HEIGHT = 56.dp
 private val DETAIL_HEADER_HORIZONTAL_PADDING = 12.dp
 private val DETAIL_HEADER_TITLE_HORIZONTAL_PADDING = 56.dp
@@ -435,10 +363,6 @@ private const val DETAIL_HEADER_BACK_DESCRIPTION = "뒤로"
 private const val DETAIL_HEADER_MORE_DESCRIPTION = "더보기"
 private const val DETAIL_MORE_MENU_EDIT_TEXT = "편집"
 private const val DETAIL_MORE_MENU_DELETE_TEXT = "삭제"
-private const val DETAIL_DELETE_CONFIRM_TITLE = "해당 소모품을 삭제하시겠습니까?"
-private const val DETAIL_DELETE_CONFIRM_DESCRIPTION = ""
-private const val DETAIL_DELETE_CONFIRM_BUTTON_TEXT = "삭제"
-private const val DETAIL_DELETE_CANCEL_BUTTON_TEXT = "아니요"
 private const val DETAIL_MORE_MENU_BACKGROUND_ALPHA = 0.2f
 
 private val DetailEditIcon: ImageVector by lazy {

@@ -5,11 +5,14 @@ import com.obrit.obrit.shared.network.request.item.CreateItemRequest
 import com.obrit.obrit.shared.network.request.item.CreateReplacementRequest
 import com.obrit.obrit.shared.network.request.item.PatchItemRequest
 import com.obrit.obrit.shared.network.request.item.UpdateSpareCountRequest
+import com.obrit.obrit.shared.network.response.item.ItemDetailResponse
 import com.obrit.obrit.shared.network.response.item.ItemResponse
 import com.obrit.obrit.shared.network.response.item.ReplacementHistoryResponse
 
 interface ItemRemoteDataSource {
     suspend fun getItems(): List<ItemResponse>
+
+    suspend fun getItem(itemId: Long): ItemDetailResponse
 
     suspend fun createItem(request: CreateItemRequest): ItemResponse
 
