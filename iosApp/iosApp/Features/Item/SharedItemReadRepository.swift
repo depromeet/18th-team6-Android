@@ -85,26 +85,11 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         let details = "itemId=\(itemId)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
-            let currentDetail = try await detail(itemId: itemId)
-            let expectedSpareQuantity = max(
-                ItemDetailConfig.minimumSpareQuantity,
-                currentDetail.spareQuantity - 1
-            )
             let item = try await writeService.createReplacement(
                 itemId: Int64(itemId),
                 replacedDate: replacementDateString(from: completedAt)
             )
-            let detail: ItemDetailItem
-            if currentDetail.spareQuantity > ItemDetailConfig.minimumSpareQuantity,
-               Int(item.count) == currentDetail.spareQuantity {
-                let patchedItem = try await writeService.patchSpareCount(
-                    itemId: Int64(itemId),
-                    count: Int32(expectedSpareQuantity)
-                )
-                detail = try await makeDetailItem(from: patchedItem, updatedAt: completedAt)
-            } else {
-                detail = try await makeDetailItem(from: item, updatedAt: completedAt)
-            }
+            let detail = try await makeDetailItem(from: item, updatedAt: completedAt)
             AppLog.success(AppLog.swiftRepository, event, details)
             return detail
         } catch {
