@@ -206,7 +206,6 @@ private struct ItemRegistrationContentView: View {
                         ItemRegistrationCompleteView(action: action)
                     }
                 }
-                .ignoresSafeArea(.keyboard)
 
                 if let bottomSheet = data.bottomSheet {
                     let bottomPadding = bottomSheetBottomPadding(in: geometry)

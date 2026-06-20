@@ -14,11 +14,14 @@ import com.obrit.feature.detail.screen.DetailEditSubmitResult
 import com.obrit.feature.detail.screen.DetailScreen
 import com.obrit.feature.home.screen.HomeScreen
 import com.obrit.feature.home.screen.ItemListScreen
+import com.obrit.feature.home.screen.SearchScreen
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
+@Suppress("LongMethod")
 fun HomeNavigation(
-    onRegisterClick: () -> Unit,
+    onReceiptRegisterClick: () -> Unit,
+    onManualRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
@@ -32,11 +35,19 @@ fun HomeNavigation(
             entryProvider {
                 entry<HomeRoute.Home> {
                     HomeScreen(
-                        onSearchClick = {},
+                        onSearchClick = { homeBackStack.add(HomeRoute.Search) },
                         onNotificationClick = {},
                         onProfileClick = {},
-                        onRegisterClick = onRegisterClick,
+                        onReceiptRegisterClick = onReceiptRegisterClick,
+                        onManualRegisterClick = onManualRegisterClick,
                         onMoreClick = { homeBackStack.add(HomeRoute.ConsumableList) },
+                        onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
+                        modifier = Modifier,
+                    )
+                }
+                entry<HomeRoute.Search> {
+                    SearchScreen(
+                        onBackClick = { homeBackStack.removeLastOrNull() },
                         onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
                         modifier = Modifier,
                     )

@@ -3,9 +3,11 @@ import Shared
 
 struct AppDependencies {
     let refreshCenter: AppRefreshCenter
+    let onboardingCompletionStore: OnboardingCompletionStore
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
+    let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
     let makeItemDetailViewModel: @MainActor (Int) -> ItemDetailViewModel
     let makeItemDetailEditViewModel: @MainActor (Int) -> ItemDetailEditViewModel
@@ -24,6 +26,7 @@ struct AppDependencies {
 
         return AppDependencies(
             refreshCenter: refreshCenter,
+            onboardingCompletionStore: UserDefaultsOnboardingCompletionStore(),
             makeHomeViewModel: {
                 HomeViewModel(
                     repository: SharedHomeDashboardRepository(readService: readService)
@@ -38,6 +41,15 @@ struct AppDependencies {
                 SearchViewModel(
                     repository: SharedHomeListTabRepository(readService: readService),
                     recentKeywordStore: searchRecentKeywordStore
+                )
+            },
+            makeOnboardingViewModel: {
+                OnboardingViewModel(
+                    repository: SharedOnboardingRepository(
+                        readService: readService,
+                        writeService: writeService
+                    ),
+                    initialOptions: []
                 )
             },
             makeItemRegistrationViewModel: {
@@ -58,6 +70,7 @@ struct AppDependencies {
     static var preview: AppDependencies {
         return AppDependencies(
             refreshCenter: AppRefreshCenter(),
+            onboardingCompletionStore: PreviewOnboardingCompletionStore(hasCompletedOnboarding: true),
             makeHomeViewModel: {
                 HomeViewModel(initialDashboard: HomeDashboard.empty)
             },
@@ -66,6 +79,9 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel()
+            },
+            makeOnboardingViewModel: {
+                OnboardingViewModel()
             },
             makeItemRegistrationViewModel: {
                 ItemRegistrationViewModel()

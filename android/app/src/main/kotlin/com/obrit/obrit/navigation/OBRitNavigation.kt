@@ -12,11 +12,14 @@ import com.obrit.obrit.navigation.route.RegisterRoute
 import com.obrit.obrit.storage.OnboardingStorage
 import org.koin.compose.koinInject
 
+@Suppress("LongMethod")
 @Composable
 fun OBRitNavigation(modifier: Modifier = Modifier) {
     val onboardingStorage = koinInject<OnboardingStorage>()
-    val initialRoute = HomeRoute.Home
-    val backStack = rememberNavBackStack(initialRoute)
+    val backStack =
+        rememberNavBackStack(
+            if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start,
+        )
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
@@ -25,7 +28,8 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
             entryProvider {
                 entry<HomeRoute.Home> {
                     HomeNavigation(
-                        onRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
+                        onReceiptRegisterClick = { backStack.add(RegisterRoute.ReceiptCamera) },
+                        onManualRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
                         modifier = Modifier,
                     )
                 }
@@ -35,6 +39,14 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
                 entry<RegisterRoute.ManualRegister> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
+                        startDestination = RegisterRoute.ManualRegister,
+                        modifier = Modifier,
+                    )
+                }
+                entry<RegisterRoute.ReceiptCamera> {
+                    RegisterNavigation(
+                        onExit = { backStack.removeLastOrNull() },
+                        startDestination = RegisterRoute.ReceiptCamera,
                         modifier = Modifier,
                     )
                 }

@@ -65,6 +65,7 @@ final class ItemDetailEditViewModel: ObservableObject {
                 ItemDetailEditViewData(
                     item: item,
                     existingItemNames: currentExistingNames,
+                    itemKinds: currentItemKinds,
                     isProcessing: false
                 )
             )
@@ -81,6 +82,11 @@ final class ItemDetailEditViewModel: ObservableObject {
         guard case let .success(data) = state else { return [] }
         return data.existingItemNames
     }
+
+    private var currentItemKinds: [ItemKind] {
+        guard case let .success(data) = state else { return [] }
+        return data.itemKinds
+    }
 }
 
 enum ItemDetailEditViewState: Equatable {
@@ -92,6 +98,7 @@ enum ItemDetailEditViewState: Equatable {
 struct ItemDetailEditViewData: Equatable {
     let item: ItemDetailItem
     let existingItemNames: [String]
+    let itemKinds: [ItemKind]
     let averageCycleDays: Int?
     let isProcessing: Bool
 
@@ -99,6 +106,7 @@ struct ItemDetailEditViewData: Equatable {
         self.init(
             item: source.item,
             existingItemNames: source.existingItemNames,
+            itemKinds: source.itemKinds,
             isProcessing: isProcessing
         )
     }
@@ -106,10 +114,12 @@ struct ItemDetailEditViewData: Equatable {
     init(
         item: ItemDetailItem,
         existingItemNames: [String],
+        itemKinds: [ItemKind],
         isProcessing: Bool
     ) {
         self.item = item
         self.existingItemNames = existingItemNames
+        self.itemKinds = itemKinds
         self.averageCycleDays = Self.averageCycleDays(for: item)
         self.isProcessing = isProcessing
     }
@@ -118,6 +128,7 @@ struct ItemDetailEditViewData: Equatable {
         ItemDetailEditViewData(
             item: item,
             existingItemNames: existingItemNames,
+            itemKinds: itemKinds,
             isProcessing: isProcessing
         )
     }

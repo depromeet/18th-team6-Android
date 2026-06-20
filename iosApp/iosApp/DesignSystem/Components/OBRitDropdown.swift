@@ -69,10 +69,8 @@ public struct OBRitDropdown: View {
                     OBRitIcon(kind: .chevronDown, color: OBRitColors.common00)
                         .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
                 }
-                .frame(minHeight: OBRitSpacing.s14)
-                .padding(.leading, OBRitSpacing.s5)
-                .padding(.trailing, OBRitSpacing.s5)
-                .padding(.vertical, OBRitSpacing.s4)
+                .padding(.horizontal, OBRitSpacing.s5)
+                .frame(height: OBRitSpacing.s14)
                 .background(containerColor)
                 .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
                 .overlay(borderOverlay)

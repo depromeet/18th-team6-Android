@@ -128,13 +128,9 @@ struct HomeItemItem: Identifiable {
         var filters: Set<HomeStatusFilter> = []
 
         if replacementScore == 0 {
-            filters.insert(.replacementDanger)
+            filters.insert(.danger)
         } else if replacementScore == 1 {
-            filters.insert(.replacementWarning)
-        }
-
-        if stockCount == 0 {
-            filters.insert(.spareShortage)
+            filters.insert(.warning)
         }
 
         return filters
@@ -145,17 +141,23 @@ struct HomeItemItem: Identifiable {
             return 0
         }
 
-        if dDayLabel.hasPrefix("D+"),
-           let days = Int(dDayLabel.dropFirst(2)) {
+        if let days = days(after: "D+") {
             return -days
         }
 
-        if dDayLabel.hasPrefix("D-"),
-           let days = Int(dDayLabel.dropFirst(2)) {
+        if let days = days(after: "D-") {
             return days
         }
 
         return 0
+    }
+
+    private func days(after marker: String) -> Int? {
+        guard let range = dDayLabel.range(of: marker, options: .caseInsensitive) else { return nil }
+        let digits = dDayLabel[range.upperBound...].prefix { character in
+            character.isNumber
+        }
+        return Int(digits)
     }
 }
 
@@ -198,32 +200,35 @@ extension HomeItemItem {
 }
 
 enum HomeStatusFilter: CaseIterable, Hashable {
-    case replacementDanger
-    case spareShortage
-    case replacementWarning
+    case danger
+    case warning
 
     var title: String {
         switch self {
-        case .replacementDanger:
-            return "교체 위험"
-        case .spareShortage:
-            return "여분 부족"
-        case .replacementWarning:
-            return "교체 경고"
+        case .danger:
+            return "위험"
+        case .warning:
+            return "경고"
         }
     }
 }
 
 enum HomeWarningSort: CaseIterable, Hashable {
+    case lowStock
     case replacementRisk
     case longestUse
+    case alphabetical
 
     var title: String {
         switch self {
+        case .lowStock:
+            return "여분 적은 순"
         case .replacementRisk:
             return "교체 임박 순"
         case .longestUse:
             return "오래 사용한 순"
+        case .alphabetical:
+            return "가나다 순"
         }
     }
 }

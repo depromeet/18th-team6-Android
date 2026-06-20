@@ -10,6 +10,7 @@ protocol ItemDetailRepository {
 struct ItemDetailEditSource: Equatable {
     let item: ItemDetailItem
     let existingItemNames: [String]
+    let itemKinds: [ItemKind]
 }
 
 protocol ItemDetailEditRepository {
@@ -93,7 +94,8 @@ actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
             item: item,
             existingItemNames: itemsByID.values
                 .filter { $0.id != itemId }
-                .map(\.name)
+                .map(\.name),
+            itemKinds: []
         )
     }
 
@@ -108,8 +110,12 @@ actor ItemDetailSampleEditRepository: ItemDetailEditRepository {
 
         var updated = original
         updated.name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let selectedKind = draft.selectedKind {
+            updated.kindId = selectedKind.id
+            updated.kindName = selectedKind.title
+            updated.imageURL = selectedKind.imageURL
+        }
         updated.replacementCycle = ItemDetailReplacementCycle(intervalDays: draft.replacementCycleDays)
-        updated.imageURL = draft.imageURL
         updated.updatedAt = Date()
         itemsByID[itemId] = updated
         return updated

@@ -5,9 +5,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateItemRequest(
-    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("categoryId") val categoryId: Long? = null,
     @SerialName("name") val name: String,
     @SerialName("spareQuantity") val spareQuantity: Int? = null,
     @SerialName("lastReplacementPeriod") val lastReplacementPeriod: String? = null,
     @SerialName("replacementIntervalDays") val replacementIntervalDays: Int? = null,
+    @SerialName("newCategoryName") val newCategoryName: String? = null,
+    @SerialName("newCategoryDefaultReplacementIntervalDays") val newCategoryDefaultReplacementIntervalDays: Int? = null,
 )

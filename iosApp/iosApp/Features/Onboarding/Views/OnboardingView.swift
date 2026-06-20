@@ -2,109 +2,150 @@ import SwiftUI
 
 struct OnboardingView: View {
     @StateObject private var viewModel: OnboardingViewModel
+    @State private var snackbar: OnboardingSnackbarPresentation?
+    @State private var snackbarDismissTask: Task<Void, Never>?
 
-    let onContinue: () -> Void
+    let onBack: () -> Void
+    let onComplete: () -> Void
 
-    init(onContinue: @escaping () -> Void) {
-        _viewModel = StateObject(wrappedValue: OnboardingViewModel())
-        self.onContinue = onContinue
+    init(
+        viewModelFactory: @MainActor @escaping () -> OnboardingViewModel = { OnboardingViewModel() },
+        onBack: @escaping () -> Void,
+        onComplete: @escaping () -> Void
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.onBack = onBack
+        self.onComplete = onComplete
     }
 
     init(
         viewModel: OnboardingViewModel,
-        onContinue: @escaping () -> Void
+        onBack: @escaping () -> Void,
+        onComplete: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.onContinue = onContinue
+        self.onBack = onBack
+        self.onComplete = onComplete
     }
 
     var body: some View {
-        switch viewModel.state {
-        case let .success(data):
-            GeometryReader { geometry in
-                let horizontalPadding = OnboardingLayoutConfig.horizontalPadding(for: geometry.size.width)
+        ZStack {
+            content
 
-                ZStack {
-                    OBRitColors.backgroundDefaultDefault
-                        .ignoresSafeArea()
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        VStack(alignment: .leading, spacing: OnboardingLayoutConfig.titleGap) {
-                            Text("관리할 소모품을\n선택해주세요")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .obritTextStyle(OBRitTypography.s6xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-
-                            Text("선택한 항목을 기준으로 교체 주기와 여분 관리를 도와드릴게요")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.textDefaultSecondary)
-                        }
-                        .padding(.top, OnboardingLayoutConfig.titleTopPadding)
-
-                        VStack(spacing: OnboardingLayoutConfig.optionGap) {
-                            ForEach(data.options) { option in
-                                let selected = data.selectedOptionIds.contains(option.id)
-
-                                Button {
-                                    viewModel.toggleOption(option)
-                                } label: {
-                                    HStack(spacing: OnboardingLayoutConfig.optionContentGap) {
-                                        OBRitRemoteImage(urlString: option.imageURL)
-                                            .frame(width: OnboardingLayoutConfig.optionImageSize, height: OnboardingLayoutConfig.optionImageSize)
-                                            .padding(8)
-                                            .background(selected ? OBRitColors.common00 : OBRitColors.gray750)
-                                            .clipShape(Circle())
-
-                                        Text(option.title)
-                                            .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
-
-                                        Spacer(minLength: 0)
-
-                                        OBRitRadioButton(
-                                            selected: selected,
-                                            onClick: { viewModel.toggleOption(option) }
-                                        )
-                                    }
-                                    .padding(OnboardingLayoutConfig.optionPadding)
-                                    .background(selected ? OBRitColors.gray750 : OBRitColors.backgroundDefaultSecondary)
-                                    .clipShape(RoundedRectangle(cornerRadius: OnboardingLayoutConfig.cardRadius))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .padding(.top, OnboardingLayoutConfig.optionsTopPadding)
-
-                        Spacer(minLength: 0)
-
-                        OBRitFilledTextButton(
-                            text: "다음",
-                            enabled: data.canContinue,
-                            fillsWidth: true,
-                            action: onContinue
-                        )
-                        .padding(.bottom, OnboardingLayoutConfig.bottomPadding)
-                    }
-                    .padding(.horizontal, horizontalPadding)
+            if let snackbar {
+                VStack {
+                    Spacer(minLength: 0)
+                    OBRitSnackbar(message: snackbar.message, icon: snackbar.icon)
+                        .padding(.horizontal, OBRitSpacing.s5)
+                        .padding(.bottom, OBRitSpacing.s6)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+                .allowsHitTesting(false)
+                .animation(.easeOut(duration: 0.18), value: snackbar.id)
+            }
+        }
+        .onChange(of: viewModel.effect) { _, effect in
+            handleEffect(effect)
+        }
+        .onDisappear {
+            snackbarDismissTask?.cancel()
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch viewModel.state {
+        case .loading:
+            OnboardingMessageView(title: "온보딩 정보를 불러오는 중이에요")
+        case let .loadFailed(message):
+            OnboardingFailureView(
+                message: message,
+                action: action
+            )
+        case let .success(data):
+            switch data.step {
+            case .start:
+                OnboardingStartView(action: action)
+            case .categorySelection:
+                OnboardingCategorySelectionView(
+                    data: data,
+                    action: action
+                )
+            case .replacementPeriod:
+                OnboardingReplacementPeriodView(
+                    data: data,
+                    action: action
+                )
+            case .complete:
+                OnboardingCompleteView(action: action)
+            }
+        }
+    }
+
+    private var action: OnboardingViewAction {
+        OnboardingViewAction(
+            onStart: viewModel.startOnboarding,
+            onBack: handleBack,
+            onRetry: viewModel.retry,
+            onToggleOption: viewModel.toggleOption,
+            onUpdateItemName: { option, name in
+                viewModel.updateItemName(name, for: option)
+            },
+            onSelectReplacementPeriod: { option, period in
+                viewModel.selectReplacementPeriod(period, for: option)
+            },
+            onDecrementQuantity: { option in
+                viewModel.decrementQuantity(for: option)
+            },
+            onIncrementQuantity: { option in
+                viewModel.incrementQuantity(for: option)
+            },
+            onUpdateQuantity: { option, quantity in
+                viewModel.updateQuantity(quantity, for: option)
+            },
+            onNext: viewModel.moveNext,
+            onComplete: onComplete
+        )
+    }
+
+    private func handleBack() {
+        if !viewModel.moveBack() {
+            onBack()
+        }
+    }
+
+    private func handleEffect(_ effect: OnboardingViewEffect?) {
+        guard let effect else { return }
+        defer { viewModel.clearEffect() }
+
+        switch effect {
+        case let .showMessage(message):
+            showSnackbar(message)
+        }
+    }
+
+    private func showSnackbar(_ message: String) {
+        snackbarDismissTask?.cancel()
+        snackbar = OnboardingSnackbarPresentation(
+            message: message,
+            icon: .error
+        )
+        snackbarDismissTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: OnboardingSnackbarMetrics.displayDurationNanoseconds)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.18)) {
+                snackbar = nil
             }
         }
     }
 }
 
-private enum OnboardingLayoutConfig {
-    static let referenceWidth: CGFloat = 412
-    static let horizontalPaddingRatio: CGFloat = 20 / referenceWidth
-    static let defaultHorizontalPadding: CGFloat = 20
-    static let titleTopPadding: CGFloat = 96
-    static let titleGap: CGFloat = 12
-    static let optionsTopPadding: CGFloat = 44
-    static let optionGap: CGFloat = 10
-    static let optionContentGap: CGFloat = 16
-    static let optionPadding: CGFloat = 16
-    static let optionImageSize: CGFloat = 44
-    static let cardRadius: CGFloat = 16
-    static let bottomPadding: CGFloat = 36
+private struct OnboardingSnackbarPresentation: Equatable, Identifiable {
+    let id = UUID()
+    let message: String
+    let icon: OBRitSnackbarIcon
+}
 
-    static func horizontalPadding(for width: CGFloat) -> CGFloat {
-        max(defaultHorizontalPadding, width * horizontalPaddingRatio)
-    }
+private enum OnboardingSnackbarMetrics {
+    static let displayDurationNanoseconds: UInt64 = 2_000_000_000
 }

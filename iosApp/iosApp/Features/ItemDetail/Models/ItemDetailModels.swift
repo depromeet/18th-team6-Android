@@ -3,6 +3,7 @@ import Foundation
 struct ItemDetailItem: Identifiable, Equatable {
     let id: Int
     var name: String
+    var kindId: Int
     var kindName: String
     var imageURL: String
     var spareQuantity: Int
@@ -201,12 +202,19 @@ struct ItemDetailNotificationSummary: Equatable {
 
 struct ItemDetailEditDraft: Equatable {
     var name: String
+    var selectedKind: ItemKind?
     var replacementCycleDays: Int
     var imageURL: String
     var spareQuantity: Int
 
     init(item: ItemDetailItem) {
         self.name = item.name
+        self.selectedKind = ItemKind(
+            id: item.kindId,
+            title: item.kindName,
+            addedCount: 0,
+            imageURL: item.imageURL
+        )
         self.replacementCycleDays = item.replacementCycle.intervalDays
         self.imageURL = item.imageURL
         self.spareQuantity = item.spareQuantity

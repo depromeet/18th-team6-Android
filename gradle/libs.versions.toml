@@ -4,7 +4,7 @@ android-compileSdk = "36"
 android-minSdk = "28"
 android-targetSdk = "36"
 app-applicationId = "com.obrit.obrit"
-app-versionCode = "5"
+app-versionCode = "6"
 app-versionName = "1.0"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.7.1"
@@ -24,6 +24,7 @@ nav3Core = "1.1.1"
 lifecycleViewmodelNav3 = "2.10.0"
 kotlinxSerializationCore = "1.11.0"
 coil = "3.4.0"
+camerax = "1.4.1"
 
 [libraries]
 
@@ -100,6 +101,13 @@ orbit-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" 
 # region Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+# endregion
+
+# region CameraX
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 # endregion
 
 [plugins]

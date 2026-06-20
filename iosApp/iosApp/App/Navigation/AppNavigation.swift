@@ -26,9 +26,15 @@ struct AppNavigation {
                 }
             }
         case .onboarding:
-            OnboardingView {
-                onNavigateApp(.registrationPrompt)
-            }
+            OnboardingView(
+                viewModelFactory: dependencies.makeOnboardingViewModel,
+                onBack: onBack,
+                onComplete: {
+                    dependencies.onboardingCompletionStore.markCompleted()
+                    dependencies.refreshCenter.refreshItems()
+                    onSetRoot(.main(.home))
+                }
+            )
         case .registrationPrompt:
             RegistrationPromptView(
                 onRegister: {
@@ -48,6 +54,9 @@ struct AppNavigation {
                 selectedTab: selectedMainTab,
                 dependencies: dependencies,
                 onNavigateItem: onNavigateItem,
+                onShowOnboarding: {
+                    onNavigateApp(.onboarding)
+                },
                 onSelectMainTab: onSelectMainTab
             )
             .navigationBarBackButtonHidden(true)

@@ -6,7 +6,7 @@ enum HomeOrbPhysicsConfig {
 
     static let preferredFramesPerSecond = 60
     static let worldSpeed: CGFloat = 0.72
-    static let protectedEdgeRatio: CGFloat = 0.05
+    static let protectedEdgeRatio: CGFloat = 0.04
     static let minimumBoundaryRadiusRatio: CGFloat = 0.24
 
     static let dragGravityOffsetDivisor: CGFloat = 3.36
@@ -26,10 +26,10 @@ enum HomeOrbPhysicsConfig {
     static let boundaryFriction: CGFloat = 0.72
     static let boundaryRestitution: CGFloat = 0
 
-    static let stablePackingMultiplier: CGFloat = 1.2
-    static let physicsRadiusMinimumRatio: CGFloat = 9 / HomeOrbMetrics.glassBallDiameter
-    static let physicsRadiusVisualWidthRatio: CGFloat = 0.12
-    static let visualBoundaryInsetRatio: CGFloat = 0.3
+    static let stablePackingMultiplier: CGFloat = 0.95
+    static let physicsRadiusMinimumRatio: CGFloat = 11 / HomeOrbMetrics.glassBallDiameter
+    static let physicsRadiusVisualWidthRatio: CGFloat = 0.16
+    static let visualBoundaryInsetRatio: CGFloat = 0.26
 }
 
 enum HomeOrbVisualConfig {
@@ -43,7 +43,7 @@ enum HomeOrbVisualConfig {
     static let itemWeightBase: CGFloat = 0.92
     static let itemWeightRiskScale: CGFloat = 0.055
     static let riskRankUpperBound = 7
-    static let itemTargetWidthBase: CGFloat = 0.56
+    static let itemTargetWidthBase: CGFloat = 0.52
     static let itemTargetWidthWeightScale: CGFloat = 0.03675
     static let maximumWeightForSizing: CGFloat = 1.45
     static let minimumTextureAspectRatio: CGFloat = 0.2
@@ -73,10 +73,10 @@ enum HomeOrbVisualConfig {
     static let zPositionDepthScale: CGFloat = 100
     static let zPositionVerticalScale: CGFloat = 0.1
 
-    static let spawnColumnSpread: CGFloat = 1.18
+    static let spawnColumnSpread: CGFloat = 1.3
     static let spawnOddLayerOffset: CGFloat = 0.08
     static let spawnBaseY: CGFloat = -0.34
-    static let spawnLayerY: CGFloat = 0.24
+    static let spawnLayerY: CGFloat = 0.28
     static let spawnEvenYOffset: CGFloat = 0.04
     static let spawnOddYOffset: CGFloat = -0.03
 }

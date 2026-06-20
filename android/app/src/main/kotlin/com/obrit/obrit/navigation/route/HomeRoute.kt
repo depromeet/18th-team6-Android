@@ -11,6 +11,9 @@ sealed interface HomeRoute : Route {
     data object ConsumableList : HomeRoute
 
     @Serializable
+    data object Search : HomeRoute
+
+    @Serializable
     data class Detail(
         val itemId: Int,
     ) : HomeRoute

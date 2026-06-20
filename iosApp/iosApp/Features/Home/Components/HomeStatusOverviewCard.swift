@@ -1,8 +1,8 @@
 import SwiftUI
 
 private enum HomeStatusOverviewLayoutMetrics {
-    static let cardHorizontalPadding = OBRitSpacing.s4
-    static let cardVerticalPadding = OBRitSpacing.s3 + OBRitSpacing.s0_5
+    static let cardHorizontalPadding = OBRitSpacing.s6
+    static let cardVerticalPadding = OBRitSpacing.s6
     static let contentSpacing = OBRitSpacing.s6
     static let metricValueSpacing = OBRitSpacing.s4
     static var meterHeight: CGFloat {

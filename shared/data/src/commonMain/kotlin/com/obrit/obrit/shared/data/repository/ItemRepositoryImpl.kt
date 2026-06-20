@@ -50,7 +50,10 @@ internal class ItemRepositoryImpl(
             throw error
         }
 
-    override suspend fun createItems(params: List<CreateItemParams>): Result<List<Item>> =
+    override suspend fun createItems(
+        params: List<CreateItemParams>,
+        receiptImageUrl: String?,
+    ): Result<List<Item>> =
         runCatchingWith {
             params
                 .chunked(BULK_CREATE_ITEMS_CHUNK_SIZE)
@@ -58,6 +61,7 @@ internal class ItemRepositoryImpl(
                     itemRemoteDataSource.createItems(
                         BulkCreateItemRequest(
                             items = chunk.map { itemParams -> itemParams.toCreateItemRequest() },
+                            receiptImageUrl = receiptImageUrl,
                         ),
                     )
                 }.map { response -> response.toItem() }
@@ -140,4 +144,6 @@ private fun CreateItemParams.toCreateItemRequest() =
         spareQuantity = spareQuantity,
         lastReplacementPeriod = lastReplacementPeriod?.name,
         replacementIntervalDays = replacementIntervalDays,
+        newCategoryName = newCategoryName,
+        newCategoryDefaultReplacementIntervalDays = newCategoryDefaultReplacementIntervalDays,
     )
