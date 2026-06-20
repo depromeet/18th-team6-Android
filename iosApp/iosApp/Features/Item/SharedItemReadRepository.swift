@@ -143,7 +143,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         do {
             let trimmedName = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
             let selectedKind = draft.selectedKind
-            let item = try await writeService.patchItem(
+            let item = try await writeService.patchItem(params: PatchItemParams(
                 itemId: Int64(itemId),
                 categoryId: selectedKind?.id == original.kindId
                     ? nil
@@ -156,7 +156,7 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                 replacementIntervalDays: draft.replacementCycleDays == original.replacementCycle.intervalDays
                     ? nil
                     : KotlinInt(int: Int32(draft.replacementCycleDays))
-            )
+            ))
             return try await makeDetailItem(from: item, updatedAt: Date())
         } catch {
             throw presentationError(

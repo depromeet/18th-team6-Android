@@ -93,26 +93,11 @@ class SharedWriteService(
         }
 
     @Throws(Throwable::class)
-    suspend fun patchItem(
-        itemId: Long,
-        categoryId: Long?,
-        name: String?,
-        count: Int?,
-        lastReplacedDate: String?,
-        replacementIntervalDays: Int?,
-    ): Item =
+    suspend fun patchItem(params: PatchItemParams): Item =
         repositoryProvider
             .itemRepository()
-            .patchItem(
-                PatchItemParams(
-                    itemId = itemId,
-                    categoryId = categoryId,
-                    name = name,
-                    count = count,
-                    lastReplacedDate = lastReplacedDate?.let(::ReplacementDate),
-                    replacementIntervalDays = replacementIntervalDays,
-                ),
-            ).getOrThrow()
+            .patchItem(params)
+            .getOrThrow()
 
     @Throws(Throwable::class)
     suspend fun createReplacement(
