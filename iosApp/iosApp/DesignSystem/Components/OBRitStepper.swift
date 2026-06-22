@@ -173,7 +173,11 @@ public struct OBRitStepper: View {
     ) -> some View {
         Button {
             guard !disabled else { return }
+            let shouldRestoreValueFocus = isValueFocused && onValueChange != nil
             action?()
+            if shouldRestoreValueFocus {
+                restoreValueFocus()
+            }
         } label: {
             symbol
                 .stroke(disabled ? OBRitColors.gray600 : OBRitColors.common00, style: StrokeStyle(lineWidth: 2, lineCap: .round))
@@ -186,6 +190,13 @@ public struct OBRitStepper: View {
         .buttonStyle(.plain)
         .disabled(disabled)
         .accessibilityLabel(symbol.accessibilityLabel)
+    }
+
+    private func restoreValueFocus() {
+        Task { @MainActor in
+            await Task.yield()
+            isValueFocused = true
+        }
     }
 
     private func buttonSize(for size: OBRitStepperSize) -> CGFloat {

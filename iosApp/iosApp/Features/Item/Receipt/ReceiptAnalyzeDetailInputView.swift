@@ -25,6 +25,7 @@ struct ReceiptAnalyzeDetailInputView: View {
                         VStack(spacing: OBRitSpacing.s0) {
                             ReceiptAnalyzeDetailCardPager(
                                 items: result.items,
+                                availableWidth: geometry.size.width,
                                 currentItemID: currentItemIDBinding,
                                 expandedDateItemID: $expandedDateItemID,
                                 names: $names,
@@ -238,6 +239,7 @@ private struct ReceiptAnalyzeStepNumber: View {
 
 private struct ReceiptAnalyzeDetailCardPager: View {
     let items: [ReceiptAnalyzeResultItem]
+    let availableWidth: CGFloat
     @Binding var currentItemID: Int?
     @Binding var expandedDateItemID: Int?
     @Binding var names: [Int: String]
@@ -271,7 +273,8 @@ private struct ReceiptAnalyzeDetailCardPager: View {
                         onSelectDateOption: {
                             replacementDateOptions[item.id] = $0
                             expandedDateItemID = nil
-                        }
+                        },
+                        width: ReceiptAnalyzeDetailMetrics.cardWidth(for: availableWidth)
                     )
                     .id(item.id)
                     .scrollTransition(.interactive, axis: .horizontal) { content, phase in
@@ -283,7 +286,11 @@ private struct ReceiptAnalyzeDetailCardPager: View {
             }
             .scrollTargetLayout()
         }
-        .contentMargins(.horizontal, ReceiptAnalyzeDetailMetrics.cardSideMargin, for: .scrollContent)
+        .contentMargins(
+            .horizontal,
+            ReceiptAnalyzeDetailMetrics.cardSideMargin(for: availableWidth),
+            for: .scrollContent
+        )
         .scrollTargetBehavior(.viewAligned)
         .scrollPosition(id: $currentItemID)
         .frame(height: ReceiptAnalyzeDetailMetrics.cardPagerHeight(expanded: expandedDateItemID != nil))
@@ -322,6 +329,7 @@ private struct ReceiptAnalyzeDetailCard: View {
     let isDatePickerExpanded: Bool
     let onToggleDatePicker: () -> Void
     let onSelectDateOption: (ItemReplacementDateOption) -> Void
+    let width: CGFloat
 
     var body: some View {
         VStack(alignment: .leading, spacing: OBRitSpacing.s5) {
@@ -369,7 +377,7 @@ private struct ReceiptAnalyzeDetailCard: View {
             }
         }
         .padding(OBRitSpacing.s5)
-        .frame(width: ReceiptAnalyzeDetailMetrics.cardWidth, alignment: .leading)
+        .frame(width: width, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: OBRitRadius.extraLarge)
                 .fill(OBRitColors.backgroundDefaultSecondary)
@@ -510,11 +518,25 @@ private struct ReceiptAnalyzeDetailBottomBar: View {
 }
 
 private enum ReceiptAnalyzeDetailMetrics {
-    static let cardWidth: CGFloat = 340
-    static let cardSideMargin: CGFloat = 36
+    static let maximumCardWidth: CGFloat = 340
+    static let minimumCardSideMargin: CGFloat = OBRitSpacing.s4
     static let bottomContentPadding: CGFloat = 160
     static let snackbarBottomOffset: CGFloat = OBRitSpacing.s20 + OBRitSpacing.s5
     static let snackbarDisplayDurationNanoseconds: UInt64 = 2_400_000_000
+
+    static func cardWidth(for availableWidth: CGFloat) -> CGFloat {
+        min(
+            maximumCardWidth,
+            max(0, availableWidth - minimumCardSideMargin * 2)
+        )
+    }
+
+    static func cardSideMargin(for availableWidth: CGFloat) -> CGFloat {
+        max(
+            minimumCardSideMargin,
+            (availableWidth - cardWidth(for: availableWidth)) / 2
+        )
+    }
 
     static func cardPagerHeight(expanded: Bool) -> CGFloat {
         expanded ? 560 : 400

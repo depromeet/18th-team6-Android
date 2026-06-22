@@ -65,7 +65,7 @@ struct ItemDetailStockManagementSheet: View {
             }
         }
         .onAppear {
-            beginInitialQuantityEditing()
+            syncInitialQuantity()
         }
         .onChange(of: quantity) { _, newValue in
             guard !isQuantityEditing else { return }
@@ -146,13 +146,17 @@ struct ItemDetailStockManagementSheet: View {
     }
 
     private func decrement() {
-        finishQuantityEditing()
-        quantity = max(ItemDetailConfig.minimumSpareQuantity, quantity - 1)
+        updateQuantity(
+            max(ItemDetailConfig.minimumSpareQuantity, quantity - 1),
+            restoresFocus: isQuantityEditing
+        )
     }
 
     private func increment() {
-        finishQuantityEditing()
-        quantity = min(ItemDetailConfig.maximumSpareQuantity, quantity + 1)
+        updateQuantity(
+            min(ItemDetailConfig.maximumSpareQuantity, quantity + 1),
+            restoresFocus: isQuantityEditing
+        )
     }
 
     private func beginQuantityEditing() {
@@ -160,10 +164,11 @@ struct ItemDetailStockManagementSheet: View {
         isQuantityEditing = true
     }
 
-    private func beginInitialQuantityEditing() {
+    private func syncInitialQuantity() {
         quantity = initialQuantity
         quantityInput = "\(initialQuantity)"
-        isQuantityEditing = true
+        isQuantityEditing = false
+        isQuantityFocused = false
     }
 
     private func focusQuantityField() {
@@ -180,6 +185,15 @@ struct ItemDetailStockManagementSheet: View {
         }
         isQuantityEditing = false
         isQuantityFocused = false
+    }
+
+    private func updateQuantity(_ newValue: Int, restoresFocus: Bool) {
+        quantity = newValue
+        quantityInput = "\(newValue)"
+
+        guard restoresFocus else { return }
+        isQuantityEditing = true
+        restoreQuantityFocus()
     }
 
     private func updateQuantityInput(_ newValue: String) {
@@ -207,7 +221,12 @@ struct ItemDetailStockManagementSheet: View {
     ) -> some View {
         Button {
             guard !disabled else { return }
+            let shouldRestoreFocus = isQuantityEditing || isQuantityFocused
             action()
+            if shouldRestoreFocus {
+                isQuantityEditing = true
+                restoreQuantityFocus()
+            }
         } label: {
             symbol
                 .stroke(disabled ? OBRitColors.gray600 : OBRitColors.common00, style: StrokeStyle(lineWidth: 2, lineCap: .round))
@@ -223,6 +242,13 @@ struct ItemDetailStockManagementSheet: View {
         .buttonStyle(.plain)
         .disabled(disabled)
         .accessibilityLabel(symbol.accessibilityLabel)
+    }
+
+    private func restoreQuantityFocus() {
+        Task { @MainActor in
+            await Task.yield()
+            isQuantityFocused = true
+        }
     }
 }
 

@@ -5,7 +5,6 @@ enum ItemRegistrationLayout {
     static let itemThumbnailSize: CGFloat = 52
     static let imageOptionSize: CGFloat = 60
     static let imageGridSpacing: CGFloat = 18
-    static let imageGridColumnCount = 5
     static let kindSheetMaxContentHeight: CGFloat = 766
     static let kindNoResultHeight: CGFloat = 278
     static let sheetBottomButtonReservedHeight: CGFloat = 76
@@ -31,10 +30,13 @@ enum ItemRegistrationLayout {
     static let designWidth: CGFloat = 412
 
     static var imageGridColumns: [GridItem] {
-        Array(
-            repeating: GridItem(.fixed(imageOptionSize), spacing: imageGridSpacing, alignment: .leading),
-            count: imageGridColumnCount
-        )
+        [
+            GridItem(
+                .adaptive(minimum: imageOptionSize, maximum: imageOptionSize),
+                spacing: imageGridSpacing,
+                alignment: .leading
+            )
+        ]
     }
 
     static var bottomSheetHeaderHeight: CGFloat {
