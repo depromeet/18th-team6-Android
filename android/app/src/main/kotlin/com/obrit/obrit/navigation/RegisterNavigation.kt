@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.obrit.feature.register.screen.complete.RegisterCompleteScreen
 import com.obrit.feature.register.screen.direct.DirectRegisterScreen
 import com.obrit.feature.register.screen.manual.ManualRegisterNavigation
@@ -41,7 +40,7 @@ fun RegisterNavigation(
     var receiptDraftItems by remember { mutableStateOf<List<ReceiptDraftItem>>(emptyList()) }
     var receiptImageUrl by remember { mutableStateOf("") }
 
-    NavDisplay(
+    OBRitNavDisplay(
         backStack = registerBackStack,
         modifier = modifier,
         onBack = { registerBackStack.removeLastOrNull() },

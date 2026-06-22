@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.obrit.obrit.navigation.route.AgentRoute
 import com.obrit.obrit.navigation.route.HomeRoute
 import com.obrit.obrit.navigation.route.OnboardingRoute
@@ -20,7 +19,7 @@ fun OBRitNavigation(modifier: Modifier = Modifier) {
         rememberNavBackStack(
             if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start,
         )
-    NavDisplay(
+    OBRitNavDisplay(
         backStack = backStack,
         modifier = modifier,
         onBack = backStack::removeLastOrNull,

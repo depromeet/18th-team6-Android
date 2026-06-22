@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.obrit.feature.register.screen.complete.RegisterCompleteScreen
 import com.obrit.feature.register.screen.onboarding.OnboardingDetailScreen
 import com.obrit.feature.register.screen.onboarding.OnboardingSelectScreen
@@ -17,7 +16,7 @@ fun OnboardingNavigation(
     modifier: Modifier = Modifier,
 ) {
     val onboardingBackStack = rememberNavBackStack(OnboardingRoute.Start)
-    NavDisplay(
+    OBRitNavDisplay(
         backStack = onboardingBackStack,
         modifier = modifier,
         onBack = { onboardingBackStack.removeLastOrNull() },

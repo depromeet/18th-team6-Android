@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.obrit.feature.detail.screen.DetailEditScreen
 import com.obrit.feature.detail.screen.DetailEditSubmitResult
 import com.obrit.feature.detail.screen.DetailScreen
@@ -27,7 +26,7 @@ fun HomeNavigation(
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
     var detailEditResult by remember { mutableStateOf<DetailEditSubmitResult?>(null) }
 
-    NavDisplay(
+    OBRitNavDisplay(
         backStack = homeBackStack,
         modifier = modifier,
         onBack = { homeBackStack.removeLastOrNull() },
