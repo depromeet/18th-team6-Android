@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
 import com.obrit.feature.detail.screen.DetailEditScreen
 import com.obrit.feature.detail.screen.DetailEditSubmitResult
 import com.obrit.feature.detail.screen.DetailScreen
@@ -21,7 +20,7 @@ fun AgentNavigation(modifier: Modifier = Modifier) {
     val agentBackStack = rememberNavBackStack(AgentRoute.Agents)
     var detailEditResult by remember { mutableStateOf<DetailEditSubmitResult?>(null) }
 
-    NavDisplay(
+    OBRitNavDisplay(
         backStack = agentBackStack,
         modifier = modifier,
         onBack = agentBackStack::removeLastOrNull,
