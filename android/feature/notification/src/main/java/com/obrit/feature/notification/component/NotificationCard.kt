@@ -124,7 +124,10 @@ internal fun NotificationCard(
 
 // 아래 두 색은 디자인 토큰(AtomColors)에 없다. Figma 알림 카드 스펙에 맞추기 위해 임시로 추가한 값이다.
 // 디자인시스템에 정식 토큰이 등록되면 그것으로 교체할 것.
+@Suppress("MagicNumber")
 private val NotificationCardBackground = Color(0xFF2C2B2D)
+
+@Suppress("MagicNumber")
 private val NotificationCardBorder = Color(0x804E565E)
 
 private val NotificationCardShape = RoundedCornerShape(AtomRadius.ExtraLarge.dp)
