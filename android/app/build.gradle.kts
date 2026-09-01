@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.android.feature.detail)
     implementation(projects.android.feature.register)
     implementation(projects.android.feature.home)
+    implementation(projects.android.feature.notification)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
 

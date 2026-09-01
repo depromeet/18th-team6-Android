@@ -14,6 +14,7 @@ import com.obrit.feature.detail.screen.DetailScreen
 import com.obrit.feature.home.screen.HomeScreen
 import com.obrit.feature.home.screen.ItemListScreen
 import com.obrit.feature.home.screen.SearchScreen
+import com.obrit.feature.notification.screen.NotificationScreen
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
@@ -35,12 +36,18 @@ fun HomeNavigation(
                 entry<HomeRoute.Home> {
                     HomeScreen(
                         onSearchClick = { homeBackStack.add(HomeRoute.Search) },
-                        onNotificationClick = {},
+                        onNotificationClick = { homeBackStack.add(HomeRoute.Notification) },
                         onProfileClick = {},
                         onReceiptRegisterClick = onReceiptRegisterClick,
                         onManualRegisterClick = onManualRegisterClick,
                         onMoreClick = { homeBackStack.add(HomeRoute.ConsumableList) },
                         onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
+                        modifier = Modifier,
+                    )
+                }
+                entry<HomeRoute.Notification> {
+                    NotificationScreen(
+                        onBackClick = { homeBackStack.removeLastOrNull() },
                         modifier = Modifier,
                     )
                 }
