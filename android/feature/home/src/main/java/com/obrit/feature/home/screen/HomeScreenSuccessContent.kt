@@ -82,6 +82,7 @@ internal fun HomeScreenSuccessContent(
                 onNotificationClick = action.onNotificationClick,
                 onProfileClick = action.onProfileClick,
                 modifier = Modifier.statusBarsPadding(),
+                showAlertAndMyPage = true,
             )
             if (selectedTab == OBRitGnbTab.Home) {
                 HomeContents(
