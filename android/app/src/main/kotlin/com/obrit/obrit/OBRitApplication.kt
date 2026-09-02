@@ -7,6 +7,7 @@ import com.obrit.feature.home.di.homeFeatureModule
 import com.obrit.feature.register.di.registerFeatureModule
 import com.obrit.obrit.di.appModule
 import com.obrit.obrit.di.initKoin
+import com.obrit.obrit.notification.createObritNotificationChannel
 import org.koin.android.ext.koin.androidContext
 
 class OBRitApplication : Application() {
@@ -17,5 +18,7 @@ class OBRitApplication : Application() {
             androidContext(this@OBRitApplication)
             modules(appModule, agentFeatureModule, detailFeatureModule, homeFeatureModule, registerFeatureModule)
         }
+
+        createObritNotificationChannel(this)
     }
 }
