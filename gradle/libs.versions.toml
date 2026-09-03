@@ -25,6 +25,8 @@ lifecycleViewmodelNav3 = "2.10.0"
 kotlinxSerializationCore = "1.11.0"
 coil = "3.4.0"
 camerax = "1.4.1"
+firebaseBom = "34.18.0"
+googleServices = "4.5.0"
 
 [libraries]
 
@@ -103,6 +105,11 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 # endregion
 
+# region Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+# endregion
+
 # region CameraX
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
@@ -121,6 +128,7 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 obrit-kotlin-multiplatform = { id = "com.obrit.plugin.kotlin.multiplatform" }
 obrit-root = { id = "com.obrit.plugin.root" }
 # endregion

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.obrit.android.compose)
     alias(libs.plugins.obrit.android.koin)
     alias(libs.plugins.obrit.android.navigation3)
+    alias(libs.plugins.googleServices)
 }
 
 dependencies {
@@ -14,6 +15,9 @@ dependencies {
     implementation(projects.android.feature.notification)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.kotlin.test)
 }
