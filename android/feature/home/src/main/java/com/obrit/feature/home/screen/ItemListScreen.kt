@@ -27,6 +27,7 @@ fun ItemListScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
+
     val success = state as? HomeUiState.Success ?: return
 
     ItemListScreenContent(

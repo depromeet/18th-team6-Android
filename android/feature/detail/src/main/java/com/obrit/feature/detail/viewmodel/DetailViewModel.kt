@@ -3,6 +3,8 @@
 package com.obrit.feature.detail.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.AgentRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
@@ -22,6 +24,7 @@ import java.time.temporal.ChronoUnit
 class DetailViewModel internal constructor(
     private val agentRepository: AgentRepository,
     private val itemRepository: ItemRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<DetailUiState, DetailSideEffect>() {
     override val container = container<DetailUiState, DetailSideEffect>(DetailUiState.Loading)
 
@@ -176,8 +179,10 @@ class DetailViewModel internal constructor(
 
             deleteResult
                 .onSuccess {
+                    analyticsLogger.log(OBRitLoggingEvent.DeleteSuccess(consumableId = targetConsumableId.toString()))
                     postSideEffect(DetailSideEffect.NavigateAfterDelete)
                 }.onFailure {
+                    analyticsLogger.log(OBRitLoggingEvent.DeleteFail(consumableId = targetConsumableId.toString(), failureType = "unknown"))
                     val latestState = state as? DetailUiState.ConsumableSuccess ?: return@onFailure
                     reduce {
                         latestState
@@ -237,6 +242,7 @@ class DetailViewModel internal constructor(
 
             updateResult
                 .onSuccess { updatedItem ->
+                    analyticsLogger.log(OBRitLoggingEvent.SpareEditSuccess(consumableId = currentState.consumableId.toString()))
                     val refreshedDetail = itemRepository.getItem(currentState.consumableId).getOrNull()
                     if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
                         return@onSuccess
@@ -256,6 +262,9 @@ class DetailViewModel internal constructor(
                     }
                     postSideEffect(DetailSideEffect.ShowSnackbar(DetailUserMessage.SPARE_UPDATE_SUCCEEDED))
                 }.onFailure {
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.SpareEditFail(consumableId = currentState.consumableId.toString(), failureType = "unknown"),
+                    )
                     if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
                         return@onFailure
                     }
@@ -314,6 +323,12 @@ class DetailViewModel internal constructor(
 
             replaceResult
                 .onSuccess { replacedItem ->
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.ReplacementSuccess(
+                            consumableId = currentState.consumableId.toString(),
+                            daysElapsed = -(currentState.dDayValue ?: 0),
+                        ),
+                    )
                     val refreshedDetail = itemRepository.getItem(currentState.consumableId).getOrNull()
                     if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
                         return@onSuccess
@@ -365,6 +380,12 @@ class DetailViewModel internal constructor(
                         successState
                     }
                 }.onFailure {
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.ReplacementFail(
+                            consumableId = currentState.consumableId.toString(),
+                            failureType = "unknown",
+                        ),
+                    )
                     if (!isCurrentConsumableMutation(mutationGeneration, currentState.consumableId)) {
                         return@onFailure
                     }
@@ -439,6 +460,9 @@ class DetailViewModel internal constructor(
                 .onSuccess { itemDetail ->
                     reduce {
                         itemDetail.toDetailSuccess(today = dateProvider.today())
+                    }
+                    if (showLoading) {
+                        analyticsLogger.log(OBRitLoggingEvent.DetailPageView(consumableId = consumableId.toString()))
                     }
                 }.onFailure { error ->
                     if (error.isNotFound()) {

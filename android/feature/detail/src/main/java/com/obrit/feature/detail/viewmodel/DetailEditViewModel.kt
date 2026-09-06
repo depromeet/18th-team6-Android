@@ -3,6 +3,8 @@
 package com.obrit.feature.detail.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
@@ -16,6 +18,7 @@ import kotlin.math.roundToInt
 class DetailEditViewModel internal constructor(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<DetailEditUiState, DetailEditSideEffect>() {
     override val container = container<DetailEditUiState, DetailEditSideEffect>(DetailEditUiState.Loading)
 
@@ -108,6 +111,7 @@ class DetailEditViewModel internal constructor(
 
         saveResult
             .onSuccess {
+                analyticsLogger.log(OBRitLoggingEvent.DetailEditSuccess(consumableId = consumableId.toString()))
                 postSideEffect(
                     DetailEditSideEffect.EditCompleted(
                         consumableId = consumableId,
@@ -117,6 +121,7 @@ class DetailEditViewModel internal constructor(
                     ),
                 )
             }.onFailure {
+                analyticsLogger.log(OBRitLoggingEvent.DetailEditFail(consumableId = consumableId.toString(), failureType = "unknown"))
                 val latestState = state as? DetailEditUiState.Success ?: return@onFailure
                 reduce {
                     latestState.copy(isSaveProcessing = false)

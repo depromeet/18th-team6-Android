@@ -43,9 +43,10 @@ fun HomeScreen(
                 onSpareFilterChange = viewModel::onSpareFilterChange,
                 onFilterApply = viewModel::onFilterApply,
                 onMoreClick = viewModel::onMoreClick,
+                onListTabSelect = viewModel::onListTabSelected,
                 onLoadMoreItems = viewModel::onLoadMoreItems,
-                onReceiptRegisterClick = onReceiptRegisterClick,
-                onManualRegisterClick = onManualRegisterClick,
+                onReceiptRegisterClick = viewModel::onReceiptRegisterClick,
+                onManualRegisterClick = viewModel::onManualRegisterClick,
                 onItemClick = onItemClick,
             ),
         modifier = modifier,
@@ -57,6 +58,8 @@ fun HomeScreen(
             is HomeSideEffect.OnNotificationClick -> onNotificationClick()
             is HomeSideEffect.OnProfileClick -> onProfileClick()
             is HomeSideEffect.OnMoreClick -> onMoreClick()
+            is HomeSideEffect.OnReceiptRegisterClick -> onReceiptRegisterClick()
+            is HomeSideEffect.OnManualRegisterClick -> onManualRegisterClick()
         }
     }
 }
@@ -91,6 +94,7 @@ internal data class HomeScreenAction(
     val onSpareFilterChange: (Int) -> Unit,
     val onFilterApply: (Int, Int) -> Unit,
     val onMoreClick: () -> Unit,
+    val onListTabSelect: () -> Unit,
     val onLoadMoreItems: () -> Unit,
     val onReceiptRegisterClick: () -> Unit,
     val onManualRegisterClick: () -> Unit,

@@ -1,6 +1,8 @@
 package com.obrit.feature.home.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.android.core.ui.extensions.vmAsync
 import com.obrit.feature.home.data.ItemCatalogCache
@@ -22,6 +24,7 @@ class HomeViewModel internal constructor(
     private val categoryRepository: CategoryRepository,
     private val searchHistoryDataSource: SearchHistoryDataSource,
     private val itemCatalogCache: ItemCatalogCache,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<HomeUiState, HomeSideEffect>() {
     override val container =
         container<HomeUiState, HomeSideEffect>(HomeUiState.Loading) {
@@ -58,6 +61,7 @@ class HomeViewModel internal constructor(
                 }
 
                 reduce { createSuccessState(overallStatus, myStatusSummary, buckets, items, usageItems.content, createMockStatus()) }
+                analyticsLogger.log(OBRitLoggingEvent.HomePageView(consumableCount = items.content.size))
             } catch (e: CancellationException) {
                 throw e
             } catch (
@@ -198,7 +202,28 @@ class HomeViewModel internal constructor(
             }
         }
 
-    fun onMoreClick() = intent { postSideEffect(HomeSideEffect.OnMoreClick) }
+    fun onMoreClick() =
+        intent {
+            postSideEffect(HomeSideEffect.OnMoreClick)
+        }
+
+    fun onListTabSelected() =
+        intent {
+            val consumableCount = (state as? HomeUiState.Success)?.items?.content?.size ?: 0
+            analyticsLogger.log(OBRitLoggingEvent.ListPageView(consumableCount))
+        }
+
+    fun onReceiptRegisterClick() =
+        intent {
+            analyticsLogger.log(OBRitLoggingEvent.RegisterMethodSelect(OBRitLoggingEvent.RegisterMethod.RECEIPT))
+            postSideEffect(HomeSideEffect.OnReceiptRegisterClick)
+        }
+
+    fun onManualRegisterClick() =
+        intent {
+            analyticsLogger.log(OBRitLoggingEvent.RegisterMethodSelect(OBRitLoggingEvent.RegisterMethod.DIRECT))
+            postSideEffect(HomeSideEffect.OnManualRegisterClick)
+        }
 }
 
 sealed interface HomeUiState {
@@ -230,6 +255,10 @@ sealed interface HomeSideEffect {
     data object OnProfileClick : HomeSideEffect
 
     data object OnMoreClick : HomeSideEffect
+
+    data object OnReceiptRegisterClick : HomeSideEffect
+
+    data object OnManualRegisterClick : HomeSideEffect
 }
 
 // API 응답 형태를 임시로 ViewModel에 정의한다.
