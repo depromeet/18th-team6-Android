@@ -19,6 +19,7 @@ import com.obrit.obrit.shared.model.home.MyStatusSummary
 import org.orbitmvi.orbit.viewmodel.container
 import kotlin.coroutines.cancellation.CancellationException
 
+@Suppress("TooManyFunctions")
 class HomeViewModel internal constructor(
     private val homeRepository: HomeRepository,
     private val categoryRepository: CategoryRepository,
