@@ -10,6 +10,8 @@ import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.data.repository.HomeRepositoryImpl
 import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.data.repository.ItemRepositoryImpl
+import com.obrit.obrit.shared.data.repository.NotificationRepository
+import com.obrit.obrit.shared.data.repository.NotificationRepositoryImpl
 import com.obrit.obrit.shared.data.repository.ReceiptRepository
 import com.obrit.obrit.shared.data.repository.ReceiptRepositoryImpl
 import com.obrit.obrit.shared.data.repository.UserRepository
@@ -25,4 +27,5 @@ val dataModule =
         single<CategoryRepository> { CategoryRepositoryImpl(get()) }
         single<HomeRepository> { HomeRepositoryImpl(get()) }
         single<UserRepository> { UserRepositoryImpl(get(), get()) }
+        single<NotificationRepository> { NotificationRepositoryImpl(get()) }
     }
