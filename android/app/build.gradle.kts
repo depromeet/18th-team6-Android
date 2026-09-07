@@ -15,9 +15,11 @@ dependencies {
     implementation(projects.android.feature.notification)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
+    implementation(projects.android.core.analytics)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
 
     testImplementation(libs.kotlin.test)
 }

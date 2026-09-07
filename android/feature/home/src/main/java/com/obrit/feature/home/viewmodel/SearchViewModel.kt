@@ -1,6 +1,8 @@
 package com.obrit.feature.home.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.feature.home.data.ItemCatalogCache
 import com.obrit.feature.home.data.SearchHistoryDataSource
@@ -10,11 +12,13 @@ import org.orbitmvi.orbit.viewmodel.container
 class SearchViewModel(
     private val historyDataSource: SearchHistoryDataSource,
     private val itemCatalogCache: ItemCatalogCache,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<SearchUiState, SearchSideEffect>() {
     override val container = container<SearchUiState, SearchSideEffect>(SearchUiState())
 
     fun onScreenOpen() =
         intent {
+            analyticsLogger.log(OBRitLoggingEvent.SearchPageView(consumableCount = itemCatalogCache.get().size))
             val keywords = historyDataSource.getHistory()
             reduce { SearchUiState(recentKeywords = keywords) }
         }

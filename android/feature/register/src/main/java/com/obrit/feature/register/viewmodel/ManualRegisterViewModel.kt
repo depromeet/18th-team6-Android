@@ -1,6 +1,8 @@
 package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
@@ -13,11 +15,15 @@ import org.orbitmvi.orbit.viewmodel.container
 class ManualRegisterViewModel(
     private val categoryRepository: CategoryRepository,
     private val itemRepository: ItemRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<ManualRegisterUiState, ManualRegisterSideEffect>() {
+    private val registerStartedAt = System.currentTimeMillis()
+
     override val container =
         container<ManualRegisterUiState, ManualRegisterSideEffect>(
             ManualRegisterUiState(),
         ) {
+            analyticsLogger.log(OBRitLoggingEvent.ManualRegisterStart)
             loadCategories()
         }
 
@@ -86,10 +92,18 @@ class ManualRegisterViewModel(
             itemRepository
                 .createItem(params)
                 .onSuccess {
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.ManualRegisterComplete(
+                            durationMs = System.currentTimeMillis() - registerStartedAt,
+                        ),
+                    )
                     reduce { ManualRegisterUiState(categories = state.categories) }
                     postSideEffect(ManualRegisterSideEffect.OnRegistered)
                     loadCategories()
                 }.onFailure { throwable ->
+                    val failureType =
+                        if (throwable is CreateItemError.DuplicatedName) "duplicate_name" else "unknown"
+                    analyticsLogger.log(OBRitLoggingEvent.ManualRegisterFail(failureType = failureType))
                     reduce {
                         state.copy(
                             isSubmitting = false,

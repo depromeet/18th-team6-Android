@@ -1,6 +1,8 @@
 package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.model.items.CreateItemParams
@@ -9,6 +11,7 @@ import org.orbitmvi.orbit.viewmodel.container
 
 class ReceiptDetailViewModel(
     private val itemRepository: ItemRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<ReceiptDetailUiState, ReceiptDetailSideEffect>() {
     override val container =
         container<ReceiptDetailUiState, ReceiptDetailSideEffect>(ReceiptDetailUiState())
@@ -66,10 +69,16 @@ class ReceiptDetailViewModel(
                         newCategoryDefaultReplacementIntervalDays = form.newCategoryDefaultReplacementIntervalDays,
                     )
                 }
+            val registeredCount = state.forms.size
             itemRepository
                 .createItems(params, receiptImageUrl = state.receiptImageUrl.ifBlank { null })
-                .onSuccess { postSideEffect(ReceiptDetailSideEffect.OnComplete) }
-                .onFailure { reduce { state.copy(isSubmitting = false) } }
+                .onSuccess {
+                    analyticsLogger.log(OBRitLoggingEvent.ReceiptBulkRegisterComplete(registeredCount = registeredCount))
+                    postSideEffect(ReceiptDetailSideEffect.OnComplete)
+                }.onFailure {
+                    analyticsLogger.log(OBRitLoggingEvent.ReceiptBulkRegisterFail(failureType = "unknown"))
+                    reduce { state.copy(isSubmitting = false) }
+                }
         }
 
     fun onBack() =

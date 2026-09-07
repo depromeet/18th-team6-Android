@@ -88,7 +88,10 @@ internal fun HomeScreenSuccessContent(
                 HomeContents(
                     state = state,
                     onListSortOrderChange = action.onListSortOrderChange,
-                    onMoreClick = { selectedTab = OBRitGnbTab.List },
+                    onMoreClick = {
+                        selectedTab = OBRitGnbTab.List
+                        action.onListTabSelect()
+                    },
                     onLoadMoreItems = action.onLoadMoreItems,
                     onItemClick = action.onItemClick,
                 )
@@ -130,7 +133,10 @@ internal fun HomeScreenSuccessContent(
         }
         HomeGnbBar(
             selectedTab = selectedTab,
-            onTabSelect = { selectedTab = it },
+            onTabSelect = { tab ->
+                selectedTab = tab
+                if (tab == OBRitGnbTab.List) action.onListTabSelect()
+            },
             fabExpanded = fabExpanded,
             onFabToggle = { fabExpanded = !fabExpanded },
             modifier = Modifier.align(Alignment.BottomCenter),

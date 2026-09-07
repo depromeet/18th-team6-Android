@@ -1,6 +1,8 @@
 package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
@@ -12,7 +14,9 @@ import org.orbitmvi.orbit.viewmodel.container
 class OnboardingDetailViewModel(
     private val categoryRepository: CategoryRepository,
     private val itemRepository: ItemRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<OnboardingDetailUiState, OnboardingDetailSideEffect>() {
+    private val startedAt = System.currentTimeMillis()
     override val container =
         container<OnboardingDetailUiState, OnboardingDetailSideEffect>(
             OnboardingDetailUiState(),
@@ -64,8 +68,25 @@ class OnboardingDetailViewModel(
                 }
             itemRepository
                 .createItems(params)
-                .onSuccess { postSideEffect(OnboardingDetailSideEffect.OnComplete) }
-                .onFailure { reduce { state.copy(isSubmitting = false) } }
+                .onSuccess {
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.OnboardingComplete(
+                            selectionCount = state.rows.size,
+                            durationMs = System.currentTimeMillis() - startedAt,
+                            success = true,
+                        ),
+                    )
+                    postSideEffect(OnboardingDetailSideEffect.OnComplete)
+                }.onFailure {
+                    analyticsLogger.log(
+                        OBRitLoggingEvent.OnboardingComplete(
+                            selectionCount = state.rows.size,
+                            durationMs = System.currentTimeMillis() - startedAt,
+                            success = false,
+                        ),
+                    )
+                    reduce { state.copy(isSubmitting = false) }
+                }
         }
 
     fun onBack() =

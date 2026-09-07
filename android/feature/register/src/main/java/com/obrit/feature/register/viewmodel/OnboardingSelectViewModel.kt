@@ -1,6 +1,8 @@
 package com.obrit.feature.register.viewmodel
 
 import androidx.compose.runtime.Immutable
+import com.obrit.android.core.analytics.AnalyticsLogger
+import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.model.categories.Category
@@ -8,11 +10,13 @@ import org.orbitmvi.orbit.viewmodel.container
 
 class OnboardingSelectViewModel(
     private val categoryRepository: CategoryRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : BaseContainerHost<OnboardingSelectUiState, OnboardingSelectSideEffect>() {
     override val container =
         container<OnboardingSelectUiState, OnboardingSelectSideEffect>(
             OnboardingSelectUiState(),
         ) {
+            analyticsLogger.log(OBRitLoggingEvent.OnboardingStart)
             loadCategories()
         }
 
