@@ -8,6 +8,8 @@ import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
+import androidx.glance.action.Action
+import androidx.glance.action.clickable
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -33,6 +35,7 @@ private const val LABEL_ALPHA = 0.3f
 @Composable
 internal fun StatusWidgetContent(
     state: StatusWidgetState,
+    openHomeAction: Action?,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     val metrics = statusWidgetMetricsFor(LocalSize.current)
@@ -49,7 +52,7 @@ internal fun StatusWidgetContent(
     // 런처 셀은 시안보다 세로로 길다. 셀 전체를 칠하면 비율이 깨지므로
     // 시안 비율의 카드만 그리고 남는 위아래는 투명하게 둔다.
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().clickableIfPresent(openHomeAction),
         contentAlignment = Alignment.Center,
     ) {
         StatusWidgetCard(
@@ -194,3 +197,11 @@ private fun StatusGaugeRow(
         }
     }
 }
+
+/**
+ * 위젯 어디를 눌러도 앱 홈으로 가도록 카드 바깥 여백까지 클릭 영역에 넣는다.
+ *
+ * Action은 컴포지션 밖에서 만들어 받는다. 안에서 만들면 재구성마다 새 Intent가 생기고,
+ * RemoteViews가 매번 달라져 런처 재측정 → 재구성이 반복되는 갱신 루프가 된다.
+ */
+internal fun GlanceModifier.clickableIfPresent(action: Action?): GlanceModifier = if (action == null) this else clickable(action)

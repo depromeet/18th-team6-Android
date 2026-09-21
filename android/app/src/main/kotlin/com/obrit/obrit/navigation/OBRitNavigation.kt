@@ -1,6 +1,7 @@
 package com.obrit.obrit.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -13,12 +14,24 @@ import org.koin.compose.koinInject
 
 @Suppress("LongMethod")
 @Composable
-fun OBRitNavigation(modifier: Modifier = Modifier) {
+fun OBRitNavigation(
+    modifier: Modifier = Modifier,
+    openHomeSignal: Int = 0,
+) {
     val onboardingStorage = koinInject<OnboardingStorage>()
     val backStack =
         rememberNavBackStack(
             if (onboardingStorage.isCompleted()) HomeRoute.Home else OnboardingRoute.Start,
         )
+
+    // 위젯을 눌러 들어오면 이전에 보던 화면이 아니라 홈에서 시작한다.
+    // 온보딩을 마치지 않은 사용자는 건드리지 않는다.
+    LaunchedEffect(openHomeSignal) {
+        if (openHomeSignal > 0 && onboardingStorage.isCompleted()) {
+            backStack.clear()
+            backStack.add(HomeRoute.Home)
+        }
+    }
     OBRitNavDisplay(
         backStack = backStack,
         modifier = modifier,
