@@ -4,5 +4,6 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.shared.designSystem)
     implementation(libs.androidx.glance.appwidget)
 }

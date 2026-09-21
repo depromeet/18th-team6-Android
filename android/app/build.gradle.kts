@@ -13,6 +13,7 @@ dependencies {
     implementation(projects.android.feature.register)
     implementation(projects.android.feature.home)
     implementation(projects.android.feature.notification)
+    implementation(projects.android.feature.widget)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
     implementation(projects.android.core.analytics)
