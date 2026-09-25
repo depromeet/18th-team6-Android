@@ -20,6 +20,8 @@ import com.obrit.obrit.shared.network.source.HomeRemoteDataSource
 import com.obrit.obrit.shared.network.source.HomeRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSource
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSourceImpl
+import com.obrit.obrit.shared.network.source.NotificationRemoteDataSource
+import com.obrit.obrit.shared.network.source.NotificationRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSource
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.UserRemoteDataSource
@@ -48,4 +50,5 @@ val networkModule =
         single<ReceiptRemoteDataSource> { ReceiptRemoteDataSourceImpl(get(), get()) }
         single<CategoryRemoteDataSource> { CategoryRemoteDataSourceImpl(get(), get()) }
         single<HomeRemoteDataSource> { HomeRemoteDataSourceImpl(get(), get()) }
+        single<NotificationRemoteDataSource> { NotificationRemoteDataSourceImpl(get(), get()) }
     }
