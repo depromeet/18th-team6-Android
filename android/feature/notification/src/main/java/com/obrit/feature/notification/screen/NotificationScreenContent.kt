@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.component.topbar.OBRitDepthTopBar
+import com.obrit.android.core.designsystem.component.topbar.OBRitTopBarAction
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
@@ -67,6 +68,12 @@ internal fun NotificationScreenContent(
         OBRitDepthTopBar(
             title = NOTIFICATION_TITLE,
             onBackClick = action.onBackClick,
+            trailingAction =
+                OBRitTopBarAction(
+                    iconRes = R.drawable.ic_gear,
+                    contentDescription = NOTIFICATION_SETTINGS_DESCRIPTION,
+                    onClick = action.onSettingsClick,
+                ),
         )
 
         LazyColumn(
@@ -175,6 +182,7 @@ private fun NotificationPermissionBanner(
 private val NotificationBannerIconSize = AtomSpacing.S5.dp
 
 private const val NOTIFICATION_TITLE = "알림"
+private const val NOTIFICATION_SETTINGS_DESCRIPTION = "알림 설정"
 private const val NOTIFICATION_PERMISSION_BANNER_TEXT = "알림받기를 설정하고 유용한 알림들을 받아보세요!"
 
 @Preview(name = "NotificationScreenContent", showBackground = true)
@@ -218,6 +226,7 @@ private fun NotificationScreenContentPreview() {
             action =
                 NotificationScreenAction(
                     onBackClick = {},
+                    onSettingsClick = {},
                     onPermissionBannerClick = {},
                     onItemClick = {},
                 ),

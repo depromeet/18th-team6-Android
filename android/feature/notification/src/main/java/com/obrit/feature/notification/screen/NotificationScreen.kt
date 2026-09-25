@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 @Composable
 fun NotificationScreen(
     onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -37,6 +38,7 @@ fun NotificationScreen(
         action =
             NotificationScreenAction(
                 onBackClick = onBackClick,
+                onSettingsClick = onSettingsClick,
                 onPermissionBannerClick = {
                     context.startActivity(appNotificationSettingsIntent(context.packageName))
                 },
@@ -48,6 +50,7 @@ fun NotificationScreen(
 
 internal data class NotificationScreenAction(
     val onBackClick: () -> Unit,
+    val onSettingsClick: () -> Unit,
     val onPermissionBannerClick: () -> Unit,
     val onItemClick: (NotificationItem) -> Unit,
 )
