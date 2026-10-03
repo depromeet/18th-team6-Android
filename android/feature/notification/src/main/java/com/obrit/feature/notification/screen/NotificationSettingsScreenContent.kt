@@ -3,6 +3,7 @@ package com.obrit.feature.notification.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.component.topbar.OBRitDepthTopBar
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.feature.notification.component.NOTIFICATION_DAYS_UNSET_LABEL
 import com.obrit.feature.notification.component.NotificationPermissionBanner
 import com.obrit.feature.notification.component.NotificationSettingsCard
 import com.obrit.feature.notification.component.NotificationSettingsDivider
@@ -30,10 +32,17 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/** 값 행을 눌렀을 때 올라올 바텀시트. */
+internal enum class NotificationSettingsSheet {
+    LeadDays,
+    OverdueDays,
+    SendTime,
+}
+
 /**
  * 알림 설정 화면 상태. 기본값은 알림 기능 명세서 3장 기준값을 따른다.
  *
- * [leadDays]와 [overdueDays]는 null이면 해당 단계를 보내지 않는다(Figma `설정 안함`).
+ * [leadDays]와 [overdueDays]는 null이면 해당 단계를 보내지 않는다(Figma `설정 안 함`).
  * 둘 다 null이어도 [isReplacementEnabled]가 켜져 있으면 교체일 당일 알림은 온다.
  */
 @Immutable
@@ -71,17 +80,20 @@ internal fun NotificationSettingsScreenContent(
             onPermissionBannerClick = action.onPermissionBannerClick,
             onReplacementChange = action.onReplacementChange,
             onSpareShortageChange = action.onSpareShortageChange,
+            onSheetRequest = action.onSheetRequest,
         )
     }
 }
 
 @Composable
+@Suppress("LongParameterList")
 private fun NotificationSettingsBody(
     state: NotificationSettingsUiState,
     isPermissionGranted: Boolean,
     onPermissionBannerClick: () -> Unit,
     onReplacementChange: (Boolean) -> Unit,
     onSpareShortageChange: (Boolean) -> Unit,
+    onSheetRequest: (NotificationSettingsSheet) -> Unit,
 ) {
     Column(
         modifier =
@@ -89,12 +101,7 @@ private fun NotificationSettingsBody(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
-                .padding(
-                    start = AtomSpacing.S5.dp,
-                    end = AtomSpacing.S5.dp,
-                    top = if (isPermissionGranted) AtomSpacing.S6.dp else AtomSpacing.S2_5.dp,
-                    bottom = AtomSpacing.S5.dp,
-                ),
+                .padding(bodyPadding(isPermissionGranted)),
     ) {
         if (!isPermissionGranted) {
             NotificationPermissionBanner(
@@ -110,6 +117,7 @@ private fun NotificationSettingsBody(
                 leadDays = state.leadDays,
                 overdueDays = state.overdueDays,
                 onEnabledChange = onReplacementChange,
+                onSheetRequest = onSheetRequest,
             )
             SpareShortageSection(
                 isEnabled = state.isSpareShortageEnabled,
@@ -119,10 +127,20 @@ private fun NotificationSettingsBody(
                 sendTime = state.sendTime,
                 // T는 교체·여분 알림이 함께 쓰므로 둘 다 꺼지면 고를 이유가 없어진다(명세서 4.3).
                 isEnabled = state.isReplacementEnabled || state.isSpareShortageEnabled,
+                onClick = { onSheetRequest(NotificationSettingsSheet.SendTime) },
             )
         }
     }
 }
+
+/** 배너가 보이면 위 여백이 24에서 10으로 줄어든다(Figma 2908:10446). */
+private fun bodyPadding(isPermissionGranted: Boolean): PaddingValues =
+    PaddingValues(
+        start = AtomSpacing.S5.dp,
+        end = AtomSpacing.S5.dp,
+        top = if (isPermissionGranted) AtomSpacing.S6.dp else AtomSpacing.S2_5.dp,
+        bottom = AtomSpacing.S5.dp,
+    )
 
 /** 교체 예정 알림을 끄면 사전·지연 알림을 보내지 않으므로 두 일수 행을 함께 흐리게 한다(명세서 4.3). */
 @Composable
@@ -131,9 +149,9 @@ private fun ReplacementSection(
     leadDays: Int?,
     overdueDays: Int?,
     onEnabledChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
+    onSheetRequest: (NotificationSettingsSheet) -> Unit,
 ) {
-    NotificationSettingsSection(title = "교체 알림", modifier = modifier) {
+    NotificationSettingsSection(title = "교체 알림") {
         NotificationSettingsCard(verticalPadding = AtomSpacing.S2.dp) {
             NotificationSettingsToggleRow(
                 title = "교체 예정 알림",
@@ -144,14 +162,16 @@ private fun ReplacementSection(
             NotificationSettingsDivider()
             NotificationSettingsValueRow(
                 title = "교체 사전 알림",
-                value = leadDays?.let { "${it}일 전" } ?: UNSET_VALUE_TEXT,
+                value = leadDays?.let { "${it}일 전" } ?: NOTIFICATION_DAYS_UNSET_LABEL,
                 enabled = isEnabled,
+                onClick = { onSheetRequest(NotificationSettingsSheet.LeadDays) },
             )
             NotificationSettingsDivider()
             NotificationSettingsValueRow(
                 title = "교체 지연 알림",
-                value = overdueDays?.let { "${it}일 후" } ?: UNSET_VALUE_TEXT,
+                value = overdueDays?.let { "${it}일 후" } ?: NOTIFICATION_DAYS_UNSET_LABEL,
                 enabled = isEnabled,
+                onClick = { onSheetRequest(NotificationSettingsSheet.OverdueDays) },
             )
         }
     }
@@ -179,6 +199,7 @@ private fun SpareShortageSection(
 private fun SendTimeSection(
     sendTime: LocalTime,
     isEnabled: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NotificationSettingsSection(title = "알림 시간", modifier = modifier) {
@@ -187,13 +208,13 @@ private fun SendTimeSection(
                 title = "알림 시간 설정",
                 value = sendTime.format(SendTimeFormatter),
                 enabled = isEnabled,
+                onClick = onClick,
             )
         }
     }
 }
 
 private const val NOTIFICATION_SETTINGS_TITLE = "알림 설정"
-private const val UNSET_VALUE_TEXT = "설정 안함"
 private const val DEFAULT_LEAD_DAYS = 3
 private const val DEFAULT_OVERDUE_DAYS = 3
 private const val DEFAULT_SEND_HOUR = 9
@@ -236,4 +257,5 @@ private val PreviewAction =
         onPermissionBannerClick = {},
         onReplacementChange = {},
         onSpareShortageChange = {},
+        onSheetRequest = {},
     )

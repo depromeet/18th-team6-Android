@@ -1,6 +1,7 @@
 package com.obrit.feature.notification.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -113,15 +114,15 @@ internal fun NotificationSettingsToggleRow(
 }
 
 /**
- * 오른쪽에 현재 값과 화살표를 두는 행.
+ * 오른쪽에 현재 값과 화살표를 두는 행. 누르면 값을 고르는 바텀시트가 올라온다.
  *
- * [enabled]가 false면 제목·값·화살표가 모두 `Text/Disabled/Default`로 흐려진다.
- * 값을 고르는 바텀시트는 아직 디자인이 없어 탭 동작은 없다(#162).
+ * [enabled]가 false면 제목·값·화살표가 모두 `Text/Disabled/Default`로 흐려지고 탭도 받지 않는다.
  */
 @Composable
 internal fun NotificationSettingsValueRow(
     title: String,
     value: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
@@ -133,6 +134,7 @@ internal fun NotificationSettingsValueRow(
         modifier =
             modifier
                 .fillMaxWidth()
+                .clickable(enabled = enabled, onClick = onClick)
                 .padding(top = AtomSpacing.S3.dp, bottom = AtomSpacing.S3.dp, end = AtomSpacing.S1.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
