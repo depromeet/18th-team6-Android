@@ -1,29 +1,22 @@
 package com.obrit.feature.notification.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,10 +28,10 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.notification.component.NotificationCard
+import com.obrit.feature.notification.component.NotificationPermissionBanner
 import com.obrit.feature.notification.viewmodel.NotificationGroup
 import com.obrit.feature.notification.viewmodel.NotificationItem
 import com.obrit.feature.notification.viewmodel.NotificationUiState
-import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 
 @Composable
@@ -218,47 +211,8 @@ private fun NotificationEmpty(modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-private fun NotificationPermissionBanner(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(AtomRadius.Small.dp))
-                .background(colors.green850)
-                .clickable(onClick = onClick)
-                .padding(
-                    horizontal = AtomSpacing.S3.dp,
-                    vertical = AtomSpacing.S2.dp,
-                ),
-        horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1_5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_topbar_bell),
-            contentDescription = null,
-            tint = colors.green300,
-            modifier = Modifier.size(NotificationBannerIconSize),
-        )
-        Text(
-            text = NOTIFICATION_PERMISSION_BANNER_TEXT,
-            style = typography.s.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.green300,
-        )
-    }
-}
-
-private val NotificationBannerIconSize = AtomSpacing.S5.dp
-
 private const val NOTIFICATION_TITLE = "알림"
 private const val NOTIFICATION_SETTINGS_DESCRIPTION = "알림 설정"
-private const val NOTIFICATION_PERMISSION_BANNER_TEXT = "알림받기를 설정하고 유용한 알림들을 받아보세요!"
 private const val NOTIFICATION_EMPTY_TEXT = "아직 도착한 알림이 없어요"
 private const val NOTIFICATION_LOAD_FAILED_TEXT = "알림을 불러오지 못했어요"
 private const val NOTIFICATION_RETRY_TEXT = "다시 시도"

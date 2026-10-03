@@ -85,8 +85,11 @@ internal fun NotificationSettingsToggleRow(
         modifier =
             modifier
                 .fillMaxWidth()
-                .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-                .padding(vertical = AtomSpacing.S3.dp),
+                .toggleable(
+                    value = checked,
+                    role = Role.Switch,
+                    onValueChange = onCheckedChange,
+                ).padding(vertical = AtomSpacing.S3.dp),
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -109,14 +112,22 @@ internal fun NotificationSettingsToggleRow(
     }
 }
 
+/**
+ * 오른쪽에 현재 값과 화살표를 두는 행.
+ *
+ * [enabled]가 false면 제목·값·화살표가 모두 `Text/Disabled/Default`로 흐려진다.
+ * 값을 고르는 바텀시트는 아직 디자인이 없어 탭 동작은 없다(#162).
+ */
 @Composable
 internal fun NotificationSettingsValueRow(
     title: String,
     value: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
+    val valueColor = if (enabled) colors.gray300 else colors.gray700
 
     Row(
         modifier =
@@ -128,18 +139,18 @@ internal fun NotificationSettingsValueRow(
         Text(
             text = title,
             style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.common00,
+            color = if (enabled) colors.common00 else colors.gray700,
             modifier = Modifier.weight(1f),
         )
         Text(
             text = value,
             style = typography.base.copy(fontWeight = FontWeight.Medium),
-            color = colors.gray300,
+            color = valueColor,
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_chevron_right),
             contentDescription = null,
-            tint = colors.gray300,
+            tint = valueColor,
             modifier =
                 Modifier
                     .padding(start = AtomSpacing.S1.dp)
