@@ -13,9 +13,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.obrit.obrit.MainActivity
+import com.obrit.obrit.navigation.deeplink.OBRIT_DEEP_LINK_KEY
 import com.obrit.obrit.shared.data.repository.NotificationRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -64,12 +66,17 @@ class ObritMessagingService : FirebaseMessagingService() {
     // data-only 메시지도 이 콜백으로 오지만, 서버 payload 스펙이 없어 아직 무엇을 표시할지 정할 수 없다.
     override fun onMessageReceived(message: RemoteMessage) {
         val notification = message.notification ?: return
-        showNotification(title = notification.title, body = notification.body)
+        showNotification(
+            title = notification.title,
+            body = notification.body,
+            deepLink = message.data[OBRIT_DEEP_LINK_KEY],
+        )
     }
 
     private fun showNotification(
         title: String?,
         body: String?,
+        deepLink: String?,
     ) {
         if (title == null && body == null) return
 
@@ -81,34 +88,39 @@ class ObritMessagingService : FirebaseMessagingService() {
                 PackageManager.PERMISSION_GRANTED
         if (!isPermissionGranted) return
 
+        val notificationId = System.currentTimeMillis().toInt()
         val notification =
             NotificationCompat
                 .Builder(this, getString(AppR.string.notification_channel_id))
                 .setSmallIcon(DesignSystemR.drawable.ic_topbar_bell)
                 .setContentTitle(title)
                 .setContentText(body)
-                .setContentIntent(launchAppIntent())
+                .setContentIntent(contentIntent(notificationId = notificationId, deepLink = deepLink))
                 .setAutoCancel(true)
                 .build()
 
         NotificationManagerCompat
             .from(this)
-            .notify(System.currentTimeMillis().toInt(), notification)
+            .notify(notificationId, notification)
     }
 
     /**
      * 탭하면 앱을 여는 인텐트. 없으면 알림이 눌리지 않고 setAutoCancel도 동작하지 않는다.
      *
-     * 백그라운드에서 받은 notification 메시지는 시스템이 알아서 이 인텐트를 붙이지만,
-     * 포그라운드 수신은 여기서 알림을 직접 만들기 때문에 직접 넣어야 한다.
-     * 알림 종류에 따라 목적지를 나누는 것(FR-NOTI-07)은 서버 payload 스펙이 정해진 뒤의 일이다.
+     * 백그라운드에서 받은 notification 메시지는 시스템이 알아서 이 인텐트를 붙이고 payload를 extra로 넣지만,
+     * 포그라운드 수신은 여기서 알림을 직접 만들기 때문에 서버가 준 딥링크를 직접 달아야 한다.
+     * 알림마다 목적지가 달라서 requestCode를 알림 ID로 둔다. 0으로 두면 먼저 만든 인텐트를 덮어쓴다.
      */
-    private fun launchAppIntent(): PendingIntent =
+    private fun contentIntent(
+        notificationId: Int,
+        deepLink: String?,
+    ): PendingIntent =
         PendingIntent.getActivity(
             this,
-            0,
+            notificationId,
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                deepLink?.let { data = it.toUri() }
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

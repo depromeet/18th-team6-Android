@@ -1,9 +1,11 @@
 package com.obrit.obrit.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
@@ -16,17 +18,33 @@ import com.obrit.feature.home.screen.ItemListScreen
 import com.obrit.feature.home.screen.SearchScreen
 import com.obrit.feature.notification.screen.NotificationScreen
 import com.obrit.feature.notification.screen.NotificationSettingsScreen
+import com.obrit.obrit.navigation.deeplink.ObritDeepLink
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
 @Suppress("LongMethod")
 fun HomeNavigation(
+    deepLink: ObritDeepLink?,
+    onDeepLinkConsume: () -> Unit,
     onReceiptRegisterClick: () -> Unit,
     onManualRegisterClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
     var detailEditResult by remember { mutableStateOf<DetailEditSubmitResult?>(null) }
+    val currentOnDeepLinkConsume by rememberUpdatedState(onDeepLinkConsume)
+
+    // 스택을 비우고 다시 쌓는다. 같은 알림을 여러 번 눌러도 같은 화면이 겹치지 않는다(명세서 8.2).
+    LaunchedEffect(deepLink) {
+        if (deepLink == null) return@LaunchedEffect
+
+        homeBackStack.clear()
+        homeBackStack.add(HomeRoute.Home)
+        if (deepLink is ObritDeepLink.Item) {
+            homeBackStack.add(HomeRoute.Detail(deepLink.itemId))
+        }
+        currentOnDeepLinkConsume()
+    }
 
     OBRitNavDisplay(
         backStack = homeBackStack,
