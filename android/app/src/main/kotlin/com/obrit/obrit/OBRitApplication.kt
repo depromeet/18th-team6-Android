@@ -4,7 +4,6 @@ import android.app.Application
 import com.obrit.android.core.analytics.AnalyticsLogger
 import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.analytics.di.analyticsModule
-import com.obrit.feature.agent.di.agentFeatureModule
 import com.obrit.feature.detail.di.detailFeatureModule
 import com.obrit.feature.home.di.homeFeatureModule
 import com.obrit.feature.notification.di.notificationFeatureModule
@@ -25,7 +24,6 @@ class OBRitApplication : Application() {
             modules(
                 appModule,
                 analyticsModule,
-                agentFeatureModule,
                 detailFeatureModule,
                 homeFeatureModule,
                 notificationFeatureModule,

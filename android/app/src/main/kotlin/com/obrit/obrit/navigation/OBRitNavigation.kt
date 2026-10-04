@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.obrit.obrit.navigation.deeplink.ObritDeepLink
-import com.obrit.obrit.navigation.route.AgentRoute
 import com.obrit.obrit.navigation.route.HomeRoute
 import com.obrit.obrit.navigation.route.OnboardingRoute
 import com.obrit.obrit.navigation.route.RegisterRoute
@@ -61,9 +60,6 @@ fun OBRitNavigation(
                         onManualRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
                         modifier = Modifier,
                     )
-                }
-                entry<AgentRoute.Agents> {
-                    AgentNavigation(modifier = Modifier)
                 }
                 entry<RegisterRoute.ManualRegister> {
                     RegisterNavigation(
