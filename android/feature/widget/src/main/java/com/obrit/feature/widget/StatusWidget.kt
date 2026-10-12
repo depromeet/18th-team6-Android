@@ -3,6 +3,8 @@ package com.obrit.feature.widget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -24,7 +26,7 @@ import org.koin.core.context.GlobalContext
  * `provideContent` 바깥은 세션당 한 번만 실행되므로 그 자리에서 조회하면
  * 세션이 살아 있는 동안 값이 갱신되지 않는다. 조회는 [StatusWidgetReceiver]가 맡는다.
  */
-internal class StatusWidget : GlanceAppWidget() {
+internal object StatusWidget : GlanceAppWidget() {
     /** 게이지를 위젯 폭에 맞춰 그리려면 최소 크기가 아닌 실제 크기가 필요하다. */
     override val sizeMode: SizeMode = SizeMode.Exact
 
@@ -38,9 +40,11 @@ internal class StatusWidget : GlanceAppWidget() {
         val retry = actionRunCallback<RetryStatusWidgetAction>()
 
         provideContent {
+            val isRetrying by isStatusWidgetRetrying.collectAsState()
             // 갱신마다 다시 실행되는 구간이라, 여기서 읽어야 최신 값이 그려진다.
             val state = cache.load()
             when {
+                isRetrying -> StatusWidgetLoadingContent()
                 state == null -> StatusWidgetFailureContent(retryAction = retry)
                 state.isEmpty -> StatusWidgetEmptyContent(openHomeAction = openHome)
                 else -> StatusWidgetContent(state = state, openHomeAction = openHome)
@@ -50,7 +54,7 @@ internal class StatusWidget : GlanceAppWidget() {
 }
 
 class StatusWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = StatusWidget()
+    override val glanceAppWidget: GlanceAppWidget = StatusWidget
 
     override fun onReceive(
         context: Context,

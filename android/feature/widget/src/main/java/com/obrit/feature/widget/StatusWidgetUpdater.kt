@@ -4,6 +4,33 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.glance.appwidget.updateAll
+import com.obrit.obrit.shared.data.repository.HomeRepository
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
+import org.koin.core.context.GlobalContext
+
+private val retrying = MutableStateFlow(false)
+internal val isStatusWidgetRetrying = retrying.asStateFlow()
+
+/** 재시도는 Glance 콜백의 수명 안에서 완료하고, 연속 클릭은 하나의 조회로 처리한다. */
+internal suspend fun retryStatusWidgetUpdate(context: Context) {
+    if (!retrying.compareAndSet(expect = false, update = true)) return
+
+    try {
+        StatusWidget.updateAll(context)
+        val homeRepository = GlobalContext.get().get<HomeRepository>()
+        val state = loadStatusWidgetState(homeRepository)
+        if (state != null) StatusWidgetCache(context).save(state)
+    } finally {
+        retrying.value = false
+        withContext(NonCancellable) {
+            StatusWidget.updateAll(context)
+        }
+    }
+}
 
 /**
  * 홈에 올라간 위젯을 다시 불러오게 한다.

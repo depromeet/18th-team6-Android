@@ -17,6 +17,7 @@ import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -49,6 +50,7 @@ internal fun StatusWidgetNoticeContent(
     message: String,
     modifier: GlanceModifier = GlanceModifier,
     retryAction: Action? = null,
+    isLoading: Boolean = false,
 ) {
     val metrics = statusWidgetMetricsFor(LocalSize.current)
     val scale = metrics.cardWidth.value / NOTICE_DESIGN_WIDTH
@@ -72,11 +74,7 @@ internal fun StatusWidgetNoticeContent(
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
             verticalAlignment = Alignment.Vertical.CenterVertically,
         ) {
-            Image(
-                provider = ImageProvider(iconRes),
-                contentDescription = null,
-                modifier = GlanceModifier.size((AtomSpacing.S8 * scale).dp),
-            )
+            NoticeIcon(iconRes = iconRes, isLoading = isLoading, modifier = GlanceModifier.size((AtomSpacing.S8 * scale).dp))
             Spacer(modifier = GlanceModifier.height((AtomSpacing.S1 * scale).dp))
             NoticeMessage(message = message, scale = scale, textStyle = textStyle)
             if (retryAction != null) {
@@ -84,6 +82,22 @@ internal fun StatusWidgetNoticeContent(
                 RetryButton(scale = scale, textStyle = textStyle, retryAction = retryAction)
             }
         }
+    }
+}
+
+@Composable
+private fun NoticeIcon(
+    @DrawableRes iconRes: Int,
+    isLoading: Boolean,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    if (isLoading) {
+        CircularProgressIndicator(
+            modifier = modifier,
+            color = ColorProvider(Color(SemanticColors.Icon.Default.Default)),
+        )
+    } else {
+        Image(provider = ImageProvider(iconRes), contentDescription = null, modifier = modifier)
     }
 }
 

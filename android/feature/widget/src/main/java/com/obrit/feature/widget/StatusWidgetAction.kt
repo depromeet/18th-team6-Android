@@ -18,7 +18,7 @@ class RetryStatusWidgetAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        requestStatusWidgetUpdate(context)
+        retryStatusWidgetUpdate(context)
     }
 }
 
