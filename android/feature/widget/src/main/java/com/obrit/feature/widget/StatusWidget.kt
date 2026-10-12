@@ -7,6 +7,7 @@ import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
 import com.obrit.obrit.shared.data.repository.HomeRepository
@@ -34,11 +35,14 @@ internal class StatusWidget : GlanceAppWidget() {
         val cache = StatusWidgetCache(context)
         // 컴포지션 안에서 만들면 재구성마다 새 Intent가 생겨 RemoteViews가 매번 달라진다.
         val openHome = openHomeAction(context)
+        val retry = actionRunCallback<RetryStatusWidgetAction>()
 
         provideContent {
             // 갱신마다 다시 실행되는 구간이라, 여기서 읽어야 최신 값이 그려진다.
-            when (val state = cache.load()) {
-                null -> StatusWidgetFailureContent(openHomeAction = openHome)
+            val state = cache.load()
+            when {
+                state == null -> StatusWidgetFailureContent(retryAction = retry)
+                state.isEmpty -> StatusWidgetEmptyContent(openHomeAction = openHome)
                 else -> StatusWidgetContent(state = state, openHomeAction = openHome)
             }
         }

@@ -17,6 +17,7 @@ internal data class StatusWidgetState(
     val dangerCount: Int,
     val warningCount: Int,
     val goodRatio: Float,
+    val isEmpty: Boolean,
 ) {
     /** 양호가 50% 이상이면 그린, 미만이면 주황으로 표시한다. */
     val isGood: Boolean

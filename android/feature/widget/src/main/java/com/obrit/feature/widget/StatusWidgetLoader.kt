@@ -29,6 +29,7 @@ internal suspend fun loadStatusWidgetState(homeRepository: HomeRepository): Stat
             dangerCount = buckets.countOf(HomeBucketType.DANGER),
             warningCount = buckets.countOf(HomeBucketType.WARNING),
             goodRatio = summary.goodRatio(),
+            isEmpty = summary.totalCount == 0,
         )
     }
 

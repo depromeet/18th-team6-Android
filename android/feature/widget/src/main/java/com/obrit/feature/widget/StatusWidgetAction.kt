@@ -2,11 +2,25 @@ package com.obrit.feature.widget
 
 import android.content.Context
 import android.content.Intent
+import androidx.glance.GlanceId
 import androidx.glance.action.Action
+import androidx.glance.action.ActionParameters
+import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionStartActivity
 
 /** 위젯을 눌러 앱을 열었을 때 홈으로 보내달라는 표시. */
 const val EXTRA_OPEN_HOME = "com.obrit.feature.widget.OPEN_HOME"
+
+/** Glance가 리플렉션으로 생성하므로 public 기본 생성자를 유지한다. */
+class RetryStatusWidgetAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        requestStatusWidgetUpdate(context)
+    }
+}
 
 /**
  * 위젯을 누르면 앱을 열고 홈 화면으로 보낸다.

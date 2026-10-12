@@ -21,6 +21,8 @@ internal class StatusWidgetCache(
             dangerCount = preferences.getInt(KEY_DANGER_COUNT, 0),
             warningCount = preferences.getInt(KEY_WARNING_COUNT, 0),
             goodRatio = preferences.getFloat(KEY_GOOD_RATIO, 0f),
+            // 이전 버전 캐시는 다음 조회에서 전체 등록 수를 확인할 때까지 기존 화면을 유지한다.
+            isEmpty = preferences.getBoolean(KEY_IS_EMPTY, false),
         )
     }
 
@@ -30,6 +32,7 @@ internal class StatusWidgetCache(
             .putInt(KEY_DANGER_COUNT, state.dangerCount)
             .putInt(KEY_WARNING_COUNT, state.warningCount)
             .putFloat(KEY_GOOD_RATIO, state.goodRatio)
+            .putBoolean(KEY_IS_EMPTY, state.isEmpty)
             .apply()
     }
 
@@ -38,5 +41,6 @@ internal class StatusWidgetCache(
         const val KEY_DANGER_COUNT = "dangerCount"
         const val KEY_WARNING_COUNT = "warningCount"
         const val KEY_GOOD_RATIO = "goodRatio"
+        const val KEY_IS_EMPTY = "isEmpty"
     }
 }
