@@ -120,6 +120,9 @@ struct OBRitNavigation: View {
             let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
 
             switch route {
+            case "notificationSettings":
+                initialPath.append(AppRoute.notificationSettings)
+                return (.main(.home), initialPath)
             case "onboarding":
                 return (.onboarding, initialPath)
             case "registrationPrompt":

@@ -1,0 +1,12 @@
+{
+  "images": [
+    {
+      "filename": "notification_settings_toggle_off.svg",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

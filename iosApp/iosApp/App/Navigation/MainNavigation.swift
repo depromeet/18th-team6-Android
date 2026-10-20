@@ -9,19 +9,22 @@ struct MainNavigation: View {
     let onNavigateItem: (ItemRoute) -> Void
     let onShowOnboarding: () -> Void
     let onSelectMainTab: (MainTab) -> Void
+    let onOpenNotificationSettings: () -> Void
 
     init(
         selectedTab: MainTab,
         dependencies: AppDependencies,
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowOnboarding: @escaping () -> Void,
-        onSelectMainTab: @escaping (MainTab) -> Void
+        onSelectMainTab: @escaping (MainTab) -> Void,
+        onOpenNotificationSettings: @escaping () -> Void
     ) {
         self.selectedTab = selectedTab
         self.dependencies = dependencies
         self.onNavigateItem = onNavigateItem
         self.onShowOnboarding = onShowOnboarding
         self.onSelectMainTab = onSelectMainTab
+        self.onOpenNotificationSettings = onOpenNotificationSettings
     }
 
     var body: some View {
@@ -53,6 +56,7 @@ struct MainNavigation: View {
                 refreshCenter: dependencies.refreshCenter,
                 onNavigateItem: onNavigateItem,
                 onShowOnboarding: onShowOnboarding,
+                onOpenNotificationSettings: onOpenNotificationSettings,
                 onShowListTab: {
                     onSelectMainTab(.homeListTab)
                 },
@@ -69,6 +73,7 @@ struct MainNavigation: View {
                 refreshCenter: dependencies.refreshCenter,
                 onNavigate: onNavigateItem,
                 onShowOnboarding: onShowOnboarding,
+                onOpenNotificationSettings: onOpenNotificationSettings,
                 onBottomSheetVisibleChange: { isVisible in
                     isGnbHiddenByContent = isVisible
                 }

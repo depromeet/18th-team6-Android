@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AppNavigation {
+    @MainActor
     @ViewBuilder
     static func destination(
         for route: AppRoute,
@@ -49,6 +50,11 @@ struct AppNavigation {
                 onNavigate: onNavigateItem,
                 onBack: onBack
             )
+        case .notificationSettings:
+            NotificationSettingsView(
+                viewModelFactory: dependencies.makeNotificationSettingsViewModel,
+                onBack: onBack
+            )
         case .main:
             MainNavigation(
                 selectedTab: selectedMainTab,
@@ -57,7 +63,8 @@ struct AppNavigation {
                 onShowOnboarding: {
                     onNavigateApp(.onboarding)
                 },
-                onSelectMainTab: onSelectMainTab
+                onSelectMainTab: onSelectMainTab,
+                onOpenNotificationSettings: { onNavigateApp(.notificationSettings) }
             )
             .navigationBarBackButtonHidden(true)
         }
