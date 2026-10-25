@@ -19,6 +19,7 @@ struct AppDependencies {
         let repositoryProvider = SharedRepositoryProvider()
         let readService = SharedReadService(repositoryProvider: repositoryProvider)
         let writeService = SharedWriteService(repositoryProvider: repositoryProvider)
+        let notificationSettingsService = SharedNotificationSettingsService(repositoryProvider: repositoryProvider)
         let receiptService = SharedReceiptService(repositoryProvider: repositoryProvider)
         let itemReadRepository = SharedItemReadRepository(
             readService: readService,
@@ -50,7 +51,9 @@ struct AppDependencies {
                 )
             },
             makeNotificationSettingsViewModel: {
-                NotificationSettingsViewModel(store: NotificationSettingsStore(defaults: .standard))
+                NotificationSettingsViewModel(
+                    repository: SharedNotificationPreferencesRepository(service: notificationSettingsService)
+                )
             },
             makeOnboardingViewModel: {
                 OnboardingViewModel(
@@ -96,7 +99,7 @@ struct AppDependencies {
                 SearchViewModel()
             },
             makeNotificationSettingsViewModel: {
-                NotificationSettingsViewModel(store: NotificationSettingsStore(defaults: .standard))
+                NotificationSettingsViewModel()
             },
             makeOnboardingViewModel: {
                 OnboardingViewModel()

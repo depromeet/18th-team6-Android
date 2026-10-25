@@ -2,9 +2,9 @@ import Combine
 import Foundation
 import UserNotifications
 
-struct NotificationSettings: Codable, Equatable {
-    var replacementUpcoming = true
-    var replacementOverdue = true
+struct NotificationSettings: Equatable {
+    var replacementUpcoming = false
+    var replacementOverdue = false
     var lowStock = false
     var hour = 9
     var minute = 0
@@ -20,46 +20,50 @@ struct NotificationSettings: Codable, Equatable {
     }
 }
 
-struct NotificationSettingsStore {
-    let defaults: UserDefaults
-    private let key = "notificationSettings.preferences"
-
-    func load() -> NotificationSettings {
-        guard let data = defaults.data(forKey: key),
-              let settings = try? JSONDecoder().decode(NotificationSettings.self, from: data),
-              (0 ... 23).contains(settings.hour),
-              (0 ... 59).contains(settings.minute)
-        else { return NotificationSettings() }
-        return settings
-    }
-
-    func save(_ settings: NotificationSettings) {
-        guard let data = try? JSONEncoder().encode(settings) else { return }
-        defaults.set(data, forKey: key)
-    }
-}
-
 enum NotificationSettingsViewState {
+    case loading
+    case loadFailed
     case success(NotificationSettings)
 }
 
 @MainActor
 final class NotificationSettingsViewModel: ObservableObject {
-    @Published private(set) var state: NotificationSettingsViewState
+    @Published private(set) var state: NotificationSettingsViewState = .loading
+    @Published var saveError: String?
     @Published private(set) var authorizationStatus: UNAuthorizationStatus?
     @Published var permissionError: String?
     @Published private(set) var isRequestingPermission = false
 
-    private let store: NotificationSettingsStore
+    private let repository: any NotificationPreferencesRepository
+    private var savedSettings: NotificationSettings?
+    private var pendingSettings: NotificationSettings?
+    private var saveTask: Task<Void, Never>?
     private let notificationCenter: UNUserNotificationCenter
 
     init(
-        store: NotificationSettingsStore,
+        repository: any NotificationPreferencesRepository = PreviewNotificationPreferencesRepository(),
         notificationCenter: UNUserNotificationCenter = .current()
     ) {
-        self.store = store
+        self.repository = repository
         self.notificationCenter = notificationCenter
-        state = .success(store.load())
+    }
+
+    func loadIfNeeded() async {
+        guard case .loading = state else { return }
+        do {
+            let settings = try await repository.load()
+            savedSettings = settings
+            state = .success(settings)
+        } catch {
+            if Task.isCancelled { return }
+            AppLog.failure(AppLog.notificationSettingsViewModel, "Load notification settings", error)
+            state = .loadFailed
+        }
+    }
+
+    func retry() {
+        state = .loading
+        Task { await loadIfNeeded() }
     }
 
     func refreshPermission() async {
@@ -88,12 +92,30 @@ final class NotificationSettingsViewModel: ObservableObject {
         guard case var .success(settings) = state else { return }
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         settings.hour = components.hour ?? 9
-        settings.minute = components.minute ?? 0
+        settings.minute = (components.minute ?? 0) < 30 ? 0 : 30
         save(settings)
     }
 
     private func save(_ settings: NotificationSettings) {
-        store.save(settings)
         state = .success(settings)
+        pendingSettings = settings
+        guard saveTask == nil else { return }
+        saveTask = Task {
+            defer { saveTask = nil }
+            while let next = pendingSettings {
+                pendingSettings = nil
+                do {
+                    let saved = try await repository.update(next)
+                    savedSettings = saved
+                    if pendingSettings == nil { state = .success(saved) }
+                } catch {
+                    AppLog.failure(AppLog.notificationSettingsViewModel, "Save notification settings", error)
+                    if pendingSettings == nil {
+                        if let savedSettings { state = .success(savedSettings) }
+                        saveError = "알림 설정을 저장하지 못했어요. 다시 시도해 주세요."
+                    }
+                }
+            }
+        }
     }
 }

@@ -22,6 +22,8 @@ import com.obrit.obrit.shared.network.source.ItemRemoteDataSource
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.NotificationDeviceRemoteDataSource
 import com.obrit.obrit.shared.network.source.NotificationDeviceRemoteDataSourceImpl
+import com.obrit.obrit.shared.network.source.NotificationSettingsRemoteDataSource
+import com.obrit.obrit.shared.network.source.NotificationSettingsRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSource
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.UserRemoteDataSource
@@ -32,6 +34,7 @@ import org.koin.dsl.module
 
 val networkModule =
     module {
+        single<NotificationSettingsRemoteDataSource> { NotificationSettingsRemoteDataSourceImpl(get(), get()) }
         includes(deviceUuidModule, userIdStorageModule)
 
         single<NetworkConfiguration> {

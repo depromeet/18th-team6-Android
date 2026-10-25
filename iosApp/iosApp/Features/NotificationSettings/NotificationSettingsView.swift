@@ -22,6 +22,18 @@ struct NotificationSettingsView: View {
     var body: some View {
         Group {
             switch viewModel.state {
+            case .loading:
+                unavailableContent { ProgressView().tint(OBRitColors.green300) }
+            case .loadFailed:
+                unavailableContent {
+                    VStack(spacing: OBRitSpacing.s4) {
+                        Text("알림 설정을 불러오지 못했어요.")
+                            .foregroundStyle(OBRitColors.textDefaultDefault)
+                        OBRitFilledTextButton(text: "다시 시도", size: .large, color: .green) {
+                            viewModel.retry()
+                        }
+                    }
+                }
             case let .success(settings):
                 NotificationSettingsContentView(
                     settings: settings,
@@ -37,7 +49,10 @@ struct NotificationSettingsView: View {
                 )
             }
         }
-        .task { await viewModel.refreshPermission() }
+        .task {
+            await viewModel.refreshPermission()
+            await viewModel.loadIfNeeded()
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 Task { await viewModel.refreshPermission() }
@@ -50,12 +65,34 @@ struct NotificationSettingsView: View {
         } message: {
             Text(viewModel.permissionError ?? "")
         }
+        .alert("알림 설정 저장 실패", isPresented: saveErrorPresented) {
+            Button("확인", role: .cancel) { viewModel.saveError = nil }
+        } message: {
+            Text(viewModel.saveError ?? "")
+        }
+    }
+
+    @ViewBuilder
+    private func unavailableContent<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            OBRitDepthTopBar(title: "알림 설정", showRightButton: false, onBackClick: onBack)
+            content().frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var permissionErrorPresented: Binding<Bool> {
         Binding(
             get: { viewModel.permissionError != nil },
             set: { if !$0 { viewModel.permissionError = nil } }
+        )
+    }
+
+    private var saveErrorPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.saveError != nil },
+            set: { if !$0 { viewModel.saveError = nil } }
         )
     }
 
@@ -82,10 +119,7 @@ struct NotificationSettingsView: View {
     private var timePicker: some View {
         NavigationStack {
             VStack(spacing: OBRitSpacing.s4) {
-                DatePicker("알림 시간", selection: $draftTime, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .environment(\.locale, Locale(identifier: "ko_KR"))
+                NotificationTimePicker(selection: $draftTime)
                     .frame(maxWidth: .infinity)
                 OBRitFilledTextButton(text: "확인", size: .large, color: .green, fillsWidth: true) {
                     viewModel.setTime(draftTime)
@@ -268,4 +302,33 @@ private struct NotificationSettingsToggleButtonStyle: ButtonStyle {
         action: NotificationSettingsViewAction(onBack: {}, onPermission: {}, onToggle: { _, _ in }, onSelectTime: {})
     )
     .preferredColorScheme(.dark)
+}
+
+private struct NotificationTimePicker: UIViewRepresentable {
+    @Binding var selection: Date
+
+    func makeUIView(context: Context) -> UIDatePicker {
+        let picker = UIDatePicker()
+        picker.datePickerMode = .time
+        picker.preferredDatePickerStyle = .wheels
+        picker.minuteInterval = 30
+        picker.locale = Locale(identifier: "ko_KR")
+        picker.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .valueChanged)
+        return picker
+    }
+
+    func updateUIView(_ picker: UIDatePicker, context: Context) {
+        context.coordinator.selection = $selection
+        if picker.date != selection { picker.setDate(selection, animated: false) }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+
+    final class Coordinator: NSObject {
+        var selection: Binding<Date>
+
+        init(selection: Binding<Date>) { self.selection = selection }
+
+        @objc func changed(_ picker: UIDatePicker) { selection.wrappedValue = picker.date }
+    }
 }

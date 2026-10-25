@@ -12,6 +12,8 @@ import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.data.repository.ItemRepositoryImpl
 import com.obrit.obrit.shared.data.repository.NotificationDeviceRepository
 import com.obrit.obrit.shared.data.repository.NotificationDeviceRepositoryImpl
+import com.obrit.obrit.shared.data.repository.NotificationSettingsRepository
+import com.obrit.obrit.shared.data.repository.NotificationSettingsRepositoryImpl
 import com.obrit.obrit.shared.data.repository.ReceiptRepository
 import com.obrit.obrit.shared.data.repository.ReceiptRepositoryImpl
 import com.obrit.obrit.shared.data.repository.UserRepository
@@ -20,6 +22,7 @@ import org.koin.dsl.module
 
 val dataModule =
     module {
+        single<NotificationSettingsRepository> { NotificationSettingsRepositoryImpl(get()) }
         single<AgentRepository> { AgentRepositoryImpl(get()) }
         single<AgentSessionRepository> { AgentSessionRepositoryImpl(get()) }
         single<ItemRepository> { ItemRepositoryImpl(get()) }
