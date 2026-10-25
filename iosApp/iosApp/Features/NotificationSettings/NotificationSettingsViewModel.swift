@@ -1,6 +1,5 @@
 import Combine
 import Foundation
-import UserNotifications
 
 struct NotificationSettings: Equatable {
     var replacementUpcoming = false
@@ -30,22 +29,17 @@ enum NotificationSettingsViewState {
 final class NotificationSettingsViewModel: ObservableObject {
     @Published private(set) var state: NotificationSettingsViewState = .loading
     @Published var saveError: String?
-    @Published private(set) var authorizationStatus: UNAuthorizationStatus?
     @Published var permissionError: String?
-    @Published private(set) var isRequestingPermission = false
 
     private let repository: any NotificationPreferencesRepository
     private var savedSettings: NotificationSettings?
     private var pendingSettings: NotificationSettings?
     private var saveTask: Task<Void, Never>?
-    private let notificationCenter: UNUserNotificationCenter
 
     init(
-        repository: any NotificationPreferencesRepository = PreviewNotificationPreferencesRepository(),
-        notificationCenter: UNUserNotificationCenter = .current()
+        repository: any NotificationPreferencesRepository = PreviewNotificationPreferencesRepository()
     ) {
         self.repository = repository
-        self.notificationCenter = notificationCenter
     }
 
     func loadIfNeeded() async {
@@ -56,7 +50,6 @@ final class NotificationSettingsViewModel: ObservableObject {
             state = .success(settings)
         } catch {
             if Task.isCancelled { return }
-            AppLog.failure(AppLog.notificationSettingsViewModel, "Load notification settings", error)
             state = .loadFailed
         }
     }
@@ -64,22 +57,6 @@ final class NotificationSettingsViewModel: ObservableObject {
     func retry() {
         state = .loading
         Task { await loadIfNeeded() }
-    }
-
-    func refreshPermission() async {
-        authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
-    }
-
-    func requestPermission() async {
-        guard !isRequestingPermission else { return }
-        isRequestingPermission = true
-        defer { isRequestingPermission = false }
-        do {
-            _ = try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
-        } catch {
-            permissionError = "알림 권한을 요청하지 못했어요. 잠시 후 다시 시도해 주세요."
-        }
-        await refreshPermission()
     }
 
     func setToggle(_ keyPath: WritableKeyPath<NotificationSettings, Bool>, enabled: Bool) {
@@ -109,7 +86,6 @@ final class NotificationSettingsViewModel: ObservableObject {
                     savedSettings = saved
                     if pendingSettings == nil { state = .success(saved) }
                 } catch {
-                    AppLog.failure(AppLog.notificationSettingsViewModel, "Save notification settings", error)
                     if pendingSettings == nil {
                         if let savedSettings { state = .success(savedSettings) }
                         saveError = "알림 설정을 저장하지 못했어요. 다시 시도해 주세요."

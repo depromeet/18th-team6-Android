@@ -56,7 +56,7 @@ class NotificationSettingsRemoteDataSourceTest {
                     val expected =
                         """
                         {"preReplacementEnabled":true,"overdueEnabled":false,"lowStockEnabled":true,
-                         "dispatchTime":"21:30","permissionStatus":"GRANTED"}
+                         "dispatchTime":"21:30"}
                         """.trimIndent()
                     val body = assertIs<TextContent>(request.body).text
                     assertEquals(createJson().parseToJsonElement(expected), createJson().parseToJsonElement(body))
@@ -64,29 +64,21 @@ class NotificationSettingsRemoteDataSourceTest {
                 }
             client(engine).use { httpClient ->
                 val source = NotificationSettingsRemoteDataSourceImpl(httpClient, userIdProvider)
-                val response = source.updateSettings(UpdateNotificationSettingsRequest(true, false, true, "21:30", "GRANTED"))
+                val response = source.updateSettings(UpdateNotificationSettingsRequest(true, false, true, "21:30"))
                 assertEquals("21:30", response.dispatchTime)
             }
         }
 
     @Test
-    fun sendsEachPermissionStatusAndMapsResponse() =
+    fun mapsEachPermissionStatusFromResponse() =
         runBlocking {
             listOf("NOT_REQUESTED", "GRANTED", "DENIED").forEach { status ->
                 val engine =
-                    MockEngine { request ->
-                        val body = assertIs<TextContent>(request.body).text
-                        val expected =
-                            """
-                            {"preReplacementEnabled":false,"overdueEnabled":false,"lowStockEnabled":false,
-                             "dispatchTime":"09:00","permissionStatus":"$status"}
-                            """.trimIndent()
-                        assertEquals(createJson().parseToJsonElement(expected), createJson().parseToJsonElement(body))
+                    MockEngine {
                         respond(savedSettingsResponse.replace("GRANTED", status), headers = jsonHeaders)
                     }
                 client(engine).use { httpClient ->
-                    val source = NotificationSettingsRemoteDataSourceImpl(httpClient, userIdProvider)
-                    val response = source.updateSettings(UpdateNotificationSettingsRequest(false, false, false, "09:00", status))
+                    val response = NotificationSettingsRemoteDataSourceImpl(httpClient, userIdProvider).getSettings()
                     assertEquals(NotificationPermissionStatus.valueOf(status), response.toNotificationPreferences().permissionStatus)
                 }
             }
@@ -120,7 +112,7 @@ class NotificationSettingsRemoteDataSourceTest {
                 val source = NotificationSettingsRemoteDataSourceImpl(httpClient, userIdProvider)
                 val error =
                     assertFailsWith<RemoteError> {
-                        source.updateSettings(UpdateNotificationSettingsRequest(true, false, true, "21:15", "DENIED"))
+                        source.updateSettings(UpdateNotificationSettingsRequest(true, false, true, "21:15"))
                     }
                 assertEquals(400, error.statusCode)
             }

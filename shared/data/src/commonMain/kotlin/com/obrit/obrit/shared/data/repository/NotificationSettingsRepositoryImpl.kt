@@ -1,7 +1,7 @@
 package com.obrit.obrit.shared.data.repository
 
-import com.obrit.obrit.shared.model.notifications.NotificationPermissionStatus
 import com.obrit.obrit.shared.model.notifications.NotificationPreferences
+import com.obrit.obrit.shared.model.notifications.UpdateNotificationSettingsParams
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.notification.UpdateNotificationSettingsRequest
 import com.obrit.obrit.shared.network.response.notification.toNotificationPreferences
@@ -15,11 +15,8 @@ internal class NotificationSettingsRepositoryImpl(
             notificationSettingsRemoteDataSource.getSettings().toNotificationPreferences()
         }
 
-    override suspend fun updateSettings(settings: NotificationPreferences): Result<NotificationPreferences> =
+    override suspend fun updateSettings(settings: UpdateNotificationSettingsParams): Result<NotificationPreferences> =
         runCatchingWith {
-            require(settings.permissionStatus != NotificationPermissionStatus.UNKNOWN) {
-                "Notification permission status must be known before saving."
-            }
             require(DISPATCH_TIME_PATTERN.matches(settings.dispatchTime)) {
                 "Dispatch time must use HH:mm with a 30-minute interval."
             }
@@ -30,7 +27,6 @@ internal class NotificationSettingsRepositoryImpl(
                         overdueEnabled = settings.overdueEnabled,
                         lowStockEnabled = settings.lowStockEnabled,
                         dispatchTime = settings.dispatchTime,
-                        permissionStatus = settings.permissionStatus.name,
                     ),
                 ).toNotificationPreferences()
         }

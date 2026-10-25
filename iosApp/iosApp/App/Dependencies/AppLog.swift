@@ -11,7 +11,6 @@ enum AppLog {
     static let itemDetailViewModel = Logger(subsystem: subsystem, category: "ItemDetailViewModel")
     static let swiftRepository = Logger(subsystem: subsystem, category: "SwiftRepositoryAdapter")
     static let pushNotifications = Logger(subsystem: subsystem, category: "PushNotifications")
-    static let notificationSettingsViewModel = Logger(subsystem: subsystem, category: "NotificationSettingsViewModel")
     static let appBootstrap = Logger(subsystem: subsystem, category: "AppBootstrap")
 
     static func enter(_ logger: Logger, _ event: String, _ details: String = "") {

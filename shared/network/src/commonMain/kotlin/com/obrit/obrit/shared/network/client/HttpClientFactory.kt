@@ -58,6 +58,7 @@ internal fun HttpClientConfig<*>.configureOBRitHttpClient(
     }
 
     install(Logging) {
+        filter { request -> request.url.build().encodedPath != "/notifications/settings" }
         logger =
             object : Logger {
                 override fun log(message: String) {

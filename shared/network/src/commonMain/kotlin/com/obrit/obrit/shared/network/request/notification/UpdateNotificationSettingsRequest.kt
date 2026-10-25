@@ -9,5 +9,4 @@ data class UpdateNotificationSettingsRequest(
     @SerialName("overdueEnabled") val overdueEnabled: Boolean,
     @SerialName("lowStockEnabled") val lowStockEnabled: Boolean,
     @SerialName("dispatchTime") val dispatchTime: String,
-    @SerialName("permissionStatus") val permissionStatus: String,
 )

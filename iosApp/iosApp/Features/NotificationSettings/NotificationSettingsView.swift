@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 
 struct NotificationSettingsView: View {
-    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var viewModel: NotificationSettingsViewModel
     @State private var isTimePickerPresented = false
     @State private var isOpeningNotificationSettings = false
@@ -50,13 +49,7 @@ struct NotificationSettingsView: View {
             }
         }
         .task {
-            await viewModel.refreshPermission()
             await viewModel.loadIfNeeded()
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                Task { await viewModel.refreshPermission() }
-            }
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $isTimePickerPresented) { timePicker }
@@ -101,14 +94,7 @@ struct NotificationSettingsView: View {
         isOpeningNotificationSettings = true
         Task { @MainActor in
             defer { isOpeningNotificationSettings = false }
-            await viewModel.refreshPermission()
-            if viewModel.authorizationStatus == .notDetermined {
-                await viewModel.requestPermission()
-            }
-            guard let status = viewModel.authorizationStatus,
-                  status != .notDetermined,
-                  let url = URL(string: UIApplication.openNotificationSettingsURLString)
-            else { return }
+            guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
             let didOpen = await UIApplication.shared.open(url, options: [:])
             if !didOpen {
                 viewModel.permissionError = "시스템 알림 설정을 열지 못했어요. 잠시 후 다시 시도해 주세요."

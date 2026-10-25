@@ -1,6 +1,5 @@
 import Foundation
 import Shared
-import UserNotifications
 
 protocol NotificationPreferencesRepository: Sendable {
     func load() async throws -> NotificationSettings
@@ -9,11 +8,9 @@ protocol NotificationPreferencesRepository: Sendable {
 
 actor SharedNotificationPreferencesRepository: NotificationPreferencesRepository {
     private let service: SharedNotificationSettingsService
-    private let notificationCenter: UNUserNotificationCenter
 
-    init(service: SharedNotificationSettingsService, notificationCenter: UNUserNotificationCenter = .current()) {
+    init(service: SharedNotificationSettingsService) {
         self.service = service
-        self.notificationCenter = notificationCenter
     }
 
     func load() async throws -> NotificationSettings {
@@ -21,24 +18,11 @@ actor SharedNotificationPreferencesRepository: NotificationPreferencesRepository
     }
 
     func update(_ settings: NotificationSettings) async throws -> NotificationSettings {
-        let authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
-        let permissionStatus: NotificationPermissionStatus
-        switch authorizationStatus {
-        case .notDetermined:
-            permissionStatus = .notRequested
-        case .denied:
-            permissionStatus = .denied
-        case .authorized, .provisional, .ephemeral:
-            permissionStatus = .granted
-        @unknown default:
-            throw NotificationPreferencesError.unknownPermissionStatus
-        }
-        let preferences = NotificationPreferences(
+        let preferences = UpdateNotificationSettingsParams(
             preReplacementEnabled: settings.replacementUpcoming,
             overdueEnabled: settings.replacementOverdue,
             lowStockEnabled: settings.lowStock,
-            dispatchTime: String(format: "%02d:%02d", settings.hour, settings.minute),
-            permissionStatus: permissionStatus
+            dispatchTime: String(format: "%02d:%02d", settings.hour, settings.minute)
         )
         return try self.settings(from: await service.updateSettings(settings: preferences))
     }
@@ -61,7 +45,6 @@ actor SharedNotificationPreferencesRepository: NotificationPreferencesRepository
 
 private enum NotificationPreferencesError: Error {
     case invalidTime
-    case unknownPermissionStatus
 }
 
 actor PreviewNotificationPreferencesRepository: NotificationPreferencesRepository {
