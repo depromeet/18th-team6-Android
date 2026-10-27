@@ -5,14 +5,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.obrit.feature.notification.viewmodel.NotificationItem
+import com.obrit.feature.notification.viewmodel.NotificationSideEffect
 import com.obrit.feature.notification.viewmodel.NotificationViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun NotificationScreen(
     onBackClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onDeepLinkClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NotificationViewModel = koinViewModel(),
 ) {
@@ -33,6 +36,12 @@ fun NotificationScreen(
             ),
         modifier = modifier,
     )
+
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is NotificationSideEffect.OpenDeepLink -> onDeepLinkClick(sideEffect.deepLink)
+        }
+    }
 }
 
 internal data class NotificationScreenAction(

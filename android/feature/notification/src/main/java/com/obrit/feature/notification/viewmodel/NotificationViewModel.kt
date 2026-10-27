@@ -20,8 +20,12 @@ sealed interface NotificationUiState {
     ) : NotificationUiState
 }
 
-/** 이 화면은 일회성 이벤트가 없다. 뒤로가기는 navigation이 직접 처리하고, 알림 탭은 상태만 바꾼다. */
-sealed interface NotificationSideEffect
+sealed interface NotificationSideEffect {
+    /** 서버가 읽음 처리 응답으로 준 이동 경로. 앱이 직접 만들지 않는다(명세서 8.2). */
+    data class OpenDeepLink(
+        val deepLink: String,
+    ) : NotificationSideEffect
+}
 
 @Immutable
 data class NotificationGroup(
@@ -57,15 +61,16 @@ class NotificationViewModel internal constructor(
     /**
      * 읽음 표시를 서버 응답보다 먼저 반영한다. 실패해도 되돌리지 않는다.
      * 화면을 다시 열면 서버 값으로 목록을 새로 받으므로 어긋난 상태는 그때 스스로 정리된다.
+     *
+     * 이동 경로는 이 응답에만 있어서 이미 읽은 알림도 호출한다. 서버가 멱등이라 읽음 시각은 그대로 유지된다.
      */
     fun onItemClick(item: NotificationItem) =
         intent {
-            if (!item.isUnread) {
-                return@intent
-            }
-
             reduceOn<NotificationUiState.Success> { state.withItemRead(item.id) }
-            notificationRepository.markAsRead(item.id)
+
+            notificationRepository
+                .markAsRead(item.id)
+                .onSuccess { deepLink -> postSideEffect(NotificationSideEffect.OpenDeepLink(deepLink)) }
         }
 
     private suspend fun Syntax<NotificationUiState, NotificationSideEffect>.loadNotifications() {

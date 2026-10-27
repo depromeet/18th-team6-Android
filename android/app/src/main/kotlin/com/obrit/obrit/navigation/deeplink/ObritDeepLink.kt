@@ -1,6 +1,7 @@
 package com.obrit.obrit.navigation.deeplink
 
 import android.content.Intent
+import android.net.Uri
 import androidx.core.net.toUri
 
 /**
@@ -24,12 +25,18 @@ sealed interface ObritDeepLink {
  *
  * OBRit scheme과 허용된 경로만 실행한다. 알 수 없는 경로나 유효하지 않은 ID는 홈으로 보낸다(명세서 8.2).
  */
-fun Intent.obritDeepLink(): ObritDeepLink? {
-    val uri = data ?: extras?.getString(OBRIT_DEEP_LINK_KEY)?.toUri()
-    if (uri == null || !uri.scheme.equals(OBRIT_SCHEME, ignoreCase = true)) return null
+fun Intent.obritDeepLink(): ObritDeepLink? = (data ?: extras?.getString(OBRIT_DEEP_LINK_KEY)?.toUri()).toObritDeepLink()
 
-    val itemId = uri.pathSegments.firstOrNull()?.toIntOrNull()
-    return if (uri.host == OBRIT_ITEMS_HOST && itemId != null) {
+/**
+ * 서버가 알림함 응답으로 준 딥링크 문자열을 해석한다. 푸시로 들어온 것과 같은 규칙을 쓴다.
+ */
+fun String.toObritDeepLink(): ObritDeepLink? = runCatching { toUri() }.getOrNull().toObritDeepLink()
+
+private fun Uri?.toObritDeepLink(): ObritDeepLink? {
+    if (this == null || !scheme.equals(OBRIT_SCHEME, ignoreCase = true)) return null
+
+    val itemId = pathSegments.firstOrNull()?.toIntOrNull()
+    return if (host == OBRIT_ITEMS_HOST && itemId != null) {
         ObritDeepLink.Item(itemId)
     } else {
         // obrit://home은 물론 알 수 없는 경로와 유효하지 않은 ID도 모두 홈으로 보낸다.

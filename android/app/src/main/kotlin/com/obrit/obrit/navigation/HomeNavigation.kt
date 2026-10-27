@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.obrit.feature.detail.screen.DetailEditScreen
@@ -19,6 +21,7 @@ import com.obrit.feature.home.screen.SearchScreen
 import com.obrit.feature.notification.screen.NotificationScreen
 import com.obrit.feature.notification.screen.NotificationSettingsScreen
 import com.obrit.obrit.navigation.deeplink.ObritDeepLink
+import com.obrit.obrit.navigation.deeplink.toObritDeepLink
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
@@ -68,6 +71,7 @@ fun HomeNavigation(
                     NotificationScreen(
                         onBackClick = { homeBackStack.removeLastOrNull() },
                         onSettingsClick = { homeBackStack.add(HomeRoute.NotificationSettings) },
+                        onDeepLinkClick = { link -> homeBackStack.openDeepLink(link) },
                         modifier = Modifier,
                     )
                 }
@@ -120,4 +124,19 @@ fun HomeNavigation(
                 }
             },
     )
+}
+
+/**
+ * 알림함 카드에서 받은 딥링크로 이동한다. 소모품 상세가 아니면 홈으로 보낸다(명세서 8.2).
+ *
+ * 알림함 위에 상세를 쌓아 올려서 뒤로가기를 누르면 알림함으로 돌아온다.
+ */
+private fun NavBackStack<NavKey>.openDeepLink(deepLink: String) {
+    when (val target = deepLink.toObritDeepLink()) {
+        is ObritDeepLink.Item -> add(HomeRoute.Detail(target.itemId))
+        else -> {
+            clear()
+            add(HomeRoute.Home)
+        }
+    }
 }
