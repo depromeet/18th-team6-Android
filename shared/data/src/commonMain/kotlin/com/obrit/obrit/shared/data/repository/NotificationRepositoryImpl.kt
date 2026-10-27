@@ -1,9 +1,12 @@
 package com.obrit.obrit.shared.data.repository
 
 import com.obrit.obrit.shared.model.notifications.Notification
+import com.obrit.obrit.shared.model.notifications.NotificationSettings
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.notification.RegisterDeviceRequest
+import com.obrit.obrit.shared.network.request.notification.toUpdateRequest
 import com.obrit.obrit.shared.network.response.notification.toNotification
+import com.obrit.obrit.shared.network.response.notification.toNotificationSettings
 import com.obrit.obrit.shared.network.source.NotificationRemoteDataSource
 
 internal class NotificationRepositoryImpl(
@@ -19,8 +22,18 @@ internal class NotificationRepositoryImpl(
             notificationRemoteDataSource.getNotifications().map { response -> response.toNotification() }
         }
 
-    override suspend fun markAsRead(notificationId: Long): Result<Unit> =
+    override suspend fun markAsRead(notificationId: Long): Result<String> =
         runCatchingWith {
-            notificationRemoteDataSource.markAsRead(notificationId)
+            notificationRemoteDataSource.markAsRead(notificationId).deepLink
+        }
+
+    override suspend fun getSettings(): Result<NotificationSettings> =
+        runCatchingWith {
+            notificationRemoteDataSource.getSettings().toNotificationSettings()
+        }
+
+    override suspend fun updateSettings(settings: NotificationSettings): Result<NotificationSettings> =
+        runCatchingWith {
+            notificationRemoteDataSource.updateSettings(settings.toUpdateRequest()).toNotificationSettings()
         }
 }
