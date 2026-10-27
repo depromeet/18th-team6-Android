@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -79,9 +80,6 @@ internal fun NotificationSettingsToggleRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-
     Row(
         modifier =
             modifier
@@ -94,33 +92,21 @@ internal fun NotificationSettingsToggleRow(
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(AtomSpacing.S0_5.dp),
-        ) {
-            Text(
-                text = title,
-                style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
-                color = colors.common00,
-            )
-            Text(
-                text = description,
-                style = typography.xs.copy(fontWeight = FontWeight.Medium),
-                color = colors.gray500,
-            )
-        }
+        NotificationSettingsRowLabel(title = title, description = description)
         OBRitToggle(checked = checked, onCheckedChange = null)
     }
 }
 
 /**
- * 오른쪽에 현재 값과 화살표를 두는 행. 누르면 값을 고르는 바텀시트가 올라온다.
+ * 왼쪽에 제목·설명, 오른쪽에 현재 값과 화살표를 두는 행. 누르면 값을 고르는 바텀시트가 올라온다.
  *
- * [enabled]가 false면 제목·값·화살표가 모두 `Text/Disabled/Default`로 흐려지고 탭도 받지 않는다.
+ * [enabled]가 false면 값과 화살표가 흐려지고 탭도 받지 않는다.
  */
 @Composable
+@Suppress("LongParameterList")
 internal fun NotificationSettingsValueRow(
     title: String,
+    description: String,
     value: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -128,7 +114,7 @@ internal fun NotificationSettingsValueRow(
 ) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
-    val valueColor = if (enabled) colors.gray300 else colors.gray700
+    val valueColor = if (enabled) colors.common00 else colors.gray700
 
     Row(
         modifier =
@@ -136,14 +122,10 @@ internal fun NotificationSettingsValueRow(
                 .fillMaxWidth()
                 .clickable(enabled = enabled, onClick = onClick)
                 .padding(top = AtomSpacing.S3.dp, bottom = AtomSpacing.S3.dp, end = AtomSpacing.S1.dp),
+        horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = title,
-            style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
-            color = if (enabled) colors.common00 else colors.gray700,
-            modifier = Modifier.weight(1f),
-        )
+        NotificationSettingsRowLabel(title = title, description = description)
         Text(
             text = value,
             style = typography.base.copy(fontWeight = FontWeight.Medium),
@@ -152,11 +134,37 @@ internal fun NotificationSettingsValueRow(
         Icon(
             painter = painterResource(id = R.drawable.ic_chevron_right),
             contentDescription = null,
-            tint = valueColor,
+            tint = if (enabled) colors.gray300 else colors.gray700,
             modifier =
                 Modifier
                     .padding(start = AtomSpacing.S1.dp)
                     .size(AtomSpacing.S5.dp),
+        )
+    }
+}
+
+/** 토글 행과 값 행이 같은 제목·설명 묶음을 쓴다. */
+@Composable
+private fun RowScope.NotificationSettingsRowLabel(
+    title: String,
+    description: String,
+) {
+    val colors = LocalOBRitColor.current
+    val typography = LocalOBRitTypography.current
+
+    Column(
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(AtomSpacing.S0_5.dp),
+    ) {
+        Text(
+            text = title,
+            style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
+            color = colors.common00,
+        )
+        Text(
+            text = description,
+            style = typography.xs.copy(fontWeight = FontWeight.Medium),
+            color = colors.gray500,
         )
     }
 }

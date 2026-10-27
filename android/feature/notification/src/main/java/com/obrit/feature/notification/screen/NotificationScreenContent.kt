@@ -2,7 +2,6 @@ package com.obrit.feature.notification.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +10,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +24,8 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.notification.component.NotificationCard
+import com.obrit.feature.notification.component.NotificationLoadFailed
+import com.obrit.feature.notification.component.NotificationLoading
 import com.obrit.feature.notification.component.NotificationPermissionBanner
 import com.obrit.feature.notification.viewmodel.NotificationGroup
 import com.obrit.feature.notification.viewmodel.NotificationItem
@@ -156,45 +154,6 @@ private fun NotificationSection(
 }
 
 @Composable
-private fun NotificationLoading(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun NotificationLoadFailed(
-    onRetryClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalOBRitColor.current
-    val typography = LocalOBRitTypography.current
-
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = NOTIFICATION_LOAD_FAILED_TEXT,
-            style = typography.base,
-            color = colors.gray500,
-            textAlign = TextAlign.Center,
-        )
-        TextButton(onClick = onRetryClick) {
-            Text(
-                text = NOTIFICATION_RETRY_TEXT,
-                style = typography.base,
-                color = colors.green300,
-            )
-        }
-    }
-}
-
-@Composable
 private fun NotificationEmpty(modifier: Modifier = Modifier) {
     val colors = LocalOBRitColor.current
     val typography = LocalOBRitTypography.current
@@ -214,8 +173,6 @@ private fun NotificationEmpty(modifier: Modifier = Modifier) {
 private const val NOTIFICATION_TITLE = "알림"
 private const val NOTIFICATION_SETTINGS_DESCRIPTION = "알림 설정"
 private const val NOTIFICATION_EMPTY_TEXT = "아직 도착한 알림이 없어요"
-private const val NOTIFICATION_LOAD_FAILED_TEXT = "알림을 불러오지 못했어요"
-private const val NOTIFICATION_RETRY_TEXT = "다시 시도"
 
 @Preview(name = "NotificationScreenContent", showBackground = true)
 @Composable
