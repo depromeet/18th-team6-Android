@@ -6,8 +6,11 @@ import com.obrit.obrit.shared.data.repository.NotificationRepository
 import com.obrit.obrit.shared.model.notifications.Notification
 import org.orbitmvi.orbit.syntax.Syntax
 import org.orbitmvi.orbit.viewmodel.container
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 sealed interface NotificationUiState {
     data object Loading : NotificationUiState
@@ -35,13 +38,17 @@ data class NotificationGroup(
 
 @Immutable
 data class NotificationItem(
-    val id: Long,
-    // 서버가 아직 알림 유형과 D-day를 주지 않는다. 값이 없으면 카드에서 뱃지 자리를 그리지 않는다.
+    /** 카드가 속한 알림의 ID. 읽음 처리는 카드가 아니라 이 단위로 한다. */
+    val notificationId: Long,
+    /** 카드 고유 ID. 카드 저장 이전의 옛 알림은 null이다. */
+    val entryId: Long?,
+    // 공지와 옛 알림은 라벨이 없다. 값이 없으면 카드에서 뱃지 자리를 그리지 않는다.
     val badge: String?,
     val timeText: String,
     val title: String,
     val subtitle: String?,
     val isUnread: Boolean,
+    val deepLink: String,
 )
 
 class NotificationViewModel internal constructor(
@@ -59,18 +66,18 @@ class NotificationViewModel internal constructor(
         }
 
     /**
-     * 읽음 표시를 서버 응답보다 먼저 반영한다. 실패해도 되돌리지 않는다.
+     * 읽음 표시와 이동을 서버 응답보다 먼저 반영한다. 실패해도 되돌리지 않는다.
      * 화면을 다시 열면 서버 값으로 목록을 새로 받으므로 어긋난 상태는 그때 스스로 정리된다.
      *
-     * 이동 경로는 이 응답에만 있어서 이미 읽은 알림도 호출한다. 서버가 멱등이라 읽음 시각은 그대로 유지된다.
+     * 이동은 카드가 들고 있는 딥링크를 쓴다. 묶음 알림의 읽음 처리 응답은 홈을 가리켜서
+     * 그걸 쓰면 어느 카드를 눌러도 홈으로 가버린다.
      */
     fun onItemClick(item: NotificationItem) =
         intent {
-            reduceOn<NotificationUiState.Success> { state.withItemRead(item.id) }
+            reduceOn<NotificationUiState.Success> { state.withItemRead(item.notificationId) }
+            postSideEffect(NotificationSideEffect.OpenDeepLink(item.deepLink))
 
-            notificationRepository
-                .markAsRead(item.id)
-                .onSuccess { deepLink -> postSideEffect(NotificationSideEffect.OpenDeepLink(deepLink)) }
+            notificationRepository.markAsRead(item.notificationId)
         }
 
     private suspend fun Syntax<NotificationUiState, NotificationSideEffect>.loadNotifications() {
@@ -84,14 +91,15 @@ class NotificationViewModel internal constructor(
     }
 }
 
-private fun NotificationUiState.Success.withItemRead(id: Long): NotificationUiState.Success =
+/** 읽음은 알림 단위라 묶음 안의 카드 하나를 눌러도 같은 알림의 카드가 모두 읽음이 된다. */
+private fun NotificationUiState.Success.withItemRead(notificationId: Long): NotificationUiState.Success =
     copy(
         groups =
             groups.map { group ->
                 group.copy(
                     items =
                         group.items.map { item ->
-                            if (item.id == id) item.copy(isUnread = false) else item
+                            if (item.notificationId == notificationId) item.copy(isUnread = false) else item
                         },
                 )
             },
@@ -114,13 +122,37 @@ internal fun List<Notification>.toGroups(now: LocalDateTime): List<NotificationG
 
 private fun Notification.toItem(timeText: String): NotificationItem =
     NotificationItem(
-        id = id,
-        badge = null,
+        notificationId = notificationId,
+        entryId = entryId,
+        badge = label,
         timeText = timeText,
         title = title,
-        subtitle = content,
+        subtitle = toSubtitle(),
         isUnread = !isRead,
+        deepLink = deepLink,
     )
+
+/**
+ * 여분이 없을 때는 남은 수량을, 그 외에는 다음 교체 예상일을 보여준다.
+ *
+ * 여분 부족 알림은 수량이 명시적으로 0일 때만 발송되므로(명세서 5.5) 수량을 따로 받지 않아도 0으로 단정할 수 있다.
+ */
+private fun Notification.toSubtitle(): String? =
+    if (hasLowStock) {
+        NO_SPARE_SUBTITLE
+    } else {
+        nextReplacementDate?.toNextReplacementSubtitleOrNull()
+    }
+
+/** 서버는 `2026-10-28` 형식으로 준다. 디자인은 `다음 예상 교체일 : 10월 28일`로 보여준다. */
+private fun String.toNextReplacementSubtitleOrNull(): String? =
+    runCatching { LocalDate.parse(this).format(NextReplacementDateFormatter) }
+        .getOrNull()
+        ?.let { date -> "다음 예상 교체일 : $date" }
+
+private const val NO_SPARE_SUBTITLE = "남은 여분 : 0개"
+
+private val NextReplacementDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN)
 
 private fun String.toLocalDateTimeOrNull(): LocalDateTime? = runCatching { LocalDateTime.parse(this) }.getOrNull()
 

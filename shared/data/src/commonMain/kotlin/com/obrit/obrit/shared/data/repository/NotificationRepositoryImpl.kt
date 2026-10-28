@@ -5,8 +5,8 @@ import com.obrit.obrit.shared.model.notifications.NotificationSettings
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.notification.RegisterDeviceRequest
 import com.obrit.obrit.shared.network.request.notification.toUpdateRequest
-import com.obrit.obrit.shared.network.response.notification.toNotification
 import com.obrit.obrit.shared.network.response.notification.toNotificationSettings
+import com.obrit.obrit.shared.network.response.notification.toNotifications
 import com.obrit.obrit.shared.network.source.NotificationRemoteDataSource
 
 internal class NotificationRepositoryImpl(
@@ -19,7 +19,7 @@ internal class NotificationRepositoryImpl(
 
     override suspend fun getNotifications(): Result<List<Notification>> =
         runCatchingWith {
-            notificationRemoteDataSource.getNotifications().map { response -> response.toNotification() }
+            notificationRemoteDataSource.getNotifications().flatMap { response -> response.toNotifications() }
         }
 
     override suspend fun markAsRead(notificationId: Long): Result<String> =

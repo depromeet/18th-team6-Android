@@ -189,12 +189,14 @@ private fun NotificationScreenContentPreview() {
                                 items =
                                     listOf(
                                         NotificationItem(
-                                            id = 1L,
-                                            badge = null,
+                                            notificationId = 1L,
+                                            entryId = 1L,
+                                            badge = "교체 D+3",
                                             timeText = "2시간 전",
-                                            title = "칫솔 교체 시기가 지난 지 3일 째예요",
+                                            title = "칫솔 교체 예정일이 지났어요",
                                             subtitle = "다음 예상 교체일 : 5월 24일",
                                             isUnread = true,
+                                            deepLink = "obrit://items/1",
                                         ),
                                     ),
                             ),
@@ -203,12 +205,14 @@ private fun NotificationScreenContentPreview() {
                                 items =
                                     listOf(
                                         NotificationItem(
-                                            id = 2L,
+                                            notificationId = 2L,
+                                            entryId = 2L,
                                             badge = "여분 부족",
                                             timeText = "1일 전",
                                             title = "샴푸 여분이 모두 떨어졌어요",
                                             subtitle = "남은 여분 : 0개",
                                             isUnread = false,
+                                            deepLink = "obrit://items/2",
                                         ),
                                     ),
                             ),
