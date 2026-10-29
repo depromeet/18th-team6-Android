@@ -6,6 +6,7 @@ struct HomeListTab: View {
 
     let onNavigate: (ItemRoute) -> Void
     let onShowOnboarding: () -> Void
+    let onOpenNotificationSettings: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
 
     @MainActor
@@ -14,12 +15,14 @@ struct HomeListTab: View {
         refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigate: @escaping (ItemRoute) -> Void,
         onShowOnboarding: @escaping () -> Void,
+        onOpenNotificationSettings: @escaping () -> Void = {},
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
         self.refreshCenter = refreshCenter
         self.onNavigate = onNavigate
         self.onShowOnboarding = onShowOnboarding
+        self.onOpenNotificationSettings = onOpenNotificationSettings
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
     }
 
@@ -43,8 +46,8 @@ struct HomeListTab: View {
             state: viewModel.state,
             action: HomeListTabAction(
                 onSearch: { onNavigate(.search) },
-                onNotification: {},
-                onProfile: {},
+                onNotification: onOpenNotificationSettings,
+                onProfile: onOpenNotificationSettings,
                 onLogoEasterEgg: onShowOnboarding,
                 onRegisterImage: { onNavigate(.receiptAnalyze) },
                 onRegisterDirect: { onNavigate(.itemRegistration) },

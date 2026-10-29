@@ -129,6 +129,19 @@ class SharedWriteService(
         }
     }
 
+    @Throws(Throwable::class)
+    suspend fun registerNotificationDevice(fid: String) {
+        logged(
+            event = "SharedWriteService.registerNotificationDevice",
+            details = "",
+        ) {
+            repositoryProvider
+                .notificationRepository()
+                .registerDevice(fid)
+                .getOrThrow()
+        }
+    }
+
     private suspend fun <T> logged(
         event: String,
         details: String,

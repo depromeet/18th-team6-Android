@@ -7,6 +7,7 @@ struct AppDependencies {
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
+    let makeNotificationSettingsViewModel: @MainActor () -> NotificationSettingsViewModel
     let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
     let makeReceiptAnalyzeViewModel: @MainActor () -> ReceiptAnalyzeViewModel
@@ -18,6 +19,7 @@ struct AppDependencies {
         let repositoryProvider = SharedRepositoryProvider()
         let readService = SharedReadService(repositoryProvider: repositoryProvider)
         let writeService = SharedWriteService(repositoryProvider: repositoryProvider)
+        let notificationSettingsService = SharedNotificationSettingsService(repositoryProvider: repositoryProvider)
         let receiptService = SharedReceiptService(repositoryProvider: repositoryProvider)
         let itemReadRepository = SharedItemReadRepository(
             readService: readService,
@@ -46,6 +48,11 @@ struct AppDependencies {
                 SearchViewModel(
                     repository: SharedHomeListTabRepository(readService: readService),
                     recentKeywordStore: searchRecentKeywordStore
+                )
+            },
+            makeNotificationSettingsViewModel: {
+                NotificationSettingsViewModel(
+                    repository: SharedNotificationPreferencesRepository(service: notificationSettingsService)
                 )
             },
             makeOnboardingViewModel: {
@@ -90,6 +97,9 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel()
+            },
+            makeNotificationSettingsViewModel: {
+                NotificationSettingsViewModel()
             },
             makeOnboardingViewModel: {
                 OnboardingViewModel()

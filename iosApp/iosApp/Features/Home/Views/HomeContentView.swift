@@ -48,7 +48,8 @@ struct HomeContentView: View {
                 VStack(spacing: 0) {
                     Color.clear.frame(height: geometry.safeAreaInsets.top)
                     OBRitHomeTopBar.transparent(
-                        showNotificationButton: false,
+                        showNotificationButton: true,
+                        showProfileButton: true,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
                         onProfileClick: action.onProfile,

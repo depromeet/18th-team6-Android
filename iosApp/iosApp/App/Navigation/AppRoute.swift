@@ -5,4 +5,5 @@ enum AppRoute: OBRitRoute {
     case registrationPrompt
     case initialItemRegistration
     case main(MainTab)
+    case notificationSettings
 }

@@ -5,6 +5,7 @@ public struct OBRitHomeTopBar: View {
 
     private let backgroundColor: Bool
     private let showNotificationButton: Bool
+    private let showProfileButton: Bool
     private let onSearchClick: () -> Void
     private let onNotificationClick: () -> Void
     private let onProfileClick: () -> Void
@@ -13,6 +14,7 @@ public struct OBRitHomeTopBar: View {
     public init(
         backgroundColor: Bool = true,
         showNotificationButton: Bool = true,
+        showProfileButton: Bool = false,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
         onProfileClick: @escaping () -> Void,
@@ -20,6 +22,7 @@ public struct OBRitHomeTopBar: View {
     ) {
         self.backgroundColor = backgroundColor
         self.showNotificationButton = showNotificationButton
+        self.showProfileButton = showProfileButton
         self.onSearchClick = onSearchClick
         self.onNotificationClick = onNotificationClick
         self.onProfileClick = onProfileClick
@@ -28,6 +31,7 @@ public struct OBRitHomeTopBar: View {
 
     public static func transparent(
         showNotificationButton: Bool = true,
+        showProfileButton: Bool = false,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
         onProfileClick: @escaping () -> Void,
@@ -36,6 +40,7 @@ public struct OBRitHomeTopBar: View {
         OBRitHomeTopBar(
             backgroundColor: false,
             showNotificationButton: showNotificationButton,
+            showProfileButton: showProfileButton,
             onSearchClick: onSearchClick,
             onNotificationClick: onNotificationClick,
             onProfileClick: onProfileClick,
@@ -59,7 +64,17 @@ public struct OBRitHomeTopBar: View {
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
                     if showNotificationButton {
-                        TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
+                        Button(action: onNotificationClick) {
+                            Image("home_notification")
+                                .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                                .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
+                                .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("알림 설정")
+                    }
+                    if showProfileButton {
+                        TopBarIconButton(symbolName: "person.crop.circle", accessibilityLabel: "알림 설정", action: onProfileClick)
                     }
                 }
             }

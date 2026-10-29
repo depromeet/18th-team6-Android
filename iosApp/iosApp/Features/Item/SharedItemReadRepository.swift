@@ -155,7 +155,8 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                 lastReplacedDate: nil,
                 replacementIntervalDays: draft.replacementCycleDays == original.replacementCycle.intervalDays
                     ? nil
-                    : KotlinInt(int: Int32(draft.replacementCycleDays))
+                    : KotlinInt(int: Int32(draft.replacementCycleDays)),
+                iconId: nil
             ))
             return try await makeDetailItem(from: item, updatedAt: Date())
         } catch {

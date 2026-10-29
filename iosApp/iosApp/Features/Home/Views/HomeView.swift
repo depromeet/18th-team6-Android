@@ -6,6 +6,7 @@ struct HomeView: View {
 
     let onNavigateItem: (ItemRoute) -> Void
     let onShowOnboarding: () -> Void
+    let onOpenNotificationSettings: () -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
     let onRegisteredItemsAvailabilityChange: (Bool) -> Void
@@ -16,6 +17,7 @@ struct HomeView: View {
         refreshCenter: AppRefreshCenter = AppRefreshCenter(),
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowOnboarding: @escaping () -> Void,
+        onOpenNotificationSettings: @escaping () -> Void = {},
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in },
         onRegisteredItemsAvailabilityChange: @escaping (Bool) -> Void = { _ in }
@@ -24,6 +26,7 @@ struct HomeView: View {
         self.refreshCenter = refreshCenter
         self.onNavigateItem = onNavigateItem
         self.onShowOnboarding = onShowOnboarding
+        self.onOpenNotificationSettings = onOpenNotificationSettings
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
         self.onRegisteredItemsAvailabilityChange = onRegisteredItemsAvailabilityChange
@@ -70,8 +73,8 @@ struct HomeView: View {
     private var homeAction: HomeViewAction {
         HomeViewAction(
             onSearch: { onNavigateItem(.search) },
-            onNotification: {},
-            onProfile: {},
+            onNotification: onOpenNotificationSettings,
+            onProfile: onOpenNotificationSettings,
             onLogoEasterEgg: onShowOnboarding,
             onRegisterImage: { onNavigateItem(.receiptAnalyze) },
             onRegisterDirect: { onNavigateItem(.itemRegistration) },
@@ -124,7 +127,8 @@ private struct HomeDataUnavailableContentView: View {
                 VStack(spacing: 0) {
                     Color.clear.frame(height: geometry.safeAreaInsets.top)
                     OBRitHomeTopBar.transparent(
-                        showNotificationButton: false,
+                        showNotificationButton: true,
+                        showProfileButton: true,
                         onSearchClick: action.onSearch,
                         onNotificationClick: action.onNotification,
                         onProfileClick: action.onProfile,
