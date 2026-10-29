@@ -20,10 +20,8 @@ import com.obrit.obrit.shared.network.source.HomeRemoteDataSource
 import com.obrit.obrit.shared.network.source.HomeRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSource
 import com.obrit.obrit.shared.network.source.ItemRemoteDataSourceImpl
-import com.obrit.obrit.shared.network.source.NotificationDeviceRemoteDataSource
-import com.obrit.obrit.shared.network.source.NotificationDeviceRemoteDataSourceImpl
-import com.obrit.obrit.shared.network.source.NotificationSettingsRemoteDataSource
-import com.obrit.obrit.shared.network.source.NotificationSettingsRemoteDataSourceImpl
+import com.obrit.obrit.shared.network.source.NotificationRemoteDataSource
+import com.obrit.obrit.shared.network.source.NotificationRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSource
 import com.obrit.obrit.shared.network.source.ReceiptRemoteDataSourceImpl
 import com.obrit.obrit.shared.network.source.UserRemoteDataSource
@@ -34,7 +32,6 @@ import org.koin.dsl.module
 
 val networkModule =
     module {
-        single<NotificationSettingsRemoteDataSource> { NotificationSettingsRemoteDataSourceImpl(get(), get()) }
         includes(deviceUuidModule, userIdStorageModule)
 
         single<NetworkConfiguration> {
@@ -50,8 +47,8 @@ val networkModule =
         single<AgentRemoteDataSource> { AgentRemoteDataSourceImpl(get()) }
         single<AgentSessionRemoteDataSource> { AgentSessionRemoteDataSourceImpl(get()) }
         single<ItemRemoteDataSource> { ItemRemoteDataSourceImpl(get(), get()) }
-        single<NotificationDeviceRemoteDataSource> { NotificationDeviceRemoteDataSourceImpl(get(), get()) }
         single<ReceiptRemoteDataSource> { ReceiptRemoteDataSourceImpl(get(), get()) }
         single<CategoryRemoteDataSource> { CategoryRemoteDataSourceImpl(get(), get()) }
         single<HomeRemoteDataSource> { HomeRemoteDataSourceImpl(get(), get()) }
+        single<NotificationRemoteDataSource> { NotificationRemoteDataSourceImpl(get(), get()) }
     }

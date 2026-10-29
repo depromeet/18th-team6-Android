@@ -49,12 +49,6 @@ kotlin {
             }
         }
 
-        androidUnitTest.dependencies {
-            implementation(libs.kotlin.testJunit)
-            implementation(project.dependencies.platform(libs.ktor.bom))
-            implementation(libs.ktor.client.mock)
-        }
-
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }

@@ -105,7 +105,7 @@ fun OBRitCloseTopBar(
         leadingIconRes = R.drawable.ic_topbar_close,
         leadingContentDescription = OBRIT_TOP_BAR_CLOSE_DESCRIPTION,
         onLeadingClick = onCloseClick,
-        onMoreClick = onMoreClick,
+        trailingAction = onMoreClick?.let(::moreTopBarAction),
         modifier = modifier,
     )
 }
@@ -115,17 +115,31 @@ fun OBRitDepthTopBar(
     title: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onMoreClick: (() -> Unit)? = null,
+    trailingAction: OBRitTopBarAction? = null,
 ) {
     TopBarWithTitle(
         title = title,
         leadingIconRes = R.drawable.ic_topbar_arrow_left,
         leadingContentDescription = OBRIT_TOP_BAR_BACK_DESCRIPTION,
         onLeadingClick = onBackClick,
-        onMoreClick = onMoreClick,
+        trailingAction = trailingAction,
         modifier = modifier,
     )
 }
+
+/** 상단바 오른쪽 아이콘 버튼. 화면마다 필요한 아이콘(더보기, 설정 등)이 달라 호출하는 쪽에서 정한다. */
+data class OBRitTopBarAction(
+    @DrawableRes val iconRes: Int,
+    val contentDescription: String?,
+    val onClick: () -> Unit,
+)
+
+private fun moreTopBarAction(onClick: () -> Unit): OBRitTopBarAction =
+    OBRitTopBarAction(
+        iconRes = R.drawable.ic_topbar_more_vert,
+        contentDescription = OBRIT_TOP_BAR_MORE_DESCRIPTION,
+        onClick = onClick,
+    )
 
 @Composable
 @Suppress("LongParameterList")
@@ -171,7 +185,7 @@ private fun TopBarWithTitle(
     @DrawableRes leadingIconRes: Int,
     leadingContentDescription: String?,
     onLeadingClick: () -> Unit,
-    onMoreClick: (() -> Unit)?,
+    trailingAction: OBRitTopBarAction?,
     modifier: Modifier = Modifier,
 ) {
     TopBarRoot(modifier = modifier) {
@@ -191,11 +205,11 @@ private fun TopBarWithTitle(
                     .align(Alignment.Center)
                     .padding(horizontal = OBRitTopBarTitleHorizontalPadding),
         )
-        if (onMoreClick != null) {
+        if (trailingAction != null) {
             TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_more_vert,
-                onClick = onMoreClick,
-                contentDescription = OBRIT_TOP_BAR_MORE_DESCRIPTION,
+                iconRes = trailingAction.iconRes,
+                onClick = trailingAction.onClick,
+                contentDescription = trailingAction.contentDescription,
                 modifier =
                     Modifier
                         .align(Alignment.CenterEnd)
@@ -383,7 +397,12 @@ private fun OBRitDepthTopBarPreview() {
         OBRitDepthTopBar(
             title = "PageTitle",
             onBackClick = {},
-            onMoreClick = {},
+            trailingAction =
+                OBRitTopBarAction(
+                    iconRes = R.drawable.ic_gear,
+                    contentDescription = null,
+                    onClick = {},
+                ),
         )
     }
 }

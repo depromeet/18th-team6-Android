@@ -43,8 +43,8 @@ extension AppDelegate: MessagingDelegate {
         #endif
         Task { @MainActor in
             do {
-                let device = try await writeService.registerNotificationDevice(fid: installationId)
-                AppLog.success(AppLog.pushNotifications, "Notification device registered", "deviceId=\(device.id)")
+                try await writeService.registerNotificationDevice(fid: installationId)
+                AppLog.success(AppLog.pushNotifications, "Notification device registered")
             } catch {
                 AppLog.failure(AppLog.pushNotifications, "Notification device registration", error)
             }

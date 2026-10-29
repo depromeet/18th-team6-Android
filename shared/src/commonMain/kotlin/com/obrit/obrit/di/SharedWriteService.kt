@@ -6,7 +6,6 @@ import com.obrit.obrit.shared.model.items.CreateItemParams
 import com.obrit.obrit.shared.model.items.Item
 import com.obrit.obrit.shared.model.items.PatchItemParams
 import com.obrit.obrit.shared.model.items.ReplacementPeriod
-import com.obrit.obrit.shared.model.notifications.NotificationDevice
 
 /**
  * Swift-facing write facade that unwraps Kotlin Result before crossing the K/N boundary.
@@ -131,16 +130,17 @@ class SharedWriteService(
     }
 
     @Throws(Throwable::class)
-    suspend fun registerNotificationDevice(fid: String): NotificationDevice =
+    suspend fun registerNotificationDevice(fid: String) {
         logged(
             event = "SharedWriteService.registerNotificationDevice",
             details = "",
         ) {
             repositoryProvider
-                .notificationDeviceRepository()
+                .notificationRepository()
                 .registerDevice(fid)
                 .getOrThrow()
         }
+    }
 
     private suspend fun <T> logged(
         event: String,

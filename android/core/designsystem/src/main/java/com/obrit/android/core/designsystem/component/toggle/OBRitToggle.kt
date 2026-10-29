@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -33,16 +34,25 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
  *
  * [onCheckedChange]가 null이면 표시 전용이다. 설정 행 전체를 눌러 토글하는 화면처럼
  * 조작을 바깥에서 받는 경우에 쓴다.
+ *
+ * [enabled]가 false면 조작이 막히고 켜짐 트랙이 흐린 초록(`Background/Disabled/Color Default`)으로 바뀐다.
+ * 꺼짐 트랙은 원래 `Background/Disabled/Default`라 활성·비활성이 같은 색이다.
  */
 @Composable
 fun OBRitToggle(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = LocalOBRitColor.current
     val trackColor by animateColorAsState(
-        targetValue = if (checked) colors.green300 else colors.gray700,
+        targetValue =
+            when {
+                !checked -> colors.gray700
+                enabled -> colors.green300
+                else -> colors.green700
+            },
         label = "OBRitToggleTrackColor",
     )
     val thumbOffset by animateDpAsState(
@@ -56,8 +66,13 @@ fun OBRitToggle(
                 .size(width = OBRitToggleWidth, height = OBRitToggleHeight)
                 .clip(RoundedCornerShape(AtomRadius.Exception.dp))
                 .background(trackColor)
-                .then(toggleableModifier(checked = checked, onCheckedChange = onCheckedChange))
-                .padding(OBRitToggleThumbInset),
+                .then(
+                    toggleableModifier(
+                        checked = checked,
+                        onCheckedChange = onCheckedChange,
+                        enabled = enabled,
+                    ),
+                ).padding(OBRitToggleThumbInset),
         contentAlignment = Alignment.CenterStart,
     ) {
         OBRitToggleThumb(modifier = Modifier.offset(x = thumbOffset))
@@ -78,10 +93,12 @@ private fun OBRitToggleThumb(modifier: Modifier = Modifier) {
 private fun toggleableModifier(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
+    enabled: Boolean,
 ): Modifier =
     if (onCheckedChange != null) {
         Modifier.toggleable(
             value = checked,
+            enabled = enabled,
             role = Role.Switch,
             onValueChange = onCheckedChange,
         )
@@ -105,15 +122,21 @@ private fun OBRitTogglePreview() {
         var offToggleChecked by remember { mutableStateOf(false) }
         var onToggleChecked by remember { mutableStateOf(true) }
 
-        Row(
+        Column(
             modifier =
                 Modifier
                     .background(colors.gray900)
                     .padding(AtomSpacing.S5.dp),
-            horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
+            verticalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
         ) {
-            OBRitToggle(checked = offToggleChecked, onCheckedChange = { offToggleChecked = it })
-            OBRitToggle(checked = onToggleChecked, onCheckedChange = { onToggleChecked = it })
+            Row(horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp)) {
+                OBRitToggle(checked = offToggleChecked, onCheckedChange = { offToggleChecked = it })
+                OBRitToggle(checked = onToggleChecked, onCheckedChange = { onToggleChecked = it })
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp)) {
+                OBRitToggle(checked = false, onCheckedChange = {}, enabled = false)
+                OBRitToggle(checked = true, onCheckedChange = {}, enabled = false)
+            }
         }
     }
 }

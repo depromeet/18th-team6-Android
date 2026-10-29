@@ -35,13 +35,24 @@
             </intent-filter>
         </service>
 
+        <!-- singleTop이라 이미 떠 있으면 새 화면을 쌓지 않고 onNewIntent로 딥링크만 넘어온다. -->
         <activity
             android:exported="true"
+            android:launchMode="singleTop"
             android:name="com.obrit.obrit.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="obrit" />
             </intent-filter>
         </activity>
     </application>

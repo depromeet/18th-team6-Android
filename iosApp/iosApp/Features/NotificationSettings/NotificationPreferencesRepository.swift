@@ -18,25 +18,25 @@ actor SharedNotificationPreferencesRepository: NotificationPreferencesRepository
     }
 
     func update(_ settings: NotificationSettings) async throws -> NotificationSettings {
-        let preferences = UpdateNotificationSettingsParams(
-            preReplacementEnabled: settings.replacementUpcoming,
-            overdueEnabled: settings.replacementOverdue,
-            lowStockEnabled: settings.lowStock,
-            dispatchTime: String(format: "%02d:%02d", settings.hour, settings.minute)
+        let preferences = Shared.NotificationSettings(
+            isReplacementUpcomingEnabled: settings.replacementUpcoming,
+            isReplacementOverdueEnabled: settings.replacementOverdue,
+            isSpareShortageEnabled: settings.lowStock,
+            sendTime: String(format: "%02d:%02d", settings.hour, settings.minute)
         )
         return try self.settings(from: await service.updateSettings(settings: preferences))
     }
 
-    private func settings(from preferences: NotificationPreferences) throws -> NotificationSettings {
-        let parts = preferences.dispatchTime.split(separator: ":")
+    private func settings(from preferences: Shared.NotificationSettings) throws -> NotificationSettings {
+        let parts = preferences.sendTime.split(separator: ":")
         guard parts.count >= 2,
               let hour = Int(parts[0]), (0 ... 23).contains(hour),
               let minute = Int(parts[1]), minute == 0 || minute == 30
         else { throw NotificationPreferencesError.invalidTime }
         return NotificationSettings(
-            replacementUpcoming: preferences.preReplacementEnabled,
-            replacementOverdue: preferences.overdueEnabled,
-            lowStock: preferences.lowStockEnabled,
+            replacementUpcoming: preferences.isReplacementUpcomingEnabled,
+            replacementOverdue: preferences.isReplacementOverdueEnabled,
+            lowStock: preferences.isSpareShortageEnabled,
             hour: hour,
             minute: minute
         )

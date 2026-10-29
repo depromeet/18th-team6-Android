@@ -5,8 +5,7 @@ import com.obrit.obrit.shared.data.repository.AgentSessionRepository
 import com.obrit.obrit.shared.data.repository.CategoryRepository
 import com.obrit.obrit.shared.data.repository.HomeRepository
 import com.obrit.obrit.shared.data.repository.ItemRepository
-import com.obrit.obrit.shared.data.repository.NotificationDeviceRepository
-import com.obrit.obrit.shared.data.repository.NotificationSettingsRepository
+import com.obrit.obrit.shared.data.repository.NotificationRepository
 import com.obrit.obrit.shared.data.repository.ReceiptRepository
 
 class SharedRepositoryProvider {
@@ -20,9 +19,7 @@ class SharedRepositoryProvider {
 
     fun itemRepository(): ItemRepository = ensureSharedKoin().get()
 
-    fun notificationDeviceRepository(): NotificationDeviceRepository = ensureSharedKoin().get()
-
-    fun notificationSettingsRepository(): NotificationSettingsRepository = ensureSharedKoin().get()
+    fun notificationRepository(): NotificationRepository = ensureSharedKoin().get()
 
     fun receiptRepository(): ReceiptRepository = ensureSharedKoin().get()
 }
