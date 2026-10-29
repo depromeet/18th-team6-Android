@@ -38,8 +38,8 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
     }
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
-        guard request.quantity >= ItemRegistrationConfig.quantityMinimum else {
-            throw SharedItemRegistrationWriteRepositoryError.invalidQuantity
+        guard ItemRegistrationConfig.manualQuantityRange.contains(request.quantity) else {
+            throw SharedItemRegistrationWriteRepositoryError.invalidManualQuantity
         }
 
         let event = "SharedItemRegistrationWriteRepository.createItem"
@@ -150,6 +150,7 @@ private struct ExistingItemPatchTarget {
 private enum SharedItemRegistrationWriteRepositoryError: LocalizedError {
     case emptyItems
     case invalidQuantity
+    case invalidManualQuantity
 
     var errorDescription: String? {
         switch self {
@@ -157,6 +158,8 @@ private enum SharedItemRegistrationWriteRepositoryError: LocalizedError {
             "등록할 소모품이 없어요."
         case .invalidQuantity:
             "등록할 수량은 \(ItemRegistrationConfig.quantityMinimum)개 이상이어야 해요."
+        case .invalidManualQuantity:
+            "등록할 수량은 0~99개여야 해요."
         }
     }
 }

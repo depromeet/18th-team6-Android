@@ -1,94 +1,93 @@
 import SwiftUI
 
 struct ItemRegistrationFormView: View {
-    @State private var isReplacementDateDropdownExpanded = false
-
     let data: ItemRegistrationViewData
     let action: ItemRegistrationAction
 
     var body: some View {
-        GeometryReader { geometry in
-            let horizontalPadding = ItemRegistrationLayout.horizontalPadding(for: geometry.size.width)
-
-            VStack(spacing: ItemRegistrationLayout.zeroSpacing) {
-                OBRitDepthTopBar(
-                    title: "소모품 등록",
-                    backgroundColor: false,
-                    onBackClick: action.onBack
-                )
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: OBRitSpacing.s7) {
-                        ItemRegistrationTitle(
-                            title: "소모품의 상세 정보를\n입력해주세요",
-                            subtitle: "원활한 관리를 위해 구체적인 정보를 입력해주세요"
-                        )
-
-                        VStack(alignment: .leading, spacing: OBRitSpacing.s10) {
-                            ItemRequiredField(title: "소모품 종류") {
-                                ItemKindPickerField(
-                                    value: data.draft.selectedKind?.title ?? "",
-                                    placeholder: "소모품 종류를 선택해주세요",
-                                    onClick: action.onOpenKindSheet
-                                )
-                            }
-
-                            ItemRequiredField(title: "소모품명") {
-                                ItemTextInputField(
-                                    text: data.draft.itemName,
-                                    placeholder: "소모품명을 입력해주세요",
-                                    maxLength: ItemRegistrationConfig.itemNameMaxLength,
-                                    helperText: ItemRegistrationText.maxLengthHelper(ItemRegistrationConfig.itemNameMaxLength),
-                                    showsMaxLengthWarning: true,
-                                    singleLine: true,
-                                    onTextChange: action.onUpdateItemName
-                                )
-                            }
-
-                            ItemRequiredField(title: "마지막 교체 일자") {
-                                ItemReplacementDateDropdown(
-                                    selectedOption: data.draft.lastReplacementDateOption,
-                                    isExpanded: $isReplacementDateDropdownExpanded,
-                                    onSelect: { option in
-                                        action.onSelectReplacementDate(option)
-                                        isReplacementDateDropdownExpanded = false
-                                    }
-                                )
-                            }
-                            .zIndex(isReplacementDateDropdownExpanded ? ItemRegistrationLayout.expandedControlZIndex : ItemRegistrationLayout.defaultZIndex)
-
-                            ItemRequiredField(title: "등록할 수량") {
-                                ItemQuantityCard(
-                                    kind: data.draft.selectedKind,
-                                    quantity: data.draft.quantity,
-                                    quantityLabelPrefix: "전체",
-                                    helperText: "소모품의 전체 수량은 추후 수정할 수 있어요.",
-                                    action: action
-                                )
-                            }
-                        }
-
-                        ItemScrollButton(
-                            text: "소모품 등록하기",
-                            enabled: data.canSubmitForm,
-                            action: action.onSubmitForm
-                        )
-                    }
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.top, OBRitSpacing.s5)
-                    .padding(.bottom, OBRitSpacing.s10)
+        VStack(spacing: 0) {
+            OBRitDepthTopBar(
+                title: "소모품 추가",
+                backgroundColor: false,
+                showRightButton: false,
+                onBackClick: action.onBack
+            )
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: OBRitSpacing.s7) {
+                    ItemRegistrationTitle(
+                        title: "소모품의 상세 정보를\n입력해주세요",
+                        subtitle: "원활한 관리를 위해 구체적인 정보를 입력해주세요"
+                    )
+                    registrationFields
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .background(
-                    OBRitColors.backgroundDefaultDefault
-                        .contentShape(Rectangle())
-                        .onTapGesture(perform: dismissKeyboard)
+                .padding(.horizontal, OBRitSpacing.s5)
+                .padding(.top, OBRitSpacing.s5)
+                .padding(.bottom, OBRitSpacing.s6)
+            }
+            .scrollDismissesKeyboard(.interactively)
+        }
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea())
+        .dismissKeyboardOnBackgroundTap()
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            registrationButton
+        }
+    }
+
+    private var registrationFields: some View {
+        VStack(alignment: .leading, spacing: OBRitSpacing.s10) {
+            ItemRequiredField(title: "소모품") {
+                ItemKindPickerField(
+                    value: data.draft.selectedKind?.title ?? "",
+                    placeholder: "소모품을 선택해주세요",
+                    onClick: action.onOpenKindSheet
                 )
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .background(OBRitColors.backgroundDefaultDefault)
-            .dismissKeyboardOnBackgroundTap()
+            ItemRequiredField(title: "이름") {
+                ItemTextInputField(
+                    text: data.draft.itemName,
+                    placeholder: "구분을 위한 이름을 입력해주세요",
+                    maxLength: ItemRegistrationConfig.itemNameMaxLength,
+                    singleLine: true,
+                    onTextChange: action.onUpdateItemName
+                )
+            }
+            ItemRequiredField(title: "등록할 수량") {
+                quantityInput
+            }
         }
+    }
+
+    private var quantityInput: some View {
+        VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
+            OBRitNumberSelector(
+                value: data.draft.quantity,
+                range: ItemRegistrationConfig.manualQuantityRange,
+                isEnabled: !data.isProcessing,
+                onValueChange: action.onUpdateQuantity
+            )
+            HStack(spacing: OBRitSpacing.s1_5) {
+                OBRitIcon(kind: .info, color: OBRitColors.textDefaultTertiary)
+                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+                Text("소모품의 전체 수량은 추후 수정할 수 있어요.")
+                    .obritTextStyle(
+                        OBRitTypography.base,
+                        weight: OBRitFontWeight.semiBold,
+                        color: OBRitColors.textDefaultTertiary
+                    )
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var registrationButton: some View {
+        OBRitFilledTextButton(
+            text: data.isProcessing ? "등록 중..." : "소모품 등록하기",
+            enabled: data.canSubmitForm,
+            fillsWidth: true,
+            action: action.onSubmitForm
+        )
+        .padding(OBRitSpacing.s5)
+        .background(OBRitColors.backgroundDefaultDefault.ignoresSafeArea(edges: .bottom))
     }
 }
 

@@ -182,7 +182,6 @@ final class ItemRegistrationViewModel: ObservableObject {
         update { data in
             data.draft.selectedKind = kind
             data.draft.itemName = kind.title
-            data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
             data.kindSearchQuery = ""
             data.bottomSheet = nil
             data.selectedKindCandidate = nil
@@ -194,25 +193,25 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func incrementQuantity() {
-        guard data.draft.selectedKind != nil else { return }
+        guard !data.isProcessing else { return }
         update {
-            $0.draft.quantity = min($0.draft.quantity + 1, ItemRegistrationConfig.quantityMaximum)
+            $0.draft.quantity = min($0.draft.quantity + 1, ItemRegistrationConfig.manualQuantityRange.upperBound)
         }
     }
 
     func decrementQuantity() {
-        guard data.draft.selectedKind != nil else { return }
+        guard !data.isProcessing else { return }
         update {
-            $0.draft.quantity = max($0.draft.quantity - 1, ItemRegistrationConfig.quantityMinimum)
+            $0.draft.quantity = max($0.draft.quantity - 1, ItemRegistrationConfig.manualQuantityRange.lowerBound)
         }
     }
 
     func updateQuantity(_ quantity: Int) {
-        guard data.draft.selectedKind != nil else { return }
+        guard !data.isProcessing else { return }
         update {
             $0.draft.quantity = min(
-                max(quantity, ItemRegistrationConfig.quantityMinimum),
-                ItemRegistrationConfig.quantityMaximum
+                max(quantity, ItemRegistrationConfig.manualQuantityRange.lowerBound),
+                ItemRegistrationConfig.manualQuantityRange.upperBound
             )
         }
     }
@@ -288,7 +287,6 @@ final class ItemRegistrationViewModel: ObservableObject {
         data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
         data.draft.selectedKind = kind
         data.draft.itemName = kind.title
-        data.draft.quantity = max(data.draft.quantity, ItemRegistrationConfig.quantityMinimum)
         data.draft.directKindName = ""
         data.kindSearchQuery = ""
         data.selectedKindCandidate = nil
@@ -297,14 +295,13 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     private func makeCreateItemRequest() -> ItemRegistrationCreateItemRequest? {
-        guard let selectedKind = data.draft.selectedKind,
-              let lastReplacementDateOption = data.draft.lastReplacementDateOption else { return nil }
+        guard let selectedKind = data.draft.selectedKind else { return nil }
 
         return ItemRegistrationCreateItemRequest(
             categoryId: selectedKind.id,
             name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
             quantity: data.draft.quantity,
-            lastReplacementPeriod: lastReplacementDateOption.apiPeriod
+            lastReplacementPeriod: nil
         )
     }
 

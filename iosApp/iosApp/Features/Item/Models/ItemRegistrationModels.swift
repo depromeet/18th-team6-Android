@@ -125,8 +125,7 @@ struct ItemRegistrationViewData: Equatable {
     var canSubmitForm: Bool {
         draft.selectedKind != nil &&
             !draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            draft.lastReplacementDateOption != nil &&
-            draft.quantity >= ItemRegistrationConfig.quantityMinimum &&
+            ItemRegistrationConfig.manualQuantityRange.contains(draft.quantity) &&
             !isProcessing
     }
 

@@ -172,7 +172,7 @@ struct ItemTextInputField: View {
     let text: String
     let placeholder: String
     let maxLength: Int
-    let helperText: String
+    let helperText: String?
     let showsMaxLengthWarning: Bool
     let singleLine: Bool
     let onTextChange: (String) -> Void
@@ -181,7 +181,7 @@ struct ItemTextInputField: View {
         text: String,
         placeholder: String,
         maxLength: Int,
-        helperText: String,
+        helperText: String? = nil,
         showsMaxLengthWarning: Bool = false,
         singleLine: Bool,
         onTextChange: @escaping (String) -> Void
@@ -251,16 +251,18 @@ struct ItemTextInputField: View {
                 isFocused = true
             }
 
-            HStack(alignment: .center, spacing: OBRitSpacing.s1) {
-                OBRitIcon(kind: isMaxLengthWarning ? .exclamation : .success, color: helperIconColor)
-                    .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
-                Text(helperText)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .obritTextStyle(
-                        OBRitTypography.s,
-                        weight: OBRitFontWeight.medium,
-                        color: helperTextColor
-                    )
+            if let helperText {
+                HStack(alignment: .center, spacing: OBRitSpacing.s1) {
+                    OBRitIcon(kind: isMaxLengthWarning ? .exclamation : .success, color: helperIconColor)
+                        .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
+                    Text(helperText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .obritTextStyle(
+                            OBRitTypography.s,
+                            weight: OBRitFontWeight.medium,
+                            color: helperTextColor
+                        )
+                }
             }
         }
         .onChange(of: text) { _, newValue in
