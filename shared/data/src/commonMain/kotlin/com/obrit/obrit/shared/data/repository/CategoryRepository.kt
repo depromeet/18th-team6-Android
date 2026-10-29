@@ -1,9 +1,12 @@
 package com.obrit.obrit.shared.data.repository
 
 import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.categories.CategoryGroup
 import com.obrit.obrit.shared.model.categories.CategoryIcon
 
 interface CategoryRepository {
+    suspend fun getCategoryGroups(): Result<List<CategoryGroup>>
+
     suspend fun getCategories(): Result<List<Category>>
 
     suspend fun createCategory(

@@ -4,6 +4,7 @@ import com.obrit.obrit.shared.network.client.userIdHeader
 import com.obrit.obrit.shared.network.config.UserIdProvider
 import com.obrit.obrit.shared.network.request.category.CreateCategoryRequest
 import com.obrit.obrit.shared.network.response.ApiResponse
+import com.obrit.obrit.shared.network.response.category.CategoryGroupResponse
 import com.obrit.obrit.shared.network.response.category.CategoryIconResponse
 import com.obrit.obrit.shared.network.response.category.CategoryResponse
 import com.obrit.obrit.shared.network.response.requireData
@@ -18,6 +19,12 @@ internal class CategoryRemoteDataSourceImpl(
     private val httpClient: HttpClient,
     private val userIdProvider: UserIdProvider,
 ) : CategoryRemoteDataSource {
+    override suspend fun getCategoryGroups(): List<CategoryGroupResponse> =
+        httpClient
+            .get("$CATEGORIES_PATH/groups")
+            .body<ApiResponse<List<CategoryGroupResponse>>>()
+            .requireData()
+
     override suspend fun getCategories(): List<CategoryResponse> {
         val userId = userIdProvider.get()
 
