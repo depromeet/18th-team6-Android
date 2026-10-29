@@ -27,6 +27,7 @@ coil = "3.4.0"
 camerax = "1.4.1"
 firebaseBom = "34.18.0"
 googleServices = "4.5.0"
+glance = "1.2.0"
 
 [libraries]
 
@@ -116,6 +117,10 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+# endregion
+
+# region Glance
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 # endregion
 
 [plugins]

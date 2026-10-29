@@ -20,6 +20,7 @@ fun OBRitNavigation(
     deepLink: ObritDeepLink?,
     onDeepLinkConsume: () -> Unit,
     modifier: Modifier = Modifier,
+    openHomeSignal: Int = 0,
 ) {
     val onboardingStorage = koinInject<OnboardingStorage>()
     val isOnboardingCompleted = onboardingStorage.isCompleted()
@@ -29,6 +30,15 @@ fun OBRitNavigation(
         )
 
     val currentOnDeepLinkConsume by rememberUpdatedState(onDeepLinkConsume)
+
+    // 위젯을 눌러 들어오면 이전에 보던 화면이 아니라 홈에서 시작한다.
+    // 온보딩을 마치지 않은 사용자는 건드리지 않는다.
+    LaunchedEffect(openHomeSignal) {
+        if (openHomeSignal > 0 && isOnboardingCompleted) {
+            backStack.clear()
+            backStack.add(HomeRoute.Home)
+        }
+    }
 
     LaunchedEffect(deepLink) {
         if (deepLink == null) return@LaunchedEffect
