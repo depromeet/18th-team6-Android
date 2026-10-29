@@ -121,25 +121,28 @@ internal fun NotificationSettingsValueRow(
             modifier
                 .fillMaxWidth()
                 .clickable(enabled = enabled, onClick = onClick)
-                .padding(top = AtomSpacing.S3.dp, bottom = AtomSpacing.S3.dp, end = AtomSpacing.S1.dp),
+                .padding(vertical = AtomSpacing.S3.dp),
         horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         NotificationSettingsRowLabel(title = title, description = description)
-        Text(
-            text = value,
-            style = typography.base.copy(fontWeight = FontWeight.Medium),
-            color = valueColor,
-        )
-        Icon(
-            painter = painterResource(id = R.drawable.ic_chevron_right),
-            contentDescription = null,
-            tint = if (enabled) colors.gray300 else colors.gray700,
-            modifier =
-                Modifier
-                    .padding(start = AtomSpacing.S1.dp)
-                    .size(AtomSpacing.S5.dp),
-        )
+        // Figma는 값과 화살표를 한 묶음으로 두고 그 사이만 4dp를 띄운다.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = value,
+                style = typography.base.copy(fontWeight = FontWeight.Medium),
+                color = valueColor,
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_right_20),
+                contentDescription = null,
+                tint = if (enabled) colors.common00 else colors.gray700,
+                modifier = Modifier.size(AtomSpacing.S5.dp),
+            )
+        }
     }
 }
 

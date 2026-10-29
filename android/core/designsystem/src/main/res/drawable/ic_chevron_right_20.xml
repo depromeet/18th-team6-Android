@@ -1,0 +1,15 @@
+<!-- Figma icon/lined 20dp. Figma 원본은 왼쪽 화살표를 180도 돌리고 상하 반전해 쓰므로 좌우를 뒤집은 경로다.
+     같은 모양의 16dp 아이콘(ic_chevron_right)을 늘려 쓰면 선이 2.5dp로 두꺼워진다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+  <path
+      android:pathData="M7.5,5L12.5,10L7.5,15"
+      android:strokeLineJoin="round"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFF"
+      android:strokeLineCap="round"/>
+</vector>

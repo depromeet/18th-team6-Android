@@ -51,7 +51,7 @@ internal fun NotificationCard(
             modifier
                 .fillMaxWidth()
                 .clip(NotificationCardShape)
-                .background(NotificationCardBackground)
+                .background(colors.gray850)
                 .border(
                     width = NotificationCardBorderWidth,
                     color = NotificationCardBorder,
@@ -80,7 +80,7 @@ internal fun NotificationCard(
             ) {
                 Text(
                     text = timeText,
-                    style = typography.xs,
+                    style = typography.xs.copy(fontWeight = FontWeight.Medium),
                     color = colors.common00.copy(alpha = NOTIFICATION_TIME_ALPHA),
                 )
                 if (isUnread) {
@@ -120,7 +120,7 @@ internal fun NotificationCard(
             if (subtitle != null) {
                 Text(
                     text = subtitle,
-                    style = typography.base,
+                    style = typography.base.copy(fontWeight = FontWeight.Medium),
                     color = colors.gray500,
                 )
             }
@@ -128,11 +128,8 @@ internal fun NotificationCard(
     }
 }
 
-// 아래 두 색은 디자인 토큰(AtomColors)에 없다. Figma 알림 카드 스펙에 맞추기 위해 임시로 추가한 값이다.
+// 테두리 색은 디자인 토큰(AtomColors)에 없다. Figma 알림 카드 스펙(rgba(78,86,94,0.5))을 그대로 옮겼다.
 // 디자인시스템에 정식 토큰이 등록되면 그것으로 교체할 것.
-@Suppress("MagicNumber")
-private val NotificationCardBackground = Color(0xFF2C2B2D)
-
 @Suppress("MagicNumber")
 private val NotificationCardBorder = Color(0x804E565E)
 

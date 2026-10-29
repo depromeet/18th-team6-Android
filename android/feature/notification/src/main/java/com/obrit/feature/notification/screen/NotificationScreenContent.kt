@@ -97,7 +97,11 @@ private fun NotificationList(
     ) {
         if (!isNotificationEnabled) {
             item {
-                NotificationPermissionBanner(onClick = onPermissionBannerClick)
+                // Figma는 배너와 첫 섹션 사이를 24dp 띄운다. 목록 간격(20dp)에 모자란 4dp를 더한다.
+                NotificationPermissionBanner(
+                    onClick = onPermissionBannerClick,
+                    modifier = Modifier.padding(bottom = AtomSpacing.S1.dp),
+                )
             }
         }
 

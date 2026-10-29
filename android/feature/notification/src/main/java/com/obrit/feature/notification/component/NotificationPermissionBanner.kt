@@ -52,7 +52,7 @@ internal fun NotificationPermissionBanner(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_topbar_bell),
+            painter = painterResource(id = R.drawable.ic_bell_20),
             contentDescription = null,
             tint = colors.green300,
             modifier = Modifier.size(NotificationBannerIconSize),
@@ -65,7 +65,7 @@ internal fun NotificationPermissionBanner(
         )
         if (showChevron) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_chevron_right),
+                painter = painterResource(id = R.drawable.ic_chevron_right_20),
                 contentDescription = null,
                 tint = colors.green300,
                 modifier = Modifier.size(NotificationBannerIconSize),
