@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,7 +34,8 @@ import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 @Composable
 @Suppress("LongMethod", "LongParameterList")
 internal fun NotificationCard(
-    badge: String,
+    // 서버가 알림 유형과 D-day를 아직 주지 않는다. 값이 없으면 뱃지 자리를 그리지 않는다.
+    badge: String?,
     timeText: String,
     title: String,
     subtitle: String?,
@@ -49,7 +51,7 @@ internal fun NotificationCard(
             modifier
                 .fillMaxWidth()
                 .clip(NotificationCardShape)
-                .background(NotificationCardBackground)
+                .background(colors.gray850)
                 .border(
                     width = NotificationCardBorderWidth,
                     color = NotificationCardBorder,
@@ -66,7 +68,11 @@ internal fun NotificationCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OBRitBadge(text = badge, type = BadgeType.Red800Filled)
+            if (badge != null) {
+                OBRitBadge(text = badge, type = BadgeType.Red800Filled)
+            } else {
+                Spacer(modifier = Modifier)
+            }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S1.dp),
@@ -74,7 +80,7 @@ internal fun NotificationCard(
             ) {
                 Text(
                     text = timeText,
-                    style = typography.xs,
+                    style = typography.xs.copy(fontWeight = FontWeight.Medium),
                     color = colors.common00.copy(alpha = NOTIFICATION_TIME_ALPHA),
                 )
                 if (isUnread) {
@@ -114,7 +120,7 @@ internal fun NotificationCard(
             if (subtitle != null) {
                 Text(
                     text = subtitle,
-                    style = typography.base,
+                    style = typography.base.copy(fontWeight = FontWeight.Medium),
                     color = colors.gray500,
                 )
             }
@@ -122,11 +128,8 @@ internal fun NotificationCard(
     }
 }
 
-// 아래 두 색은 디자인 토큰(AtomColors)에 없다. Figma 알림 카드 스펙에 맞추기 위해 임시로 추가한 값이다.
+// 테두리 색은 디자인 토큰(AtomColors)에 없다. Figma 알림 카드 스펙(rgba(78,86,94,0.5))을 그대로 옮겼다.
 // 디자인시스템에 정식 토큰이 등록되면 그것으로 교체할 것.
-@Suppress("MagicNumber")
-private val NotificationCardBackground = Color(0xFF2C2B2D)
-
 @Suppress("MagicNumber")
 private val NotificationCardBorder = Color(0x804E565E)
 
@@ -157,7 +160,7 @@ private fun NotificationCardPreview() {
 private fun NotificationCardWithoutSubtitlePreview() {
     OBRitTheme(dynamicColor = false) {
         NotificationCard(
-            badge = "여분 경고",
+            badge = null,
             timeText = "3일 전",
             title = "면도기 여분이 1개 남았어요",
             subtitle = null,

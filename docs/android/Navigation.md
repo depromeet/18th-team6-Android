@@ -16,12 +16,16 @@ Android navigation은 Navigation3 기반으로 작성하며 `android:app` 모듈
 MainActivity
 + OBRitNavigation
   + NavDisplay(root back stack)
-    + entry<AgentRoute>
-      + AgentNavigation
-        + NavDisplay(agent back stack)
-          + AgentRoute.Agents -> AgentScreen
-          + AgentRoute.AgentDetail -> Agent detail screen
+    + HomeRoute.Home        -> HomeNavigation
+    |                            + NavDisplay(home back stack)
+    |                              + Home / Notification / NotificationSettings
+    |                              + Search / ConsumableList / Detail / DetailEdit
+    + RegisterRoute.*       -> RegisterNavigation
+    + OnboardingRoute.Start -> OnboardingNavigation
 ```
+
+루트 back stack은 온보딩, 홈, 등록 세 흐름만 구분한다. 홈 안의 상세·검색·알림 화면은
+`HomeNavigation`의 back stack에 둔다.
 
 `MainActivity`는 theme 아래에서 `OBRitNavigation()`만 호출한다. 화면 전환, route 등록, back stack 조작은 `OBRitNavigation` 또는 feature navigation 컴포저블에서 처리한다.
 
@@ -34,8 +38,12 @@ MainActivity
 - root back stack에는 앱 섹션 전환에 필요한 key만 둔다. feature 내부 상세 화면 흐름은 feature navigation의 back stack에 둔다.
 
 ```kotlin
-entry<AgentRoute> {
-    AgentNavigation(modifier = Modifier)
+entry<HomeRoute.Home> {
+    HomeNavigation(
+        onReceiptRegisterClick = { backStack.add(RegisterRoute.ReceiptCamera) },
+        onManualRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
+        modifier = Modifier,
+    )
 }
 ```
 
@@ -48,13 +56,13 @@ entry<AgentRoute> {
 - 상세 화면처럼 뒤로 가기가 필요한 flow가 추가되면 feature `NavDisplay`에서 feature back stack 기준의 back 처리를 연결한다.
 
 ```kotlin
-val agentBackStack = rememberNavBackStack(AgentRoute.Agents)
+val homeBackStack = rememberNavBackStack(HomeRoute.Home)
 
-entry<AgentRoute.Agents> {
-    AgentScreen(
-        onAgentClick = { agent ->
-            agentBackStack.add(AgentRoute.AgentDetail(agent.id))
-        },
+entry<HomeRoute.Home> {
+    HomeScreen(
+        onSearchClick = { homeBackStack.add(HomeRoute.Search) },
+        onNotificationClick = { homeBackStack.add(HomeRoute.Notification) },
+        onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
         modifier = Modifier,
     )
 }
@@ -70,14 +78,17 @@ entry<AgentRoute.Agents> {
 
 ```kotlin
 @Serializable
-sealed interface AgentRoute : Route {
+sealed interface HomeRoute : Route {
     @Serializable
-    data object Agents : AgentRoute
+    data object Home : HomeRoute
 
     @Serializable
-    data class AgentDetail(
-        val id: Int,
-    ) : AgentRoute
+    data object Search : HomeRoute
+
+    @Serializable
+    data class Detail(
+        val itemId: Int,
+    ) : HomeRoute
 }
 ```
 

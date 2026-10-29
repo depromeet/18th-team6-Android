@@ -17,6 +17,9 @@ sealed interface HomeRoute : Route {
     data object Notification : HomeRoute
 
     @Serializable
+    data object NotificationSettings : HomeRoute
+
+    @Serializable
     data class Detail(
         val itemId: Int,
     ) : HomeRoute

@@ -7,7 +7,6 @@
 - OBRit은 Android Compose 앱을 포함한 Kotlin Multiplatform 프로젝트다. iOS 구현 지침은 `ios-AGENTS.md`를 따른다.
 - 현재 활성 Gradle 모듈은 `settings.gradle.kts`에 선언되어 있다.
     - `:android:app` - Android 애플리케이션 진입점, Compose 설정, Android Koin 부트스트랩
-    - `:android:feature:agent` - Koin, Orbit MVI, Compose 구조를 보여주는 Android 예시 모듈
     - `:android:core:ui` - Android 화면 모듈에서 공유하는 UI/ViewModel 유틸리티
     - `:android:core:designsystem` - Android 디자인시스템
     - `:shared` - KMP shared 모듈과 shared Koin 모듈 집계
@@ -50,7 +49,6 @@
 .\gradlew.bat :shared:network:compileKotlinMetadata
 .\gradlew.bat :shared:data:compileKotlinMetadata
 .\gradlew.bat :android:core:ui:compileDebugKotlin
-.\gradlew.bat :android:feature:agent:compileDebugKotlin
 .\gradlew.bat :android:app:compileDebugKotlin
 ```
 

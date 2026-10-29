@@ -4,9 +4,9 @@ import android.app.Application
 import com.obrit.android.core.analytics.AnalyticsLogger
 import com.obrit.android.core.analytics.OBRitLoggingEvent
 import com.obrit.android.core.analytics.di.analyticsModule
-import com.obrit.feature.agent.di.agentFeatureModule
 import com.obrit.feature.detail.di.detailFeatureModule
 import com.obrit.feature.home.di.homeFeatureModule
+import com.obrit.feature.notification.di.notificationFeatureModule
 import com.obrit.feature.register.di.registerFeatureModule
 import com.obrit.obrit.di.appModule
 import com.obrit.obrit.di.initKoin
@@ -21,7 +21,14 @@ class OBRitApplication : Application() {
 
         initKoin {
             androidContext(this@OBRitApplication)
-            modules(appModule, analyticsModule, agentFeatureModule, detailFeatureModule, homeFeatureModule, registerFeatureModule)
+            modules(
+                appModule,
+                analyticsModule,
+                detailFeatureModule,
+                homeFeatureModule,
+                notificationFeatureModule,
+                registerFeatureModule,
+            )
         }
 
         logFirstOpenIfNeeded()
