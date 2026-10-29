@@ -17,8 +17,10 @@ final class OnboardingViewModel: ObservableObject {
     init(
         repository: OnboardingRepository? = nil,
         initialOptions: [OnboardingItemOption] = OnboardingDefaults.options,
+        initialGroups: [OnboardingCategoryGroup] = OnboardingDefaults.groups,
         selectedOptionIds: Set<Int> = []
     ) {
+        let groups = Self.sortedGroups(initialGroups)
         let initialData = OnboardingViewData(
             step: .start,
             options: initialOptions,
@@ -26,14 +28,22 @@ final class OnboardingViewModel: ObservableObject {
             itemNames: [:],
             replacementPeriods: [:],
             quantities: [:],
-            isProcessing: false
+            isProcessing: false,
+            groups: groups,
+            selectedGroupId: Self.defaultGroupId(in: groups)
         )
         self.repository = repository
         self.data = initialData
         self.state = .success(initialData)
     }
 
+    func selectGroup(_ group: OnboardingCategoryGroup) {
+        guard data.groups.contains(where: { $0.id == group.id }) else { return }
+        update { $0.selectedGroupId = group.id }
+    }
+
     func toggleOption(_ option: OnboardingItemOption) {
+        guard !data.isProcessing else { return }
         update { data in
             if data.selectedOptionIds.contains(option.id) {
                 data.selectedOptionIds.remove(option.id)
@@ -51,7 +61,7 @@ final class OnboardingViewModel: ObservableObject {
     func startOnboarding() {
         guard !data.isProcessing else { return }
 
-        if data.options.isEmpty, let repository {
+        if (data.options.isEmpty || data.groups.isEmpty), let repository {
             state = .loading
             Task {
                 await loadOptionsAndMoveToCategorySelection(using: repository)
@@ -143,14 +153,7 @@ final class OnboardingViewModel: ObservableObject {
         case .start:
             startOnboarding()
         case .categorySelection:
-            guard data.canContinue else { return }
-            update { data in
-                data.selectedOptions.forEach { option in
-                    data.itemNames[option.id] = data.itemName(for: option)
-                    data.quantities[option.id] = data.quantity(for: option)
-                }
-                data.step = .replacementPeriod
-            }
+            submit()
         case .replacementPeriod:
             submit()
         case .complete:
@@ -163,18 +166,13 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     private func submit() {
-        guard data.canContinue else { return }
+        guard data.canContinue, !data.selectedOptions.isEmpty else { return }
         let requests = data.selectedOptions.compactMap { option -> OnboardingRegistrationRequest? in
-            guard let period = data.replacementPeriods[option.id] else { return nil }
-            let name = data.itemName(for: option).trimmingCharacters(in: .whitespacesAndNewlines)
+            let name = option.title.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { return nil }
-            return OnboardingRegistrationRequest(
-                categoryId: option.id,
-                name: name,
-                quantity: data.quantity(for: option),
-                replacementPeriod: period
-            )
+            return OnboardingRegistrationRequest(categoryId: option.id, name: name)
         }
+        guard requests.count == data.selectedCount else { return }
 
         guard let repository else {
             update { $0.step = .complete }
@@ -189,15 +187,34 @@ final class OnboardingViewModel: ObservableObject {
 
     private func loadOptionsAndMoveToCategorySelection(using repository: OnboardingRepository) async {
         do {
-            let options = try await repository.options()
+            async let loadedOptions = repository.options()
+            async let loadedGroups = repository.groups()
+            let (options, fetchedGroups) = try await (loadedOptions, loadedGroups)
+            let groups = Self.sortedGroups(fetchedGroups)
             update { data in
                 data.options = options
+                data.groups = groups
+                if !groups.contains(where: { $0.id == data.selectedGroupId }) {
+                    data.selectedGroupId = Self.defaultGroupId(in: groups)
+                }
+                data.selectedOptionIds.formIntersection(Set(options.map(\.id)))
                 data.step = .categorySelection
                 data.isProcessing = false
             }
         } catch {
             state = .loadFailed(message: error.onboardingMessage)
         }
+    }
+
+    private static func sortedGroups(_ groups: [OnboardingCategoryGroup]) -> [OnboardingCategoryGroup] {
+        groups.sorted {
+            if $0.displayOrder == $1.displayOrder { return $0.id < $1.id }
+            return $0.displayOrder < $1.displayOrder
+        }
+    }
+
+    private static func defaultGroupId(in groups: [OnboardingCategoryGroup]) -> Int? {
+        groups.first { $0.name == "욕실" }?.id ?? groups.first?.id
     }
 
     private func submitTask(

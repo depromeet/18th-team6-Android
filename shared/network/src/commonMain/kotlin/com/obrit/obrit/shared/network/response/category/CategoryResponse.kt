@@ -11,6 +11,7 @@ data class CategoryResponse(
     @SerialName("iconUrl") val iconUrl: String,
     @SerialName("itemCount") val itemCount: Int,
     @SerialName("totalSpareQuantity") val totalSpareQuantity: Int,
+    @SerialName("categoryGroupId") val categoryGroupId: Long? = null,
 )
 
 fun CategoryResponse.toCategory() =
@@ -20,4 +21,5 @@ fun CategoryResponse.toCategory() =
         iconUrl = iconUrl,
         itemCount = itemCount,
         totalSpareQuantity = totalSpareQuantity,
+        categoryGroupId = categoryGroupId,
     )

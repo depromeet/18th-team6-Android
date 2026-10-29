@@ -61,7 +61,8 @@ struct AppDependencies {
                         readService: readService,
                         writeService: writeService
                     ),
-                    initialOptions: []
+                    initialOptions: [],
+                    initialGroups: []
                 )
             },
             makeItemRegistrationViewModel: {
