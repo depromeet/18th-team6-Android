@@ -1,18 +1,27 @@
 package com.obrit.obrit.shared.data.repository
 
 import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.categories.CategoryGroup
 import com.obrit.obrit.shared.model.categories.CategoryIcon
 import com.obrit.obrit.shared.model.categories.error.CreateCategoryError
 import com.obrit.obrit.shared.network.error.RemoteError
 import com.obrit.obrit.shared.network.error.runCatchingWith
 import com.obrit.obrit.shared.network.request.category.CreateCategoryRequest
 import com.obrit.obrit.shared.network.response.category.toCategory
+import com.obrit.obrit.shared.network.response.category.toCategoryGroup
 import com.obrit.obrit.shared.network.response.category.toCategoryIcon
 import com.obrit.obrit.shared.network.source.CategoryRemoteDataSource
 
 internal class CategoryRepositoryImpl(
     private val categoryRemoteDataSource: CategoryRemoteDataSource,
 ) : CategoryRepository {
+    override suspend fun getCategoryGroups(): Result<List<CategoryGroup>> =
+        runCatchingWith {
+            categoryRemoteDataSource
+                .getCategoryGroups()
+                .map { response -> response.toCategoryGroup() }
+        }
+
     override suspend fun getCategories(): Result<List<Category>> =
         runCatchingWith {
             categoryRemoteDataSource

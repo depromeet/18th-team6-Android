@@ -5,6 +5,13 @@ struct OnboardingItemOption: Identifiable, Equatable {
     let title: String
     let addedCount: Int
     let imageURL: String
+    var categoryGroupId: Int? = nil
+}
+
+struct OnboardingCategoryGroup: Identifiable, Equatable {
+    let id: Int
+    let name: String
+    let displayOrder: Int
 }
 
 enum OnboardingStep: Equatable {
@@ -54,8 +61,6 @@ enum OnboardingReplacementPeriod: Int, CaseIterable, Identifiable, Equatable {
 struct OnboardingRegistrationRequest: Equatable {
     let categoryId: Int
     let name: String
-    let quantity: Int
-    let replacementPeriod: OnboardingReplacementPeriod
 }
 
 enum OnboardingViewState: Equatable {
@@ -72,6 +77,21 @@ struct OnboardingViewData: Equatable {
     var replacementPeriods: [Int: OnboardingReplacementPeriod]
     var quantities: [Int: Int]
     var isProcessing: Bool
+    var groups: [OnboardingCategoryGroup] = []
+    var selectedGroupId: Int?
+
+    var selectedGroup: OnboardingCategoryGroup? {
+        groups.first { $0.id == selectedGroupId }
+    }
+
+    var visibleOptions: [OnboardingItemOption] {
+        guard let selectedGroupId else { return [] }
+        return options.filter { $0.categoryGroupId == selectedGroupId }
+    }
+
+    func hasSelection(in group: OnboardingCategoryGroup) -> Bool {
+        options.contains { $0.categoryGroupId == group.id && selectedOptionIds.contains($0.id) }
+    }
 
     var selectedOptions: [OnboardingItemOption] {
         options.filter { selectedOptionIds.contains($0.id) }

@@ -3,6 +3,8 @@ import Foundation
 struct ItemRegistrationCatalog: Equatable {
     let itemKinds: [ItemKind]
     let imageOptions: [ItemImageOption]
+    var categoryGroups: [ItemKindGroup] = []
+    var existingItemNames: [String] = []
 }
 
 protocol ItemRegistrationCatalogRepository {
@@ -12,6 +14,7 @@ protocol ItemRegistrationCatalogRepository {
 protocol ItemRegistrationWriteRepository {
     func createKind(name: String, imageOption: ItemImageOption) async throws -> ItemKind
     func createItem(request: ItemRegistrationCreateItemRequest) async throws
+    func createCustomItem(name: String) async throws
     func createItems(request: ItemRegistrationCreateItemsRequest) async throws
 }
 
@@ -36,6 +39,8 @@ actor ItemRegistrationSampleWriteRepository: ItemRegistrationWriteRepository {
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
     }
+
+    func createCustomItem(name: String) async throws {}
 
     func createItems(request: ItemRegistrationCreateItemsRequest) async throws {
     }

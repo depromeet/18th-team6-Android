@@ -17,12 +17,19 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
     }
 
     func catalog() async throws -> ItemRegistrationCatalog {
-        let categories = try await readService.getCategories()
-        let categoryIcons = try await readService.getCategoryIcons()
+        async let categories = readService.getCategories()
+        async let categoryIcons = readService.getCategoryIcons()
+        async let groups = readService.getCategoryGroups()
+        async let items = readService.getItems()
+        let (loadedCategories, loadedIcons, loadedGroups, loadedItems) = try await (categories, categoryIcons, groups, items)
 
         return ItemRegistrationCatalog(
-            itemKinds: Self.itemKinds(from: categories),
-            imageOptions: Self.imageOptions(from: categoryIcons)
+            itemKinds: Self.itemKinds(from: loadedCategories),
+            imageOptions: Self.imageOptions(from: loadedIcons),
+            categoryGroups: loadedGroups.map {
+                ItemKindGroup(id: Int(clamping: $0.id), name: $0.name, displayOrder: Int($0.displayOrder), isUserDefined: $0.type.name == "USER")
+            }.sorted { $0.displayOrder == $1.displayOrder ? $0.id < $1.id : $0.displayOrder < $1.displayOrder },
+            existingItemNames: loadedItems.map(\.name)
         )
     }
 
@@ -228,7 +235,8 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
                 id: Int(clamping: category.id),
                 title: category.name,
                 addedCount: Int(category.itemCount),
-                imageURL: category.iconUrl
+                imageURL: category.iconUrl,
+                categoryGroupId: category.categoryGroupId.map { Int(clamping: $0.int64Value) }
             )
         }
     }

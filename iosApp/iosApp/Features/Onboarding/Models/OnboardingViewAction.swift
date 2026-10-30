@@ -3,6 +3,7 @@ struct OnboardingViewAction {
     let onBack: () -> Void
     let onRetry: () -> Void
     let onToggleOption: (OnboardingItemOption) -> Void
+    let onSelectGroup: (OnboardingCategoryGroup) -> Void
     let onUpdateItemName: (OnboardingItemOption, String) -> Void
     let onSelectReplacementPeriod: (OnboardingItemOption, OnboardingReplacementPeriod) -> Void
     let onDecrementQuantity: (OnboardingItemOption) -> Void

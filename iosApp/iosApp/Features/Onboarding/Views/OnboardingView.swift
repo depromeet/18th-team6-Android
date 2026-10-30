@@ -88,6 +88,7 @@ struct OnboardingView: View {
             onBack: handleBack,
             onRetry: viewModel.retry,
             onToggleOption: viewModel.toggleOption,
+            onSelectGroup: viewModel.selectGroup,
             onUpdateItemName: { option, name in
                 viewModel.updateItemName(name, for: option)
             },

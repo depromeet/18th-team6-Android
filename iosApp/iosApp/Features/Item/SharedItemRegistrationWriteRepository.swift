@@ -18,6 +18,10 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
         let details = "iconId=\(imageOption.id) nameLength=\(name.count)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
+            let items = try await readService.getItems()
+            if let message = ItemRegistrationNameRule.error(for: name, existingNames: items.map(\.name)) {
+                throw SharedItemRegistrationWriteRepositoryError.invalidName(message)
+            }
             let category = try await writeService.createCategory(
                 name: name,
                 iconId: Int64(imageOption.id)
@@ -27,7 +31,8 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
                 id: Int(clamping: category.id),
                 title: category.name,
                 addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-                imageURL: category.iconUrl
+                imageURL: category.iconUrl,
+                categoryGroupId: category.categoryGroupId.map { Int(clamping: $0.int64Value) }
             )
             AppLog.success(AppLog.swiftRepository, event, "kindId=\(kind.id)")
             return kind
@@ -38,30 +43,46 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
     }
 
     func createItem(request: ItemRegistrationCreateItemRequest) async throws {
-        guard request.quantity >= ItemRegistrationConfig.quantityMinimum else {
-            throw SharedItemRegistrationWriteRepositoryError.invalidQuantity
+        guard ItemRegistrationConfig.manualQuantityRange.contains(request.quantity) else {
+            throw SharedItemRegistrationWriteRepositoryError.invalidManualQuantity
         }
 
         let event = "SharedItemRegistrationWriteRepository.createItem"
         let details = "categoryId=\(request.categoryId) quantity=\(request.quantity) lastReplacementPeriod=\(request.lastReplacementPeriod?.rawValue ?? "nil")"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
-            if let existingItem = try await existingItem(for: request) {
-                _ = try await addQuantity(request.quantity, to: existingItem)
-            } else {
-                _ = try await writeService.createItem(
-                    categoryId: Int64(request.categoryId),
-                    name: request.name,
-                    count: KotlinInt(int: Int32(request.quantity)),
-                    lastReplacementPeriod: request.lastReplacementPeriod?.rawValue,
-                    replacementIntervalDays: nil
-                )
+            let items = try await readService.getItems()
+            if let message = ItemRegistrationNameRule.error(for: request.name, existingNames: items.map(\.name)) {
+                throw SharedItemRegistrationWriteRepositoryError.invalidName(message)
             }
+            _ = try await writeService.createItem(
+                categoryId: Int64(request.categoryId),
+                name: request.name,
+                count: KotlinInt(int: Int32(request.quantity)),
+                lastReplacementPeriod: request.lastReplacementPeriod?.rawValue,
+                replacementIntervalDays: nil
+            )
             AppLog.success(AppLog.swiftRepository, event, details)
         } catch {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw error
         }
+    }
+
+    func createCustomItem(name: String) async throws {
+        let items = try await readService.getItems()
+        if let message = ItemRegistrationNameRule.error(for: name, existingNames: items.map(\.name)) {
+            throw SharedItemRegistrationWriteRepositoryError.invalidName(message)
+        }
+        _ = try await writeService.createItem(params: CreateItemParams(
+            categoryId: nil,
+            name: name,
+            spareQuantity: KotlinInt(int: 0),
+            lastReplacementPeriod: nil,
+            replacementIntervalDays: nil,
+            newCategoryName: name,
+            newCategoryDefaultReplacementIntervalDays: nil
+        ))
     }
 
     func createItems(request: ItemRegistrationCreateItemsRequest) async throws {
@@ -81,13 +102,6 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
         } catch {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw error
-        }
-    }
-
-    private func existingItem(for request: ItemRegistrationCreateItemRequest) async throws -> Shared.Item? {
-        let items = try await readService.getItems()
-        return items.first { item in
-            item.matches(request: request)
         }
     }
 
@@ -150,13 +164,19 @@ private struct ExistingItemPatchTarget {
 private enum SharedItemRegistrationWriteRepositoryError: LocalizedError {
     case emptyItems
     case invalidQuantity
+    case invalidName(String)
+    case invalidManualQuantity
 
     var errorDescription: String? {
         switch self {
+        case let .invalidName(message):
+            message
         case .emptyItems:
             "등록할 소모품이 없어요."
         case .invalidQuantity:
             "등록할 수량은 \(ItemRegistrationConfig.quantityMinimum)개 이상이어야 해요."
+        case .invalidManualQuantity:
+            "등록할 수량은 0~99개여야 해요."
         }
     }
 }

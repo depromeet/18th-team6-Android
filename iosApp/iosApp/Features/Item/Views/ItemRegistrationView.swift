@@ -61,8 +61,8 @@ struct ItemRegistrationView: View {
                     data: data,
                     action: ItemRegistrationAction(
                         onBack: {
-                            if data.mode == .directKind {
-                                viewModel.resetToForm()
+                            if data.bottomSheet != nil {
+                                viewModel.dismissBottomSheet()
                             } else {
                                 onBack()
                             }
@@ -84,7 +84,8 @@ struct ItemRegistrationView: View {
                         onSelectImageOption: viewModel.selectImageOption,
                         onSubmitDirectKind: viewModel.submitDirectKind,
                         onSubmitForm: viewModel.submitForm,
-                        onComplete: onComplete
+                        onComplete: onComplete,
+                        onCreateSearchItem: viewModel.createSearchItem
                     )
                 )
             }
@@ -184,6 +185,7 @@ struct ItemRegistrationAction {
     let onSubmitDirectKind: () -> Void
     let onSubmitForm: () -> Void
     let onComplete: () -> Void
+    let onCreateSearchItem: () -> Void
 }
 
 private struct ItemRegistrationContentView: View {
@@ -200,8 +202,6 @@ private struct ItemRegistrationContentView: View {
                     switch data.mode {
                     case .form:
                         ItemRegistrationFormView(data: data, action: action)
-                    case .directKind:
-                        ItemDirectKindRegistrationView(data: data, action: action)
                     case .complete:
                         ItemRegistrationCompleteView(action: action)
                     }
@@ -243,7 +243,14 @@ private struct ItemRegistrationContentView: View {
     ) -> some View {
         switch bottomSheet {
         case .kind:
-            ItemKindSelectionBottomSheet(
+            ManualKindSelectionBottomSheet(
+                data: data,
+                action: action,
+                contentHeight: contentHeight,
+                bottomPadding: bottomPadding
+            )
+        case .directKind:
+            ItemDirectKindRegistrationView(
                 data: data,
                 action: action,
                 contentHeight: contentHeight,
