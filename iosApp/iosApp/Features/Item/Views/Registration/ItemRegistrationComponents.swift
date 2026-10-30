@@ -172,6 +172,8 @@ struct ItemTextInputField: View {
     let text: String
     let placeholder: String
     let maxLength: Int
+    let errorMessage: String?
+    let limitsInputLength: Bool
     let helperText: String?
     let showsMaxLengthWarning: Bool
     let singleLine: Bool
@@ -182,14 +184,18 @@ struct ItemTextInputField: View {
         placeholder: String,
         maxLength: Int,
         helperText: String? = nil,
+        errorMessage: String? = nil,
+        limitsInputLength: Bool = true,
         showsMaxLengthWarning: Bool = false,
         singleLine: Bool,
         onTextChange: @escaping (String) -> Void
     ) {
-        _localText = State(initialValue: String(text.prefix(maxLength)))
+        _localText = State(initialValue: limitsInputLength ? String(text.prefix(maxLength)) : text)
         self.text = text
         self.placeholder = placeholder
         self.maxLength = maxLength
+        self.errorMessage = errorMessage
+        self.limitsInputLength = limitsInputLength
         self.helperText = helperText
         self.showsMaxLengthWarning = showsMaxLengthWarning
         self.singleLine = singleLine
@@ -198,8 +204,9 @@ struct ItemTextInputField: View {
 
     var body: some View {
         let isMaxLengthWarning = showsMaxLengthWarning && localText.count >= maxLength
-        let helperTextColor = isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.gray300
-        let helperIconColor = isMaxLengthWarning ? OBRitColors.iconWarningDefault : OBRitColors.gray300
+        let hasError = errorMessage != nil
+        let helperTextColor = hasError ? OBRitColors.red400 : isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.gray300
+        let helperIconColor = hasError ? OBRitColors.red400 : isMaxLengthWarning ? OBRitColors.iconWarningDefault : OBRitColors.gray300
 
         VStack(alignment: .leading, spacing: OBRitSpacing.s2_5) {
             HStack(spacing: OBRitSpacing.s2) {
@@ -233,7 +240,7 @@ struct ItemTextInputField: View {
                     .obritTextStyle(
                         OBRitTypography.small,
                         weight: OBRitFontWeight.medium,
-                        color: isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.common00
+                        color: hasError ? OBRitColors.red400 : isMaxLengthWarning ? OBRitColors.textWarningDefault : OBRitColors.common00
                     )
             }
             .frame(height: ItemRegistrationLayout.fieldHeight)
@@ -241,9 +248,9 @@ struct ItemTextInputField: View {
             .background(OBRitColors.gray800)
             .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
             .overlay {
-                if isMaxLengthWarning {
+                if hasError || isMaxLengthWarning {
                     RoundedRectangle(cornerRadius: OBRitRadius.middle)
-                        .stroke(OBRitColors.borderWarningDefault, lineWidth: OBRitSpacing.px)
+                        .stroke(hasError ? OBRitColors.red400 : OBRitColors.borderWarningDefault, lineWidth: OBRitSpacing.px)
                 }
             }
             .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.middle))
@@ -251,9 +258,9 @@ struct ItemTextInputField: View {
                 isFocused = true
             }
 
-            if let helperText {
+            if let helperText = errorMessage ?? helperText {
                 HStack(alignment: .center, spacing: OBRitSpacing.s1) {
-                    OBRitIcon(kind: isMaxLengthWarning ? .exclamation : .success, color: helperIconColor)
+                    OBRitIcon(kind: hasError || isMaxLengthWarning ? .exclamation : .success, color: helperIconColor)
                         .frame(width: OBRitSpacing.s4, height: OBRitSpacing.s4)
                     Text(helperText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -266,7 +273,7 @@ struct ItemTextInputField: View {
             }
         }
         .onChange(of: text) { _, newValue in
-            let clippedText = String(newValue.prefix(maxLength))
+            let clippedText = limitsInputLength ? String(newValue.prefix(maxLength)) : newValue
             guard clippedText != localText else { return }
             localText = clippedText
         }
@@ -276,7 +283,7 @@ struct ItemTextInputField: View {
         Binding {
             localText
         } set: { newValue in
-            let clippedText = String(newValue.prefix(maxLength))
+            let clippedText = limitsInputLength ? String(newValue.prefix(maxLength)) : newValue
             guard clippedText != localText else { return }
             localText = clippedText
             onTextChange(clippedText)

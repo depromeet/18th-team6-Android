@@ -18,7 +18,8 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     init(
         itemKinds: [ItemKind] = [],
-        imageOptions: [ItemImageOption] = []
+        imageOptions: [ItemImageOption] = [],
+        existingItemNames: [String] = []
     ) {
         let initialData = ItemRegistrationViewData(
             mode: .form,
@@ -28,7 +29,8 @@ final class ItemRegistrationViewModel: ObservableObject {
             imageOptions: imageOptions,
             bottomSheet: nil,
             selectedKindCandidate: nil,
-            isProcessing: false
+            isProcessing: false,
+            existingItemNames: existingItemNames
         )
         self.catalogRepository = nil
         self.writeRepository = nil
@@ -107,7 +109,7 @@ final class ItemRegistrationViewModel: ObservableObject {
                     data.draft.quantity = ItemRegistrationConfig.defaultQuantity
                 }
             case "directKind":
-                update { $0.mode = .directKind }
+                showDirectKindRegistration()
             case "complete":
                 update { $0.mode = .complete }
             default:
@@ -136,12 +138,15 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func updateItemName(_ itemName: String) {
-        let clippedName = String(itemName.prefix(ItemRegistrationConfig.itemNameMaxLength))
-        guard data.draft.itemName != clippedName else { return }
-        update { $0.draft.itemName = clippedName }
+        guard !data.isProcessing else { return }
+        update {
+            $0.draft.itemName = itemName
+            $0.hasEditedItemName = true
+        }
     }
 
     func updateKindSearchQuery(_ query: String) {
+        guard !data.isProcessing else { return }
         guard data.kindSearchQuery != query else { return }
         update { data in
             data.kindSearchQuery = query
@@ -150,26 +155,37 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func updateDirectKindName(_ name: String) {
-        let clippedName = String(name.prefix(ItemRegistrationConfig.kindNameMaxLength))
-        guard data.draft.directKindName != clippedName else { return }
-        update { $0.draft.directKindName = clippedName }
+        guard !data.isProcessing else { return }
+        update {
+            $0.draft.directKindName = name
+            $0.hasEditedDirectKindName = true
+        }
     }
 
     func openKindSheet() {
         update { data in
             data.selectedKindCandidate = data.draft.selectedKind
+            data.prefersUserKinds = data.categoryGroups.contains {
+                $0.isUserDefined && $0.id == data.draft.selectedKind?.categoryGroupId
+            }
             data.bottomSheet = .kind
         }
     }
 
     func dismissBottomSheet() {
+        guard !data.isProcessing else { return }
         update { data in
-            data.bottomSheet = nil
-            data.selectedKindCandidate = nil
+            if data.bottomSheet == .directKind {
+                data.bottomSheet = .kind
+            } else {
+                data.bottomSheet = nil
+                data.selectedKindCandidate = nil
+            }
         }
     }
 
     func selectKindCandidate(_ kind: ItemKind) {
+        guard !data.isProcessing else { return }
         update { $0.selectedKindCandidate = kind }
     }
 
@@ -181,7 +197,8 @@ final class ItemRegistrationViewModel: ObservableObject {
     func selectKind(_ kind: ItemKind) {
         update { data in
             data.draft.selectedKind = kind
-            data.draft.itemName = kind.title
+            data.draft.itemName = ItemRegistrationNameRule.availableName(for: kind.title, existingNames: data.existingItemNames)
+            data.hasEditedItemName = true
             data.kindSearchQuery = ""
             data.bottomSheet = nil
             data.selectedKindCandidate = nil
@@ -217,10 +234,11 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func showDirectKindRegistration() {
+        guard !data.isProcessing else { return }
         update { data in
-            data.bottomSheet = nil
-            data.selectedKindCandidate = nil
-            data.mode = .directKind
+            data.prefersUserKinds = true
+            data.kindSearchQuery = ""
+            data.bottomSheet = .directKind
         }
     }
 
@@ -229,7 +247,8 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     func submitDirectKind() {
-        let trimmedName = data.draft.directKindName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard data.canSubmitDirectKind else { return }
+        let trimmedName = data.draft.directKindName
         guard !trimmedName.isEmpty, let selectedImageOption = data.draft.selectedImageOption else { return }
         guard let writeRepository else {
             insertDirectKind(name: trimmedName, imageOption: selectedImageOption)
@@ -243,6 +262,41 @@ final class ItemRegistrationViewModel: ObservableObject {
                 imageOption: selectedImageOption,
                 repository: writeRepository
             )
+        }
+    }
+
+    func createSearchItem() {
+        guard data.canCreateSearchItem else { return }
+        let name = data.kindSearchQuery
+        guard let writeRepository else {
+            update {
+                $0.existingItemNames.append(name)
+                $0.mode = .complete
+                $0.bottomSheet = nil
+            }
+            return
+        }
+        update { $0.isProcessing = true }
+        Task {
+            do {
+                try await writeRepository.createCustomItem(name: name)
+                update {
+                    $0.existingItemNames.append(name)
+                    $0.isProcessing = false
+                    $0.bottomSheet = nil
+                    $0.selectedKindCandidate = nil
+                    $0.mode = .complete
+                }
+            } catch {
+                update {
+                    $0.isProcessing = false
+                    if error is CreateItemError.DuplicatedName || error is CreateCategoryError.DuplicatedName ||
+                        error.itemRegistrationMessage == ItemRegistrationNameRule.duplicateMessage {
+                        $0.existingItemNames.append(name)
+                    }
+                }
+                effect = .showMessage(error.itemRegistrationMessage)
+            }
         }
     }
 
@@ -284,13 +338,23 @@ final class ItemRegistrationViewModel: ObservableObject {
     }
 
     private func insert(kind: ItemKind, into data: inout ItemRegistrationViewData) {
-        data.itemKinds.insert(kind, at: ItemRegistrationConfig.newKindInsertionIndex)
-        data.draft.selectedKind = kind
-        data.draft.itemName = kind.title
+        var userKind = kind
+        if !data.categoryGroups.contains(where: \.isUserDefined) {
+            data.categoryGroups.append(ItemKindGroup(
+                id: kind.categoryGroupId ?? -1,
+                name: "직접 등록",
+                displayOrder: Int.max,
+                isUserDefined: true
+            ))
+        }
+        userKind.categoryGroupId = data.categoryGroups.first(where: \.isUserDefined)?.id
+        data.itemKinds.insert(userKind, at: ItemRegistrationConfig.newKindInsertionIndex)
         data.draft.directKindName = ""
+        data.hasEditedDirectKindName = false
         data.kindSearchQuery = ""
-        data.selectedKindCandidate = nil
-        data.mode = .form
+        data.selectedKindCandidate = userKind
+        data.prefersUserKinds = true
+        data.bottomSheet = .kind
         data.isProcessing = false
     }
 
@@ -299,7 +363,7 @@ final class ItemRegistrationViewModel: ObservableObject {
 
         return ItemRegistrationCreateItemRequest(
             categoryId: selectedKind.id,
-            name: data.draft.itemName.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: data.draft.itemName,
             quantity: data.draft.quantity,
             lastReplacementPeriod: nil
         )
@@ -327,7 +391,12 @@ final class ItemRegistrationViewModel: ObservableObject {
                 "kindId=\(kind.id)"
             )
         } catch {
-            update { $0.isProcessing = false }
+            update {
+                $0.isProcessing = false
+                if error is CreateCategoryError.DuplicatedName || error.itemRegistrationMessage == ItemRegistrationNameRule.duplicateMessage {
+                    $0.existingItemNames.append(name)
+                }
+            }
             effect = .showMessage(error.itemRegistrationMessage)
             AppLog.failure(AppLog.itemRegistrationViewModel, "ItemRegistrationViewModel.submitDirectKindTask", error)
         }
@@ -356,7 +425,12 @@ final class ItemRegistrationViewModel: ObservableObject {
                 "categoryId=\(request.categoryId)"
             )
         } catch {
-            update { $0.isProcessing = false }
+            update {
+                $0.isProcessing = false
+                if error is CreateItemError.DuplicatedName || error.itemRegistrationMessage == ItemRegistrationNameRule.duplicateMessage {
+                    $0.existingItemNames.append(request.name)
+                }
+            }
             effect = .showMessage(error.itemRegistrationMessage)
             AppLog.failure(
                 AppLog.itemRegistrationViewModel,
@@ -389,6 +463,9 @@ final class ItemRegistrationViewModel: ObservableObject {
         do {
             let catalog = try await repository.catalog()
             update { data in
+                data.existingItemNames = catalog.existingItemNames
+                data.hasEditedItemName = false
+                data.hasEditedDirectKindName = false
                 data.categoryGroups = catalog.categoryGroups
                 data.itemKinds = catalog.itemKinds
                 data.draft.selectedKind = nil
@@ -419,11 +496,11 @@ enum ItemRegistrationViewEffect: Equatable {
 private extension Error {
     var itemRegistrationMessage: String {
         if self is CreateItemError.DuplicatedName {
-            return "이미 사용중인 이름이에요."
+            return ItemRegistrationNameRule.duplicateMessage
         }
 
         if self is CreateCategoryError.DuplicatedName {
-            return "이미 등록된 소모품이에요."
+            return ItemRegistrationNameRule.duplicateMessage
         }
 
         if let localizedError = self as? LocalizedError,

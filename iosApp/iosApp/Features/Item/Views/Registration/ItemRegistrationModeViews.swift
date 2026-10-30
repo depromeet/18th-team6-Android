@@ -47,6 +47,8 @@ struct ItemRegistrationFormView: View {
                     text: data.draft.itemName,
                     placeholder: "구분을 위한 이름을 입력해주세요",
                     maxLength: ItemRegistrationConfig.itemNameMaxLength,
+                    errorMessage: data.itemNameError,
+                    limitsInputLength: false,
                     singleLine: true,
                     onTextChange: action.onUpdateItemName
                 )
@@ -94,74 +96,72 @@ struct ItemRegistrationFormView: View {
 struct ItemDirectKindRegistrationView: View {
     let data: ItemRegistrationViewData
     let action: ItemRegistrationAction
+    let contentHeight: CGFloat
+    let bottomPadding: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
-            let horizontalPadding = ItemRegistrationLayout.horizontalPadding(for: geometry.size.width)
-
-            VStack(spacing: ItemRegistrationLayout.zeroSpacing) {
-                OBRitDepthTopBar(
-                    title: "소모품 직접 등록",
-                    backgroundColor: false,
-                    onBackClick: action.onBack
-                )
+        OBRitBottomSheet(
+            contentHeight: contentHeight,
+            bottomPadding: bottomPadding,
+            onDismiss: action.onDismissBottomSheet
+        ) {
+            VStack(alignment: .leading, spacing: OBRitSpacing.s6) {
+                HStack(spacing: 0) {
+                    Button(action: action.onDismissBottomSheet) {
+                        Image("registration_sheet_back")
+                            .frame(width: 28, height: 28)
+                            .frame(height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(data.isProcessing)
+                    .accessibilityLabel("소모품 선택으로 돌아가기")
+                    Text("직접 등록하기")
+                        .obritTextStyle(OBRitTypography.s5xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common00)
+                }
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: OBRitSpacing.s7) {
-                        ItemRegistrationTitle(
-                            title: "소모품 종류 직접 등록하기",
-                            subtitle: "원하는 소모품 종류가 없다면 직접 추가할 수 있어요."
-                        )
-
-                        VStack(alignment: .leading, spacing: OBRitSpacing.s10) {
-                            ItemRequiredField(title: "소모품 종류명") {
-                                ItemTextInputField(
-                                    text: data.draft.directKindName,
-                                    placeholder: "소모품 종류명을 입력해주세요",
-                                    maxLength: ItemRegistrationConfig.kindNameMaxLength,
-                                    helperText: ItemRegistrationText.maxLengthHelper(ItemRegistrationConfig.kindNameMaxLength),
-                                    singleLine: true,
-                                    onTextChange: action.onUpdateDirectKindName
-                                )
-                            }
-
-                            ItemRequiredField(title: "대표 이미지") {
-                                LazyVGrid(
-                                    columns: ItemRegistrationLayout.imageGridColumns,
-                                    alignment: .leading,
-                                    spacing: OBRitSpacing.s3
-                                ) {
-                                    ForEach(data.imageOptions) { option in
-                                        ItemImageOptionButton(
-                                            option: option,
-                                            selected: option == data.draft.selectedImageOption,
-                                            onSelect: { action.onSelectImageOption(option) }
-                                        )
-                                    }
+                        ItemRequiredField(title: "소모품 종류 이름") {
+                            ItemTextInputField(
+                                text: data.draft.directKindName,
+                                placeholder: "소모품의 종류 이름을 입력해주세요",
+                                maxLength: ItemRegistrationConfig.kindNameMaxLength,
+                                errorMessage: data.directKindNameError,
+                                limitsInputLength: false,
+                                singleLine: true,
+                                onTextChange: action.onUpdateDirectKindName
+                            )
+                        }
+                        ItemRequiredField(title: "대표 이미지") {
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: 60), spacing: OBRitSpacing.s2)],
+                                spacing: OBRitSpacing.s3
+                            ) {
+                                ForEach(data.imageOptions) { option in
+                                    ItemImageOptionButton(
+                                        option: option,
+                                        selected: option == data.draft.selectedImageOption,
+                                        onSelect: { action.onSelectImageOption(option) }
+                                    )
+                                    .background(OBRitColors.gray750, in: Circle())
                                 }
                             }
                         }
-
-                        ItemScrollButton(
-                            text: "소모품 종류 등록하기",
-                            enabled: data.canSubmitDirectKind,
-                            action: action.onSubmitDirectKind
-                        )
                     }
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.top, OBRitSpacing.s5)
-                    .padding(.bottom, OBRitSpacing.s10)
+                    .disabled(data.isProcessing)
+                    .padding(.bottom, OBRitSpacing.s5)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .background(
-                    OBRitColors.backgroundDefaultDefault
-                        .contentShape(Rectangle())
-                        .onTapGesture(perform: dismissKeyboard)
+                .frame(maxHeight: .infinity)
+
+                OBRitFilledTextButton(
+                    text: data.isProcessing ? "등록 중..." : "등록하기",
+                    enabled: data.canSubmitDirectKind,
+                    fillsWidth: true,
+                    action: action.onSubmitDirectKind
                 )
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .background(OBRitColors.backgroundDefaultDefault)
-            .dismissKeyboardOnBackgroundTap()
         }
     }
 }

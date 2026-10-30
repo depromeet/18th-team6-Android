@@ -20,14 +20,16 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         async let categories = readService.getCategories()
         async let categoryIcons = readService.getCategoryIcons()
         async let groups = readService.getCategoryGroups()
-        let (loadedCategories, loadedIcons, loadedGroups) = try await (categories, categoryIcons, groups)
+        async let items = readService.getItems()
+        let (loadedCategories, loadedIcons, loadedGroups, loadedItems) = try await (categories, categoryIcons, groups, items)
 
         return ItemRegistrationCatalog(
             itemKinds: Self.itemKinds(from: loadedCategories),
             imageOptions: Self.imageOptions(from: loadedIcons),
             categoryGroups: loadedGroups.map {
-                ItemKindGroup(id: Int(clamping: $0.id), name: $0.name, displayOrder: Int($0.displayOrder))
-            }.sorted { $0.displayOrder == $1.displayOrder ? $0.id < $1.id : $0.displayOrder < $1.displayOrder }
+                ItemKindGroup(id: Int(clamping: $0.id), name: $0.name, displayOrder: Int($0.displayOrder), isUserDefined: $0.type.name == "USER")
+            }.sorted { $0.displayOrder == $1.displayOrder ? $0.id < $1.id : $0.displayOrder < $1.displayOrder },
+            existingItemNames: loadedItems.map(\.name)
         )
     }
 
