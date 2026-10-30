@@ -7,6 +7,7 @@ struct HomeView: View {
     let onNavigateItem: (ItemRoute) -> Void
     let onShowOnboarding: () -> Void
     let onOpenNotificationSettings: () -> Void
+    let onOpenNotifications: () -> Void
     let onShowListTab: () -> Void
     let onBottomSheetVisibleChange: (Bool) -> Void
     let onRegisteredItemsAvailabilityChange: (Bool) -> Void
@@ -18,6 +19,7 @@ struct HomeView: View {
         onNavigateItem: @escaping (ItemRoute) -> Void,
         onShowOnboarding: @escaping () -> Void,
         onOpenNotificationSettings: @escaping () -> Void = {},
+        onOpenNotifications: (() -> Void)? = nil,
         onShowListTab: @escaping () -> Void,
         onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in },
         onRegisteredItemsAvailabilityChange: @escaping (Bool) -> Void = { _ in }
@@ -27,6 +29,7 @@ struct HomeView: View {
         self.onNavigateItem = onNavigateItem
         self.onShowOnboarding = onShowOnboarding
         self.onOpenNotificationSettings = onOpenNotificationSettings
+        self.onOpenNotifications = onOpenNotifications ?? onOpenNotificationSettings
         self.onShowListTab = onShowListTab
         self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
         self.onRegisteredItemsAvailabilityChange = onRegisteredItemsAvailabilityChange
@@ -73,7 +76,7 @@ struct HomeView: View {
     private var homeAction: HomeViewAction {
         HomeViewAction(
             onSearch: { onNavigateItem(.search) },
-            onNotification: onOpenNotificationSettings,
+            onNotification: onOpenNotifications,
             onProfile: onOpenNotificationSettings,
             onLogoEasterEgg: onShowOnboarding,
             onRegisterImage: { onNavigateItem(.receiptAnalyze) },

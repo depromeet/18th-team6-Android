@@ -61,6 +61,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         Task { @MainActor in
             Messaging.messaging().appDidReceiveMessage(notification.request.content.userInfo)
             AppLog.success(AppLog.pushNotifications, "Foreground notification received")
+            NotificationCenter.default.post(name: .notificationInboxDidReceive, object: nil)
             completionHandler([.banner, .list, .sound, .badge])
         }
     }
@@ -73,6 +74,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         Task { @MainActor in
             Messaging.messaging().appDidReceiveMessage(response.notification.request.content.userInfo)
             AppLog.success(AppLog.pushNotifications, "Notification opened")
+            if response.actionIdentifier != UNNotificationDismissActionIdentifier {
+                NotificationOpenCenter.shared.enqueue(userInfo: response.notification.request.content.userInfo)
+            }
             completionHandler()
         }
     }

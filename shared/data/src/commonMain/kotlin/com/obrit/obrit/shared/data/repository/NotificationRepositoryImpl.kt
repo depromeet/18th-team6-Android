@@ -27,6 +27,11 @@ internal class NotificationRepositoryImpl(
             notificationRemoteDataSource.markAsRead(notificationId).deepLink
         }
 
+    override suspend fun markAllAsRead(): Result<Unit> =
+        runCatchingWith {
+            notificationRemoteDataSource.markAllAsRead()
+        }
+
     override suspend fun getSettings(): Result<NotificationSettings> =
         runCatchingWith {
             notificationRemoteDataSource.getSettings().toNotificationSettings()

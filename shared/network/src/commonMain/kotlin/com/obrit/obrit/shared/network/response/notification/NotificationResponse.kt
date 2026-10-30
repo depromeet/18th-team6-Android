@@ -46,6 +46,8 @@ fun NotificationResponse.toNotifications(): List<Notification> =
                 deepLink = deepLink,
                 isRead = isRead,
                 createdAt = createdAt,
+                heading = title,
+                content = content,
             ),
         )
     } else {
@@ -61,6 +63,9 @@ fun NotificationResponse.toNotifications(): List<Notification> =
                 deepLink = card.deepLink,
                 isRead = isRead,
                 createdAt = createdAt,
+                heading = card.title,
+                content = card.content,
+                itemName = card.itemName,
             )
         }
     }

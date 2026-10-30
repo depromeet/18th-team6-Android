@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct OBRitHomeTopBar: View {
     @State private var logoTapCount = 0
+    @Environment(\.notificationUnreadCount) private var unreadCount
 
     private let backgroundColor: Bool
     private let showNotificationButton: Bool
@@ -69,9 +70,20 @@ public struct OBRitHomeTopBar: View {
                                 .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
                                 .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
                                 .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
+                                .overlay(alignment: .topTrailing) {
+                                    if unreadCount > 0 {
+                                        Text(unreadCount > 99 ? "99+" : "\(unreadCount)")
+                                            .font(OBRitTypography.font(OBRitTypography.xs, weight: OBRitFontWeight.bold))
+                                            .foregroundStyle(OBRitColors.common00)
+                                            .padding(.horizontal, 4)
+                                            .frame(minWidth: 18, minHeight: 18)
+                                            .background(OBRitColors.red400, in: Capsule())
+                                            .allowsHitTesting(false)
+                                    }
+                                }
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("알림 설정")
+                        .accessibilityLabel("알림함, 읽지 않은 알림 \(unreadCount)개")
                     }
                     if showProfileButton {
                         TopBarIconButton(symbolName: "person.crop.circle", accessibilityLabel: "알림 설정", action: onProfileClick)
@@ -295,5 +307,16 @@ private struct TopBarIconButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+private struct NotificationUnreadCountKey: EnvironmentKey {
+    static let defaultValue = 0
+}
+
+extension EnvironmentValues {
+    var notificationUnreadCount: Int {
+        get { self[NotificationUnreadCountKey.self] }
+        set { self[NotificationUnreadCountKey.self] = newValue }
     }
 }

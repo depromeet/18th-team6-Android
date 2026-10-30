@@ -3,6 +3,9 @@ import UIKit
 
 struct OBRitNavigation: View {
     let dependencies: AppDependencies
+    @StateObject private var notificationInbox: NotificationInboxViewModel
+    @ObservedObject private var notificationOpens = NotificationOpenCenter.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var rootRoute: AppRoute
     @State private var selectedMainTab: MainTab
@@ -10,6 +13,7 @@ struct OBRitNavigation: View {
 
     init(dependencies: AppDependencies = .preview) {
         self.dependencies = dependencies
+        _notificationInbox = StateObject(wrappedValue: dependencies.makeNotificationInboxViewModel())
 
         #if DEBUG
             let debugConfiguration = Self.debugInitialConfiguration(
@@ -34,6 +38,7 @@ struct OBRitNavigation: View {
                 for: rootRoute,
                 selectedMainTab: selectedMainTab,
                 dependencies: dependencies,
+                notificationInbox: notificationInbox,
                 onSetRoot: setRoot,
                 onSelectMainTab: selectMainTab,
                 onBack: popRoute,
@@ -47,6 +52,7 @@ struct OBRitNavigation: View {
                     for: route,
                     selectedMainTab: selectedMainTab,
                     dependencies: dependencies,
+                    notificationInbox: notificationInbox,
                     onSetRoot: setRoot,
                     onSelectMainTab: selectMainTab,
                     onBack: popRoute,
@@ -68,6 +74,47 @@ struct OBRitNavigation: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
         }
+        .environment(\.notificationUnreadCount, notificationInbox.unreadCount)
+        .task(id: rootRoute) {
+            if rootRoute.mainTab != nil { await notificationInbox.refresh() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, rootRoute.mainTab != nil {
+                Task { await notificationInbox.refresh() }
+            }
+        }
+        .onChange(of: notificationInbox.navigation) { _, navigation in
+            guard let navigation else { return }
+            notificationInbox.clearNavigation()
+            if navigation.resetToHome { setRoot(.main(.home)) }
+            switch navigation.destination {
+            case .home:
+                setRoot(.main(.home))
+                dependencies.refreshCenter.refreshItems()
+            case let .item(id):
+                navigate(to: ItemRoute.detail(itemId: id))
+            }
+        }
+        .onReceive(notificationOpens.$pending) { _ in
+            Task { @MainActor in handlePendingNotification() }
+        }
+        .onChange(of: notificationInbox.isProcessing) { _, processing in
+            if !processing { handlePendingNotification() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .notificationInboxDidReceive)) { _ in
+            Task { await notificationInbox.refresh() }
+        }
+        .onOpenURL { url in
+            notificationInbox.open(notificationId: nil, deepLink: url.absoluteString, resetToHome: true)
+        }
+        .alert("알림", isPresented: Binding(
+            get: { notificationInbox.message != nil },
+            set: { if !$0 { notificationInbox.message = nil } }
+        )) {
+            Button("확인", role: .cancel) { notificationInbox.message = nil }
+        } message: {
+            Text(notificationInbox.message ?? "")
+        }
         .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
         .background(
             OBRitInteractivePopGestureEnabler(
@@ -75,6 +122,11 @@ struct OBRitNavigation: View {
                 backgroundColor: OBRitNavigationBackground.uiColor
             )
         )
+    }
+
+    private func handlePendingNotification() {
+        guard !notificationInbox.isProcessing, let request = notificationOpens.takeFirst() else { return }
+        notificationInbox.open(notificationId: request.notificationId, deepLink: request.deepLink, resetToHome: true)
     }
 
     private func setRoot(_ route: AppRoute) {
@@ -120,6 +172,9 @@ struct OBRitNavigation: View {
             let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
 
             switch route {
+            case "notifications":
+                initialPath.append(AppRoute.notifications)
+                return (.main(.home), initialPath)
             case "notificationSettings":
                 initialPath.append(AppRoute.notificationSettings)
                 return (.main(.home), initialPath)

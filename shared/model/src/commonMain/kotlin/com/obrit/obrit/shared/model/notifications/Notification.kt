@@ -22,4 +22,7 @@ data class Notification(
     val deepLink: String,
     val isRead: Boolean,
     val createdAt: String,
+    val heading: String? = null,
+    val content: String? = null,
+    val itemName: String? = null,
 )

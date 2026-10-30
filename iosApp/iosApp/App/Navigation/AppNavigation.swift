@@ -7,6 +7,7 @@ struct AppNavigation {
         for route: AppRoute,
         selectedMainTab: MainTab,
         dependencies: AppDependencies,
+        notificationInbox: NotificationInboxViewModel,
         onSetRoot: @escaping (AppRoute) -> Void,
         onSelectMainTab: @escaping (MainTab) -> Void,
         onBack: @escaping () -> Void,
@@ -50,6 +51,12 @@ struct AppNavigation {
                 onNavigate: onNavigateItem,
                 onBack: onBack
             )
+        case .notifications:
+            NotificationInboxView(
+                viewModel: notificationInbox,
+                onBack: onBack,
+                onSettings: { onNavigateApp(.notificationSettings) }
+            )
         case .notificationSettings:
             NotificationSettingsView(
                 viewModelFactory: dependencies.makeNotificationSettingsViewModel,
@@ -64,7 +71,8 @@ struct AppNavigation {
                     onNavigateApp(.onboarding)
                 },
                 onSelectMainTab: onSelectMainTab,
-                onOpenNotificationSettings: { onNavigateApp(.notificationSettings) }
+                onOpenNotificationSettings: { onNavigateApp(.notificationSettings) },
+                onOpenNotifications: { onNavigateApp(.notifications) }
             )
             .navigationBarBackButtonHidden(true)
         }
