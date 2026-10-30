@@ -243,7 +243,7 @@ private struct ItemRegistrationContentView: View {
     ) -> some View {
         switch bottomSheet {
         case .kind:
-            ItemKindSelectionBottomSheet(
+            ManualKindSelectionBottomSheet(
                 data: data,
                 action: action,
                 contentHeight: contentHeight,

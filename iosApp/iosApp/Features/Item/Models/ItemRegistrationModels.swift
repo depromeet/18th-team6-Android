@@ -1,10 +1,17 @@
 import Foundation
 
+struct ItemKindGroup: Identifiable, Equatable {
+    let id: Int
+    let name: String
+    let displayOrder: Int
+}
+
 struct ItemKind: Identifiable, Equatable {
     let id: Int
     let title: String
     let addedCount: Int
     let imageURL: String
+    var categoryGroupId: Int? = nil
 }
 
 struct ItemImageOption: Identifiable, Equatable {
@@ -113,6 +120,7 @@ struct ItemRegistrationViewData: Equatable {
     var bottomSheet: ItemRegistrationBottomSheet?
     var selectedKindCandidate: ItemKind?
     var isProcessing: Bool
+    var categoryGroups: [ItemKindGroup] = []
 
     var filteredKinds: [ItemKind] {
         let query = kindSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)

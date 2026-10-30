@@ -157,7 +157,7 @@ final class ItemRegistrationViewModel: ObservableObject {
 
     func openKindSheet() {
         update { data in
-            data.selectedKindCandidate = data.draft.selectedKind ?? data.filteredKinds.first
+            data.selectedKindCandidate = data.draft.selectedKind
             data.bottomSheet = .kind
         }
     }
@@ -389,6 +389,7 @@ final class ItemRegistrationViewModel: ObservableObject {
         do {
             let catalog = try await repository.catalog()
             update { data in
+                data.categoryGroups = catalog.categoryGroups
                 data.itemKinds = catalog.itemKinds
                 data.draft.selectedKind = nil
                 data.draft.quantity = ItemRegistrationConfig.defaultQuantity

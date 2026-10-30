@@ -3,6 +3,7 @@ import Foundation
 struct ItemRegistrationCatalog: Equatable {
     let itemKinds: [ItemKind]
     let imageOptions: [ItemImageOption]
+    var categoryGroups: [ItemKindGroup] = []
 }
 
 protocol ItemRegistrationCatalogRepository {
