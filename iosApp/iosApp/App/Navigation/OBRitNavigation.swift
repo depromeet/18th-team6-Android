@@ -68,6 +68,11 @@ struct OBRitNavigation: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
         }
+        .onOpenURL { url in
+            guard url.scheme == "obrit", url.host == "home", url.path.isEmpty || url.path == "/" else { return }
+            setRoot(.main(.home))
+            dependencies.refreshCenter.refreshItems()
+        }
         .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
         .background(
             OBRitInteractivePopGestureEnabler(

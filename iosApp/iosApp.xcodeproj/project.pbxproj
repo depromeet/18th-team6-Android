@@ -10,11 +10,53 @@
 		979CF308308E211900A1340A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 979CF307308E211900A1340A /* GoogleService-Info.plist */; };
 		979CF30B308E287F00A1340A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 979CF30A308E287F00A1340A /* FirebaseAnalytics */; };
 		979CF30D308E287F00A1340A /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 979CF30C308E287F00A1340A /* FirebaseMessaging */; };
+		171000000000000000000009 /* OBRitWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 171000000000000000000002 /* OBRitWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		17100000000000000000000F /* pretendard_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 171000000000000000000010 /* pretendard_semibold.ttf */; };
+		171000000000000000000014 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 171000000000000000000013 /* Shared.framework */; };
+		171000000000000000000016 /* ic_widget_warning_filled.png in Resources */ = {isa = PBXBuildFile; fileRef = 171000000000000000000015 /* ic_widget_warning_filled.png */; };
+		171000000000000000000018 /* ic_widget_add_lined.png in Resources */ = {isa = PBXBuildFile; fileRef = 171000000000000000000017 /* ic_widget_add_lined.png */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		17100000000000000000000A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F1481E3F5EDEBFD4EEED5508 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 171000000000000000000001;
+			remoteInfo = OBRitWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		171000000000000000000008 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				171000000000000000000009 /* OBRitWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		17100000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 171000000000000000000001 /* OBRitWidget */;
+			targetProxy = 17100000000000000000000A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXFileReference section */
 		36FAE2F654984AD013DF736D /* obrit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = obrit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		979CF307308E211900A1340A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		171000000000000000000002 /* OBRitWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OBRitWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		171000000000000000000010 /* pretendard_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = pretendard_semibold.ttf; path = iosApp/DesignSystem/Resources/Fonts/pretendard_semibold.ttf; sourceTree = SOURCE_ROOT; };
+		171000000000000000000013 /* Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Shared.framework; path = "Shared.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		171000000000000000000015 /* ic_widget_warning_filled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ic_widget_warning_filled.png; path = "../android/feature/widget/src/main/res/drawable-xxxhdpi/ic_widget_warning_filled.png"; sourceTree = SOURCE_ROOT; };
+		171000000000000000000017 /* ic_widget_add_lined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ic_widget_add_lined.png; path = "../android/feature/widget/src/main/res/drawable-xxxhdpi/ic_widget_add_lined.png"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -24,6 +66,11 @@
 				Info.plist,
 			);
 			target = 586DB1C8D44468A0DF1C8562 /* iosApp */;
+		};
+		171000000000000000000004 /* Exceptions for "OBRitWidget" folder in "OBRitWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (Info.plist, OBRitWidget.entitlements, );
+			target = 171000000000000000000001 /* OBRitWidget */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -41,6 +88,17 @@
 			path = iosApp;
 			sourceTree = "<group>";
 		};
+		171000000000000000000003 /* OBRitWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (171000000000000000000004 /* Exceptions for "OBRitWidget" folder in "OBRitWidget" target */, );
+			path = OBRitWidget;
+			sourceTree = "<group>";
+		};
+		171000000000000000000011 /* WidgetShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WidgetShared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +111,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		171000000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (171000000000000000000014 /* Shared.framework in Frameworks */, );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -62,6 +126,12 @@
 				979CF307308E211900A1340A /* GoogleService-Info.plist */,
 				08806132786636B616A9FCDC /* Configuration */,
 				6AC88C66C8163CC4B19DF437 /* iosApp */,
+				171000000000000000000003 /* OBRitWidget */,
+				171000000000000000000011 /* WidgetShared */,
+				171000000000000000000010 /* pretendard_semibold.ttf */,
+				171000000000000000000017 /* ic_widget_add_lined.png */,
+				171000000000000000000015 /* ic_widget_warning_filled.png */,
+				171000000000000000000013 /* Shared.framework */,
 				433CD9C35BED8D6FC7893336 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -70,6 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				36FAE2F654984AD013DF736D /* obrit.app */,
+				171000000000000000000002 /* OBRitWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,13 +156,16 @@
 				299D49249783F248A55F9F31 /* Sources */,
 				E21B9F8CC31C7E053085CF4F /* Frameworks */,
 				9E0DBF9E7A02D7734EB7D3B5 /* Resources */,
+				171000000000000000000008 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				17100000000000000000000B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6AC88C66C8163CC4B19DF437 /* iosApp */,
+				171000000000000000000011 /* WidgetShared */,
 			);
 			name = iosApp;
 			packageProductDependencies = (
@@ -101,6 +175,23 @@
 			productName = iosApp;
 			productReference = 36FAE2F654984AD013DF736D /* obrit.app */;
 			productType = "com.apple.product-type.application";
+		};
+		171000000000000000000001 /* OBRitWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17100000000000000000000E /* Build configuration list for PBXNativeTarget "OBRitWidget" */;
+			buildPhases = (
+				171000000000000000000012 /* Compile Kotlin Framework */,
+				171000000000000000000005 /* Sources */,
+				171000000000000000000006 /* Frameworks */,
+				171000000000000000000007 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			fileSystemSynchronizedGroups = (171000000000000000000003 /* OBRitWidget */, 171000000000000000000011 /* WidgetShared */, );
+			name = OBRitWidget;
+			productName = OBRitWidget;
+			productReference = 171000000000000000000002 /* OBRitWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -112,7 +203,12 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					171000000000000000000001 = {
+						SystemCapabilities = {com.apple.ApplicationGroups.iOS = {enabled = 1; }; };
+						CreatedOnToolsVersion = 26.4;
+					};
 					586DB1C8D44468A0DF1C8562 = {
+						SystemCapabilities = {com.apple.ApplicationGroups.iOS = {enabled = 1; }; };
 						CreatedOnToolsVersion = 16.2;
 					};
 				};
@@ -135,6 +231,7 @@
 			projectRoot = "";
 			targets = (
 				586DB1C8D44468A0DF1C8562 /* iosApp */,
+				171000000000000000000001 /* OBRitWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -148,10 +245,35 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		171000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (17100000000000000000000F /* pretendard_semibold.ttf in Resources */, 171000000000000000000016 /* ic_widget_warning_filled.png in Resources */, 171000000000000000000018 /* ic_widget_add_lined.png in Resources */, );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		EDDC70441B1B72932B83CC50 /* Compile Kotlin Framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Compile Kotlin Framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\nsh ./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
+		171000000000000000000012 /* Compile Kotlin Framework */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -180,6 +302,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		171000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -192,6 +320,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosAppRelease.entitlements;
 				DEVELOPMENT_TEAM = W4PLC69F9N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -368,6 +497,50 @@
 			};
 			name = Debug;
 		};
+		17100000000000000000000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OBRitWidget/OBRitWidget.entitlements;
+				FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(BUILT_PRODUCTS_DIR)", );
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W4PLC69F9N;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OBRitWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OBRit;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks", );
+				PRODUCT_BUNDLE_IDENTIFIER = com.hotsix.obrit.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		17100000000000000000000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OBRitWidget/OBRitWidget.entitlements;
+				FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(BUILT_PRODUCTS_DIR)", );
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W4PLC69F9N;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OBRitWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OBRit;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks", );
+				PRODUCT_BUNDLE_IDENTIFIER = com.hotsix.obrit.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -386,6 +559,12 @@
 				47427F42277C3084ABBD547B /* Debug */,
 				045F4E5FE16649B2CBE380AE /* Release */,
 			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		17100000000000000000000E /* Build configuration list for PBXNativeTarget "OBRitWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (17100000000000000000000C /* Debug */, 17100000000000000000000D /* Release */, );
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
