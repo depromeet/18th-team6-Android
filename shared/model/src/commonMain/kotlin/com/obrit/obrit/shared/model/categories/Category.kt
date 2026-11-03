@@ -6,4 +6,5 @@ data class Category(
     val iconUrl: String,
     val itemCount: Int,
     val totalSpareQuantity: Int,
+    val categoryGroupId: Long? = null,
 )
