@@ -5,6 +5,7 @@ struct ItemRegistrationView: View {
     @State private var snackbar: ItemRegistrationSnackbarPresentation?
     @State private var snackbarDismissTask: Task<Void, Never>?
 
+    var refreshCenter: AppRefreshCenter?
     let onBack: () -> Void
     let onClose: () -> Void
     let onComplete: () -> Void
@@ -12,11 +13,13 @@ struct ItemRegistrationView: View {
     @MainActor
     init(
         viewModelFactory: @MainActor @escaping () -> ItemRegistrationViewModel,
+        refreshCenter: AppRefreshCenter? = nil,
         onBack: @escaping () -> Void,
         onClose: @escaping () -> Void,
         onComplete: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.refreshCenter = refreshCenter
         self.onBack = onBack
         self.onClose = onClose
         self.onComplete = onComplete
@@ -71,6 +74,7 @@ struct ItemRegistrationView: View {
                         onUpdateItemName: viewModel.updateItemName,
                         onOpenKindSheet: viewModel.openKindSheet,
                         onDismissBottomSheet: viewModel.dismissBottomSheet,
+                        onReturnToKindList: viewModel.returnToKindList,
                         onUpdateKindSearchQuery: viewModel.updateKindSearchQuery,
                         onSelectKind: viewModel.selectKind,
                         onSelectKindCandidate: viewModel.selectKindCandidate,
@@ -85,7 +89,9 @@ struct ItemRegistrationView: View {
                         onSubmitDirectKind: viewModel.submitDirectKind,
                         onSubmitForm: viewModel.submitForm,
                         onComplete: onComplete,
-                        onCreateSearchItem: viewModel.createSearchItem
+                        onCreateSearchItem: viewModel.createSearchItem,
+                        onSubmitKindSearch: { viewModel.submitKindSearch($0) },
+                        onClearKindSearch: viewModel.clearKindSearch
                     )
                 )
             }
@@ -115,6 +121,9 @@ struct ItemRegistrationView: View {
         defer { viewModel.clearEffect() }
 
         switch effect {
+        case let .registered(name):
+            refreshCenter?.showRegistrationSuccess("\(name)을(를) 추가했어요")
+            onComplete()
         case let .showMessage(message):
             showSnackbar(message)
         }
@@ -171,6 +180,7 @@ struct ItemRegistrationAction {
     let onUpdateItemName: (String) -> Void
     let onOpenKindSheet: () -> Void
     let onDismissBottomSheet: () -> Void
+    var onReturnToKindList: () -> Void = {}
     let onUpdateKindSearchQuery: (String) -> Void
     let onSelectKind: (ItemKind) -> Void
     let onSelectKindCandidate: (ItemKind) -> Void
@@ -186,6 +196,8 @@ struct ItemRegistrationAction {
     let onSubmitForm: () -> Void
     let onComplete: () -> Void
     let onCreateSearchItem: () -> Void
+    var onSubmitKindSearch: (String?) -> Void = { _ in }
+    var onClearKindSearch: () -> Void = {}
 }
 
 private struct ItemRegistrationContentView: View {
@@ -285,4 +297,35 @@ private struct ItemRegistrationContentView: View {
         onClose: {},
         onComplete: {}
     )
+}
+
+extension ItemRegistrationAction {
+    @MainActor
+    static func kindPicker(using viewModel: ItemRegistrationViewModel, onDismiss: @escaping () -> Void) -> Self {
+        Self(
+            onBack: onDismiss,
+            onClose: onDismiss,
+            onUpdateItemName: viewModel.updateItemName,
+            onOpenKindSheet: viewModel.openKindSheet,
+            onDismissBottomSheet: onDismiss,
+            onReturnToKindList: viewModel.returnToKindList,
+            onUpdateKindSearchQuery: viewModel.updateKindSearchQuery,
+            onSelectKind: viewModel.selectKind,
+            onSelectKindCandidate: viewModel.selectKindCandidate,
+            onConfirmKindSelection: viewModel.confirmKindSelection,
+            onSelectReplacementDate: viewModel.selectReplacementDate,
+            onIncrementQuantity: viewModel.incrementQuantity,
+            onDecrementQuantity: viewModel.decrementQuantity,
+            onUpdateQuantity: viewModel.updateQuantity,
+            onShowDirectKindRegistration: viewModel.showDirectKindRegistration,
+            onUpdateDirectKindName: viewModel.updateDirectKindName,
+            onSelectImageOption: viewModel.selectImageOption,
+            onSubmitDirectKind: viewModel.submitDirectKind,
+            onSubmitForm: {},
+            onComplete: {},
+            onCreateSearchItem: viewModel.createSearchItem,
+            onSubmitKindSearch: { viewModel.submitKindSearch($0) },
+            onClearKindSearch: viewModel.clearKindSearch
+        )
+    }
 }

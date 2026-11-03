@@ -16,6 +16,7 @@ struct AppDependencies {
 
     static var live: AppDependencies {
         let refreshCenter = AppRefreshCenter()
+        let completionStore = UserDefaultsOnboardingCompletionStore()
         let repositoryProvider = SharedRepositoryProvider()
         let readService = SharedReadService(repositoryProvider: repositoryProvider)
         let writeService = SharedWriteService(repositoryProvider: repositoryProvider)
@@ -33,7 +34,7 @@ struct AppDependencies {
 
         return AppDependencies(
             refreshCenter: refreshCenter,
-            onboardingCompletionStore: UserDefaultsOnboardingCompletionStore(),
+            onboardingCompletionStore: completionStore,
             makeHomeViewModel: {
                 HomeViewModel(
                     repository: SharedHomeDashboardRepository(readService: readService)
@@ -62,7 +63,9 @@ struct AppDependencies {
                         writeService: writeService
                     ),
                     initialOptions: [],
-                    initialGroups: []
+                    initialGroups: [],
+                    completionStore: completionStore,
+                    notificationSetup: LiveOnboardingNotificationSetup(repository: SharedNotificationPreferencesRepository(service: notificationSettingsService))
                 )
             },
             makeItemRegistrationViewModel: {

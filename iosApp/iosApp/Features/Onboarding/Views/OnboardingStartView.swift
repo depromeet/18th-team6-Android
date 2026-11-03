@@ -18,7 +18,7 @@ struct OnboardingStartView: View {
                         )
 
                     VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
-                        Text("환영합니다!\nOBRIT과 함께 소모품 관리해요")
+                        Text("환영합니다!\nOBRIT으로 소모품 관리해요")
                             .fixedSize(horizontal: false, vertical: true)
                             .obritTextStyle(
                                 OBRitTypography.s6xl,

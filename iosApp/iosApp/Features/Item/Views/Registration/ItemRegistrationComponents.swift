@@ -298,16 +298,19 @@ struct ItemSearchInputField: View {
     let text: String
     let placeholder: String
     let onTextChange: (String) -> Void
+    let onSearch: () -> Void
 
     init(
         text: String,
         placeholder: String,
-        onTextChange: @escaping (String) -> Void
+        onTextChange: @escaping (String) -> Void,
+        onSearch: @escaping () -> Void = {}
     ) {
         _localText = State(initialValue: text)
         self.text = text
         self.placeholder = placeholder
         self.onTextChange = onTextChange
+        self.onSearch = onSearch
     }
 
     var body: some View {
@@ -326,6 +329,10 @@ struct ItemSearchInputField: View {
                 TextField("", text: $localText)
                     .lineLimit(ItemRegistrationLayout.singleLineLimit)
                     .submitLabel(.search)
+                    .onSubmit {
+                        isFocused = false
+                        onSearch()
+                    }
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .focused($isFocused)
@@ -338,10 +345,23 @@ struct ItemSearchInputField: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Image(systemName: ItemRegistrationAsset.searchSymbol)
-                .font(.system(size: OBRitSpacing.s6, weight: .regular))
-                .foregroundStyle(OBRitColors.common00)
-                .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+            if !localText.isEmpty {
+                Button { localText = "" } label: { Image(systemName: "xmark.circle.fill") }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(OBRitColors.gray500)
+                    .accessibilityLabel("검색어 지우기")
+            }
+            Button {
+                isFocused = false
+                onSearch()
+            } label: {
+                Image(systemName: ItemRegistrationAsset.searchSymbol)
+                    .font(.system(size: OBRitSpacing.s6, weight: .regular))
+                    .foregroundStyle(OBRitColors.common00)
+                    .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("검색")
         }
         .frame(height: ItemRegistrationLayout.fieldHeight)
         .padding(.horizontal, OBRitSpacing.s5)

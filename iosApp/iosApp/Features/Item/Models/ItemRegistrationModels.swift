@@ -126,25 +126,32 @@ struct ItemRegistrationViewData: Equatable {
     var prefersUserKinds = false
     var hasEditedItemName = false
     var hasEditedDirectKindName = false
+    var hasCustomItemName = false
+    var automaticItemName = ""
+    var submittedKindSearchQuery: String?
 
     var filteredKinds: [ItemKind] {
-        let query = kindSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return itemKinds }
+        guard let query = submittedKindSearchQuery else { return itemKinds }
         return itemKinds.filter {
             $0.title.localizedCaseInsensitiveContains(query)
         }
     }
 
+    var kindSearchSuggestions: [String] {
+        let query = kindSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty, query != submittedKindSearchQuery else { return [] }
+        return Array(itemKinds.filter { $0.title.localizedCaseInsensitiveContains(query) }.map(\.title).prefix(3))
+    }
+
+    var visibleGroups: [ItemKindGroup] {
+        let sorted = categoryGroups.sorted { $0.displayOrder == $1.displayOrder ? $0.id < $1.id : $0.displayOrder < $1.displayOrder }
+        let groups = sorted.filter { group in group.isUserDefined || itemKinds.contains { $0.categoryGroupId == group.id } }
+        if groups.contains(where: \.isUserDefined) { return groups }
+        return groups + [ItemKindGroup(id: -1, name: "직접 등록", displayOrder: Int.max, isUserDefined: true)]
+    }
+
     var hasNoSearchResults: Bool {
-        !kindSearchQuery.isEmpty && filteredKinds.isEmpty
-    }
-
-    var searchNameError: String? {
-        ItemRegistrationNameRule.error(for: kindSearchQuery, existingNames: existingItemNames)
-    }
-
-    var canCreateSearchItem: Bool {
-        hasNoSearchResults && searchNameError == nil && !isProcessing
+        submittedKindSearchQuery != nil && filteredKinds.isEmpty
     }
 
     var itemNameError: String? {
@@ -154,7 +161,7 @@ struct ItemRegistrationViewData: Equatable {
 
     var directKindNameError: String? {
         guard hasEditedDirectKindName || !draft.directKindName.isEmpty else { return nil }
-        return ItemRegistrationNameRule.error(for: draft.directKindName, existingNames: existingItemNames + itemKinds.map(\.title))
+        return ItemRegistrationNameRule.error(for: draft.directKindName, existingNames: existingItemNames)
     }
 
     var canSubmitForm: Bool {
@@ -165,8 +172,7 @@ struct ItemRegistrationViewData: Equatable {
     }
 
     var canSubmitDirectKind: Bool {
-        ItemRegistrationNameRule.error(for: draft.directKindName, existingNames: existingItemNames + itemKinds.map(\.title)) == nil &&
-            draft.selectedImageOption != nil &&
+        ItemRegistrationNameRule.error(for: draft.directKindName, existingNames: existingItemNames) == nil &&
             !isProcessing
     }
 
@@ -180,7 +186,8 @@ enum ItemRegistrationNameRule {
     static let duplicateMessage = "이미 같은 이름의 소모품이 있어요"
 
     static func error(for name: String, existingNames: [String]) -> String? {
-        guard (1...15).contains(name.count) else { return "이름은 공백 포함 1~15자로 입력해주세요" }
+        guard !name.isEmpty else { return "이름을 입력해주세요" }
+        guard name.count <= 15 else { return "이름은 15자 이내로 입력해주세요" }
         let allowed = name.unicodeScalars.allSatisfy { scalar in
             switch scalar.value {
             case 0x20, 0x30...0x39, 0x41...0x5A, 0x61...0x7A,
@@ -191,9 +198,9 @@ enum ItemRegistrationNameRule {
                 return false
             }
         }
-        guard allowed else { return "한글, 영문, 숫자, 공백만 사용할 수 있어요" }
+        guard allowed else { return "한글 및 영문, 숫자만 입력 가능합니다." }
         guard !name.hasPrefix(" "), !name.hasSuffix(" "), !name.contains("  ") else {
-            return "공백은 단어 사이에 한 칸만 사용할 수 있어요"
+            return "공백은 단어 사이에 한 칸만 입력할 수 있어요"
         }
         guard !existingNames.contains(where: { identity($0) == identity(name) }) else {
             return duplicateMessage
@@ -217,6 +224,6 @@ enum ItemRegistrationNameRule {
     }
 
     private static func identity(_ name: String) -> String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping.lowercased()
+        name.precomposedStringWithCanonicalMapping
     }
 }

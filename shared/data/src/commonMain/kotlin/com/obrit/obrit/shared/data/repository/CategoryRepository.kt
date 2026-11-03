@@ -11,7 +11,7 @@ interface CategoryRepository {
 
     suspend fun createCategory(
         name: String,
-        iconId: Long,
+        iconId: Long? = null,
     ): Result<Category>
 
     suspend fun deleteCategory(categoryId: Long): Result<Unit>

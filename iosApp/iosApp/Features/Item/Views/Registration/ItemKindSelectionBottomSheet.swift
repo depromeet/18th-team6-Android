@@ -282,166 +282,167 @@ struct ManualKindSelectionBottomSheet: View {
     let contentHeight: CGFloat
     let bottomPadding: CGFloat
 
-    @State private var selectedGroupId: Int?
+    @State private var activeGroupId: Int?
+    @State private var pinnedGroupId: Int?
 
-    private var groups: [ItemKindGroup] {
-        let presetGroups = data.categoryGroups.filter { !$0.isUserDefined }
-        let userGroup = data.categoryGroups.first { $0.isUserDefined }
-        return presetGroups + [ItemKindGroup(
-            id: userGroup?.id ?? -1,
-            name: "직접 등록",
-            displayOrder: userGroup?.displayOrder ?? Int.max,
-            isUserDefined: true
-        )]
-    }
-
-    private var activeGroup: ItemKindGroup? {
-        groups.first { $0.id == selectedGroupId }
-            ?? groups.first { data.prefersUserKinds && $0.isUserDefined }
-            ?? groups.first { $0.id == data.draft.selectedKind?.categoryGroupId }
-            ?? groups.first { $0.name == "욕실" }
-            ?? groups.first
-    }
-
-    private var isSearching: Bool {
-        !data.kindSearchQuery.isEmpty
-    }
-
-    private var visibleKinds: [ItemKind] {
-        if isSearching { return data.filteredKinds }
-        if activeGroup?.isUserDefined == true {
-            let userGroupIds = Set(data.categoryGroups.filter(\.isUserDefined).map(\.id))
-            return data.itemKinds.filter { kind in
-                kind.categoryGroupId.map { userGroupIds.contains($0) } ?? false
-            }
-        }
-        return data.itemKinds.filter { $0.categoryGroupId == activeGroup?.id }
-    }
+    private var isSearching: Bool { data.submittedKindSearchQuery != nil }
 
     var body: some View {
-        OBRitBottomSheet(
-            contentHeight: contentHeight,
-            bottomPadding: bottomPadding,
-            onDismiss: action.onDismissBottomSheet
-        ) {
-            VStack(spacing: OBRitSpacing.s6) {
-                ItemSearchInputField(
-                    text: data.kindSearchQuery,
-                    placeholder: "원하시는 소모품을 검색해보세요",
-                    onTextChange: action.onUpdateKindSearchQuery
-                )
-                .disabled(data.isProcessing)
-
+        OBRitBottomSheet(contentHeight: contentHeight, bottomPadding: bottomPadding, onDismiss: action.onDismissBottomSheet) {
+            VStack(spacing: OBRitSpacing.s4) {
+                VStack(spacing: OBRitSpacing.s2) {
+                    ItemSearchInputField(text: data.kindSearchQuery, placeholder: "원하시는 소모품을 검색해보세요", onTextChange: action.onUpdateKindSearchQuery, onSearch: { action.onSubmitKindSearch(nil) })
+                    if !data.kindSearchSuggestions.isEmpty {
+                        RegistrationSearchSuggestions(query: data.kindSearchQuery, suggestions: data.kindSearchSuggestions) { action.onSubmitKindSearch($0) }
+                    }
+                }
                 HStack(alignment: .top, spacing: OBRitSpacing.s4) {
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: OBRitSpacing.s1) {
-                            ForEach(groups) { group in
-                                groupButton(group)
-                            }
-                        }
-                        .padding(.trailing, OBRitSpacing.s3)
-                    }
-                    .frame(width: 104)
-                    .overlay(alignment: .trailing) {
-                        Rectangle().fill(OBRitColors.gray850).frame(width: 1)
-                    }
-
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: OBRitSpacing.s3) {
-                            HStack(spacing: OBRitSpacing.s1) {
-                                Text(isSearching ? "검색 결과" : activeGroup?.name ?? "소모품")
-                                    .foregroundStyle(OBRitColors.common00)
-                                Text("\(visibleKinds.count)")
-                                    .foregroundStyle(OBRitColors.green300)
-                                if !isSearching, activeGroup?.isUserDefined == true {
-                                    Spacer(minLength: 0)
-                                    Button(action: action.onShowDirectKindRegistration) {
-                                        HStack(spacing: 0) {
-                                            Text("등록하기")
-                                                .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.gray300)
-                                            Image("registration_add_kind")
-                                                .frame(width: 16, height: 16)
+                    sidebar
+                    ScrollViewReader { proxy in
+                        ScrollView(showsIndicators: false) {
+                            LazyVStack(alignment: .leading, spacing: OBRitSpacing.s6, pinnedViews: [.sectionHeaders]) {
+                                if isSearching {
+                                    Section {
+                                        if data.hasNoSearchResults {
+                                            RegistrationNoSearchResults(enabled: !data.isProcessing, onDirectRegister: action.onCreateSearchItem)
+                                        } else { kindGrid(data.filteredKinds) }
+                                    } header: { sectionTitle("검색 결과", count: data.filteredKinds.count) }
+                                } else {
+                                    ForEach(data.visibleGroups) { group in
+                                        Section {
+                                            kindGrid(kinds(in: group))
+                                        } header: {
+                                            sectionHeader(group)
+                                                .id(group.id)
+                                                .background {
+                                                    GeometryReader { geometry in
+                                                        Color.clear.preference(key: RegistrationGroupOffsets.self, value: [group.id: geometry.frame(in: .named("kindList")).minY])
+                                                    }
+                                                }
                                         }
-                                        .padding(.vertical, OBRitSpacing.s1)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .disabled(data.isProcessing)
-                                }
-                            }
-                            .font(OBRitTypography.font(OBRitTypography.s3xl, weight: OBRitFontWeight.semiBold))
-                            .frame(minHeight: 32, alignment: .top)
-
-                            if visibleKinds.isEmpty {
-                                VStack(spacing: OBRitSpacing.s3) {
-                                    Text(isSearching ? "소모품 검색 결과가 없어요!" : "등록된 소모품이 없어요")
-                                        .obritTextStyle(OBRitTypography.base, color: OBRitColors.textDefaultSecondary)
-                                    if isSearching, let error = data.searchNameError {
-                                        Text(error)
-                                            .obritTextStyle(OBRitTypography.small, color: OBRitColors.red400)
-                                            .accessibilityLabel(error)
-                                    }
-                                }
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity, minHeight: 100)
-                            } else {
-                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: OBRitSpacing.s2), count: 3), spacing: OBRitSpacing.s6) {
-                                    ForEach(visibleKinds) { kind in
-                                        kindButton(kind)
                                     }
                                 }
                             }
+                            .padding(.bottom, OBRitSpacing.s6)
+                        }
+                        .coordinateSpace(name: "kindList")
+                        .simultaneousGesture(DragGesture().onChanged { _ in pinnedGroupId = nil })
+                        .onPreferenceChange(RegistrationGroupOffsets.self) { offsets in
+                            guard !isSearching, pinnedGroupId == nil else { return }
+                            let visible = data.visibleGroups.last { (offsets[$0.id] ?? .infinity) <= 1 }
+                                ?? data.visibleGroups.first { offsets[$0.id] != nil }
+                            if let visible { activeGroupId = visible.id }
+                        }
+                        .onChange(of: pinnedGroupId) { _, groupId in
+                            guard let groupId else { return }
+                            withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(groupId, anchor: .top) }
+                        }
+                        .onChange(of: isSearching) { _, searching in
+                            if !searching, let id = activeGroupId { proxy.scrollTo(id, anchor: .top) }
+                        }
+                        .onAppear {
+                            let id = data.draft.selectedKind?.categoryGroupId
+                                ?? data.visibleGroups.first { $0.name == "욕실" }?.id
+                                ?? data.visibleGroups.first?.id
+                            activeGroupId = id
+                            pinnedGroupId = id
+                            if let id { proxy.scrollTo(id, anchor: .top) }
                         }
                     }
-                    .id(isSearching ? "search:\(data.kindSearchQuery)" : "group:\(activeGroup?.id ?? -1)")
                 }
                 .frame(maxHeight: .infinity)
-
-                OBRitFilledTextButton(
-                    text: data.isProcessing ? "등록 중..." : data.hasNoSearchResults ? "\(data.kindSearchQuery) 추가하기" : "소모품 등록하기",
-                    color: .green,
-                    enabled: data.hasNoSearchResults ? data.canCreateSearchItem : data.selectedKindCandidate != nil && !data.isProcessing,
-                    fillsWidth: true,
-                    action: data.hasNoSearchResults ? action.onCreateSearchItem : action.onConfirmKindSelection
-                )
+                OBRitFilledTextButton(text: "선택하기", enabled: data.selectedKindCandidate != nil && !data.isProcessing, fillsWidth: true, action: action.onConfirmKindSelection)
             }
+            .disabled(data.isProcessing)
         }
     }
 
-    private func groupButton(_ group: ItemKindGroup) -> some View {
-        let selected = !isSearching && activeGroup?.id == group.id
-        return Button {
-            guard !data.isProcessing else { return }
-            selectedGroupId = group.id
-            action.onUpdateKindSearchQuery("")
-        } label: {
-            Text(group.name)
-                .obritTextStyle(OBRitTypography.xl, weight: selected ? OBRitFontWeight.semiBold : OBRitFontWeight.medium, color: selected ? OBRitColors.common00 : OBRitColors.gray500)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, OBRitSpacing.s3)
-                .padding(.vertical, OBRitSpacing.s2_5)
-                .background(selected ? OBRitColors.gray800 : .clear)
-                .clipShape(RoundedRectangle(cornerRadius: OBRitRadius.small))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
-    private func kindButton(_ kind: ItemKind) -> some View {
-        let selected = data.selectedKindCandidate?.id == kind.id
-        return Button { action.onSelectKindCandidate(kind) } label: {
-            VStack(spacing: OBRitSpacing.s2) {
-                ItemImage(imageURL: kind.imageURL, size: 64)
-                    .background(OBRitColors.gray750, in: Circle())
-                    .overlay {
-                        Circle().stroke(selected ? OBRitColors.green300 : .clear, lineWidth: 2)
+    private var sidebar: some View {
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: OBRitSpacing.s1) {
+                    ForEach(data.visibleGroups) { group in
+                        let selected = !isSearching && (pinnedGroupId ?? activeGroupId) == group.id
+                        Button {
+                            action.onClearKindSearch()
+                            activeGroupId = group.id
+                            // Retain the explicitly selected chip when the last section cannot reach the top.
+                            if pinnedGroupId == group.id { pinnedGroupId = nil }
+                            pinnedGroupId = group.id
+                        } label: {
+                            Text(group.name)
+                                .obritTextStyle(OBRitTypography.xl, weight: selected ? OBRitFontWeight.semiBold : OBRitFontWeight.medium, color: selected ? OBRitColors.common00 : OBRitColors.gray500)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, OBRitSpacing.s3)
+                                .padding(.vertical, OBRitSpacing.s2_5)
+                                .background(selected ? OBRitColors.gray800 : .clear, in: RoundedRectangle(cornerRadius: OBRitRadius.small))
+                        }
+                        .buttonStyle(.plain)
+                        .id(group.id)
+                        .accessibilityAddTraits(selected ? .isSelected : [])
                     }
-                Text(kind.title)
-                    .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
-                    .multilineTextAlignment(.center)
+                }
+                .padding(.trailing, OBRitSpacing.s3)
             }
-            .frame(maxWidth: .infinity)
+            .onChange(of: activeGroupId) { _, id in
+                if let id { withAnimation { proxy.scrollTo(id) } }
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .frame(width: 104)
+        .overlay(alignment: .trailing) { Rectangle().fill(OBRitColors.gray850).frame(width: 1) }
+    }
+
+    private func kinds(in group: ItemKindGroup) -> [ItemKind] {
+        data.itemKinds.filter { $0.categoryGroupId == group.id }
+    }
+
+    private func sectionTitle(_ title: String, count: Int) -> some View {
+        HStack(spacing: OBRitSpacing.s1) {
+            Text(title).foregroundStyle(OBRitColors.common00)
+            Text("\(count)").foregroundStyle(OBRitColors.green300)
+        }
+        .font(OBRitTypography.font(OBRitTypography.s3xl, weight: OBRitFontWeight.semiBold))
+    }
+
+    private func sectionHeader(_ group: ItemKindGroup) -> some View {
+        HStack {
+            sectionTitle(group.name, count: kinds(in: group).count)
+            if group.isUserDefined {
+                Spacer(minLength: 0)
+                Button("추가하기 +", action: action.onShowDirectKindRegistration)
+                    .buttonStyle(.plain)
+                    .obritTextStyle(OBRitTypography.small, color: OBRitColors.gray300)
+            }
+        }
+        .padding(.vertical, OBRitSpacing.s2)
+        .background(OBRitColors.backgroundDefaultDefault)
+    }
+
+    private func kindGrid(_ kinds: [ItemKind]) -> some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: OBRitSpacing.s2), count: 3), spacing: OBRitSpacing.s6) {
+            ForEach(kinds) { kind in
+                let selected = data.selectedKindCandidate?.id == kind.id
+                Button { action.onSelectKindCandidate(kind) } label: {
+                    VStack(spacing: OBRitSpacing.s2) {
+                        ItemImage(imageURL: kind.imageURL, size: 64)
+                            .background(OBRitColors.gray750, in: Circle())
+                            .overlay { Circle().stroke(selected ? OBRitColors.green300 : .clear, lineWidth: 2) }
+                        Text(kind.title)
+                            .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
+}
+
+private struct RegistrationGroupOffsets: PreferenceKey {
+    static let defaultValue: [Int: CGFloat] = [:]
+    static func reduce(value: inout [Int: CGFloat], nextValue: () -> [Int: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }

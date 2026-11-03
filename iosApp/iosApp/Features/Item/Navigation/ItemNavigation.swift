@@ -20,6 +20,7 @@ struct ItemNavigation {
             case .receiptAnalyze:
                 ReceiptAnalyzeView(
                     viewModelFactory: dependencies.makeReceiptAnalyzeViewModel,
+                    kindPickerFactory: dependencies.makeItemRegistrationViewModel,
                     onBack: onBack,
                     onDirectRegistration: {
                         onNavigate(.itemRegistration)
@@ -32,6 +33,7 @@ struct ItemNavigation {
             case .itemRegistration:
                 ItemRegistrationView(
                     viewModelFactory: dependencies.makeItemRegistrationViewModel,
+                    refreshCenter: dependencies.refreshCenter,
                     onBack: onBack,
                     onClose: {
                         onSetMainRoot(.home)
@@ -44,6 +46,7 @@ struct ItemNavigation {
             case .itemDetailInput:
                 ItemRegistrationView(
                     viewModelFactory: dependencies.makeItemRegistrationViewModel,
+                    refreshCenter: dependencies.refreshCenter,
                     onBack: onBack,
                     onClose: {
                         onSetMainRoot(.home)

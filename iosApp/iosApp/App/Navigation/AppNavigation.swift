@@ -29,6 +29,7 @@ struct AppNavigation {
         case .onboarding:
             OnboardingView(
                 viewModelFactory: dependencies.makeOnboardingViewModel,
+                refreshCenter: dependencies.refreshCenter,
                 onBack: onBack,
                 onComplete: {
                     dependencies.onboardingCompletionStore.markCompleted()

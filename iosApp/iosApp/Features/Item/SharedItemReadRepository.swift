@@ -18,16 +18,15 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
 
     func catalog() async throws -> ItemRegistrationCatalog {
         async let categories = readService.getCategories()
-        async let categoryIcons = readService.getCategoryIcons()
         async let groups = readService.getCategoryGroups()
         async let items = readService.getItems()
-        let (loadedCategories, loadedIcons, loadedGroups, loadedItems) = try await (categories, categoryIcons, groups, items)
+        let (loadedCategories, loadedGroups, loadedItems) = try await (categories, groups, items)
 
         return ItemRegistrationCatalog(
             itemKinds: Self.itemKinds(from: loadedCategories),
-            imageOptions: Self.imageOptions(from: loadedIcons),
+            imageOptions: [],
             categoryGroups: loadedGroups.map {
-                ItemKindGroup(id: Int(clamping: $0.id), name: $0.name, displayOrder: Int($0.displayOrder), isUserDefined: $0.type.name == "USER")
+                ItemKindGroup(id: Int(clamping: $0.id), name: $0.type.name == "USER" ? "직접 등록" : $0.name, displayOrder: Int($0.displayOrder), isUserDefined: $0.type.name == "USER")
             }.sorted { $0.displayOrder == $1.displayOrder ? $0.id < $1.id : $0.displayOrder < $1.displayOrder },
             existingItemNames: loadedItems.map(\.name)
         )
@@ -313,12 +312,4 @@ actor SharedItemReadRepository: ItemDetailRepository, ItemDetailEditRepository, 
         return .operationFailed(message: fallbackMessage)
     }
 
-    private static func imageOptions(from icons: [Shared.CategoryIcon]) -> [ItemImageOption] {
-        icons.map { icon in
-            ItemImageOption(
-                id: Int(clamping: icon.id),
-                imageURL: icon.url
-            )
-        }
-    }
 }

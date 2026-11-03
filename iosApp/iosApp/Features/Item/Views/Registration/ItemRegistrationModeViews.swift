@@ -83,7 +83,7 @@ struct ItemRegistrationFormView: View {
 
     private var registrationButton: some View {
         OBRitFilledTextButton(
-            text: data.isProcessing ? "등록 중..." : "소모품 등록하기",
+            text: data.isProcessing ? "등록 중..." : "추가하기",
             enabled: data.canSubmitForm,
             fillsWidth: true,
             action: action.onSubmitForm
@@ -107,7 +107,7 @@ struct ItemDirectKindRegistrationView: View {
         ) {
             VStack(alignment: .leading, spacing: OBRitSpacing.s6) {
                 HStack(spacing: 0) {
-                    Button(action: action.onDismissBottomSheet) {
+                    Button(action: action.onReturnToKindList) {
                         Image("registration_sheet_back")
                             .frame(width: 28, height: 28)
                             .frame(height: 44)
@@ -122,10 +122,10 @@ struct ItemDirectKindRegistrationView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: OBRitSpacing.s7) {
-                        ItemRequiredField(title: "소모품 종류 이름") {
+                        ItemRequiredField(title: "이름") {
                             ItemTextInputField(
                                 text: data.draft.directKindName,
-                                placeholder: "소모품의 종류 이름을 입력해주세요",
+                                placeholder: "이름을 입력해주세요",
                                 maxLength: ItemRegistrationConfig.kindNameMaxLength,
                                 errorMessage: data.directKindNameError,
                                 limitsInputLength: false,
@@ -133,21 +133,7 @@ struct ItemDirectKindRegistrationView: View {
                                 onTextChange: action.onUpdateDirectKindName
                             )
                         }
-                        ItemRequiredField(title: "대표 이미지") {
-                            LazyVGrid(
-                                columns: [GridItem(.adaptive(minimum: 60), spacing: OBRitSpacing.s2)],
-                                spacing: OBRitSpacing.s3
-                            ) {
-                                ForEach(data.imageOptions) { option in
-                                    ItemImageOptionButton(
-                                        option: option,
-                                        selected: option == data.draft.selectedImageOption,
-                                        onSelect: { action.onSelectImageOption(option) }
-                                    )
-                                    .background(OBRitColors.gray750, in: Circle())
-                                }
-                            }
-                        }
+
                     }
                     .disabled(data.isProcessing)
                     .padding(.bottom, OBRitSpacing.s5)
@@ -156,7 +142,7 @@ struct ItemDirectKindRegistrationView: View {
                 .frame(maxHeight: .infinity)
 
                 OBRitFilledTextButton(
-                    text: data.isProcessing ? "등록 중..." : "등록하기",
+                    text: data.isProcessing ? "등록 중..." : "추가하기",
                     enabled: data.canSubmitDirectKind,
                     fillsWidth: true,
                     action: action.onSubmitDirectKind

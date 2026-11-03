@@ -13,9 +13,9 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
         self.writeService = writeService
     }
 
-    func createKind(name: String, imageOption: ItemImageOption) async throws -> ItemKind {
+    func createKind(name: String) async throws -> ItemKind {
         let event = "SharedItemRegistrationWriteRepository.createKind"
-        let details = "iconId=\(imageOption.id) nameLength=\(name.count)"
+        let details = "nameLength=\(name.count)"
         AppLog.enter(AppLog.swiftRepository, event, details)
         do {
             let items = try await readService.getItems()
@@ -24,7 +24,7 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
             }
             let category = try await writeService.createCategory(
                 name: name,
-                iconId: Int64(imageOption.id)
+                iconId: nil
             )
 
             let kind = ItemKind(
@@ -67,22 +67,6 @@ actor SharedItemRegistrationWriteRepository: ItemRegistrationWriteRepository {
             AppLog.failure(AppLog.swiftRepository, event, error, details)
             throw error
         }
-    }
-
-    func createCustomItem(name: String) async throws {
-        let items = try await readService.getItems()
-        if let message = ItemRegistrationNameRule.error(for: name, existingNames: items.map(\.name)) {
-            throw SharedItemRegistrationWriteRepositoryError.invalidName(message)
-        }
-        _ = try await writeService.createItem(params: CreateItemParams(
-            categoryId: nil,
-            name: name,
-            spareQuantity: KotlinInt(int: 0),
-            lastReplacementPeriod: nil,
-            replacementIntervalDays: nil,
-            newCategoryName: name,
-            newCategoryDefaultReplacementIntervalDays: nil
-        ))
     }
 
     func createItems(request: ItemRegistrationCreateItemsRequest) async throws {
@@ -176,7 +160,7 @@ private enum SharedItemRegistrationWriteRepositoryError: LocalizedError {
         case .invalidQuantity:
             "등록할 수량은 \(ItemRegistrationConfig.quantityMinimum)개 이상이어야 해요."
         case .invalidManualQuantity:
-            "등록할 수량은 0~99개여야 해요."
+            "등록할 수량은 1~99개여야 해요."
         }
     }
 }

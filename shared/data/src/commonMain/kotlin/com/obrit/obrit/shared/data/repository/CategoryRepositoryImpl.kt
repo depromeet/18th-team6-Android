@@ -31,7 +31,7 @@ internal class CategoryRepositoryImpl(
 
     override suspend fun createCategory(
         name: String,
-        iconId: Long,
+        iconId: Long?,
     ): Result<Category> =
         runCatchingWith {
             categoryRemoteDataSource

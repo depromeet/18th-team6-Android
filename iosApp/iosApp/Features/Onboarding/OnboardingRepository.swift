@@ -4,6 +4,7 @@ import Shared
 protocol OnboardingRepository {
     func groups() async throws -> [OnboardingCategoryGroup]
     func options() async throws -> [OnboardingItemOption]
+    func commonIconURL() async throws -> String
     func registerItems(requests: [OnboardingRegistrationRequest]) async throws
 }
 
@@ -24,8 +25,9 @@ actor SharedOnboardingRepository: OnboardingRepository {
         return groups.map { group in
             OnboardingCategoryGroup(
                 id: Int(clamping: group.id),
-                name: group.name,
-                displayOrder: Int(group.displayOrder)
+                name: group.type.name == "USER" ? "직접 등록" : group.name,
+                displayOrder: Int(group.displayOrder),
+                isUserDefined: group.type.name == "USER"
             )
         }
     }
@@ -43,15 +45,19 @@ actor SharedOnboardingRepository: OnboardingRepository {
         }
     }
 
+    func commonIconURL() async throws -> String {
+        try await readService.getCategoryIcons().first { $0.id == 1 }?.url ?? ""
+    }
+
     func registerItems(requests: [OnboardingRegistrationRequest]) async throws {
         let params = requests.map { request in
             CreateItemParams(
-                categoryId: KotlinLong(longLong: Int64(request.categoryId)),
+                categoryId: request.categoryId.map { KotlinLong(longLong: Int64($0)) },
                 name: request.name,
                 spareQuantity: KotlinInt(int: 0),
                 lastReplacementPeriod: nil,
                 replacementIntervalDays: nil,
-                newCategoryName: nil,
+                newCategoryName: request.newCategoryName,
                 newCategoryDefaultReplacementIntervalDays: nil
             )
         }
@@ -67,6 +73,8 @@ struct OnboardingSampleRepository: OnboardingRepository {
     func options() async throws -> [OnboardingItemOption] {
         OnboardingDefaults.options
     }
+
+    func commonIconURL() async throws -> String { "" }
 
     func registerItems(requests: [OnboardingRegistrationRequest]) async throws {
     }

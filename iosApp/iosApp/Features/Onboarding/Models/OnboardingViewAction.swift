@@ -11,4 +11,7 @@ struct OnboardingViewAction {
     let onUpdateQuantity: (OnboardingItemOption, Int) -> Void
     let onNext: () -> Void
     let onComplete: () -> Void
+    var onUpdateSearchQuery: (String) -> Void = { _ in }
+    var onSubmitSearch: (String?) -> Void = { _ in }
+    var onAddSearchItem: () -> Void = {}
 }

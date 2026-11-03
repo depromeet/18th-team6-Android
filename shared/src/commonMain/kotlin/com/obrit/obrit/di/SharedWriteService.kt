@@ -16,7 +16,7 @@ class SharedWriteService(
     @Throws(Throwable::class)
     suspend fun createCategory(
         name: String,
-        iconId: Long,
+        iconId: Long? = null,
     ): Category =
         repositoryProvider
             .categoryRepository()

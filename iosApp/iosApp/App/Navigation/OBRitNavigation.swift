@@ -68,6 +68,7 @@ struct OBRitNavigation: View {
                 .toolbar(.hidden, for: .navigationBar)
             }
         }
+        .overlay(alignment: .bottom) { RegistrationSuccessOverlay(refreshCenter: dependencies.refreshCenter) }
         .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
         .background(
             OBRitInteractivePopGestureEnabler(
@@ -250,5 +251,23 @@ private extension UIViewController {
         }
 
         return presentedViewController?.firstNavigationControllerInHierarchy
+    }
+}
+
+private struct RegistrationSuccessOverlay: View {
+    @ObservedObject var refreshCenter: AppRefreshCenter
+
+    var body: some View {
+        if let success = refreshCenter.registrationSuccess {
+            OBRitSnackbar(message: success.message, icon: .success)
+                .padding(.horizontal, OBRitSpacing.s5)
+                .padding(.bottom, OBRitSpacing.s6)
+                .allowsHitTesting(false)
+                .task(id: success.id) {
+                    try? await Task.sleep(for: .seconds(2.5))
+                    guard !Task.isCancelled else { return }
+                    refreshCenter.dismissRegistrationSuccess(id: success.id)
+                }
+        }
     }
 }
