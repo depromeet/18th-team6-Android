@@ -40,10 +40,10 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.feature.register.screen.category.CategorySelectionBottomSheet
 import com.obrit.feature.register.screen.category.CategorySheetActions
+import com.obrit.feature.register.viewmodel.CategorySection
 import com.obrit.feature.register.viewmodel.ManualRegisterUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
-import com.obrit.obrit.shared.model.items.ReplacementPeriod
 
 @Composable
 internal fun ManualRegisterScreenContent(
@@ -68,7 +68,6 @@ internal fun ManualRegisterScreenContent(
             fieldActions =
                 ManualRegisterFieldActions(
                     onNameChange = action.onNameChange,
-                    onLastReplacementPeriodChange = action.onLastReplacementPeriodChange,
                     onCategoryClick = { isCategorySheetOpen = true },
                 ),
             onQuantityChange = action.onQuantityChange,
@@ -79,13 +78,13 @@ internal fun ManualRegisterScreenContent(
 
     ManualRegisterCategorySheetHost(
         visible = isCategorySheetOpen,
-        categories = state.categories,
+        sections = state.sections,
         initialSelectedId = state.selectedCategoryId,
         actions =
             CategorySheetActions(
                 onConfirm = action.onCategoryConfirm,
                 onDismiss = { isCategorySheetOpen = false },
-                onDirectRegister = action.onDirectRegister,
+                onDirectRegistered = action.onDirectRegistered,
             ),
     )
 }
@@ -93,13 +92,13 @@ internal fun ManualRegisterScreenContent(
 @Composable
 private fun ManualRegisterCategorySheetHost(
     visible: Boolean,
-    categories: List<Category>,
+    sections: List<CategorySection>,
     initialSelectedId: Long?,
     actions: CategorySheetActions,
 ) {
     if (!visible) return
     CategorySelectionBottomSheet(
-        categories = categories,
+        sections = sections,
         initialSelectedId = initialSelectedId,
         actions =
             CategorySheetActions(
@@ -108,10 +107,9 @@ private fun ManualRegisterCategorySheetHost(
                     actions.onDismiss()
                 },
                 onDismiss = actions.onDismiss,
-                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
-                onDirectRegister = {
+                onDirectRegistered = { category: Category ->
+                    actions.onDirectRegistered(category)
                     actions.onDismiss()
-                    actions.onDirectRegister()
                 },
             ),
     )
@@ -119,7 +117,6 @@ private fun ManualRegisterCategorySheetHost(
 
 internal data class ManualRegisterFieldActions(
     val onNameChange: (String) -> Unit,
-    val onLastReplacementPeriodChange: (ReplacementPeriod?) -> Unit,
     val onCategoryClick: () -> Unit,
 )
 
@@ -184,20 +181,10 @@ private fun ManualRegisterFields(
         CategoryField(value = state.categoryName, onClick = fieldActions.onCategoryClick)
         NameField(
             value = state.name,
-            isDuplicateName = state.isDuplicateName,
+            error = state.nameError,
             onValueChange = fieldActions.onNameChange,
         )
-        LastReplaceDateField(
-            selected = state.lastReplacementPeriod,
-            onChange = fieldActions.onLastReplacementPeriodChange,
-        )
-        QuantityField(
-            title = state.categoryName,
-            iconUrl = state.categoryIconUrl,
-            quantity = state.quantity,
-            totalCount = state.totalCount,
-            onQuantityChange = onQuantityChange,
-        )
+        QuantityField(quantity = state.quantity, onQuantityChange = onQuantityChange)
     }
 }
 
@@ -247,15 +234,15 @@ private fun ManualRegisterCta(
     }
 }
 
-private const val MANUAL_REGISTER_TITLE = "소모품 등록"
+private const val MANUAL_REGISTER_TITLE = "소모품 추가"
 private const val MANUAL_REGISTER_HEADLINE = "소모품의 상세 정보를\n입력해주세요"
 private const val MANUAL_REGISTER_DESCRIPTION = "원활한 관리를 위해 구체적인 정보를 입력해주세요"
-private const val MANUAL_REGISTER_SUBMIT_LABEL = "소모품 등록하기"
+private const val MANUAL_REGISTER_SUBMIT_LABEL = "추가하기"
 
 private val MANUAL_REGISTER_TOP_BAR_TO_BODY_GAP = AtomSpacing.S5.dp
 private val MANUAL_REGISTER_SECTION_GAP = 28.dp
 private val MANUAL_REGISTER_FIELD_GAP = 40.dp
-private val MANUAL_REGISTER_CTA_BOTTOM_PADDING = 40.dp
+private val MANUAL_REGISTER_CTA_BOTTOM_PADDING = AtomSpacing.S5.dp
 private val MANUAL_REGISTER_SCROLL_FADE_HEIGHT = 52.dp
 
 @Preview(name = "ManualRegisterScreen Empty", showBackground = false)
@@ -274,7 +261,7 @@ private fun ManualRegisterScreenEmptyPreview() {
 private fun ManualRegisterScreenFilledPreview() {
     OBRitTheme(dynamicColor = false) {
         ManualRegisterScreenContent(
-            state = ManualRegisterUiState(categoryName = "샤워기 필터", name = "샤워 필터"),
+            state = ManualRegisterUiState(categoryName = "샤워기 필터", name = "샤워기 필터", quantity = 4),
             action = previewAction(),
         )
     }
@@ -283,10 +270,9 @@ private fun ManualRegisterScreenFilledPreview() {
 private fun previewAction(): ManualRegisterScreenAction =
     ManualRegisterScreenAction(
         onCategoryConfirm = {},
+        onDirectRegistered = {},
         onNameChange = {},
         onQuantityChange = {},
-        onLastReplacementPeriodChange = {},
         onSubmit = {},
         onBack = {},
-        onDirectRegister = {},
     )

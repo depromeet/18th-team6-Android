@@ -56,11 +56,11 @@ import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
 import com.obrit.feature.register.screen.category.CategorySelectionBottomSheet
 import com.obrit.feature.register.screen.category.CategorySheetActions
 import com.obrit.feature.register.screen.onboarding.OnboardingStepIndicator
+import com.obrit.feature.register.viewmodel.CategorySection
 import com.obrit.feature.register.viewmodel.ReceiptResultItem
 import com.obrit.feature.register.viewmodel.ReceiptResultUiState
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
-import com.obrit.obrit.shared.model.categories.Category
 
 @Composable
 internal fun ReceiptResultScreenContent(
@@ -94,12 +94,12 @@ internal fun ReceiptResultScreenContent(
 
     ReceiptResultCategorySheetHost(
         visible = isCategorySheetOpen,
-        categories = state.categories,
+        sections = state.sections,
         actions =
             CategorySheetActions(
                 onConfirm = action.onCategoryConfirm,
                 onDismiss = { isCategorySheetOpen = false },
-                onDirectRegister = action.onDirectRegister,
+                onDirectRegistered = action.onDirectRegistered,
             ),
     )
 }
@@ -107,12 +107,12 @@ internal fun ReceiptResultScreenContent(
 @Composable
 private fun ReceiptResultCategorySheetHost(
     visible: Boolean,
-    categories: List<Category>,
+    sections: List<CategorySection>,
     actions: CategorySheetActions,
 ) {
     if (!visible) return
     CategorySelectionBottomSheet(
-        categories = categories,
+        sections = sections,
         initialSelectedId = null,
         actions =
             CategorySheetActions(
@@ -121,10 +121,9 @@ private fun ReceiptResultCategorySheetHost(
                     actions.onDismiss()
                 },
                 onDismiss = actions.onDismiss,
-                // 시트를 먼저 닫아야 Dialog가 새 화면을 가리지 않는다.
-                onDirectRegister = {
+                onDirectRegistered = { category ->
+                    actions.onDirectRegistered(category)
                     actions.onDismiss()
-                    actions.onDirectRegister()
                 },
             ),
     )

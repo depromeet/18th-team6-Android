@@ -1,6 +1,7 @@
 package com.obrit.obrit.di
 
 import com.obrit.obrit.shared.model.categories.Category
+import com.obrit.obrit.shared.model.categories.CategoryGroup
 import com.obrit.obrit.shared.model.categories.CategoryIcon
 import com.obrit.obrit.shared.model.home.HomeBucketGroup
 import com.obrit.obrit.shared.model.home.HomeItemCursorSlice
@@ -14,9 +15,13 @@ import com.obrit.obrit.shared.model.items.ReplacementHistory
 /**
  * Swift-facing read facade that keeps Kotlin Result and Koin access out of iOS presentation code.
  */
+@Suppress("TooManyFunctions") // Swift-facing facade exposes shared read APIs in one place.
 class SharedReadService(
     private val repositoryProvider: SharedRepositoryProvider = SharedRepositoryProvider(),
 ) {
+    @Throws(Throwable::class)
+    suspend fun getCategoryGroups(): List<CategoryGroup> = repositoryProvider.categoryRepository().getCategoryGroups().getOrThrow()
+
     @Throws(Throwable::class)
     suspend fun getCategories(): List<Category> =
         logged(

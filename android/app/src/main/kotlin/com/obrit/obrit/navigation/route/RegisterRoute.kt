@@ -8,9 +8,6 @@ sealed interface RegisterRoute : Route {
     data object ManualRegister : RegisterRoute
 
     @Serializable
-    data object DirectRegister : RegisterRoute
-
-    @Serializable
     data object RegisterComplete : RegisterRoute
 
     @Serializable

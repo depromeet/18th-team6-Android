@@ -25,12 +25,14 @@ import com.obrit.obrit.navigation.deeplink.toObritDeepLink
 import com.obrit.obrit.navigation.route.HomeRoute
 
 @Composable
-@Suppress("LongMethod")
+@Suppress("LongMethod", "LongParameterList")
 fun HomeNavigation(
     deepLink: ObritDeepLink?,
     onDeepLinkConsume: () -> Unit,
     onReceiptRegisterClick: () -> Unit,
     onManualRegisterClick: () -> Unit,
+    toastMessage: String?,
+    onToastConsume: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
@@ -64,6 +66,8 @@ fun HomeNavigation(
                         onManualRegisterClick = onManualRegisterClick,
                         onMoreClick = { homeBackStack.add(HomeRoute.ConsumableList) },
                         onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
+                        toastMessage = toastMessage,
+                        onToastConsume = onToastConsume,
                         modifier = Modifier,
                     )
                 }

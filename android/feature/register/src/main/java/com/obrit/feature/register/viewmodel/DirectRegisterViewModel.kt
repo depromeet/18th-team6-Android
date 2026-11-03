@@ -3,28 +3,41 @@ package com.obrit.feature.register.viewmodel
 import androidx.compose.runtime.Immutable
 import com.obrit.android.core.ui.BaseContainerHost
 import com.obrit.obrit.shared.data.repository.CategoryRepository
+import com.obrit.obrit.shared.data.repository.ItemRepository
 import com.obrit.obrit.shared.model.categories.Category
-import com.obrit.obrit.shared.model.categories.CategoryIcon
 import com.obrit.obrit.shared.model.categories.error.CreateCategoryError
 import org.orbitmvi.orbit.viewmodel.container
 
 class DirectRegisterViewModel(
     private val categoryRepository: CategoryRepository,
+    private val itemRepository: ItemRepository,
 ) : BaseContainerHost<DirectRegisterUiState, DirectRegisterSideEffect>() {
     override val container =
         container<DirectRegisterUiState, DirectRegisterSideEffect>(
             DirectRegisterUiState(),
         ) {
-            loadIcons()
+            loadExistingNames()
         }
 
-    private fun loadIcons() =
+    private fun loadExistingNames() =
         intent {
-            categoryRepository
-                .getCategoryIcons()
-                .onSuccess { icons ->
-                    reduce { state.copy(icons = icons) }
+            itemRepository
+                .getItems()
+                .onSuccess { items ->
+                    reduce { state.copy(existingNames = items.map { it.name.trim() }.toSet()) }
                 }
+        }
+
+    // ViewModel이 화면 수명을 따르므로 시트를 다시 열 때 이전 입력을 지운다.
+    fun onOpen(initialName: String) =
+        intent {
+            reduce {
+                state.copy(
+                    name = initialName,
+                    isSubmitting = false,
+                    isDuplicateName = false,
+                )
+            }
         }
 
     fun onNameChange(value: String) =
@@ -32,19 +45,13 @@ class DirectRegisterViewModel(
             reduce { state.copy(name = value, isDuplicateName = false) }
         }
 
-    fun onIconSelect(iconId: Long) =
-        intent {
-            reduce { state.copy(selectedIconId = iconId) }
-        }
-
     fun onSubmit() =
         intent {
             val current = state
-            val iconId = current.selectedIconId ?: return@intent
-            if (current.isSubmitting) return@intent
+            if (!current.isSubmitEnabled) return@intent
             reduce { state.copy(isSubmitting = true) }
             categoryRepository
-                .createCategory(name = current.name, iconId = iconId)
+                .createCategory(name = current.name)
                 .onSuccess { category ->
                     reduce { state.copy(isSubmitting = false) }
                     postSideEffect(DirectRegisterSideEffect.OnRegistered(category))
@@ -57,36 +64,24 @@ class DirectRegisterViewModel(
                     }
                 }
         }
-
-    fun onBack() =
-        intent {
-            postSideEffect(DirectRegisterSideEffect.OnBack)
-        }
 }
 
 @Immutable
 data class DirectRegisterUiState(
-    val icons: List<CategoryIcon> = emptyList(),
     val name: String = "",
-    val selectedIconId: Long? = null,
+    val existingNames: Set<String> = emptySet(),
     val isSubmitting: Boolean = false,
     val isDuplicateName: Boolean = false,
 ) {
+    val nameError: ItemNameError?
+        get() = if (isDuplicateName) ItemNameError.Duplicated else validateItemName(name, existingNames)
+
     val isSubmitEnabled: Boolean
-        get() =
-            name.isNotBlank() &&
-                name.length <= DIRECT_REGISTER_NAME_MAX_LENGTH &&
-                selectedIconId != null &&
-                !isSubmitting &&
-                !isDuplicateName
+        get() = name.isNotBlank() && nameError == null && !isSubmitting
 }
 
 sealed interface DirectRegisterSideEffect {
     data class OnRegistered(
         val category: Category,
     ) : DirectRegisterSideEffect
-
-    data object OnBack : DirectRegisterSideEffect
 }
-
-internal const val DIRECT_REGISTER_NAME_MAX_LENGTH = 15
