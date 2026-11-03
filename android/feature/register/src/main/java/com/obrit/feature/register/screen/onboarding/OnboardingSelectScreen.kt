@@ -11,14 +11,18 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 internal data class OnboardingSelectScreenAction(
     val onToggle: (Long) -> Unit,
-    val onNext: () -> Unit,
+    val onNewItemAdd: () -> Unit,
+    val onSectionSelect: (Long) -> Unit,
+    val onQueryChange: (String) -> Unit,
+    val onSearch: (String) -> Unit,
+    val onSubmit: () -> Unit,
     val onBack: () -> Unit,
 )
 
 @Composable
 fun OnboardingSelectScreen(
     onBack: () -> Unit,
-    onNext: (selectedIds: List<Long>) -> Unit,
+    onRegister: (registeredCount: Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OnboardingSelectViewModel = koinViewModel(),
 ) {
@@ -29,7 +33,11 @@ fun OnboardingSelectScreen(
         action =
             OnboardingSelectScreenAction(
                 onToggle = viewModel::onToggle,
-                onNext = viewModel::onNext,
+                onNewItemAdd = viewModel::onNewItemAdd,
+                onSectionSelect = viewModel::onSectionSelect,
+                onQueryChange = viewModel::onQueryChange,
+                onSearch = viewModel::onSearch,
+                onSubmit = viewModel::onSubmit,
                 onBack = viewModel::onBack,
             ),
         modifier = modifier,
@@ -38,7 +46,7 @@ fun OnboardingSelectScreen(
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
             is OnboardingSelectSideEffect.OnBack -> onBack()
-            is OnboardingSelectSideEffect.OnNext -> onNext(sideEffect.selectedIds)
+            is OnboardingSelectSideEffect.OnRegistered -> onRegister(sideEffect.registeredCount)
         }
     }
 }
