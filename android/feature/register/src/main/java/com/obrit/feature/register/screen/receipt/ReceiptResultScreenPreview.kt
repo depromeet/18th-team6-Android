@@ -17,7 +17,7 @@ private fun ReceiptResultScreenPreview() {
                     onCategoryConfirm = {},
                     onNext = {},
                     onBack = {},
-                    onDirectRegister = {},
+                    onDirectRegistered = {},
                 ),
         )
     }
@@ -35,7 +35,7 @@ private fun ReceiptResultScreenEmptyPreview() {
                     onCategoryConfirm = {},
                     onNext = {},
                     onBack = {},
-                    onDirectRegister = {},
+                    onDirectRegistered = {},
                 ),
         )
     }

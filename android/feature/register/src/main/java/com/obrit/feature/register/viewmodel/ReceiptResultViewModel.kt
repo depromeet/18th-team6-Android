@@ -14,7 +14,7 @@ class ReceiptResultViewModel(
         container<ReceiptResultUiState, ReceiptResultSideEffect>(
             ReceiptResultUiState(),
         ) {
-            loadCategories()
+            loadSections()
         }
 
     fun init(analysis: ReceiptAnalysis) =
@@ -47,12 +47,12 @@ class ReceiptResultViewModel(
             }
         }
 
-    private fun loadCategories() =
+    private fun loadSections() =
         intent {
             categoryRepository
-                .getCategories()
-                .onSuccess { categories ->
-                    reduce { state.copy(categories = categories) }
+                .getCategorySections()
+                .onSuccess { sections ->
+                    reduce { state.copy(sections = sections) }
                 }
         }
 
@@ -71,16 +71,10 @@ class ReceiptResultViewModel(
             }
         }
 
-    fun applyPendingCategory(category: Category) =
-        intent {
-            reduce {
-                state.copy(
-                    categories = state.categories + category,
-                    items = state.items + category.toReceiptResultItem(state.nextId),
-                    nextId = state.nextId + 1,
-                )
-            }
-        }
+    fun onDirectRegistered(category: Category) {
+        loadSections()
+        onCategoryConfirm(category)
+    }
 
     fun onNext() =
         intent {
@@ -96,11 +90,6 @@ class ReceiptResultViewModel(
         intent {
             postSideEffect(ReceiptResultSideEffect.OnBack)
         }
-
-    fun onDirectRegister() =
-        intent {
-            postSideEffect(ReceiptResultSideEffect.OnNavigateToDirectRegister)
-        }
 }
 
 @Immutable
@@ -108,7 +97,7 @@ data class ReceiptResultUiState(
     val purchaseDate: String = "",
     val receiptImageUrl: String = "",
     val items: List<ReceiptResultItem> = emptyList(),
-    val categories: List<Category> = emptyList(),
+    val sections: List<CategorySection> = emptyList(),
     // 추가 항목에 부여할 다음 id. 삭제 후 재추가 시 id 재사용을 막기 위해 단조 증가만 한다.
     val nextId: Long = 1L,
     // 분석 결과 시드 완료 여부. 컴포지션 재진입 시 init 재실행으로 편집이 덮어써지는 것을 막는다.
@@ -140,8 +129,6 @@ sealed interface ReceiptResultSideEffect {
     ) : ReceiptResultSideEffect
 
     data object OnBack : ReceiptResultSideEffect
-
-    data object OnNavigateToDirectRegister : ReceiptResultSideEffect
 }
 
 private fun Category.toReceiptResultItem(id: Long): ReceiptResultItem =

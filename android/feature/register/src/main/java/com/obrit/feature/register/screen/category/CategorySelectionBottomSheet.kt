@@ -24,37 +24,44 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.component.bottomsheet.OBRitBottomSheet
 import com.obrit.android.core.designsystem.theme.OBRitTheme
+import com.obrit.feature.register.screen.direct.DirectRegisterSheetPage
+import com.obrit.feature.register.viewmodel.CategorySection
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
 import com.obrit.obrit.shared.model.categories.Category
+import kotlinx.coroutines.flow.first
 import kotlin.math.roundToInt
 
 internal data class CategorySheetActions(
     val onConfirm: (Category) -> Unit,
     val onDismiss: () -> Unit,
-    val onDirectRegister: () -> Unit,
+    val onDirectRegistered: (Category) -> Unit,
 )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun CategorySelectionBottomSheet(
-    categories: List<Category>,
+    sections: List<CategorySection>,
     initialSelectedId: Long?,
     actions: CategorySheetActions,
     modifier: Modifier = Modifier,
@@ -82,10 +89,10 @@ internal fun CategorySelectionBottomSheet(
         CategorySheetScrim(modifier = modifier, onDismiss = actions.onDismiss) {
             CategorySheetContainer(state = anchoredState, flingBehavior = flingBehavior) {
                 CategorySelectionBottomSheetContent(
-                    categories = categories,
+                    sections = sections,
                     initialSelectedId = initialSelectedId,
                     onConfirm = actions.onConfirm,
-                    onDirectRegisterClick = actions.onDirectRegister,
+                    onDirectRegister = actions.onDirectRegistered,
                 )
             }
         }
@@ -94,16 +101,15 @@ internal fun CategorySelectionBottomSheet(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun rememberSheetDragState(onDismissRequest: () -> Unit): AnchoredDraggableState<SheetDragValue> =
-    remember {
-        AnchoredDraggableState(
-            initialValue = SheetDragValue.Expanded,
-            confirmValueChange = { newValue ->
-                if (newValue == SheetDragValue.Hidden) onDismissRequest()
-                true
-            },
-        )
+private fun rememberSheetDragState(onDismissRequest: () -> Unit): AnchoredDraggableState<SheetDragValue> {
+    val state = remember { AnchoredDraggableState(initialValue = SheetDragValue.Expanded) }
+    val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
+    LaunchedEffect(state) {
+        snapshotFlow { state.settledValue }.first { it == SheetDragValue.Hidden }
+        currentOnDismissRequest()
     }
+    return state
+}
 
 @Composable
 private fun CategorySheetScrim(
@@ -133,7 +139,7 @@ private fun CategorySheetContainer(
     flingBehavior: FlingBehavior,
     content: @Composable () -> Unit,
 ) {
-    // 시트 본체: status bar 끝 + 33dp를 기준으로 "TopBar 글씨 직전까지 dim" 의도를
+    // 시트 본체: status bar 끝 + 81dp를 기준으로 TopBar가 dim 너머로 보이는 높이를
     // 어떤 기기에서도 일관 보장. drag offset/anchors는 onSizeChanged 후 한 번 set.
     Box(
         modifier =
@@ -167,144 +173,137 @@ private fun CategorySheetContainer(
 internal enum class SheetDragValue { Expanded, Hidden }
 
 @Composable
-@Suppress("LongMethod")
 private fun CategorySelectionBottomSheetContent(
-    categories: List<Category>,
+    sections: List<CategorySection>,
     initialSelectedId: Long?,
     onConfirm: (Category) -> Unit,
-    onDirectRegisterClick: () -> Unit,
+    onDirectRegister: (Category) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    // 입력 중에는 추천만 보여주고, 검색을 누르거나 추천을 골라야 목록을 거른다.
     var confirmedQuery by rememberSaveable { mutableStateOf("") }
     var selectedId by rememberSaveable(initialSelectedId) { mutableStateOf(initialSelectedId) }
-    val keyboard = LocalSoftwareKeyboardController.current
-    val displayList = rememberCategoryDisplayList(categories, confirmedQuery)
-    val suggestions = rememberCategorySuggestions(categories, query, confirmedQuery)
-    val isEmptyResult = confirmedQuery.isNotBlank() && displayList.isEmpty()
-    var searchFieldBottomPx by remember { mutableIntStateOf(0) }
-    val commitSearch: (String) -> Unit = { v ->
-        query = v
-        confirmedQuery = v
-        keyboard?.hide()
-    }
+    // null이면 소모품 목록, 값이 있으면 그 이름이 채워진 직접 등록 화면을 보여준다.
+    var directRegisterName by rememberSaveable { mutableStateOf<String?>(null) }
     OBRitBottomSheet(modifier = Modifier.fillMaxHeight()) {
-        CategorySheetBody(
-            state =
-                CategorySheetMainColumnState(
-                    query = query,
-                    isEmptyResult = isEmptyResult,
-                    displayList = displayList,
-                    selectedId = selectedId,
-                ),
-            actions =
-                CategorySheetMainColumnActions(
-                    onQueryChange = { newValue ->
-                        query = newValue
-                        if (newValue.isEmpty() && confirmedQuery.isNotEmpty()) confirmedQuery = ""
-                    },
-                    onSearch = { commitSearch(query) },
-                    onCategorySelect = { selectedId = it.id },
-                    onDirectRegisterClick = onDirectRegisterClick,
-                    onConfirm = {
-                        val picked = categories.firstOrNull { it.id == selectedId }
-                        if (picked != null) onConfirm(picked)
-                    },
-                    onSearchFieldSized = { searchFieldBottomPx = it },
-                ),
-            suggestions = suggestions,
-            onSuggestionPick = commitSearch,
-            searchFieldBottomPx = searchFieldBottomPx,
-        )
+        val initialName = directRegisterName
+        if (initialName != null) {
+            DirectRegisterSheetPage(
+                initialName = initialName,
+                onBack = { directRegisterName = null },
+                onRegister = onDirectRegister,
+            )
+        } else {
+            CategoryListPage(
+                state = CategoryListPageState(sections, query, confirmedQuery, selectedId),
+                actions =
+                    CategoryListPageActions(
+                        onQueryChange = { value ->
+                            query = value
+                            if (value.isEmpty()) confirmedQuery = ""
+                        },
+                        onSearch = { value ->
+                            query = value
+                            confirmedQuery = value
+                        },
+                        onCategorySelect = { selectedId = it.id },
+                        onDirectRegisterClick = { directRegisterName = confirmedQuery.trim() },
+                        onConfirm = onConfirm,
+                    ),
+            )
+        }
     }
 }
 
-@Composable
-private fun CategorySheetBody(
-    state: CategorySheetMainColumnState,
-    actions: CategorySheetMainColumnActions,
-    suggestions: List<Category>,
-    onSuggestionPick: (String) -> Unit,
-    searchFieldBottomPx: Int,
+private data class CategoryListPageState(
+    val sections: List<CategorySection>,
+    val query: String,
+    val confirmedQuery: String,
+    val selectedId: Long?,
 ) {
-    // overlay가 보여도 아래 콘텐츠 위치가 변동되지 않도록 본 콘텐츠 Column과 형제로 분리.
+    val selectedCategory: Category?
+        get() = sections.flatMap { it.categories }.firstOrNull { it.id == selectedId }
+}
+
+private data class CategoryListPageActions(
+    val onQueryChange: (String) -> Unit,
+    val onSearch: (String) -> Unit,
+    val onCategorySelect: (Category) -> Unit,
+    val onDirectRegisterClick: () -> Unit,
+    val onConfirm: (Category) -> Unit,
+)
+
+@Composable
+private fun CategoryListPage(
+    state: CategoryListPageState,
+    actions: CategoryListPageActions,
+) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val suggestions = rememberCategorySuggestions(state.sections, state.query, state.confirmedQuery)
+    var searchFieldBottomPx by remember { mutableIntStateOf(0) }
+    val commitSearch: (String) -> Unit = { value ->
+        actions.onSearch(value)
+        keyboard?.hide()
+    }
     Box(modifier = Modifier.fillMaxSize()) {
-        CategorySheetMainColumn(state = state, actions = actions)
+        CategoryListColumn(
+            state = state,
+            actions = actions,
+            onSearch = { commitSearch(state.query) },
+            onSearchFieldBottomChange = { searchFieldBottomPx = it },
+        )
+        CategoryConfirmButton(
+            enabled = state.selectedId != null,
+            onClick = { state.selectedCategory?.let(actions.onConfirm) },
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
         if (suggestions.isNotEmpty()) {
             CategorySearchSuggestionsOverlay(
                 suggestions = suggestions.map { it.name },
                 query = state.query,
-                onPick = onSuggestionPick,
+                onPick = commitSearch,
                 topOffsetPx = searchFieldBottomPx,
             )
         }
     }
 }
 
-internal data class CategorySheetMainColumnState(
-    val query: String,
-    val isEmptyResult: Boolean,
-    val displayList: List<Category>,
-    val selectedId: Long?,
-)
-
-internal data class CategorySheetMainColumnActions(
-    val onQueryChange: (String) -> Unit,
-    val onSearch: () -> Unit,
-    val onCategorySelect: (Category) -> Unit,
-    val onDirectRegisterClick: () -> Unit,
-    val onConfirm: () -> Unit,
-    val onSearchFieldSized: (Int) -> Unit,
-)
-
 @Composable
-private fun CategorySheetMainColumn(
-    state: CategorySheetMainColumnState,
-    actions: CategorySheetMainColumnActions,
+private fun CategoryListColumn(
+    state: CategoryListPageState,
+    actions: CategoryListPageActions,
+    onSearch: () -> Unit,
+    onSearchFieldBottomChange: (Int) -> Unit,
 ) {
+    val searchResults = rememberCategorySearchResults(state.sections, state.confirmedQuery)
     Column(modifier = Modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.height(AtomSpacing.S2_5.dp))
         CategorySearchField(
             query = state.query,
             onQueryChange = actions.onQueryChange,
-            onSearch = actions.onSearch,
+            onSearch = onSearch,
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned { coords -> actions.onSearchFieldSized(coords.size.height) },
+                    .onGloballyPositioned { coords ->
+                        onSearchFieldBottomChange((coords.positionInParent().y + coords.size.height).roundToInt())
+                    },
         )
-        Spacer(modifier = Modifier.height(CATEGORY_SHEET_SECTION_GAP))
-        CategoryCountTitle(
-            prefix = if (state.isEmptyResult) CATEGORY_SHEET_EMPTY_RESULT_PREFIX else CATEGORY_SHEET_TITLE_PREFIX,
-            count = if (state.isEmptyResult) 0 else state.displayList.size,
-        )
-        Spacer(modifier = Modifier.height(CATEGORY_SHEET_TITLE_GAP))
-        CategoryListArea(
+        Spacer(modifier = Modifier.height(AtomSpacing.S6.dp))
+        CategoryBrowser(
             state =
-                CategoryListAreaState(
-                    isEmptyResult = state.isEmptyResult,
-                    items = state.displayList,
+                CategoryBrowserState(
+                    sections = state.sections,
+                    searchResults = searchResults.takeIf { state.confirmedQuery.isNotBlank() },
                     selectedId = state.selectedId,
                 ),
-            onCategorySelect = actions.onCategorySelect,
-            onDirectRegisterClick = actions.onDirectRegisterClick,
+            actions =
+                CategoryBrowserActions(
+                    onCategorySelect = actions.onCategorySelect,
+                    onDirectRegisterClick = actions.onDirectRegisterClick,
+                    onRailClick = { actions.onQueryChange("") },
+                ),
             modifier = Modifier.weight(1f),
-        )
-        CategoryConfirmButton(
-            isEmptyResult = state.isEmptyResult,
-            enabled = !state.isEmptyResult && state.selectedId != null,
-            onClick = actions.onConfirm,
-        )
-    }
-}
-
-@Preview(name = "CategorySelectionBottomSheet Empty", showBackground = true, backgroundColor = 0xFF1D1B20)
-@Composable
-private fun CategorySelectionBottomSheetEmptyPreview() {
-    OBRitTheme(dynamicColor = false) {
-        CategorySelectionBottomSheetContent(
-            categories = emptyList(),
-            initialSelectedId = null,
-            onConfirm = {},
-            onDirectRegisterClick = {},
         )
     }
 }
@@ -313,30 +312,28 @@ private fun CategorySelectionBottomSheetEmptyPreview() {
 @Composable
 private fun CategorySelectionBottomSheetSelectedPreview() {
     OBRitTheme(dynamicColor = false) {
-        val sample =
+        val bathroom =
             listOf(
-                Category(id = 1, name = "정수기 필터", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
-                Category(id = 2, name = "칫솔", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
+                Category(id = 1, name = "칫솔", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
+                Category(id = 2, name = "샤워기 필터", iconUrl = "", itemCount = 0, totalSpareQuantity = 0),
             )
         CategorySelectionBottomSheetContent(
-            categories = sample,
+            sections =
+                listOf(
+                    CategorySection(id = 2, name = "욕실", categories = bathroom, isUserSection = false),
+                    CategorySection(id = 1, name = "직접 등록", categories = emptyList(), isUserSection = true),
+                ),
             initialSelectedId = 1L,
             onConfirm = {},
-            onDirectRegisterClick = {},
+            onDirectRegister = {},
         )
     }
 }
 
-internal const val CATEGORY_SHEET_COUNT_FORMAT = "%d개"
-
-private const val CATEGORY_SHEET_TITLE_PREFIX = "전체 소모품 "
-private const val CATEGORY_SHEET_EMPTY_RESULT_PREFIX = "검색 결과 "
 private const val POSITIONAL_THRESHOLD_RATIO = 0.5f
 private const val SCRIM_ALPHA = 0.8f
 
-// Figma: 디바이스 최상단부터 시트 상단까지 85dp = status bar(52dp 가정) + 33dp.
-// 실제 기기 status bar 다양성에 대응하기 위해 "status bar 끝 + 33dp"로 정의.
-private val CATEGORY_SHEET_TOP_GAP_FROM_STATUS_BAR = 33.dp
+// Figma: 디바이스 최상단부터 시트 상단까지 133dp = status bar(52dp 가정) + 81dp.
+// 실제 기기 status bar 다양성에 대응하기 위해 "status bar 끝 + 81dp"로 정의.
+private val CATEGORY_SHEET_TOP_GAP_FROM_STATUS_BAR = 81.dp
 private val CATEGORY_SHEET_SCRIM_COLOR = Color.Black.copy(alpha = SCRIM_ALPHA)
-private val CATEGORY_SHEET_SECTION_GAP = AtomSpacing.S8.dp
-private val CATEGORY_SHEET_TITLE_GAP = AtomSpacing.S3.dp

@@ -3,7 +3,10 @@ package com.obrit.obrit.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -30,6 +33,11 @@ fun OBRitNavigation(
         )
 
     val currentOnDeepLinkConsume by rememberUpdatedState(onDeepLinkConsume)
+    var homeToastMessage by remember { mutableStateOf<String?>(null) }
+    val onManualRegister: (String) -> Unit = { itemName ->
+        homeToastMessage = ITEM_ADDED_TOAST_FORMAT.format(itemName)
+        backStack.removeLastOrNull()
+    }
 
     // 위젯을 눌러 들어오면 이전에 보던 화면이 아니라 홈에서 시작한다.
     // 온보딩을 마치지 않은 사용자는 건드리지 않는다.
@@ -68,12 +76,15 @@ fun OBRitNavigation(
                         onDeepLinkConsume = onDeepLinkConsume,
                         onReceiptRegisterClick = { backStack.add(RegisterRoute.ReceiptCamera) },
                         onManualRegisterClick = { backStack.add(RegisterRoute.ManualRegister) },
+                        toastMessage = homeToastMessage,
+                        onToastConsume = { homeToastMessage = null },
                         modifier = Modifier,
                     )
                 }
                 entry<RegisterRoute.ManualRegister> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
+                        onManualRegister = onManualRegister,
                         startDestination = RegisterRoute.ManualRegister,
                         modifier = Modifier,
                     )
@@ -81,6 +92,7 @@ fun OBRitNavigation(
                 entry<RegisterRoute.ReceiptCamera> {
                     RegisterNavigation(
                         onExit = { backStack.removeLastOrNull() },
+                        onManualRegister = onManualRegister,
                         startDestination = RegisterRoute.ReceiptCamera,
                         modifier = Modifier,
                     )
@@ -98,3 +110,5 @@ fun OBRitNavigation(
             },
     )
 }
+
+private const val ITEM_ADDED_TOAST_FORMAT = "%s을(를) 추가했어요"

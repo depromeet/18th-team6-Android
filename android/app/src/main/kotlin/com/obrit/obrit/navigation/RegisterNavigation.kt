@@ -9,10 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.obrit.feature.register.screen.complete.RegisterCompleteScreen
-import com.obrit.feature.register.screen.direct.DirectRegisterScreen
 import com.obrit.feature.register.screen.manual.ManualRegisterNavigation
 import com.obrit.feature.register.screen.manual.ManualRegisterScreen
-import com.obrit.feature.register.screen.manual.PendingCategory
 import com.obrit.feature.register.screen.receipt.ReceiptCameraScreen
 import com.obrit.feature.register.screen.receipt.ReceiptDetailNavigation
 import com.obrit.feature.register.screen.receipt.ReceiptDetailScreen
@@ -20,22 +18,19 @@ import com.obrit.feature.register.screen.receipt.ReceiptResultNavigation
 import com.obrit.feature.register.screen.receipt.ReceiptResultScreen
 import com.obrit.feature.register.viewmodel.ReceiptDraftItem
 import com.obrit.obrit.navigation.route.RegisterRoute
-import com.obrit.obrit.shared.model.categories.Category
 import com.obrit.obrit.shared.model.receipts.ReceiptAnalysis
 
 @Composable
 @Suppress("LongMethod")
 fun RegisterNavigation(
     onExit: () -> Unit,
+    onManualRegister: (itemName: String) -> Unit,
     modifier: Modifier = Modifier,
     startDestination: RegisterRoute = RegisterRoute.ManualRegister,
 ) {
     val registerBackStack = rememberNavBackStack(startDestination)
-    // DirectRegister → ManualRegister 복귀 시 단발성으로 전달되는 카테고리.
-    // 사용 즉시 null로 초기화되며 process death 복구는 의도적으로 다루지 않는다.
-    var pendingCategory by remember { mutableStateOf<Category?>(null) }
     // 영수증 분석 결과(Camera→Result)와 등록 초안(Result→Detail)을 화면 간 전달하기 위한 hoist 상태.
-    // pendingCategory와 동일하게 process death 복구는 다루지 않는다.
+    // process death 복구는 다루지 않는다.
     var receiptAnalysis by remember { mutableStateOf<ReceiptAnalysis?>(null) }
     var receiptDraftItems by remember { mutableStateOf<List<ReceiptDraftItem>>(emptyList()) }
     var receiptImageUrl by remember { mutableStateOf("") }
@@ -51,28 +46,8 @@ fun RegisterNavigation(
                         navigation =
                             ManualRegisterNavigation(
                                 onBack = onExit,
-                                onRegistered = {
-                                    registerBackStack.add(RegisterRoute.RegisterComplete)
-                                },
-                                onDirectRegister = {
-                                    registerBackStack.add(RegisterRoute.DirectRegister)
-                                },
+                                onRegistered = onManualRegister,
                             ),
-                        pendingCategory =
-                            PendingCategory(
-                                category = pendingCategory,
-                                onConsumed = { pendingCategory = null },
-                            ),
-                        modifier = Modifier,
-                    )
-                }
-                entry<RegisterRoute.DirectRegister> {
-                    DirectRegisterScreen(
-                        onBack = { registerBackStack.removeLastOrNull() },
-                        onRegister = { category ->
-                            pendingCategory = category
-                            registerBackStack.removeLastOrNull()
-                        },
                         modifier = Modifier,
                     )
                 }
@@ -109,14 +84,6 @@ fun RegisterNavigation(
                                         receiptDraftItems = items.map { item -> saved[item.id] ?: item }
                                         registerBackStack.add(RegisterRoute.ReceiptDetail)
                                     },
-                                    onDirectRegister = {
-                                        registerBackStack.add(RegisterRoute.DirectRegister)
-                                    },
-                                ),
-                            pendingCategory =
-                                PendingCategory(
-                                    category = pendingCategory,
-                                    onConsumed = { pendingCategory = null },
                                 ),
                             modifier = Modifier,
                         )
