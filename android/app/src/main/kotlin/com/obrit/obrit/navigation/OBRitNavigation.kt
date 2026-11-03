@@ -115,5 +115,5 @@ fun OBRitNavigation(
 
 private const val ITEM_ADDED_TOAST_FORMAT = "%s을(를) 추가했어요"
 
-// 소모품 추가·온보딩 합의사항 미확정: 온보딩 기능명세서 4.4의 완료 화면 제목을 임시로 쓴다.
+// 완료 화면을 없애면서 온보딩 기능명세서 4.4의 완료 화면 제목을 토스트 문구로 쓴다.
 private const val ONBOARDING_REGISTERED_TOAST_FORMAT = "%d개의 소모품을 등록했어요"
