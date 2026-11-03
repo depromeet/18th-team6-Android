@@ -95,12 +95,7 @@ class ManualRegisterViewModel(
                             durationMs = System.currentTimeMillis() - registerStartedAt,
                         ),
                     )
-                    reduce {
-                        ManualRegisterUiState(
-                            sections = state.sections,
-                            existingNames = state.existingNames + current.name.trim(),
-                        )
-                    }
+                    reduce { state.clearedAfterRegister(current.name) }
                     postSideEffect(ManualRegisterSideEffect.OnRegistered(current.name))
                     loadSections()
                     loadExistingNames()
@@ -157,3 +152,7 @@ sealed interface ManualRegisterSideEffect {
 
 internal const val MANUAL_REGISTER_MIN_QUANTITY = 1
 internal const val MANUAL_REGISTER_MAX_QUANTITY = 99
+
+// ViewModel이 화면을 나가도 남으므로 다음 진입에 이전 입력이 보이지 않게 비운다. 방금 추가한 이름은 중복 검사에 바로 반영한다.
+private fun ManualRegisterUiState.clearedAfterRegister(registeredName: String): ManualRegisterUiState =
+    ManualRegisterUiState(sections = sections, existingNames = existingNames + registeredName.trim())

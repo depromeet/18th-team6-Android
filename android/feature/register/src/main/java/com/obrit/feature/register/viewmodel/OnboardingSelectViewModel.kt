@@ -24,22 +24,17 @@ class OnboardingSelectViewModel(
             OnboardingSelectUiState(),
         ) {
             analyticsLogger.log(OBRitLoggingEvent.OnboardingStart)
-            loadSections()
-            loadCommonIcon()
+            loadCatalog()
         }
 
-    private fun loadSections() =
+    private fun loadCatalog() =
         intent {
             categoryRepository
                 .getCategorySections()
                 .onSuccess { sections ->
                     reduce { state.copy(sections = sections.filterNot { it.isUserSection }) }
                 }
-        }
-
-    // 온보딩 기능명세서 4.3: 새 소모품은 공용 아이콘을 쓴다. 등록 전에도 같은 아이콘으로 보여준다.
-    private fun loadCommonIcon() =
-        intent {
+            // 온보딩 기능명세서 4.3: 새 소모품은 공용 아이콘을 쓴다. 등록 전에도 같은 아이콘으로 보여준다.
             categoryRepository
                 .getCategoryIcons()
                 .onSuccess { icons ->
