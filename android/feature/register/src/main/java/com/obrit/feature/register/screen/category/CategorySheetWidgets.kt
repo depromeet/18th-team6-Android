@@ -122,7 +122,7 @@ internal fun CategoryConfirmButton(
     }
 }
 
-// 소모품 추가·온보딩 합의사항 미확정: 입력 폼에 넣기만 하는 버튼이라 '추가하기' 대신 임시로 쓰는 문구.
+// 입력 폼에 넣기만 하는 버튼이라 입력 폼의 '추가하기'와 구분한다.
 private const val CATEGORY_SHEET_CTA_LABEL = "선택하기"
 private const val CATEGORY_SHEET_ADD_LABEL = "추가하기"
 private const val CATEGORY_HEADER_SOLID_STOP = 0.8f
