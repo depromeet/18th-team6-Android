@@ -5,15 +5,18 @@ struct OnboardingView: View {
     @State private var snackbar: OnboardingSnackbarPresentation?
     @State private var snackbarDismissTask: Task<Void, Never>?
 
+    var refreshCenter: AppRefreshCenter?
     let onBack: () -> Void
     let onComplete: () -> Void
 
     init(
         viewModelFactory: @MainActor @escaping () -> OnboardingViewModel = { OnboardingViewModel() },
+        refreshCenter: AppRefreshCenter? = nil,
         onBack: @escaping () -> Void,
         onComplete: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.refreshCenter = refreshCenter
         self.onBack = onBack
         self.onComplete = onComplete
     }
@@ -77,7 +80,7 @@ struct OnboardingView: View {
                     action: action
                 )
             case .complete:
-                OnboardingCompleteView(action: action)
+                OnboardingMessageView(title: "등록을 마무리하고 있어요")
             }
         }
     }
@@ -88,6 +91,7 @@ struct OnboardingView: View {
             onBack: handleBack,
             onRetry: viewModel.retry,
             onToggleOption: viewModel.toggleOption,
+            onSelectGroup: viewModel.selectGroup,
             onUpdateItemName: { option, name in
                 viewModel.updateItemName(name, for: option)
             },
@@ -104,7 +108,10 @@ struct OnboardingView: View {
                 viewModel.updateQuantity(quantity, for: option)
             },
             onNext: viewModel.moveNext,
-            onComplete: onComplete
+            onComplete: onComplete,
+            onUpdateSearchQuery: viewModel.updateSearchQuery,
+            onSubmitSearch: { viewModel.submitSearch($0) },
+            onAddSearchItem: viewModel.addSearchItem
         )
     }
 
@@ -119,6 +126,9 @@ struct OnboardingView: View {
         defer { viewModel.clearEffect() }
 
         switch effect {
+        case let .registered(count):
+            refreshCenter?.showRegistrationSuccess("\(count)개의 소모품을 등록했어요")
+            onComplete()
         case let .showMessage(message):
             showSnackbar(message)
         }

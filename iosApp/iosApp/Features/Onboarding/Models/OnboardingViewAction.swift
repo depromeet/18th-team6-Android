@@ -3,6 +3,7 @@ struct OnboardingViewAction {
     let onBack: () -> Void
     let onRetry: () -> Void
     let onToggleOption: (OnboardingItemOption) -> Void
+    let onSelectGroup: (OnboardingCategoryGroup) -> Void
     let onUpdateItemName: (OnboardingItemOption, String) -> Void
     let onSelectReplacementPeriod: (OnboardingItemOption, OnboardingReplacementPeriod) -> Void
     let onDecrementQuantity: (OnboardingItemOption) -> Void
@@ -10,4 +11,7 @@ struct OnboardingViewAction {
     let onUpdateQuantity: (OnboardingItemOption, Int) -> Void
     let onNext: () -> Void
     let onComplete: () -> Void
+    var onUpdateSearchQuery: (String) -> Void = { _ in }
+    var onSubmitSearch: (String?) -> Void = { _ in }
+    var onAddSearchItem: () -> Void = {}
 }

@@ -16,7 +16,7 @@ class SharedWriteService(
     @Throws(Throwable::class)
     suspend fun createCategory(
         name: String,
-        iconId: Long,
+        iconId: Long? = null,
     ): Category =
         repositoryProvider
             .categoryRepository()
@@ -167,6 +167,6 @@ class SharedWriteService(
 
 private fun CreateItemParams.validatedForCreate(): CreateItemParams {
     val quantity = spareQuantity ?: return this
-    require(quantity > 0) { "spareQuantity must be greater than 0." }
+    require(quantity >= 0) { "spareQuantity must be greater than or equal to 0." }
     return this
 }

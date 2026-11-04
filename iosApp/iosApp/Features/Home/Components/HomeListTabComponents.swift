@@ -135,7 +135,7 @@ private struct HomeListPinnedTopOverlay: View {
                 Color.clear.frame(height: safeAreaTop)
                 OBRitHomeTopBar.transparent(
                     showNotificationButton: true,
-                    showProfileButton: true,
+                    showProfileButton: false,
                     onSearchClick: action.onSearch,
                     onNotificationClick: action.onNotification,
                     onProfileClick: action.onProfile,

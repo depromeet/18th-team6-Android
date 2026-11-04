@@ -3,6 +3,8 @@ import Foundation
 struct ItemRegistrationCatalog: Equatable {
     let itemKinds: [ItemKind]
     let imageOptions: [ItemImageOption]
+    var categoryGroups: [ItemKindGroup] = []
+    var existingItemNames: [String] = []
 }
 
 protocol ItemRegistrationCatalogRepository {
@@ -10,7 +12,7 @@ protocol ItemRegistrationCatalogRepository {
 }
 
 protocol ItemRegistrationWriteRepository {
-    func createKind(name: String, imageOption: ItemImageOption) async throws -> ItemKind
+    func createKind(name: String) async throws -> ItemKind
     func createItem(request: ItemRegistrationCreateItemRequest) async throws
     func createItems(request: ItemRegistrationCreateItemsRequest) async throws
 }
@@ -25,12 +27,12 @@ struct ItemRegistrationSampleCatalogRepository: ItemRegistrationCatalogRepositor
 }
 
 actor ItemRegistrationSampleWriteRepository: ItemRegistrationWriteRepository {
-    func createKind(name: String, imageOption: ItemImageOption) async throws -> ItemKind {
+    func createKind(name: String) async throws -> ItemKind {
         ItemKind(
             id: ItemRegistrationConfig.emptyIDBase,
             title: name,
             addedCount: ItemRegistrationConfig.newKindInitialAddedCount,
-            imageURL: imageOption.imageURL
+            imageURL: ""
         )
     }
 

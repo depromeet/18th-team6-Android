@@ -52,6 +52,16 @@ internal class NotificationRemoteDataSourceImpl(
             .requireData()
     }
 
+    override suspend fun markAllAsRead() {
+        val userId = userIdProvider.get()
+        val response =
+            httpClient
+                .put("$NOTIFICATIONS_PATH/read-all") {
+                    userIdHeader(userId)
+                }.body<ApiResponse<Unit>>()
+        check(response.success == true) { response.message.orEmpty().ifBlank { "Failed to mark notifications as read." } }
+    }
+
     override suspend fun getSettings(): NotificationSettingsResponse {
         val userId = userIdProvider.get()
 

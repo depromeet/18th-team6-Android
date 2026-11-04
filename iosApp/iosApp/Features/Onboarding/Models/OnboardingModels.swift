@@ -5,6 +5,15 @@ struct OnboardingItemOption: Identifiable, Equatable {
     let title: String
     let addedCount: Int
     let imageURL: String
+    var categoryGroupId: Int? = nil
+    var isNew = false
+}
+
+struct OnboardingCategoryGroup: Identifiable, Equatable {
+    let id: Int
+    let name: String
+    let displayOrder: Int
+    var isUserDefined = false
 }
 
 enum OnboardingStep: Equatable {
@@ -52,10 +61,9 @@ enum OnboardingReplacementPeriod: Int, CaseIterable, Identifiable, Equatable {
 }
 
 struct OnboardingRegistrationRequest: Equatable {
-    let categoryId: Int
+    let categoryId: Int?
     let name: String
-    let quantity: Int
-    let replacementPeriod: OnboardingReplacementPeriod
+    var newCategoryName: String? = nil
 }
 
 enum OnboardingViewState: Equatable {
@@ -72,6 +80,50 @@ struct OnboardingViewData: Equatable {
     var replacementPeriods: [Int: OnboardingReplacementPeriod]
     var quantities: [Int: Int]
     var isProcessing: Bool
+    var groups: [OnboardingCategoryGroup] = []
+    var selectedGroupId: Int?
+    var searchQuery = ""
+    var submittedSearchQuery: String?
+    var commonIconURL = ""
+
+    static let userGroupId = Int.min
+
+    var visibleGroups: [OnboardingCategoryGroup] {
+        // Empty server groups do not become navigation chips.
+        let nonempty = groups.filter { group in !group.isUserDefined && options.contains { $0.categoryGroupId == group.id && !$0.isNew } }
+        guard options.contains(where: \.isNew) else { return nonempty }
+        return nonempty + [OnboardingCategoryGroup(id: Self.userGroupId, name: "직접 등록", displayOrder: Int.max, isUserDefined: true)]
+    }
+
+    var catalogOptions: [OnboardingItemOption] { options.filter { !$0.isNew } }
+
+    var searchSuggestions: [String] {
+        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty, query != submittedSearchQuery else { return [] }
+        return Array(catalogOptions.filter { $0.title.localizedCaseInsensitiveContains(query) }.map(\.title).prefix(3))
+    }
+
+    var searchResults: [OnboardingItemOption] {
+        guard let query = submittedSearchQuery else { return [] }
+        return catalogOptions.filter { $0.title.localizedCaseInsensitiveContains(query) }
+    }
+
+    var newItemNameError: String? {
+        ItemRegistrationNameRule.error(for: submittedSearchQuery ?? "", existingNames: options.filter(\.isNew).map(\.title))
+    }
+
+    var selectedGroup: OnboardingCategoryGroup? {
+        visibleGroups.first { $0.id == selectedGroupId }
+    }
+
+    var visibleOptions: [OnboardingItemOption] {
+        guard let selectedGroupId else { return [] }
+        return options.filter { $0.categoryGroupId == selectedGroupId }
+    }
+
+    func hasSelection(in group: OnboardingCategoryGroup) -> Bool {
+        options.contains { $0.categoryGroupId == group.id && selectedOptionIds.contains($0.id) }
+    }
 
     var selectedOptions: [OnboardingItemOption] {
         options.filter { selectedOptionIds.contains($0.id) }
