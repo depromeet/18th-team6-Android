@@ -7,6 +7,7 @@ struct AppDependencies {
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
+    let makeNotificationInboxViewModel: @MainActor () -> NotificationInboxViewModel
     let makeNotificationSettingsViewModel: @MainActor () -> NotificationSettingsViewModel
     let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
@@ -50,6 +51,12 @@ struct AppDependencies {
                     repository: SharedHomeListTabRepository(readService: readService),
                     recentKeywordStore: searchRecentKeywordStore
                 )
+            },
+            makeNotificationInboxViewModel: {
+                NotificationInboxViewModel(repository: SharedNotificationInboxRepository(
+                    service: SharedNotificationInboxService(repositoryProvider: repositoryProvider),
+                    readService: readService
+                ))
             },
             makeNotificationSettingsViewModel: {
                 NotificationSettingsViewModel(
@@ -101,6 +108,9 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel()
+            },
+            makeNotificationInboxViewModel: {
+                NotificationInboxViewModel(repository: PreviewNotificationInboxRepository())
             },
             makeNotificationSettingsViewModel: {
                 NotificationSettingsViewModel()
