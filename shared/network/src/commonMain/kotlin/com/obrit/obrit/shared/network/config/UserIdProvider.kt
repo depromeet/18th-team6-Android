@@ -16,7 +16,7 @@ internal class DefaultUserIdProvider(
 
     override suspend fun get(): Long {
         val userId =
-            cachedUserId ?: userIdStorage.load()?.also { savedUserId ->
+            cachedUserId?.takeIf { userIdStorage.supportsInMemoryCache } ?: userIdStorage.load()?.also { savedUserId ->
                 cachedUserId = savedUserId
             } ?: registerUser()
 
