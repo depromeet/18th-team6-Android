@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>OBRitWidgetExtension</key>
+    <true/>
+    <key>OBRitAppGroupIdentifier</key>
+    <string>$(OBRIT_APP_GROUP_IDENTIFIER)</string>
+    <key>UIAppFonts</key>
+    <array>
+        <string>pretendard_semibold.ttf</string>
+    </array>
+    <key>NSExtension</key>
+    <dict>
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.widgetkit-extension</string>
+    </dict>
+</dict>
+</plist>
