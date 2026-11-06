@@ -9,7 +9,7 @@
 - [Model.md](Model.md) - shared model, domain type, typed error 규칙
 - [DependencyInjection.md](DependencyInjection.md) - shared Koin module 구성과 등록 위치 규칙
 - [GradleModule.md](GradleModule.md) - Gradle module, convention plugin, dependency 선언 규칙
-- [Git.md](Git.md) - branch, commit, PR, GitHub Issue 작업 규칙
+- [Git.md](Git.md) - branch, commit, PR, 릴리스와 앱 버전, GitHub Issue 작업 규칙
 
 ## 플랫폼 문서
 
