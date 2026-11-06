@@ -45,6 +45,7 @@ data class NotificationItem(
     // 공지와 옛 알림은 라벨이 없다. 값이 없으면 카드에서 뱃지 자리를 그리지 않는다.
     val badge: String?,
     val timeText: String,
+    val iconUrl: String?,
     val title: String,
     val subtitle: String?,
     val isUnread: Boolean,
@@ -126,6 +127,7 @@ private fun Notification.toItem(timeText: String): NotificationItem =
         entryId = entryId,
         badge = label,
         timeText = timeText,
+        iconUrl = iconUrl,
         title = title,
         subtitle = toSubtitle(),
         isUnread = !isRead,

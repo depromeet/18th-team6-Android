@@ -10,4 +10,6 @@ dependencies {
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
     implementation(projects.shared.designSystem)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
