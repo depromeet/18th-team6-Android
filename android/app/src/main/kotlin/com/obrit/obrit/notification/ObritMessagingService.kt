@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.obrit.feature.notification.NotificationReceivedSignal
 import com.obrit.obrit.MainActivity
 import com.obrit.obrit.navigation.deeplink.OBRIT_DEEP_LINK_KEY
 import com.obrit.obrit.shared.data.repository.NotificationRepository
@@ -30,6 +31,7 @@ import com.obrit.android.core.designsystem.R as DesignSystemR
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class ObritMessagingService : FirebaseMessagingService() {
     private val notificationRepository: NotificationRepository by inject()
+    private val receivedSignal: NotificationReceivedSignal by inject()
 
     /**
      * onRegistered는 FID가 새로 만들어질 때뿐 아니라 auto-init이 켜진 앱 시작 시에도 호출된다.
@@ -65,6 +67,9 @@ class ObritMessagingService : FirebaseMessagingService() {
     // 지금 처리하는 것은 notification 메시지의 포그라운드 수신뿐이다.
     // data-only 메시지도 이 콜백으로 오지만, 서버 payload 스펙이 없어 아직 무엇을 표시할지 정할 수 없다.
     override fun onMessageReceived(message: RemoteMessage) {
+        // 알림함이 떠 있으면 새로 불러오게 한다. 푸시가 도착한 시점에는 서버의 알림함 기록도 이미 만들어져 있다.
+        receivedSignal.notifyReceived()
+
         val notification = message.notification ?: return
         showNotification(
             title = notification.title,

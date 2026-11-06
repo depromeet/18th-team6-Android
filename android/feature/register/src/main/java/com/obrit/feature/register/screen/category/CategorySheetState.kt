@@ -2,32 +2,32 @@ package com.obrit.feature.register.screen.category
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.obrit.feature.register.viewmodel.CategorySection
 import com.obrit.obrit.shared.model.categories.Category
 
 @Composable
-internal fun rememberCategoryDisplayList(
-    categories: List<Category>,
-    confirmedQuery: String,
+internal fun rememberCategorySearchResults(
+    sections: List<CategorySection>,
+    query: String,
 ): List<Category> =
-    remember(categories, confirmedQuery) {
-        if (confirmedQuery.isBlank()) {
-            categories
-        } else {
-            categories.filter { it.name.contains(confirmedQuery, ignoreCase = true) }
-        }
+    remember(sections, query) {
+        sections
+            .flatMap { section -> section.categories }
+            .filter { category -> category.name.contains(query.trim(), ignoreCase = true) }
     }
 
 @Composable
 internal fun rememberCategorySuggestions(
-    categories: List<Category>,
+    sections: List<CategorySection>,
     query: String,
     confirmedQuery: String,
 ): List<Category> =
-    remember(categories, query, confirmedQuery) {
+    remember(sections, query, confirmedQuery) {
         if (query.isBlank() || query == confirmedQuery) {
             emptyList()
         } else {
-            categories
+            sections
+                .flatMap { section -> section.categories }
                 .filter { it.name.contains(query, ignoreCase = true) }
                 .take(MAX_SUGGESTIONS)
         }

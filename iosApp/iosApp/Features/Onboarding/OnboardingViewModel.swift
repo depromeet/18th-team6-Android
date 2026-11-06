@@ -7,6 +7,9 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var effect: OnboardingViewEffect?
 
     private let repository: OnboardingRepository?
+    private let completionStore: OnboardingCompletionStore?
+    private let notificationSetup: (any OnboardingNotificationSetup)?
+    private var registeredOptionIds: Set<Int> = []
     private var data: OnboardingViewData {
         didSet {
             guard data != oldValue else { return }
@@ -17,8 +20,12 @@ final class OnboardingViewModel: ObservableObject {
     init(
         repository: OnboardingRepository? = nil,
         initialOptions: [OnboardingItemOption] = OnboardingDefaults.options,
-        selectedOptionIds: Set<Int> = []
+        initialGroups: [OnboardingCategoryGroup] = OnboardingDefaults.groups,
+        selectedOptionIds: Set<Int> = [],
+        completionStore: OnboardingCompletionStore? = nil,
+        notificationSetup: (any OnboardingNotificationSetup)? = nil
     ) {
+        let groups = Self.sortedGroups(initialGroups)
         let initialData = OnboardingViewData(
             step: .start,
             options: initialOptions,
@@ -26,20 +33,40 @@ final class OnboardingViewModel: ObservableObject {
             itemNames: [:],
             replacementPeriods: [:],
             quantities: [:],
-            isProcessing: false
+            isProcessing: false,
+            groups: groups,
+            selectedGroupId: Self.defaultGroupId(in: groups)
         )
         self.repository = repository
+        self.completionStore = completionStore
+        self.notificationSetup = notificationSetup
         self.data = initialData
         self.state = .success(initialData)
     }
 
+    func selectGroup(_ group: OnboardingCategoryGroup) {
+        guard data.visibleGroups.contains(where: { $0.id == group.id }) else { return }
+        update {
+            $0.selectedGroupId = group.id
+            $0.searchQuery = ""
+            $0.submittedSearchQuery = nil
+        }
+    }
+
     func toggleOption(_ option: OnboardingItemOption) {
+        guard !data.isProcessing, !registeredOptionIds.contains(option.id) else { return }
         update { data in
             if data.selectedOptionIds.contains(option.id) {
                 data.selectedOptionIds.remove(option.id)
                 data.itemNames[option.id] = nil
                 data.replacementPeriods[option.id] = nil
                 data.quantities[option.id] = nil
+                if option.isNew {
+                    data.options.removeAll { $0.id == option.id }
+                    if !data.options.contains(where: \.isNew) {
+                        data.selectedGroupId = data.visibleGroups.first?.id
+                    }
+                }
             } else {
                 data.selectedOptionIds.insert(option.id)
                 data.itemNames[option.id] = option.title
@@ -48,10 +75,40 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
+    func updateSearchQuery(_ query: String) {
+        guard !data.isProcessing else { return }
+        update {
+            $0.searchQuery = query
+            if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { $0.submittedSearchQuery = nil }
+        }
+    }
+
+    func submitSearch(_ suggestion: String? = nil) {
+        guard !data.isProcessing else { return }
+        let query = (suggestion ?? data.searchQuery).trimmingCharacters(in: .whitespacesAndNewlines)
+        update {
+            $0.searchQuery = query
+            $0.submittedSearchQuery = query.isEmpty ? nil : query
+        }
+    }
+
+    func addSearchItem() {
+        guard !data.isProcessing, data.searchResults.isEmpty,
+              data.newItemNameError == nil, let name = data.submittedSearchQuery else { return }
+        update { data in
+            let id = min(data.options.map(\.id).min() ?? 0, 0) - 1
+            data.options.append(OnboardingItemOption(id: id, title: name, addedCount: 0, imageURL: data.commonIconURL, categoryGroupId: OnboardingViewData.userGroupId, isNew: true))
+            data.selectedOptionIds.insert(id)
+            data.selectedGroupId = OnboardingViewData.userGroupId
+            data.searchQuery = ""
+            data.submittedSearchQuery = nil
+        }
+    }
+
     func startOnboarding() {
         guard !data.isProcessing else { return }
 
-        if data.options.isEmpty, let repository {
+        if (data.options.isEmpty || data.groups.isEmpty), let repository {
             state = .loading
             Task {
                 await loadOptionsAndMoveToCategorySelection(using: repository)
@@ -143,14 +200,7 @@ final class OnboardingViewModel: ObservableObject {
         case .start:
             startOnboarding()
         case .categorySelection:
-            guard data.canContinue else { return }
-            update { data in
-                data.selectedOptions.forEach { option in
-                    data.itemNames[option.id] = data.itemName(for: option)
-                    data.quantities[option.id] = data.quantity(for: option)
-                }
-                data.step = .replacementPeriod
-            }
+            submit()
         case .replacementPeriod:
             submit()
         case .complete:
@@ -163,35 +213,32 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     private func submit() {
-        guard data.canContinue else { return }
-        let requests = data.selectedOptions.compactMap { option -> OnboardingRegistrationRequest? in
-            guard let period = data.replacementPeriods[option.id] else { return nil }
-            let name = data.itemName(for: option).trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !name.isEmpty else { return nil }
-            return OnboardingRegistrationRequest(
-                categoryId: option.id,
-                name: name,
-                quantity: data.quantity(for: option),
-                replacementPeriod: period
-            )
-        }
-
-        guard let repository else {
-            update { $0.step = .complete }
-            return
-        }
-
+        guard data.canContinue, !data.selectedOptions.isEmpty else { return }
+        let options = data.selectedOptions
         update { $0.isProcessing = true }
-        Task {
-            await submitTask(requests: requests, repository: repository)
-        }
+        Task { await submitTask(options: options) }
     }
 
     private func loadOptionsAndMoveToCategorySelection(using repository: OnboardingRepository) async {
         do {
-            let options = try await repository.options()
+            async let loadedOptions = repository.options()
+            async let loadedGroups = repository.groups()
+            async let commonIconURL = repository.commonIconURL()
+            let (options, fetchedGroups) = try await (loadedOptions, loadedGroups)
+            let groups = Self.sortedGroups(fetchedGroups.filter { !$0.isUserDefined })
+            let presetIds = Set(groups.map(\.id))
+            let commonIcon = (try? await commonIconURL) ?? ""
             update { data in
-                data.options = options
+                data.options = options.filter { $0.categoryGroupId.map(presetIds.contains) ?? false }
+                data.commonIconURL = commonIcon
+                data.groups = groups
+                if !groups.contains(where: { $0.id == data.selectedGroupId }) {
+                    data.selectedGroupId = Self.defaultGroupId(in: groups)
+                }
+                data.selectedOptionIds.formIntersection(Set(data.options.map(\.id)))
+                if !data.visibleGroups.contains(where: { $0.id == data.selectedGroupId }) {
+                    data.selectedGroupId = data.visibleGroups.first { $0.name == "욕실" }?.id ?? data.visibleGroups.first?.id
+                }
                 data.step = .categorySelection
                 data.isProcessing = false
             }
@@ -200,16 +247,33 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    private func submitTask(
-        requests: [OnboardingRegistrationRequest],
-        repository: OnboardingRepository
-    ) async {
+    private static func sortedGroups(_ groups: [OnboardingCategoryGroup]) -> [OnboardingCategoryGroup] {
+        groups.sorted {
+            if $0.displayOrder == $1.displayOrder { return $0.id < $1.id }
+            return $0.displayOrder < $1.displayOrder
+        }
+    }
+
+    private static func defaultGroupId(in groups: [OnboardingCategoryGroup]) -> Int? {
+        groups.first { $0.name == "욕실" }?.id ?? groups.first?.id
+    }
+
+    private func submitTask(options: [OnboardingItemOption]) async {
         do {
-            try await repository.registerItems(requests: requests)
-            update { data in
-                data.step = .complete
-                data.isProcessing = false
+            let pending = options.filter { !registeredOptionIds.contains($0.id) }
+            for start in stride(from: 0, to: pending.count, by: 20) {
+                let batch = Array(pending[start..<min(start + 20, pending.count)])
+                let requests = batch.map { option in
+                    OnboardingRegistrationRequest(categoryId: option.isNew ? nil : option.id, name: option.title, newCategoryName: option.isNew ? option.title : nil)
+                }
+                try await repository?.registerItems(requests: requests)
+                registeredOptionIds.formUnion(batch.map(\.id))
             }
+            // Persist before presenting OS permission so an interrupted prompt never re-registers items.
+            completionStore?.markCompleted()
+            await notificationSetup?.enableAndRequestPermission()
+            update { $0.isProcessing = false }
+            effect = .registered(options.count)
         } catch {
             update { $0.isProcessing = false }
             effect = .showMessage(error.onboardingMessage)
@@ -225,12 +289,13 @@ final class OnboardingViewModel: ObservableObject {
 
 enum OnboardingViewEffect: Equatable {
     case showMessage(String)
+    case registered(Int)
 }
 
 private extension Error {
     var onboardingMessage: String {
         if self is CreateItemError.DuplicatedName {
-            return "이미 사용중인 이름이에요."
+            return ItemRegistrationNameRule.duplicateMessage
         }
 
         if let localizedError = self as? LocalizedError,

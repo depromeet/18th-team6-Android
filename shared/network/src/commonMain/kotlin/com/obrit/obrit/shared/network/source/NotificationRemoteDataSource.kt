@@ -13,6 +13,8 @@ interface NotificationRemoteDataSource {
 
     suspend fun markAsRead(notificationId: Long): MarkReadNotificationResponse
 
+    suspend fun markAllAsRead()
+
     suspend fun getSettings(): NotificationSettingsResponse
 
     suspend fun updateSettings(request: UpdateNotificationSettingsRequest): NotificationSettingsResponse

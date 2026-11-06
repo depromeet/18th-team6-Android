@@ -7,6 +7,7 @@ struct AppDependencies {
     let makeHomeViewModel: @MainActor () -> HomeViewModel
     let makeHomeListTabViewModel: @MainActor () -> HomeListTabViewModel
     let makeSearchViewModel: @MainActor () -> SearchViewModel
+    let makeNotificationInboxViewModel: @MainActor () -> NotificationInboxViewModel
     let makeNotificationSettingsViewModel: @MainActor () -> NotificationSettingsViewModel
     let makeOnboardingViewModel: @MainActor () -> OnboardingViewModel
     let makeItemRegistrationViewModel: @MainActor () -> ItemRegistrationViewModel
@@ -16,6 +17,7 @@ struct AppDependencies {
 
     static var live: AppDependencies {
         let refreshCenter = AppRefreshCenter()
+        let completionStore = UserDefaultsOnboardingCompletionStore()
         let repositoryProvider = SharedRepositoryProvider()
         let readService = SharedReadService(repositoryProvider: repositoryProvider)
         let writeService = SharedWriteService(repositoryProvider: repositoryProvider)
@@ -33,7 +35,7 @@ struct AppDependencies {
 
         return AppDependencies(
             refreshCenter: refreshCenter,
-            onboardingCompletionStore: UserDefaultsOnboardingCompletionStore(),
+            onboardingCompletionStore: completionStore,
             makeHomeViewModel: {
                 HomeViewModel(
                     repository: SharedHomeDashboardRepository(readService: readService)
@@ -50,6 +52,12 @@ struct AppDependencies {
                     recentKeywordStore: searchRecentKeywordStore
                 )
             },
+            makeNotificationInboxViewModel: {
+                NotificationInboxViewModel(repository: SharedNotificationInboxRepository(
+                    service: SharedNotificationInboxService(repositoryProvider: repositoryProvider),
+                    readService: readService
+                ))
+            },
             makeNotificationSettingsViewModel: {
                 NotificationSettingsViewModel(
                     repository: SharedNotificationPreferencesRepository(service: notificationSettingsService)
@@ -61,7 +69,10 @@ struct AppDependencies {
                         readService: readService,
                         writeService: writeService
                     ),
-                    initialOptions: []
+                    initialOptions: [],
+                    initialGroups: [],
+                    completionStore: completionStore,
+                    notificationSetup: LiveOnboardingNotificationSetup(repository: SharedNotificationPreferencesRepository(service: notificationSettingsService))
                 )
             },
             makeItemRegistrationViewModel: {
@@ -97,6 +108,9 @@ struct AppDependencies {
             },
             makeSearchViewModel: {
                 SearchViewModel()
+            },
+            makeNotificationInboxViewModel: {
+                NotificationInboxViewModel(repository: PreviewNotificationInboxRepository())
             },
             makeNotificationSettingsViewModel: {
                 NotificationSettingsViewModel()

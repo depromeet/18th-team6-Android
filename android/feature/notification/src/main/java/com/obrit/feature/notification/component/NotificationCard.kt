@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.obrit.android.core.designsystem.component.badge.BadgeType
 import com.obrit.android.core.designsystem.component.badge.OBRitBadge
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
@@ -37,6 +39,8 @@ internal fun NotificationCard(
     // 서버가 알림 유형과 D-day를 아직 주지 않는다. 값이 없으면 뱃지 자리를 그리지 않는다.
     badge: String?,
     timeText: String,
+    // 공지, 카테고리가 지워진 소모품, 옛 알림은 아이콘이 없어 회색 원만 그린다.
+    iconUrl: String?,
     title: String,
     subtitle: String?,
     isUnread: Boolean,
@@ -107,7 +111,16 @@ internal fun NotificationCard(
                             .size(NotificationThumbnailSize)
                             .clip(CircleShape)
                             .background(colors.gray750),
-                )
+                ) {
+                    if (iconUrl != null) {
+                        AsyncImage(
+                            model = iconUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                }
                 Text(
                     text = title,
                     style = typography.xl.copy(fontWeight = FontWeight.SemiBold),
@@ -147,6 +160,7 @@ private fun NotificationCardPreview() {
         NotificationCard(
             badge = "교체 D+3",
             timeText = "2시간전",
+            iconUrl = null,
             title = "칫솔 교체 시기가 지난 지 3일 째예요",
             subtitle = "다음 예상 교체일 : 5월 24일",
             isUnread = true,
@@ -162,6 +176,7 @@ private fun NotificationCardWithoutSubtitlePreview() {
         NotificationCard(
             badge = null,
             timeText = "3일 전",
+            iconUrl = null,
             title = "면도기 여분이 1개 남았어요",
             subtitle = null,
             isUnread = false,

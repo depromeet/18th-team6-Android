@@ -3,6 +3,9 @@ import SwiftUI
 
 struct ReceiptAnalyzeView: View {
     @StateObject private var viewModel: ReceiptAnalyzeViewModel
+    @StateObject private var kindPicker: ItemRegistrationViewModel
+    @State private var showsKindPicker = false
+    @State private var additionalItems: [ReceiptAnalyzeResultItem] = []
     @StateObject private var cameraController = ReceiptCameraController()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isPhotoPickerPresented = false
@@ -17,11 +20,13 @@ struct ReceiptAnalyzeView: View {
     @MainActor
     init(
         viewModelFactory: @MainActor @escaping () -> ReceiptAnalyzeViewModel,
+        kindPickerFactory: @MainActor @escaping () -> ItemRegistrationViewModel = { ItemRegistrationViewModel() },
         onBack: @escaping () -> Void,
         onDirectRegistration: @escaping () -> Void,
         onComplete: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModelFactory())
+        _kindPicker = StateObject(wrappedValue: kindPickerFactory())
         self.onBack = onBack
         self.onDirectRegistration = onDirectRegistration
         self.onComplete = onComplete
@@ -60,6 +65,11 @@ struct ReceiptAnalyzeView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .overlay {
+            if showsKindPicker {
+                ItemKindPickerOverlay(viewModel: kindPicker, onDismiss: { showsKindPicker = false }, onSelect: appendKind)
+            }
+        }
         .photosPicker(
             isPresented: $isPhotoPickerPresented,
             selection: $selectedPhotoItem,
@@ -75,6 +85,7 @@ struct ReceiptAnalyzeView: View {
                     currentResult = result
                     successStep = .analysisResult
                     removedResultItemIDs = []
+                    additionalItems = []
                     viewModel.clearRegistrationError()
                 }
                 return
@@ -110,14 +121,14 @@ struct ReceiptAnalyzeView: View {
             switch successStep {
             case .analysisResult:
                 ReceiptAnalyzeResultView(
-                    result: result,
+                    result: ReceiptAnalyzeResult(receiptImageURL: result.receiptImageURL, purchasedDate: result.purchasedDate, items: result.items + additionalItems),
                     removedItemIDs: removedResultItemIDs,
                     onRemoveItem: removeResultItem,
                     onNextStep: { detailResult in
                         successStep = .detailInput(detailResult)
                         viewModel.clearRegistrationError()
                     },
-                    onDirectRegistration: onDirectRegistration
+                    onDirectRegistration: { showsKindPicker = true }
                 )
             case let .detailInput(detailResult):
                 ReceiptAnalyzeDetailInputView(
@@ -136,6 +147,14 @@ struct ReceiptAnalyzeView: View {
                 onDirectRegistration: onDirectRegistration
             )
         }
+    }
+
+    private func appendKind(_ kind: ItemKind) {
+        guard case let .success(result) = viewModel.state else { return }
+        let id = ((result.items + additionalItems).map(\.id).max() ?? 0) + 1
+        let name = ItemRegistrationNameRule.availableName(for: kind.title, existingNames: (result.items + additionalItems).map(\.suggestedName))
+        additionalItems.append(ReceiptAnalyzeResultItem(id: id, suggestedName: name, suggestedCategoryName: kind.title, categoryId: kind.id, iconURL: kind.imageURL, quantity: 1, suggestedReplacementIntervalDays: 30))
+        showsKindPicker = false
     }
 
     private func loadPhoto(_ item: PhotosPickerItem) {

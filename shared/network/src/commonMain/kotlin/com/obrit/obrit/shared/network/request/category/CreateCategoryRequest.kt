@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateCategoryRequest(
     @SerialName("name") val name: String,
-    @SerialName("iconId") val iconId: Long,
+    @SerialName("iconId") val iconId: Long? = null,
 )
