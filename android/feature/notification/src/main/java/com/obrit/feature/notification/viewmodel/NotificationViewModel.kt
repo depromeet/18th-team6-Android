@@ -55,10 +55,14 @@ data class NotificationItem(
 class NotificationViewModel internal constructor(
     private val notificationRepository: NotificationRepository,
 ) : BaseContainerHost<NotificationUiState, NotificationSideEffect>() {
-    override val container =
-        container<NotificationUiState, NotificationSideEffect>(NotificationUiState.Loading) {
-            loadNotifications()
-        }
+    override val container = container<NotificationUiState, NotificationSideEffect>(NotificationUiState.Loading)
+
+    /**
+     * 알림함이 보일 때마다 부른다. 이 ViewModel은 화면을 닫아도 Activity에 남아 있어서
+     * 처음 한 번만 불러오면 그 뒤에 도착한 알림이 목록에 나오지 않는다.
+     * 이미 보여주던 목록은 그대로 둔 채 새로 받아서 다시 들어올 때 로딩 화면이 깜빡이지 않는다.
+     */
+    fun refresh() = intent { loadNotifications() }
 
     fun retryLoad() =
         intent {
@@ -87,7 +91,8 @@ class NotificationViewModel internal constructor(
             .onSuccess { notifications ->
                 reduce { NotificationUiState.Success(notifications.toGroups(LocalDateTime.now())) }
             }.onFailure {
-                reduce { NotificationUiState.LoadFailed }
+                // 새로고침에 실패하면 보여주던 목록을 지우지 않는다.
+                if (state !is NotificationUiState.Success) reduce { NotificationUiState.LoadFailed }
             }
     }
 }
