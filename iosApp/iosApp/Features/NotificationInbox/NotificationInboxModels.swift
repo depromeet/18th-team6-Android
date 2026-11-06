@@ -6,6 +6,7 @@ struct NotificationInboxCard: Identifiable, Equatable {
     let title: String
     let content: String?
     let itemName: String?
+    var iconURL: String?
     let label: String?
     let nextReplacementDate: String?
     let hasLowStock: Bool

@@ -66,6 +66,7 @@ fun NotificationResponse.toNotifications(): List<Notification> =
                 heading = card.title,
                 content = card.content,
                 itemName = card.itemName,
+                iconUrl = card.iconUrl,
             )
         }
     }

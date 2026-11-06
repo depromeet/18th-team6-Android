@@ -25,4 +25,6 @@ data class Notification(
     val heading: String? = null,
     val content: String? = null,
     val itemName: String? = null,
+    /** 소모품 카테고리 아이콘 URL. 공지, 카테고리가 지워진 소모품, 카드 저장 이전의 옛 알림은 null이다. */
+    val iconUrl: String? = null,
 )

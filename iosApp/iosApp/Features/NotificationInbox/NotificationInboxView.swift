@@ -185,7 +185,13 @@ private struct NotificationInboxCardView: View {
                 }
                 VStack(alignment: .leading, spacing: OBRitSpacing.s2) {
                     HStack(spacing: OBRitSpacing.s2_5) {
-                        Circle().fill(OBRitColors.gray750).frame(width: 32, height: 32)
+                        ZStack {
+                            Circle()
+                                .fill(OBRitColors.gray750)
+                            OBRitRemoteImage(urlString: card.iconURL ?? "")
+                        }
+                        .frame(width: 32, height: 32)
+                        .clipShape(Circle())
                         Text(card.title)
                             .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.semiBold, color: OBRitColors.common00)
                     }

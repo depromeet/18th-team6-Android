@@ -18,6 +18,7 @@ actor SharedNotificationInboxRepository: NotificationInboxRepository {
                 title: $0.heading ?? $0.title,
                 content: $0.content,
                 itemName: $0.itemName,
+                iconURL: $0.iconUrl,
                 label: $0.label,
                 nextReplacementDate: $0.nextReplacementDate,
                 hasLowStock: $0.hasLowStock,
