@@ -10,7 +10,7 @@ public struct OBRitSlider: View {
     public init(
         value: Double,
         enabled: Bool = true,
-        valueRange: ClosedRange<Double> = 0...1,
+        valueRange: ClosedRange<Double> = 0 ... 1,
         onValueChange: @escaping (Double) -> Void,
         onValueChangeFinished: (() -> Void)? = nil
     ) {
@@ -80,7 +80,7 @@ public struct OBRitSlider: View {
     private var normalizedFraction: Double {
         let span = valueRange.upperBound - valueRange.lowerBound
         guard span > 0 else { return 0 }
-        return ((value - valueRange.lowerBound) / span).clamped(to: 0...1)
+        return ((value - valueRange.lowerBound) / span).clamped(to: 0 ... 1)
     }
 }
 

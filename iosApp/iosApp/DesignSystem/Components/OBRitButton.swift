@@ -1,10 +1,20 @@
 import SwiftUI
-import Shared
 
 public enum OBRitFilledButtonSize {
     case large
     case middle
     case small
+
+    public var height: CGFloat {
+        switch self {
+        case .large:
+            return 60
+        case .middle:
+            return 46
+        case .small:
+            return 38
+        }
+    }
 }
 
 public enum OBRitFilledButtonColor {
@@ -42,7 +52,7 @@ public struct OBRitFilledButton<Content: View>: View {
             HStack(spacing: OBRitSpacing.s0_5) {
                 content(contentColor)
             }
-            .frame(minHeight: height)
+            .frame(height: size.height)
             .padding(.horizontal, horizontalPadding)
             .frame(maxWidth: fillsWidth ? .infinity : nil)
             .background(containerColor)
@@ -55,17 +65,6 @@ public struct OBRitFilledButton<Content: View>: View {
 
     var textToken: OBRitTypography.TextToken {
         size == .small ? OBRitTypography.base : OBRitTypography.xl
-    }
-
-    private var height: CGFloat {
-        switch size {
-        case .large:
-            return OBRitSpacing.s14
-        case .middle:
-            return 46
-        case .small:
-            return 38
-        }
     }
 
     private var horizontalPadding: CGFloat {
@@ -104,11 +103,11 @@ public struct OBRitFilledButton<Content: View>: View {
     private var contentColor: Color {
         switch color {
         case .green:
-            return OBRitColors.common100
+            return OBRitColors.common1000
         case .gray:
             return enabled ? OBRitColors.common00 : OBRitColors.gray700
         case .white:
-            return enabled ? OBRitColors.common100 : OBRitColors.color(0xFF24242A)
+            return enabled ? OBRitColors.common1000 : OBRitColors.gray850
         }
     }
 }
@@ -163,7 +162,7 @@ public struct OBRitFilledTextButton<LeadingIcon: View, TrailingIcon: View>: View
                 .lineLimit(1)
                 .obritTextStyle(
                     size == .small ? OBRitTypography.base : OBRitTypography.xl,
-                    weight: AtomFontWeight.shared.SemiBold,
+                    weight: OBRitFontWeight.semiBold,
                     color: contentColor
                 )
             if hasTrailingIcon {

@@ -1,0 +1,120 @@
+import SwiftUI
+
+struct ItemNavigation {
+    @MainActor
+    @ViewBuilder
+    static func destination(
+        for route: ItemRoute,
+        dependencies: AppDependencies,
+        onBack: @escaping () -> Void,
+        onNavigate: @escaping (ItemRoute) -> Void,
+        onSetMainRoot: @escaping (MainTab) -> Void
+    ) -> some View {
+        Group {
+            switch route {
+            case .registrationMethod:
+                RegistrationMethodView(
+                    onNavigate: onNavigate,
+                    onBack: onBack
+                )
+            case .receiptAnalyze:
+                ReceiptAnalyzeView(
+                    viewModelFactory: dependencies.makeReceiptAnalyzeViewModel,
+                    kindPickerFactory: dependencies.makeItemRegistrationViewModel,
+                    onBack: onBack,
+                    onDirectRegistration: {
+                        onNavigate(.itemRegistration)
+                    },
+                    onComplete: {
+                        dependencies.refreshCenter.refreshItems()
+                        onSetMainRoot(.home)
+                    }
+                )
+            case .itemRegistration:
+                ItemRegistrationView(
+                    viewModelFactory: dependencies.makeItemRegistrationViewModel,
+                    refreshCenter: dependencies.refreshCenter,
+                    onBack: onBack,
+                    onClose: {
+                        onSetMainRoot(.home)
+                    },
+                    onComplete: {
+                        dependencies.refreshCenter.refreshItems()
+                        onSetMainRoot(.home)
+                    }
+                )
+            case .itemDetailInput:
+                ItemRegistrationView(
+                    viewModelFactory: dependencies.makeItemRegistrationViewModel,
+                    refreshCenter: dependencies.refreshCenter,
+                    onBack: onBack,
+                    onClose: {
+                        onSetMainRoot(.home)
+                    },
+                    onComplete: {
+                        dependencies.refreshCenter.refreshItems()
+                        onSetMainRoot(.home)
+                    }
+                )
+            case .search:
+                SearchView(
+                    viewModelFactory: dependencies.makeSearchViewModel,
+                    onBack: onBack
+                ) { itemId in
+                    onNavigate(.detail(itemId: itemId))
+                }
+            case .filter:
+                RoutePlaceholderView(title: "필터", subtitle: "소모품 목록 필터")
+            case .sort:
+                RoutePlaceholderView(title: "정렬", subtitle: "소모품 목록 정렬")
+            case let .detail(itemId):
+                ItemDetailView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailViewModel,
+                    refreshCenter: dependencies.refreshCenter,
+                    onBack: onBack,
+                    onNavigate: onNavigate,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
+                )
+            case let .statusInfo(itemId):
+                RoutePlaceholderView(title: "상태 정보", subtitle: "소모품 ID \(itemId)")
+            case let .edit(itemId):
+                ItemDetailEditRouteView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailEditViewModel,
+                    onBack: onBack,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
+                )
+            case let .notification(itemId):
+                RoutePlaceholderView(title: "알림", subtitle: "소모품 ID \(itemId) 알림 설정")
+            case let .delete(itemId):
+                RoutePlaceholderView(title: "삭제", subtitle: "소모품 ID \(itemId)")
+            case let .spareEdit(itemId):
+                ItemDetailSpareRouteView(
+                    itemId: itemId,
+                    viewModelFactory: dependencies.makeItemDetailViewModel,
+                    onBack: onBack,
+                    onMutationCompleted: dependencies.refreshCenter.refreshItems
+                )
+            case .replacementComplete:
+                RoutePlaceholderView(title: "교체 완료", subtitle: "상세 화면에서 교체 완료를 기록해주세요")
+            }
+        }
+        .itemRouteBackAction(onBack)
+    }
+}
+
+private struct ItemRouteBackActionModifier: ViewModifier {
+    let onBack: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityAction(.escape, onBack)
+    }
+}
+
+private extension View {
+    func itemRouteBackAction(_ onBack: @escaping () -> Void) -> some View {
+        modifier(ItemRouteBackActionModifier(onBack: onBack))
+    }
+}

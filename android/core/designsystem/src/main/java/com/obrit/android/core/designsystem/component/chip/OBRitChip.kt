@@ -72,7 +72,7 @@ internal fun chipContainerColor(
 internal fun chipContentColor(
     colors: OBRitColor,
     selected: Boolean,
-): Color = if (selected) colors.common100 else colors.common00
+): Color = if (selected) colors.common1000 else colors.common00
 
 private val OBRitChipShape = RoundedCornerShape(AtomRadius.ExtraLarge.dp)
 

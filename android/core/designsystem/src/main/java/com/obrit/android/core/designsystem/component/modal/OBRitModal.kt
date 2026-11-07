@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,8 +31,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
-import com.obrit.android.core.designsystem.component.button.FilledButtonColor
-import com.obrit.android.core.designsystem.component.button.OBRitMiddleFilledTextButton
+import com.obrit.android.core.designsystem.component.button.OBRitButtonDefaults
+import com.obrit.android.core.designsystem.component.button.OBRitMiddleFilledButton
 import com.obrit.android.core.designsystem.component.dim.OBRitDim
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
@@ -158,10 +159,10 @@ private fun OBRitModalButtonRow(
                 modifier = Modifier.width(OBRitModalSecondaryButtonWidth),
             )
         }
-        OBRitMiddleFilledTextButton(
+        OBRitMiddleFilledButton(
             text = primaryButtonText,
             onClick = onPrimaryButtonClick,
-            color = colorScheme.primaryButtonColor,
+            colors = colorScheme.primaryButtonColors,
             modifier =
                 if (secondaryButtonText != null && onSecondaryButtonClick != null) {
                     Modifier.weight(1f)
@@ -325,6 +326,7 @@ private fun OBRitModalPreviewContainer(content: @Composable () -> Unit) {
     }
 }
 
+@Composable
 private fun obritModalColorScheme(
     colors: OBRitColor,
     appearance: OBRitModalAppearance,
@@ -337,7 +339,7 @@ private fun obritModalColorScheme(
                 descriptionColor = colors.gray600,
                 secondaryButtonContainerColor = colors.gray100,
                 secondaryButtonTextColor = colors.gray700,
-                primaryButtonColor = FilledButtonColor.Green,
+                primaryButtonColors = OBRitButtonDefaults.positiveButtonColors(),
             )
         OBRitModalAppearance.Dark ->
             OBRitModalColorScheme(
@@ -346,7 +348,7 @@ private fun obritModalColorScheme(
                 descriptionColor = colors.gray300,
                 secondaryButtonContainerColor = colors.gray750,
                 secondaryButtonTextColor = colors.gray300,
-                primaryButtonColor = FilledButtonColor.Green,
+                primaryButtonColors = OBRitButtonDefaults.positiveButtonColors(),
             )
     }
 
@@ -371,5 +373,5 @@ private data class OBRitModalColorScheme(
     val descriptionColor: Color,
     val secondaryButtonContainerColor: Color,
     val secondaryButtonTextColor: Color,
-    val primaryButtonColor: FilledButtonColor,
+    val primaryButtonColors: ButtonColors,
 )

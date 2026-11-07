@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitInfoSize {
     case large
@@ -67,7 +66,7 @@ public struct OBRitInfo: View {
 
             Text(text)
                 .lineLimit(1)
-                .obritTextStyle(textToken, weight: AtomFontWeight.shared.SemiBold, color: color)
+                .obritTextStyle(textToken, weight: OBRitFontWeight.semiBold, color: color)
         }
     }
 

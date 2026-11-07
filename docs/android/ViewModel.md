@@ -14,12 +14,14 @@ Android ViewModel은 Orbit MVI 패턴을 따른다. 현재 공통 기반 클래�
 - 생성자는 외부에서 직접 만들 필요가 없으면 `internal constructor`를 사용한다.
 - Android `Context`, `Activity`, `Composable` 타입을 ViewModel에 넣지 않는다.
 
+실제 사례는 `android/feature/home`의 `HomeViewModel`이다.
+
 ```kotlin
-class AgentViewModel(
-    private val agentRepository: AgentRepository,
-    private val agentSessionRepository: AgentSessionRepository,
-) : BaseContainerHost<AgentUiState, AgentSideEffect>() {
-    override val container = container<AgentUiState, AgentSideEffect>(AgentUiState.Loading)
+class HomeViewModel internal constructor(
+    private val homeRepository: HomeRepository,
+    private val categoryRepository: CategoryRepository,
+) : BaseContainerHost<HomeUiState, HomeSideEffect>() {
+    override val container = container<HomeUiState, HomeSideEffect>(HomeUiState.Loading)
 }
 ```
 

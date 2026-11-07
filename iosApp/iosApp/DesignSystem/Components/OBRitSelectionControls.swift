@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public struct OBRitNumber: View {
     private let text: String
@@ -17,7 +16,7 @@ public struct OBRitNumber: View {
         Text(text)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.SemiBold, color: contentColor)
+            .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.semiBold, color: contentColor)
             .frame(width: OBRitSpacing.s7, height: OBRitSpacing.s7)
             .background(containerColor)
             .clipShape(Circle())
@@ -28,7 +27,7 @@ public struct OBRitNumber: View {
     }
 
     private var contentColor: Color {
-        selected ? OBRitColors.common100 : OBRitColors.common00
+        selected ? OBRitColors.common1000 : OBRitColors.common00
     }
 }
 
@@ -60,7 +59,7 @@ public struct OBRitPageIndicator: View {
 
     public var body: some View {
         HStack(spacing: OBRitSpacing.s2_5) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(0 ..< count, id: \.self) { index in
                 OBRitIndicatorDot(active: index == selectedIndex)
             }
         }

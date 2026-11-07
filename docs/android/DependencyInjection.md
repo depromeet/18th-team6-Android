@@ -6,12 +6,12 @@ Android presentation layer는 Koin으로 ViewModel과 화면 모듈을 조립한
 
 - Android app 시작 시 `OBRitApplication`에서 `initKoin`을 호출한다.
 - Android context가 필요하면 `androidContext(...)`를 app declaration에서 등록한다.
-- Android 화면/예시 모듈은 app module에서 명시적으로 추가한다.
+- Android 화면 모듈은 app module에서 명시적으로 추가한다.
 
 ```kotlin
 initKoin {
     androidContext(this@OBRitApplication)
-    modules(agentFeatureModule)
+    modules(homeFeatureModule)
 }
 ```
 
@@ -22,10 +22,14 @@ initKoin {
 - module name은 `featureNameModule` 또는 `screenNameModule`처럼 소문자 camelCase로 작성한다.
 - DI 등록만을 위해 ViewModel 생성자나 구현체 visibility를 public으로 넓히지 않는다.
 
+실제 사례는 `android/feature/home`의 `homeFeatureModule`이다.
+
 ```kotlin
-val agentFeatureModule =
+val homeFeatureModule =
     module {
-        viewModelOf(::AgentViewModel)
+        single { SearchHistoryDataSource(androidContext()) }
+        viewModelOf(::HomeViewModel)
+        viewModelOf(::SearchViewModel)
     }
 ```
 

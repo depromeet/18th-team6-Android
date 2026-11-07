@@ -3,15 +3,23 @@ plugins {
     alias(libs.plugins.obrit.android.compose)
     alias(libs.plugins.obrit.android.koin)
     alias(libs.plugins.obrit.android.navigation3)
+    alias(libs.plugins.googleServices)
 }
 
 dependencies {
     implementation(projects.shared)
-    implementation(projects.shared.data)
-    implementation(projects.shared.network)
-    implementation(projects.android.feature.agent)
+    implementation(projects.android.feature.detail)
+    implementation(projects.android.feature.register)
+    implementation(projects.android.feature.home)
+    implementation(projects.android.feature.notification)
+    implementation(projects.android.feature.widget)
     implementation(projects.android.core.designsystem)
     implementation(projects.android.core.ui)
+    implementation(projects.android.core.analytics)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
 
     testImplementation(libs.kotlin.test)
 }

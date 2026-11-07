@@ -1,36 +1,122 @@
 import SwiftUI
 
 struct MainNavigation: View {
-    @State private var selectedTab: MainTab
-    let onNavigateConsumable: (ConsumableRoute) -> Void
-    let onNavigateMyPage: (MyPageRoute) -> Void
+    @State private var isGnbHiddenByContent = false
+    @State private var isGnbDisabledByContent = false
+
+    let selectedTab: MainTab
+    let dependencies: AppDependencies
+    let onNavigateItem: (ItemRoute) -> Void
+    let onShowOnboarding: () -> Void
+    let onSelectMainTab: (MainTab) -> Void
+    let onOpenNotificationSettings: () -> Void
+    let onOpenNotifications: () -> Void
 
     init(
         selectedTab: MainTab,
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void
+        dependencies: AppDependencies,
+        onNavigateItem: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void,
+        onSelectMainTab: @escaping (MainTab) -> Void,
+        onOpenNotificationSettings: @escaping () -> Void,
+        onOpenNotifications: @escaping () -> Void
     ) {
-        _selectedTab = State(initialValue: selectedTab)
-        self.onNavigateConsumable = onNavigateConsumable
-        self.onNavigateMyPage = onNavigateMyPage
+        self.selectedTab = selectedTab
+        self.dependencies = dependencies
+        self.onNavigateItem = onNavigateItem
+        self.onShowOnboarding = onShowOnboarding
+        self.onSelectMainTab = onSelectMainTab
+        self.onOpenNotificationSettings = onOpenNotificationSettings
+        self.onOpenNotifications = onOpenNotifications
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView(
-                onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
-            )
-            .tabItem {
-                Label("홈", systemImage: "house")
-            }
-            .tag(MainTab.home)
+        ZStack(alignment: .bottom) {
+            selectedContent
 
-            ConsumableListTabView(onNavigate: onNavigateConsumable)
-                .tabItem {
-                    Label("리스트", systemImage: "list.bullet")
+            OBRitGnb(selected: selectedTab.gnbItem) { item in
+                onSelectMainTab(item.mainTab)
+            }
+            .padding(.bottom, OBRitSpacing.s6)
+            .opacity(gnbOpacity)
+            .disabled(isGnbDisabledByContent)
+            .allowsHitTesting(!isGnbInteractionDisabled)
+            .accessibilityHidden(isGnbHiddenByContent)
+            .zIndex(1)
+        }
+        .background(OBRitColors.backgroundDefaultDefault)
+        .onChange(of: selectedTab) { _, _ in
+            isGnbHiddenByContent = false
+        }
+    }
+
+    @ViewBuilder
+    private var selectedContent: some View {
+        switch selectedTab {
+        case .home:
+            HomeView(
+                viewModelFactory: dependencies.makeHomeViewModel,
+                refreshCenter: dependencies.refreshCenter,
+                onNavigateItem: onNavigateItem,
+                onShowOnboarding: onShowOnboarding,
+                onOpenNotificationSettings: onOpenNotificationSettings,
+                onOpenNotifications: onOpenNotifications,
+                onShowListTab: {
+                    onSelectMainTab(.homeListTab)
+                },
+                onBottomSheetVisibleChange: { isVisible in
+                    isGnbHiddenByContent = isVisible
+                },
+                onRegisteredItemsAvailabilityChange: { hasRegisteredItems in
+                    isGnbDisabledByContent = !hasRegisteredItems
                 }
-                .tag(MainTab.consumableList)
+            )
+        case .homeListTab:
+            HomeListTab(
+                viewModelFactory: dependencies.makeHomeListTabViewModel,
+                refreshCenter: dependencies.refreshCenter,
+                onNavigate: onNavigateItem,
+                onShowOnboarding: onShowOnboarding,
+                onOpenNotificationSettings: onOpenNotificationSettings,
+                onOpenNotifications: onOpenNotifications,
+                onBottomSheetVisibleChange: { isVisible in
+                    isGnbHiddenByContent = isVisible
+                }
+            )
+        }
+    }
+
+    private var isGnbInteractionDisabled: Bool {
+        isGnbHiddenByContent || isGnbDisabledByContent
+    }
+
+    private var gnbOpacity: Double {
+        if isGnbHiddenByContent {
+            return 0
+        }
+
+        return isGnbDisabledByContent ? 0.45 : 1
+    }
+}
+
+private extension MainTab {
+    var gnbItem: OBRitGnbItem {
+        switch self {
+        case .home:
+            return .home
+        case .homeListTab:
+            return .list
+        }
+    }
+}
+
+private extension OBRitGnbItem {
+    var mainTab: MainTab {
+        switch self {
+        case .home:
+            return .home
+        case .list:
+            return .homeListTab
         }
     }
 }

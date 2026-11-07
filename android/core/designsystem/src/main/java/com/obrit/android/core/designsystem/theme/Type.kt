@@ -6,6 +6,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.obrit.android.core.designsystem.R
 import com.obrit.obrit.shared.designsystem.tokens.atom.typography.AtomText
@@ -85,7 +86,7 @@ private fun obritTextStyle(
 ): TextStyle =
     TextStyle(
         fontFamily = Pretendard,
-        letterSpacing = AtomText.LetterSpacing.sp,
+        letterSpacing = (AtomText.LetterSpacing * 0.01).em,
         fontSize = fontSize.sp,
         lineHeight = lineHeight.sp,
     )

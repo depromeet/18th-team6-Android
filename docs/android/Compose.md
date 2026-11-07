@@ -18,26 +18,35 @@ Android UI는 Compose 기반으로 작성하며 `android/*` 모듈에 둔다. sh
 - `Modifier`는 기본 인자로 받고 최상위 레이아웃에 전달한다.
 - 모든 컴포저블은 `Modifier`를 반드시 매개변수로 받는다.
 
+실제 사례는 `android/feature/home`의 `HomeScreen`이다. navigation으로 나가는 일회성 이벤트는
+side effect로 받아 상위에서 전달받은 콜백으로 넘긴다.
+
 ```kotlin
 @Composable
-fun AgentScreen(
+fun HomeScreen(
+    onSearchClick: () -> Unit,
+    onNotificationClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AgentViewModel = koinViewModel(),
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.collectAsState()
 
-    AgentScreenContent(
+    HomeScreenContent(
         state = state,
-        action = AgentScreenAction(
-            onCreateAgent = viewModel::createAgent,
-            onDeleteAgent = viewModel::deleteAgent,
-            onPatchAgent = viewModel::patchAgent,
-            onAgentClick = viewModel::onAgentClick,
-            onAgentLongClick = viewModel::onAgentLongClick,
-            onMenuClick = viewModel::onMenuClick,
+        action = HomeScreenAction(
+            onSearchClick = viewModel::onSearchClick,
+            onNotificationClick = viewModel::onNotificationClick,
+            onMoreClick = viewModel::onMoreClick,
         ),
         modifier = modifier,
     )
+
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is HomeSideEffect.OnSearchClick -> onSearchClick()
+            is HomeSideEffect.OnNotificationClick -> onNotificationClick()
+        }
+    }
 }
 ```
 

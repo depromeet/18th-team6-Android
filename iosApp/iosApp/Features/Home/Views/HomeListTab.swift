@@ -1,0 +1,97 @@
+import SwiftUI
+
+struct HomeListTab: View {
+    @StateObject private var viewModel: HomeListTabViewModel
+    @ObservedObject private var refreshCenter: AppRefreshCenter
+
+    let onNavigate: (ItemRoute) -> Void
+    let onShowOnboarding: () -> Void
+    let onOpenNotificationSettings: () -> Void
+    let onOpenNotifications: () -> Void
+    let onBottomSheetVisibleChange: (Bool) -> Void
+
+    @MainActor
+    init(
+        viewModelFactory: @MainActor @escaping () -> HomeListTabViewModel,
+        refreshCenter: AppRefreshCenter = AppRefreshCenter(),
+        onNavigate: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void,
+        onOpenNotificationSettings: @escaping () -> Void = {},
+        onOpenNotifications: @escaping () -> Void = {},
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModelFactory())
+        self.refreshCenter = refreshCenter
+        self.onNavigate = onNavigate
+        self.onShowOnboarding = onShowOnboarding
+        self.onOpenNotificationSettings = onOpenNotificationSettings
+        self.onOpenNotifications = onOpenNotifications
+        self.onBottomSheetVisibleChange = onBottomSheetVisibleChange
+    }
+
+    @MainActor
+    init(
+        onNavigate: @escaping (ItemRoute) -> Void,
+        onShowOnboarding: @escaping () -> Void = {},
+        onBottomSheetVisibleChange: @escaping (Bool) -> Void = { _ in }
+    ) {
+        self.init(
+            viewModelFactory: AppDependencies.preview.makeHomeListTabViewModel,
+            refreshCenter: AppDependencies.preview.refreshCenter,
+            onNavigate: onNavigate,
+            onShowOnboarding: onShowOnboarding,
+            onBottomSheetVisibleChange: onBottomSheetVisibleChange
+        )
+    }
+
+    var body: some View {
+        HomeListTabContentView(
+            state: viewModel.state,
+            action: HomeListTabAction(
+                onSearch: { onNavigate(.search) },
+                onNotification: onOpenNotifications,
+                onProfile: onOpenNotificationSettings,
+                onLogoEasterEgg: onShowOnboarding,
+                onRegisterImage: { onNavigate(.receiptAnalyze) },
+                onRegisterDirect: { onNavigate(.itemRegistration) },
+                onSelectItem: { onNavigate(.detail(itemId: $0)) },
+                onRetry: viewModel.reload,
+                onOpenFilterSheet: viewModel.openFilterSheet,
+                onOpenSortSheet: viewModel.openSortSheet,
+                onDismissBottomSheet: viewModel.dismissBottomSheet,
+                onUpdateDraftReplacementDday: viewModel.updateDraftReplacementDday,
+                onUpdateDraftStockCount: viewModel.updateDraftStockCount,
+                onApplyFilters: viewModel.applyFilters,
+                onResetDraftFilters: viewModel.resetDraftFilters,
+                onClearReplacementDdayFilter: viewModel.clearReplacementDdayFilter,
+                onClearStockCountFilter: viewModel.clearStockCountFilter,
+                onSelectSortOption: viewModel.selectSortOption,
+                onLoadNextPageIfNeeded: viewModel.loadNextPageIfNeeded,
+                onFilterBarVisibleChange: viewModel.setFilterBarVisible
+            )
+        )
+        .onAppear {
+            onBottomSheetVisibleChange(viewModel.state.isBottomSheetPresented)
+        }
+        .onChange(of: viewModel.state.isBottomSheetPresented) { _, isPresented in
+            onBottomSheetVisibleChange(isPresented)
+        }
+        .onChange(of: refreshCenter.itemRefreshToken) { _, _ in
+            viewModel.reload()
+        }
+        .onDisappear {
+            onBottomSheetVisibleChange(false)
+        }
+    }
+}
+
+#Preview {
+    HomeListTab(onNavigate: { _ in })
+}
+
+private extension HomeListTabState {
+    var isBottomSheetPresented: Bool {
+        guard case let .success(viewData) = self else { return false }
+        return viewData.bottomSheet != nil
+    }
+}

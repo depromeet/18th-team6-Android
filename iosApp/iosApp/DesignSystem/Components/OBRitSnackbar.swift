@@ -1,5 +1,4 @@
 import SwiftUI
-import Shared
 
 public enum OBRitSnackbarIcon {
     case none
@@ -25,7 +24,7 @@ public struct OBRitSnackbar: View {
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: contentSpacing) {
+        HStack(alignment: .center, spacing: contentSpacing) {
             if hasIcon {
                 OBRitIcon(kind: iconKind, color: iconColor)
                     .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
@@ -35,7 +34,7 @@ public struct OBRitSnackbar: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(hasIcon ? .leading : .center)
                 .frame(width: hasIcon ? nil : OBRitSnackbarMetrics.normalTextWidth)
-                .obritTextStyle(OBRitTypography.base, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                .obritTextStyle(OBRitTypography.base, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
         }
         .padding(.leading, hasIcon ? OBRitSpacing.s3 : OBRitSpacing.s4)
         .padding(.trailing, hasIcon ? OBRitSpacing.s5 : OBRitSpacing.s4)

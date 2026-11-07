@@ -3,7 +3,7 @@ package com.obrit.obrit.shared.designsystem.tokens.atom.color
 object AtomColors {
     object Common {
         const val S00: Long = 0xFFFFFFFF
-        const val S100: Long = 0xFF101213
+        const val S1000: Long = 0xFF101213
     }
 
     object CommonOpacity {

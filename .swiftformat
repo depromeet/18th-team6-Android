@@ -1,0 +1,6 @@
+--disable all
+--enable indent,linebreaks,linebreakAtEndOfFile,trailingSpace,consecutiveBlankLines,spaceAroundOperators
+--indent 4
+--linebreaks lf
+--trimwhitespace always
+--swiftversion 5.0

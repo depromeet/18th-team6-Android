@@ -28,6 +28,7 @@ internal fun Project.configureKotlinMultiplatform() {
         }
 
         iosArm64()
+        iosX64()
         iosSimulatorArm64()
     }
 }

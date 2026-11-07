@@ -4,14 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,7 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.obrit.android.core.designsystem.R
 import com.obrit.android.core.designsystem.theme.LocalOBRitColor
 import com.obrit.android.core.designsystem.theme.LocalOBRitTypography
-import com.obrit.android.core.designsystem.theme.OBRitColor
 import com.obrit.android.core.designsystem.theme.OBRitTheme
 import com.obrit.obrit.shared.designsystem.tokens.atom.radius.AtomRadius
 import com.obrit.obrit.shared.designsystem.tokens.atom.spacing.AtomSpacing
@@ -55,19 +52,20 @@ fun OBRitDropdownMenu(
         ),
 ) {
     val colors = LocalOBRitColor.current
+    val shape = RoundedCornerShape(AtomRadius.Small.dp)
 
     Column(
         modifier =
             modifier
                 .width(IntrinsicSize.Max)
-                .clip(OBRitDropdownMenuShape)
+                .clip(shape)
                 .border(
                     border =
                         BorderStroke(
-                            width = OBRitDropdownBorderWidth,
+                            width = 1.dp,
                             color = colors.gray700,
                         ),
-                    shape = OBRitDropdownMenuShape,
+                    shape = shape,
                 ),
     ) {
         items.forEachIndexed { index, item ->
@@ -101,78 +99,66 @@ fun OBRitDropdown(
     placeholderTextStyle: TextStyle = textStyle,
 ) {
     val colors = LocalOBRitColor.current
+    val shape = RoundedCornerShape(AtomRadius.Middle.dp)
     val borderColor =
-        dropdownBorderColor(
-            colors = colors,
-            inputState = inputState,
-            expanded = expanded,
-        )
-    val displayedText = value.ifEmpty { placeholder }
-    val displayedTextColor =
-        if (value.isEmpty() || !enabled) {
-            colors.gray700
-        } else {
-            colors.common00
+        when {
+            inputState == DropdownInputState.Error -> colors.red300
+            expanded -> colors.gray700
+            else -> Color.Transparent
         }
-    val resolvedTextStyle =
-        if (value.isEmpty()) {
-            placeholderTextStyle
-        } else {
-            textStyle
-        }.copy(color = displayedTextColor)
-    val resolvedSupportingTextStyle =
-        LocalOBRitTypography.current.base.copy(
-            color = colors.red300,
-            fontWeight = FontWeight.SemiBold,
-        )
+    val isPlaceholder = value.isEmpty()
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(OBRitDropdownSupportingGap),
-    ) {
+    Column(modifier = modifier) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = OBRitDropdownMinHeight)
-                    .clip(OBRitDropdownShape)
+                    .clip(shape)
                     .background(containerColor)
-                    .then(
-                        if (borderColor != null) {
-                            Modifier.border(
-                                border =
-                                    BorderStroke(
-                                        width = OBRitDropdownBorderWidth,
-                                        color = borderColor,
-                                    ),
-                                shape = OBRitDropdownShape,
-                            )
-                        } else {
-                            Modifier
-                        },
+                    .border(
+                        border =
+                            BorderStroke(
+                                width = 1.dp,
+                                color = borderColor,
+                            ),
+                        shape = shape,
                     ).clickable(
                         enabled = enabled,
                         onClick = onClick,
                     ).padding(
-                        start = OBRitDropdownStartPadding,
-                        top = OBRitDropdownVerticalPadding,
-                        end = OBRitDropdownEndPadding,
-                        bottom = OBRitDropdownVerticalPadding,
+                        start = 20.dp,
+                        top = 16.dp,
+                        end = 24.dp,
+                        bottom = 16.dp,
                     ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(OBRitDropdownContentGap),
         ) {
             Text(
-                text = displayedText,
+                text = value.ifEmpty { placeholder },
                 modifier = Modifier.weight(1f),
-                style = resolvedTextStyle,
+                style =
+                    if (isPlaceholder) {
+                        placeholderTextStyle
+                    } else {
+                        textStyle
+                    }.copy(
+                        color =
+                            if (isPlaceholder || !enabled) {
+                                colors.gray700
+                            } else {
+                                colors.common00
+                            },
+                    ),
                 maxLines = 1,
             )
 
             Icon(
-                painter = painterResource(id = R.drawable.ic_dropdown_chevron_down),
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_dropdown_chevron_down),
                 contentDescription = null,
-                modifier = Modifier.size(OBRitDropdownChevronSize),
+                modifier =
+                    Modifier
+                        .padding(start = AtomSpacing.S2.dp)
+                        .size(AtomSpacing.S4.dp),
                 tint = Color.Unspecified,
             )
         }
@@ -180,17 +166,22 @@ fun OBRitDropdown(
         if (inputState == DropdownInputState.Error && supportingText.isNotEmpty()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(OBRitDropdownSupportingContentGap),
+                modifier = Modifier.padding(top = AtomSpacing.S3.dp),
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_textfield_exclamation_circle),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_textfield_exclamation_circle),
                     contentDescription = null,
-                    modifier = Modifier.size(OBRitDropdownSupportingIconSize),
+                    modifier = Modifier.size(AtomSpacing.S4.dp),
                     tint = Color.Unspecified,
                 )
                 Text(
                     text = supportingText,
-                    style = resolvedSupportingTextStyle,
+                    style =
+                        LocalOBRitTypography.current.base.copy(
+                            color = colors.red300,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    modifier = Modifier.padding(start = 6.dp),
                 )
             }
         }
@@ -217,12 +208,14 @@ private fun OBRitDropdownItem(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(OBRitDropdownItemHeight)
                 .background(backgroundColor)
                 .clickable(
                     enabled = enabled,
                     onClick = onClick,
-                ).padding(horizontal = OBRitDropdownItemHorizontalPadding),
+                ).padding(
+                    horizontal = 20.dp,
+                    vertical = 16.dp,
+                ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -233,31 +226,6 @@ private fun OBRitDropdownItem(
     }
 }
 
-private fun dropdownBorderColor(
-    colors: OBRitColor,
-    inputState: DropdownInputState,
-    expanded: Boolean,
-): Color? =
-    when {
-        inputState == DropdownInputState.Error -> colors.red300
-        expanded -> colors.gray700
-        else -> null
-    }
-
-private val OBRitDropdownMinHeight = AtomSpacing.S14.dp
-private val OBRitDropdownBorderWidth = AtomSpacing.Px.dp
-private val OBRitDropdownStartPadding = AtomSpacing.S5.dp
-private val OBRitDropdownEndPadding = AtomSpacing.S6.dp
-private val OBRitDropdownVerticalPadding = AtomSpacing.S4.dp
-private val OBRitDropdownContentGap = AtomSpacing.S2.dp
-private val OBRitDropdownSupportingGap = AtomSpacing.S3.dp
-private val OBRitDropdownSupportingContentGap = AtomSpacing.S1_5.dp
-private val OBRitDropdownChevronSize = AtomSpacing.S4.dp
-private val OBRitDropdownSupportingIconSize = AtomSpacing.S4.dp
-private val OBRitDropdownShape = RoundedCornerShape(AtomRadius.Middle.dp)
-private val OBRitDropdownItemHeight = AtomSpacing.S14.dp
-private val OBRitDropdownItemHorizontalPadding = AtomSpacing.S5.dp
-private val OBRitDropdownMenuShape = RoundedCornerShape(AtomRadius.Small.dp)
 private const val OBRIT_DROPDOWN_MENU_PREVIEW_ITEM_COUNT = 6
 
 @Preview(

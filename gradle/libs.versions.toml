@@ -4,8 +4,8 @@ android-compileSdk = "36"
 android-minSdk = "28"
 android-targetSdk = "36"
 app-applicationId = "com.obrit.obrit"
-app-versionCode = "1"
-app-versionName = "1.0"
+app-versionCode = "101000"
+app-versionName = "1.1.0"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.7.1"
 androidx-compose-bom = "2026.03.01"
@@ -23,6 +23,11 @@ orbit = "11.0.0"
 nav3Core = "1.1.1"
 lifecycleViewmodelNav3 = "2.10.0"
 kotlinxSerializationCore = "1.11.0"
+coil = "3.4.0"
+camerax = "1.4.1"
+firebaseBom = "34.18.0"
+googleServices = "4.5.0"
+glance = "1.2.0"
 
 [libraries]
 
@@ -96,6 +101,28 @@ orbit-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orb
 orbit-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" }
 # endregion
 
+# region Coil
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+# endregion
+
+# region Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+# endregion
+
+# region CameraX
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+# endregion
+
+# region Glance
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+# endregion
+
 [plugins]
 
 # region Top-level plugins
@@ -107,6 +134,7 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 obrit-kotlin-multiplatform = { id = "com.obrit.plugin.kotlin.multiplatform" }
 obrit-root = { id = "com.obrit.plugin.root" }
 # endregion

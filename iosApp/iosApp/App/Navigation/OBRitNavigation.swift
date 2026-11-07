@@ -1,57 +1,328 @@
 import SwiftUI
+import UIKit
 
 struct OBRitNavigation: View {
-    @State private var rootRoute = AppRoute.splash
-    @State private var path = NavigationPath()
+    let dependencies: AppDependencies
+    @StateObject private var notificationInbox: NotificationInboxViewModel
+    @ObservedObject private var notificationOpens = NotificationOpenCenter.shared
+    @Environment(\.scenePhase) private var scenePhase
+
+    @State private var rootRoute: AppRoute
+    @State private var selectedMainTab: MainTab
+    @State private var path: NavigationPath
+
+    init(dependencies: AppDependencies = .preview) {
+        self.dependencies = dependencies
+        _notificationInbox = StateObject(wrappedValue: dependencies.makeNotificationInboxViewModel())
+
+        #if DEBUG
+            let debugConfiguration = Self.debugInitialConfiguration(
+                onboardingCompletionStore: dependencies.onboardingCompletionStore
+            )
+            let initialRootRoute = debugConfiguration.rootRoute
+            let initialPath = debugConfiguration.path
+        #else
+            let initialRootRoute = Self.initialRootRoute(
+                onboardingCompletionStore: dependencies.onboardingCompletionStore
+            )
+            let initialPath = NavigationPath()
+        #endif
+        _rootRoute = State(initialValue: initialRootRoute)
+        _selectedMainTab = State(initialValue: initialRootRoute.mainTab ?? .home)
+        _path = State(initialValue: initialPath)
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
             AppNavigation.destination(
                 for: rootRoute,
+                selectedMainTab: selectedMainTab,
+                dependencies: dependencies,
+                notificationInbox: notificationInbox,
                 onSetRoot: setRoot,
+                onSelectMainTab: selectMainTab,
+                onBack: popRoute,
                 onNavigateApp: { navigate(to: $0) },
-                onNavigateConsumable: { navigate(to: $0) },
-                onNavigateMyPage: { navigate(to: $0) }
+                onNavigateItem: { navigate(to: $0) }
             )
+            .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: AppRoute.self) { route in
                 AppNavigation.destination(
                     for: route,
+                    selectedMainTab: selectedMainTab,
+                    dependencies: dependencies,
+                    notificationInbox: notificationInbox,
                     onSetRoot: setRoot,
+                    onSelectMainTab: selectMainTab,
+                    onBack: popRoute,
                     onNavigateApp: { navigate(to: $0) },
-                    onNavigateConsumable: { navigate(to: $0) },
-                    onNavigateMyPage: { navigate(to: $0) }
+                    onNavigateItem: { navigate(to: $0) }
                 )
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
             }
-            .navigationDestination(for: ConsumableRoute.self) { route in
-                ConsumableNavigation.destination(
+            .navigationDestination(for: ItemRoute.self) { route in
+                ItemNavigation.destination(
                     for: route,
+                    dependencies: dependencies,
+                    onBack: popRoute,
                     onNavigate: { navigate(to: $0) },
                     onSetMainRoot: { setRoot(.main($0)) }
                 )
-            }
-            .navigationDestination(for: MyPageRoute.self) { route in
-                MyPageNavigation.destination(
-                    for: route,
-                    onNavigate: { navigate(to: $0) }
-                )
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
             }
         }
+        .overlay(alignment: .bottom) { RegistrationSuccessOverlay(refreshCenter: dependencies.refreshCenter) }
+        .environment(\.notificationUnreadCount, notificationInbox.unreadCount)
+        .task(id: rootRoute) {
+            if rootRoute.mainTab != nil { await notificationInbox.refresh() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, rootRoute.mainTab != nil {
+                Task { await notificationInbox.refresh() }
+            }
+        }
+        .onChange(of: notificationInbox.navigation) { _, navigation in
+            guard let navigation else { return }
+            notificationInbox.clearNavigation()
+            if navigation.resetToHome { setRoot(.main(.home)) }
+            switch navigation.destination {
+            case .home:
+                setRoot(.main(.home))
+                dependencies.refreshCenter.refreshItems()
+            case let .item(id):
+                navigate(to: ItemRoute.detail(itemId: id))
+            }
+        }
+        .onReceive(notificationOpens.$pending) { _ in
+            Task { @MainActor in handlePendingNotification() }
+        }
+        .onChange(of: notificationInbox.isProcessing) { _, processing in
+            if !processing { handlePendingNotification() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .notificationInboxDidReceive)) { _ in
+            Task { await notificationInbox.refresh() }
+        }
+        .onOpenURL { url in
+            notificationInbox.open(notificationId: nil, deepLink: url.absoluteString, resetToHome: true)
+        }
+        .alert("알림", isPresented: Binding(
+            get: { notificationInbox.message != nil },
+            set: { if !$0 { notificationInbox.message = nil } }
+        )) {
+            Button("확인", role: .cancel) { notificationInbox.message = nil }
+        } message: {
+            Text(notificationInbox.message ?? "")
+        }
+        .background(OBRitNavigationBackground.swiftUIColor.ignoresSafeArea())
+        .background(
+            OBRitInteractivePopGestureEnabler(
+                canPop: !path.isEmpty,
+                backgroundColor: OBRitNavigationBackground.uiColor
+            )
+        )
+    }
+
+    private func handlePendingNotification() {
+        guard !notificationInbox.isProcessing, let request = notificationOpens.takeFirst() else { return }
+        notificationInbox.open(notificationId: request.notificationId, deepLink: request.deepLink, resetToHome: true)
     }
 
     private func setRoot(_ route: AppRoute) {
         path = NavigationPath()
+        if let mainTab = route.mainTab {
+            selectedMainTab = mainTab
+        }
         rootRoute = route
     }
 
+    private func selectMainTab(_ tab: MainTab) {
+        path = NavigationPath()
+        selectedMainTab = tab
+    }
+
     private func navigate(to route: AppRoute) {
-        path.append(route)
+        withAnimation(OBRitNavigationAnimation.slide) {
+            path.append(route)
+        }
     }
 
-    private func navigate(to route: ConsumableRoute) {
-        path.append(route)
+    private func navigate(to route: ItemRoute) {
+        withAnimation(OBRitNavigationAnimation.slide) {
+            path.append(route)
+        }
     }
 
-    private func navigate(to route: MyPageRoute) {
-        path.append(route)
+    private func popRoute() {
+        guard !path.isEmpty else {
+            setRoot(.main(.home))
+            return
+        }
+        withAnimation(OBRitNavigationAnimation.slide) {
+            path.removeLast()
+        }
+    }
+
+    #if DEBUG
+        private static func debugInitialConfiguration(
+            onboardingCompletionStore: OnboardingCompletionStore
+        ) -> (rootRoute: AppRoute, path: NavigationPath) {
+            var initialPath = NavigationPath()
+            let route = ProcessInfo.processInfo.environment["OBRIT_INITIAL_ROUTE"]
+
+            switch route {
+            case "notifications":
+                initialPath.append(AppRoute.notifications)
+                return (.main(.home), initialPath)
+            case "notificationSettings":
+                initialPath.append(AppRoute.notificationSettings)
+                return (.main(.home), initialPath)
+            case "onboarding":
+                return (.onboarding, initialPath)
+            case "registrationPrompt":
+                return (.registrationPrompt, initialPath)
+            case "initialItemRegistration":
+                return (.initialItemRegistration, initialPath)
+            case "registrationMethod":
+                initialPath.append(ItemRoute.registrationMethod)
+                return (.main(.home), initialPath)
+            case "itemRegistration":
+                initialPath.append(ItemRoute.itemRegistration)
+                return (.main(.home), initialPath)
+            case "receiptAnalyze":
+                initialPath.append(ItemRoute.receiptAnalyze)
+                return (.main(.home), initialPath)
+            default:
+                return (initialRootRoute(onboardingCompletionStore: onboardingCompletionStore), initialPath)
+            }
+        }
+    #endif
+
+    private static func initialRootRoute(
+        onboardingCompletionStore: OnboardingCompletionStore
+    ) -> AppRoute {
+        onboardingCompletionStore.hasCompletedOnboarding ? .main(.home) : .onboarding
+    }
+}
+
+private extension AppRoute {
+    var mainTab: MainTab? {
+        guard case let .main(tab) = self else { return nil }
+        return tab
+    }
+}
+
+private enum OBRitNavigationAnimation {
+    static let slide = Animation.easeInOut(duration: 0.28)
+}
+
+private enum OBRitNavigationBackground {
+    static let swiftUIColor = OBRitColors.backgroundDefaultDefault
+
+    static var uiColor: UIColor {
+        UIColor(swiftUIColor)
+    }
+}
+
+private struct OBRitInteractivePopGestureEnabler: UIViewControllerRepresentable {
+    let canPop: Bool
+    let backgroundColor: UIColor
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = UIViewController()
+        viewController.view.backgroundColor = backgroundColor
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        uiViewController.view.backgroundColor = backgroundColor
+        context.coordinator.configure(
+            canPop: canPop,
+            backgroundColor: backgroundColor,
+            from: uiViewController
+        )
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private weak var navigationController: UINavigationController?
+        private var canPop = false
+
+        func configure(canPop: Bool, backgroundColor: UIColor, from viewController: UIViewController) {
+            self.canPop = canPop
+
+            DispatchQueue.main.async { [weak self, weak viewController] in
+                guard let self,
+                      let navigationController = viewController?.nearestNavigationController else {
+                    return
+                }
+
+                self.navigationController = navigationController
+                viewController?.view.window?.backgroundColor = backgroundColor
+                navigationController.view.backgroundColor = backgroundColor
+                navigationController.interactivePopGestureRecognizer?.isEnabled = true
+                navigationController.interactivePopGestureRecognizer?.delegate = self
+            }
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            canPop
+        }
+    }
+}
+
+private extension UIViewController {
+    var nearestNavigationController: UINavigationController? {
+        if let navigationController {
+            return navigationController
+        }
+
+        if let parentNavigationController = parent?.nearestNavigationController {
+            return parentNavigationController
+        }
+
+        guard let rootViewController = view.window?.rootViewController,
+              rootViewController !== self else {
+            return nil
+        }
+
+        return rootViewController.firstNavigationControllerInHierarchy
+    }
+
+    var firstNavigationControllerInHierarchy: UINavigationController? {
+        if let navigationController = self as? UINavigationController {
+            return navigationController
+        }
+
+        for child in children {
+            if let navigationController = child.firstNavigationControllerInHierarchy {
+                return navigationController
+            }
+        }
+
+        return presentedViewController?.firstNavigationControllerInHierarchy
+    }
+}
+
+private struct RegistrationSuccessOverlay: View {
+    @ObservedObject var refreshCenter: AppRefreshCenter
+
+    var body: some View {
+        if let success = refreshCenter.registrationSuccess {
+            OBRitSnackbar(message: success.message, icon: .success)
+                .padding(.horizontal, OBRitSpacing.s5)
+                .padding(.bottom, OBRitSpacing.s6)
+                .allowsHitTesting(false)
+                .task(id: success.id) {
+                    try? await Task.sleep(for: .seconds(2.5))
+                    guard !Task.isCancelled else { return }
+                    refreshCenter.dismissRegistrationSuccess(id: success.id)
+                }
+        }
     }
 }

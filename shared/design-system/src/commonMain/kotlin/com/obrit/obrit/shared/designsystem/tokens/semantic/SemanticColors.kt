@@ -39,6 +39,7 @@ object SemanticColors {
 
         object Disabled {
             const val Default: Long = AtomColors.Gray.S700
+            const val ColorDefault: Long = AtomColors.Green.S700
         }
     }
 

@@ -91,7 +91,7 @@ private fun OBRitGnbTabItem(
             painter = painterResource(id = icon),
             contentDescription = null,
             modifier = Modifier.size(iconSize),
-            tint = if (isSelected) colors.common100 else colors.common00,
+            tint = if (isSelected) colors.common1000 else colors.common00,
         )
     }
 }

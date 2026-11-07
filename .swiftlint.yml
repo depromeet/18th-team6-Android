@@ -1,0 +1,45 @@
+included:
+  - iosApp/iosApp
+
+excluded:
+  - iosApp/iosApp/Assets.xcassets
+  - iosApp/iosApp/DesignSystem/Foundation/OBRitDesignTokens.swift
+
+disabled_rules:
+  - cyclomatic_complexity
+  - file_length
+  - function_parameter_count
+  - large_tuple
+  - line_length
+  - trailing_comma
+  - type_body_length
+
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - force_unwrapping
+  - redundant_nil_coalescing
+  - sorted_imports
+
+function_body_length:
+  warning: 40
+  error: 40
+
+identifier_name:
+  min_length:
+    warning: 2
+  excluded:
+    - h
+    - id
+    - w
+    - x
+    - y
+
+type_name:
+  min_length:
+    warning: 3
+  max_length:
+    warning: 60
+    error: 80
+  excluded:
+    - iOSApp

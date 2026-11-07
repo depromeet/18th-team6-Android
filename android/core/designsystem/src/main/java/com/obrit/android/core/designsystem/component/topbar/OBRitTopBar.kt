@@ -17,17 +17,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +52,7 @@ fun OBRitHomeTopBar(
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showAlertAndMyPage: Boolean = false,
 ) {
     TopBarRoot(modifier = modifier) {
         Image(
@@ -68,16 +76,19 @@ fun OBRitHomeTopBar(
                 onClick = onSearchClick,
                 contentDescription = OBRIT_TOP_BAR_SEARCH_DESCRIPTION,
             )
-            TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_bell,
-                onClick = onNotificationClick,
-                contentDescription = OBRIT_TOP_BAR_NOTIFICATION_DESCRIPTION,
-            )
-            TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_person,
-                onClick = onProfileClick,
-                contentDescription = OBRIT_TOP_BAR_PROFILE_DESCRIPTION,
-            )
+
+            if (showAlertAndMyPage) {
+                TopBarIconButton(
+                    iconRes = R.drawable.ic_topbar_bell,
+                    onClick = onNotificationClick,
+                    contentDescription = OBRIT_TOP_BAR_NOTIFICATION_DESCRIPTION,
+                )
+                TopBarIconButton(
+                    iconRes = R.drawable.ic_topbar_person,
+                    onClick = onProfileClick,
+                    contentDescription = OBRIT_TOP_BAR_PROFILE_DESCRIPTION,
+                )
+            }
         }
     }
 }
@@ -94,7 +105,7 @@ fun OBRitCloseTopBar(
         leadingIconRes = R.drawable.ic_topbar_close,
         leadingContentDescription = OBRIT_TOP_BAR_CLOSE_DESCRIPTION,
         onLeadingClick = onCloseClick,
-        onMoreClick = onMoreClick,
+        trailingAction = onMoreClick?.let(::moreTopBarAction),
         modifier = modifier,
     )
 }
@@ -104,25 +115,42 @@ fun OBRitDepthTopBar(
     title: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onMoreClick: (() -> Unit)? = null,
+    trailingAction: OBRitTopBarAction? = null,
 ) {
     TopBarWithTitle(
         title = title,
         leadingIconRes = R.drawable.ic_topbar_arrow_left,
         leadingContentDescription = OBRIT_TOP_BAR_BACK_DESCRIPTION,
         onLeadingClick = onBackClick,
-        onMoreClick = onMoreClick,
+        trailingAction = trailingAction,
         modifier = modifier,
     )
 }
 
+/** 상단바 오른쪽 아이콘 버튼. 화면마다 필요한 아이콘(더보기, 설정 등)이 달라 호출하는 쪽에서 정한다. */
+data class OBRitTopBarAction(
+    @DrawableRes val iconRes: Int,
+    val contentDescription: String?,
+    val onClick: () -> Unit,
+)
+
+private fun moreTopBarAction(onClick: () -> Unit): OBRitTopBarAction =
+    OBRitTopBarAction(
+        iconRes = R.drawable.ic_topbar_more_vert,
+        contentDescription = OBRIT_TOP_BAR_MORE_DESCRIPTION,
+        onClick = onClick,
+    )
+
 @Composable
+@Suppress("LongParameterList")
 fun OBRitSearchTopBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = OBRIT_TOP_BAR_SEARCH_PLACEHOLDER,
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    onSearch: () -> Unit = {},
 ) {
     TopBarRoot(modifier = modifier) {
         TopBarIconButton(
@@ -138,6 +166,8 @@ fun OBRitSearchTopBar(
             query = query,
             onQueryChange = onQueryChange,
             placeholder = placeholder,
+            focusRequester = focusRequester,
+            onSearch = onSearch,
             modifier =
                 Modifier
                     .padding(
@@ -155,7 +185,7 @@ private fun TopBarWithTitle(
     @DrawableRes leadingIconRes: Int,
     leadingContentDescription: String?,
     onLeadingClick: () -> Unit,
-    onMoreClick: (() -> Unit)?,
+    trailingAction: OBRitTopBarAction?,
     modifier: Modifier = Modifier,
 ) {
     TopBarRoot(modifier = modifier) {
@@ -175,11 +205,11 @@ private fun TopBarWithTitle(
                     .align(Alignment.Center)
                     .padding(horizontal = OBRitTopBarTitleHorizontalPadding),
         )
-        if (onMoreClick != null) {
+        if (trailingAction != null) {
             TopBarIconButton(
-                iconRes = R.drawable.ic_topbar_more_vert,
-                onClick = onMoreClick,
-                contentDescription = OBRIT_TOP_BAR_MORE_DESCRIPTION,
+                iconRes = trailingAction.iconRes,
+                onClick = trailingAction.onClick,
+                contentDescription = trailingAction.contentDescription,
                 modifier =
                     Modifier
                         .align(Alignment.CenterEnd)
@@ -248,12 +278,16 @@ private fun TopBarTitle(
     )
 }
 
+// 동일 디자인이 feature/register의 CategorySelectionBottomSheet.kt의 CategorySearchField에도 복사되어 있다.
+// Figma SSOT에 검색창이 정식 컴포넌트로 등록되면 designsystem으로 추출하고 양쪽을 교체할 것.
 @Composable
-@Suppress("LongMethod")
+@Suppress("LongMethod", "LongParameterList")
 private fun TopBarSearchInput(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: TextFieldValue,
+    onQueryChange: (TextFieldValue) -> Unit,
     placeholder: String,
+    focusRequester: FocusRequester,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalOBRitColor.current
@@ -270,6 +304,7 @@ private fun TopBarSearchInput(
         onValueChange = onQueryChange,
         modifier =
             modifier
+                .focusRequester(focusRequester)
                 .clip(RoundedCornerShape(AtomRadius.Middle.dp))
                 .border(
                     width = OBRitTopBarSearchBorderWidth,
@@ -282,13 +317,15 @@ private fun TopBarSearchInput(
         singleLine = true,
         textStyle = textStyle,
         cursorBrush = SolidColor(colors.common00),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
     ) { innerTextField ->
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AtomSpacing.S2.dp),
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                if (query.isEmpty()) {
+                if (query.text.isEmpty()) {
                     Text(
                         text = placeholder,
                         style = placeholderStyle,
@@ -301,7 +338,10 @@ private fun TopBarSearchInput(
                 painter = painterResource(id = R.drawable.ic_topbar_search),
                 contentDescription = null,
                 tint = colors.common00,
-                modifier = Modifier.size(OBRitTopBarIconSize),
+                modifier =
+                    Modifier
+                        .size(OBRitTopBarIconSize)
+                        .clickable(onClick = onSearch),
             )
         }
     }
@@ -357,7 +397,12 @@ private fun OBRitDepthTopBarPreview() {
         OBRitDepthTopBar(
             title = "PageTitle",
             onBackClick = {},
-            onMoreClick = {},
+            trailingAction =
+                OBRitTopBarAction(
+                    iconRes = R.drawable.ic_gear,
+                    contentDescription = null,
+                    onClick = {},
+                ),
         )
     }
 }
@@ -367,7 +412,7 @@ private fun OBRitDepthTopBarPreview() {
 private fun OBRitSearchTopBarPreview() {
     OBRitTopBarPreviewContainer {
         OBRitSearchTopBar(
-            query = "",
+            query = TextFieldValue(""),
             onQueryChange = {},
             onBackClick = {},
         )

@@ -31,6 +31,10 @@ internal fun Project.configureAndroidApplication() {
             getByName("release") {
                 isMinifyEnabled = false
             }
+            getByName("debug") {
+                applicationIdSuffix = ".debug"
+                versionNameSuffix = "-debug"
+            }
         }
 
         compileOptions {

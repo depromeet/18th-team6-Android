@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">OBRit</string>
+    <string name="notification_channel_id" translatable="false">obrit_default</string>
+    <string name="notification_channel_name">소모품 알림</string>
 </resources>

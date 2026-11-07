@@ -1,44 +1,105 @@
 import SwiftUI
-import Shared
 
 public struct OBRitHomeTopBar: View {
+    @State private var logoTapCount = 0
+    @Environment(\.notificationUnreadCount) private var unreadCount
+
     private let backgroundColor: Bool
+    private let showNotificationButton: Bool
+    private let showProfileButton: Bool
     private let onSearchClick: () -> Void
     private let onNotificationClick: () -> Void
     private let onProfileClick: () -> Void
+    private let onLogoEasterEgg: () -> Void
 
     public init(
         backgroundColor: Bool = true,
+        showNotificationButton: Bool = true,
+        showProfileButton: Bool = false,
         onSearchClick: @escaping () -> Void,
         onNotificationClick: @escaping () -> Void,
-        onProfileClick: @escaping () -> Void
+        onProfileClick: @escaping () -> Void,
+        onLogoEasterEgg: @escaping () -> Void = {}
     ) {
         self.backgroundColor = backgroundColor
+        self.showNotificationButton = showNotificationButton
+        self.showProfileButton = showProfileButton
         self.onSearchClick = onSearchClick
         self.onNotificationClick = onNotificationClick
         self.onProfileClick = onProfileClick
+        self.onLogoEasterEgg = onLogoEasterEgg
+    }
+
+    public static func transparent(
+        showNotificationButton: Bool = true,
+        showProfileButton: Bool = false,
+        onSearchClick: @escaping () -> Void,
+        onNotificationClick: @escaping () -> Void,
+        onProfileClick: @escaping () -> Void,
+        onLogoEasterEgg: @escaping () -> Void = {}
+    ) -> OBRitHomeTopBar {
+        OBRitHomeTopBar(
+            backgroundColor: false,
+            showNotificationButton: showNotificationButton,
+            showProfileButton: showProfileButton,
+            onSearchClick: onSearchClick,
+            onNotificationClick: onNotificationClick,
+            onProfileClick: onProfileClick,
+            onLogoEasterEgg: onLogoEasterEgg
+        )
     }
 
     public var body: some View {
         TopBarRoot(backgroundColor: backgroundColor) {
             HStack {
-                Text("OBRit")
-                    .font(.custom("Pretendard-ExtraBold", size: 25))
-                    .foregroundStyle(Color(red: 0.94, green: 0.99, blue: 0.98))
-                    .lineLimit(1)
-                    .accessibilityLabel("OBRit")
+                Button(action: handleLogoClick) {
+                    OBRitLogo()
+                        .frame(width: 69, height: 24, alignment: .leading)
+                        .frame(width: 92, height: OBRitSpacing.s10, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
                 Spacer()
 
                 HStack(spacing: 0) {
                     TopBarIconButton(symbolName: "magnifyingglass", accessibilityLabel: "검색", action: onSearchClick)
-                    TopBarIconButton(symbolName: "bell", accessibilityLabel: "알림", action: onNotificationClick)
-                    TopBarIconButton(symbolName: "person", accessibilityLabel: "프로필", action: onProfileClick)
+                    if showNotificationButton {
+                        Button(action: onNotificationClick) {
+                            Image("home_notification")
+                                .frame(width: OBRitSpacing.s6, height: OBRitSpacing.s6)
+                                .frame(width: OBRitSpacing.s10, height: OBRitSpacing.s10)
+                                .contentShape(RoundedRectangle(cornerRadius: OBRitRadius.extraLarge))
+                                .overlay(alignment: .topTrailing) {
+                                    if unreadCount > 0 {
+                                        Text(unreadCount > 99 ? "99+" : "\(unreadCount)")
+                                            .font(OBRitTypography.font(OBRitTypography.xs, weight: OBRitFontWeight.bold))
+                                            .foregroundStyle(OBRitColors.common00)
+                                            .padding(.horizontal, 4)
+                                            .frame(minWidth: 18, minHeight: 18)
+                                            .background(OBRitColors.red400, in: Capsule())
+                                            .allowsHitTesting(false)
+                                    }
+                                }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("알림함, 읽지 않은 알림 \(unreadCount)개")
+                    }
+                    if showProfileButton {
+                        TopBarIconButton(symbolName: "person.crop.circle", accessibilityLabel: "알림 설정", action: onProfileClick)
+                    }
                 }
             }
             .padding(.leading, OBRitSpacing.s5)
             .padding(.trailing, OBRitSpacing.s3)
         }
+    }
+
+    private func handleLogoClick() {
+        logoTapCount += 1
+        guard logoTapCount >= 3 else { return }
+        logoTapCount = 0
+        onLogoEasterEgg()
     }
 }
 
@@ -120,20 +181,26 @@ public struct OBRitDepthTopBar: View {
 
 public struct OBRitSearchTopBar: View {
     @Binding private var query: String
+    private let searchFocus: FocusState<Bool>.Binding
     private let placeholder: String
     private let backgroundColor: Bool
     private let onBackClick: () -> Void
+    private let onSubmit: () -> Void
 
     public init(
         query: Binding<String>,
+        searchFocus: FocusState<Bool>.Binding,
         placeholder: String = "원하시는 소모품을 검색해보세요",
         backgroundColor: Bool = true,
-        onBackClick: @escaping () -> Void
+        onBackClick: @escaping () -> Void,
+        onSubmit: @escaping () -> Void = {}
     ) {
         self._query = query
+        self.searchFocus = searchFocus
         self.placeholder = placeholder
         self.backgroundColor = backgroundColor
         self.onBackClick = onBackClick
+        self.onSubmit = onSubmit
     }
 
     public var body: some View {
@@ -145,7 +212,10 @@ public struct OBRitSearchTopBar: View {
                     TextField("", text: $query, prompt: Text(placeholder).foregroundStyle(OBRitColors.gray700))
                         .lineLimit(1)
                         .tint(OBRitColors.common00)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Medium, color: OBRitColors.common00)
+                        .submitLabel(.search)
+                        .focused(searchFocus)
+                        .onSubmit(onSubmit)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.medium, color: OBRitColors.common00)
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: OBRitSpacing.s5, weight: .regular))
                         .foregroundStyle(OBRitColors.common00)
@@ -195,7 +265,7 @@ private struct TopBarWithTitle: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(width: 277)
-                        .obritTextStyle(OBRitTypography.xl, weight: AtomFontWeight.shared.Bold, color: OBRitColors.common00)
+                        .obritTextStyle(OBRitTypography.xl, weight: OBRitFontWeight.bold, color: OBRitColors.common00)
                 }
             }
         }
@@ -237,5 +307,16 @@ private struct TopBarIconButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+private struct NotificationUnreadCountKey: EnvironmentKey {
+    static let defaultValue = 0
+}
+
+extension EnvironmentValues {
+    var notificationUnreadCount: Int {
+        get { self[NotificationUnreadCountKey.self] }
+        set { self[NotificationUnreadCountKey.self] = newValue }
     }
 }

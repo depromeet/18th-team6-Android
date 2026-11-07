@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "7653849853",
+    "project_id": "orbit-bde9e",
+    "storage_bucket": "orbit-bde9e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7653849853:android:5db39b262cbfa425535c94",
+        "android_client_info": {
+          "package_name": "com.obrit.obrit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1jZieaOzLY2xrextFMBjcrbBrdHM6ddk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7653849853:android:e61e3e0f36c82d78535c94",
+        "android_client_info": {
+          "package_name": "com.obrit.obrit.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1jZieaOzLY2xrextFMBjcrbBrdHM6ddk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

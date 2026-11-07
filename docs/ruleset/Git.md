@@ -35,7 +35,7 @@ fix/#57-crash-on-startup
 
 ## 커밋 규칙
 
-커밋 메시지는 Conventional Commits를 따른다.
+커밋 메시지는 Conventional Commits를 따른다. type은 영문 convention을 유지하고, summary는 한글로 작성한다.
 
 ```text
 <type>: <summary>
@@ -77,6 +77,36 @@ build: compose compiler 설정 정리
 - UI 또는 동작 변화가 있으면 확인 방법을 구체적으로 적는다.
 - 리뷰에서 수정 요청을 받으면 관련 커밋을 추가하고, 불필요한 변경은 섞지 않는다.
 
+## 릴리스와 앱 버전
+
+출시할 때는 앱 버전을 올리고 `develop` → `main` PR을 만들어 병합한다. 병합 방식은 Merge commit을 쓴다. Squash로 합치면 두 브랜치의 커밋 기록이 갈라져 다음 출시 때 같은 내용으로도 충돌이 난다.
+
+Android 앱 버전은 `gradle/libs.versions.toml`의 `app-versionName`과 `app-versionCode`에서 관리한다.
+
+- `app-versionName`은 `MAJOR.MINOR.PATCH` 형식이다.
+- `app-versionCode`는 `MAJOR / MINOR / PATCH / BUILD`를 이어 붙인 숫자다.
+
+| 자리 | 자릿수 | 범위 |
+| --- | --- | --- |
+| MAJOR | 1 | 1~9 |
+| MINOR | 2 | 00~99 |
+| PATCH | 2 | 00~99 |
+| BUILD | 1 | 0~9 |
+
+계산식은 `MAJOR × 100000 + MINOR × 1000 + PATCH × 10 + BUILD`이다.
+
+| versionName | 상황 | versionCode |
+| --- | --- | --- |
+| 1.0.0 | 1차 출시 | 100000 |
+| 1.0.0 | 같은 버전을 스토어에 다시 올림 | 100001 |
+| 1.0.1 | 패치 | 100010 |
+| 1.1.0 | 마이너 업데이트 | 101000 |
+| 2.0.0 | 메이저 업데이트 | 200000 |
+
+- BUILD는 버전은 그대로 두고 스토어에 다시 올려야 할 때만 올린다. 버전을 올리면 0부터 다시 센다.
+- 스토어는 한 번 올린 versionCode보다 작거나 같은 값을 받지 않으므로 versionCode는 항상 이전보다 커야 한다.
+- iOS 버전은 `iosApp/Configuration/Config.xcconfig`의 `MARKETING_VERSION`과 `CURRENT_PROJECT_VERSION`에서 따로 관리한다.
+
 ## GitHub Issue 운영
 
 - 진행 상황은 GitHub Projects와 Issues로 관리한다.
@@ -106,4 +136,3 @@ build: compose compiler 설정 정리
 - dirty worktree에서는 내가 수정한 파일과 기존 변경분을 구분한다.
 - `git reset --hard`, `git checkout --`, 강제 push 같은 파괴적 명령은 사용자가 명시적으로 요청한 경우에만 수행한다.
 - PR, issue, push 등 원격 작업에는 `gh` CLI를 사용하되, 필요한 권한이나 네트워크 문제가 있으면 사용자에게 알린다.
-

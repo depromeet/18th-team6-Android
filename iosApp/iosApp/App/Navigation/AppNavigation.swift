@@ -1,13 +1,18 @@
 import SwiftUI
 
 struct AppNavigation {
+    @MainActor
     @ViewBuilder
     static func destination(
         for route: AppRoute,
+        selectedMainTab: MainTab,
+        dependencies: AppDependencies,
+        notificationInbox: NotificationInboxViewModel,
         onSetRoot: @escaping (AppRoute) -> Void,
+        onSelectMainTab: @escaping (MainTab) -> Void,
+        onBack: @escaping () -> Void,
         onNavigateApp: @escaping (AppRoute) -> Void,
-        onNavigateConsumable: @escaping (ConsumableRoute) -> Void,
-        onNavigateMyPage: @escaping (MyPageRoute) -> Void
+        onNavigateItem: @escaping (ItemRoute) -> Void
     ) -> some View {
         switch route {
         case .splash:
@@ -23,34 +28,52 @@ struct AppNavigation {
                 }
             }
         case .onboarding:
-            RoutePlaceholderView(title: "온보딩", subtitle: "초기 사용자 안내") {
-                NavigationActionButton("등록 유도") {
-                    onNavigateApp(.registrationPrompt)
+            OnboardingView(
+                viewModelFactory: dependencies.makeOnboardingViewModel,
+                refreshCenter: dependencies.refreshCenter,
+                onBack: onBack,
+                onComplete: {
+                    dependencies.onboardingCompletionStore.markCompleted()
+                    dependencies.refreshCenter.refreshItems()
+                    onSetRoot(.main(.home))
                 }
-            }
+            )
         case .registrationPrompt:
-            RoutePlaceholderView(title: "등록 유도", subtitle: "첫 소모품 등록 안내") {
-                NavigationActionButton("소모품 등록") {
-                    onNavigateApp(.initialConsumableRegistration)
-                }
-                NavigationActionButton("홈 진입") {
+            RegistrationPromptView(
+                onRegister: {
+                    onNavigateApp(.initialItemRegistration)
+                },
+                onSkip: {
                     onSetRoot(.main(.home))
                 }
-            }
-        case .initialConsumableRegistration:
-            RoutePlaceholderView(title: "소모품 등록", subtitle: "초기 등록 플로우 진입") {
-                NavigationActionButton("등록 방식 선택") {
-                    onNavigateConsumable(.registrationMethod)
-                }
-                NavigationActionButton("홈 진입") {
-                    onSetRoot(.main(.home))
-                }
-            }
-        case let .main(selectedTab):
+            )
+        case .initialItemRegistration:
+            RegistrationMethodView(
+                onNavigate: onNavigateItem,
+                onBack: onBack
+            )
+        case .notifications:
+            NotificationInboxView(
+                viewModel: notificationInbox,
+                onBack: onBack,
+                onSettings: { onNavigateApp(.notificationSettings) }
+            )
+        case .notificationSettings:
+            NotificationSettingsView(
+                viewModelFactory: dependencies.makeNotificationSettingsViewModel,
+                onBack: onBack
+            )
+        case .main:
             MainNavigation(
-                selectedTab: selectedTab,
-                onNavigateConsumable: onNavigateConsumable,
-                onNavigateMyPage: onNavigateMyPage
+                selectedTab: selectedMainTab,
+                dependencies: dependencies,
+                onNavigateItem: onNavigateItem,
+                onShowOnboarding: {
+                    onNavigateApp(.onboarding)
+                },
+                onSelectMainTab: onSelectMainTab,
+                onOpenNotificationSettings: { onNavigateApp(.notificationSettings) },
+                onOpenNotifications: { onNavigateApp(.notifications) }
             )
             .navigationBarBackButtonHidden(true)
         }
