@@ -14,7 +14,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEvent
@@ -37,6 +39,13 @@ internal fun <T : Any> OBRitNavDisplay(
         backStack = backStack,
         modifier = modifier.background(colors.gray900),
         onBack = onBack,
+        // ViewModel을 entry마다 두고 pop 시 정리한다. 없으면 모든 ViewModel이 Activity 범위로 남아
+        // 영수증 등록을 다시 열었을 때 이전 분석 결과가 그대로 보인다.
+        entryDecorators =
+            listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
         transitionSpec = obritForwardTransitionSpec(),
         popTransitionSpec = obritPopTransitionSpec(),
         predictivePopTransitionSpec = obritPredictivePopTransitionSpec(),

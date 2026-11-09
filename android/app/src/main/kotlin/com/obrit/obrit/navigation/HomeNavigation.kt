@@ -18,11 +18,13 @@ import com.obrit.feature.detail.screen.DetailScreen
 import com.obrit.feature.home.screen.HomeScreen
 import com.obrit.feature.home.screen.ItemListScreen
 import com.obrit.feature.home.screen.SearchScreen
+import com.obrit.feature.home.viewmodel.HomeViewModel
 import com.obrit.feature.notification.screen.NotificationScreen
 import com.obrit.feature.notification.screen.NotificationSettingsScreen
 import com.obrit.obrit.navigation.deeplink.ObritDeepLink
 import com.obrit.obrit.navigation.deeplink.toObritDeepLink
 import com.obrit.obrit.navigation.route.HomeRoute
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 @Suppress("LongMethod", "LongParameterList")
@@ -37,6 +39,9 @@ fun HomeNavigation(
 ) {
     val homeBackStack = rememberNavBackStack(HomeRoute.Home)
     var detailEditResult by remember { mutableStateOf<DetailEditSubmitResult?>(null) }
+    // 목록 화면은 홈이 불러 둔 목록과 정렬, 필터를 그대로 쓴다. entry마다 ViewModel이 나뉘므로
+    // 홈 그래프 범위에서 하나를 받아 두 화면에 넘긴다.
+    val homeViewModel: HomeViewModel = koinViewModel()
     val currentOnDeepLinkConsume by rememberUpdatedState(onDeepLinkConsume)
 
     // 스택을 비우고 다시 쌓는다. 같은 알림을 여러 번 눌러도 같은 화면이 겹치지 않는다(명세서 8.2).
@@ -69,6 +74,7 @@ fun HomeNavigation(
                         toastMessage = toastMessage,
                         onToastConsume = onToastConsume,
                         modifier = Modifier,
+                        viewModel = homeViewModel,
                     )
                 }
                 entry<HomeRoute.Notification> {
@@ -97,6 +103,7 @@ fun HomeNavigation(
                         onBack = { homeBackStack.removeLastOrNull() },
                         onItemClick = { itemId -> homeBackStack.add(HomeRoute.Detail(itemId.toInt())) },
                         modifier = Modifier,
+                        viewModel = homeViewModel,
                     )
                 }
                 entry<HomeRoute.Detail> { entry ->
